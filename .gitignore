@@ -1,0 +1,13 @@
+# Kiro
+.kiro/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Pytest
+.pytest_cache/
+
+# Hypothesis
+.hypothesis/

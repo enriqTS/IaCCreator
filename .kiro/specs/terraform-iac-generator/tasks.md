@@ -245,7 +245,7 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - **Property 13: IR serialization round-trip**
     - **Validates: Requirements 7.2, 7.3**
 
-- [ ] 11. Final checkpoint - Ensure all tests pass
+- [x] 11. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
