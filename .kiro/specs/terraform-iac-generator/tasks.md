@@ -187,7 +187,7 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - **Property 5: Environment variable consistency**
     - **Validates: Requirements 2.5, 2.7**
 
-  - [ ]* 8.6 Write property test for environment module references
+  - [~] 8.6 Write property test for environment module references
     - **Property 6: Environment module references**
     - **Validates: Requirements 2.6, 2.8**
 
