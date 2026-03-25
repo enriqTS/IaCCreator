@@ -1222,3 +1222,129 @@ def test_property_20_aws_provider_configuration(arch):
         assert "var." in provider_body or "local." in provider_body, (
             f"Environment '{env.name}' provider \"aws\" region is not configurable (should use var. or local.)"
         )
+
+
+# --- Imports for Properties 1, 2, 14 (API endpoint tests) ---
+
+import zipfile
+import io
+
+from fastapi.testclient import TestClient
+from app.main import app as fastapi_app
+
+_client = TestClient(fastapi_app)
+
+
+def _arch_to_payload(arch: ArchitectureDescription) -> dict:
+    """Convert an ArchitectureDescription to a JSON-serializable dict."""
+    return arch.model_dump(mode="json")
+
+
+# --- Property 1: Valid input acceptance ---
+# Feature: terraform-iac-generator, Property 1: Valid input acceptance
+# Validates: Requirements 1.1, 1.4
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_1_valid_input_acceptance(arch):
+    """Any valid ArchitectureDescription with supported service types is accepted without errors."""
+    payload = _arch_to_payload(arch)
+    response = _client.post("/generate/json", json=payload)
+    assert response.status_code == 200, (
+        f"Valid input rejected with status {response.status_code}: {response.text}"
+    )
+    body = response.json()
+    assert "files" in body
+    assert "summary" in body
+
+
+# --- Property 2: Invalid input error reporting ---
+# Feature: terraform-iac-generator, Property 2: Invalid input error reporting
+# Validates: Requirements 1.2
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_2_invalid_input_missing_project_name(arch):
+    """Removing project_name from a valid input yields a 422 identifying the missing field."""
+    payload = _arch_to_payload(arch)
+    del payload["project_name"]
+    response = _client.post("/generate/json", json=payload)
+    assert response.status_code == 422
+    body = response.json()
+    assert "detail" in body
+    field_locs = [str(e.get("loc", "")) for e in body["detail"]]
+    assert any("project_name" in loc for loc in field_locs)
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_2_invalid_input_empty_environments(arch):
+    """Setting environments to an empty list yields a 422."""
+    payload = _arch_to_payload(arch)
+    payload["environments"] = []
+    response = _client.post("/generate/json", json=payload)
+    assert response.status_code == 422
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_2_invalid_input_empty_resources(arch):
+    """Setting resources to an empty list yields a 422."""
+    payload = _arch_to_payload(arch)
+    payload["resources"] = []
+    response = _client.post("/generate/json", json=payload)
+    assert response.status_code == 422
+
+
+# --- Property 14: Output format correctness ---
+# Feature: terraform-iac-generator, Property 14: Output format correctness
+# Validates: Requirements 6.2, 6.3, 6.4
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_14_json_output_format(arch):
+    """JSON endpoint returns files and summary keys with correct counts."""
+    payload = _arch_to_payload(arch)
+    response = _client.post("/generate/json", json=payload)
+    assert response.status_code == 200
+
+    body = response.json()
+    assert "files" in body
+    assert "summary" in body
+
+    summary = body["summary"]
+    assert summary["project_name"] == arch.project_name
+    assert summary["environment_count"] == len(arch.environments)
+    assert summary["module_count"] == len({r.service_type for r in arch.resources})
+    assert summary["resource_instance_count"] == len(arch.resources)
+
+    # Verify file count is non-zero
+    assert len(body["files"]) > 0
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_14_zip_output_format(arch):
+    """ZIP endpoint returns a valid ZIP archive containing all files from the file tree."""
+    payload = _arch_to_payload(arch)
+
+    # Get the JSON response to know expected files
+    json_response = _client.post("/generate/json", json=payload)
+    assert json_response.status_code == 200
+    expected_files = set(json_response.json()["files"].keys())
+
+    # Get the ZIP response
+    zip_response = _client.post("/generate/zip", json=payload)
+    assert zip_response.status_code == 200
+    assert zip_response.headers["content-type"] == "application/zip"
+
+    # Verify it's a valid ZIP
+    buf = io.BytesIO(zip_response.content)
+    with zipfile.ZipFile(buf, "r") as zf:
+        zip_files = set(zf.namelist())
+        assert zip_files == expected_files, (
+            f"ZIP files {zip_files} != expected {expected_files}"
+        )

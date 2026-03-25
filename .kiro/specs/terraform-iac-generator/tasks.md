@@ -207,29 +207,29 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - **Property 20: AWS provider configuration**
     - **Validates: Requirements 5.2**
 
-- [ ] 9. Implement Output Serializer and API Endpoints
-  - [ ] 9.1 Implement OutputSerializer
+- [x] 9. Implement Output Serializer and API Endpoints
+  - [x] 9.1 Implement OutputSerializer
     - Create `app/services/output_serializer.py`
     - Implement `to_zip(file_tree: FileTree) -> bytes` producing a valid ZIP archive
     - Implement `to_json(file_tree: FileTree, summary: GenerationSummary) -> dict` producing JSON with `files` and `summary` keys
     - _Requirements: 6.2, 6.3, 6.4_
 
-  - [ ] 9.2 Implement API endpoints and wire the pipeline
+  - [x] 9.2 Implement API endpoints and wire the pipeline
     - In `app/main.py`, create `POST /generate/zip` endpoint returning `application/zip`
     - Create `POST /generate/json` endpoint returning JSON with file tree and summary
     - Wire the full pipeline: validate → build IR → generate → serialize
     - Add error handling: 422 for validation errors (automatic via Pydantic), 500 for generation failures with descriptive messages
     - _Requirements: 1.1, 1.2, 1.3, 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ] 9.3 Write property test for valid input acceptance
+  - [x] 9.3 Write property test for valid input acceptance
     - **Property 1: Valid input acceptance**
     - **Validates: Requirements 1.1, 1.4**
 
-  - [ ] 9.4 Write property test for invalid input error reporting
+  - [x] 9.4 Write property test for invalid input error reporting
     - **Property 2: Invalid input error reporting**
     - **Validates: Requirements 1.2**
 
-  - [ ] 9.5 Write property test for output format correctness
+  - [x] 9.5 Write property test for output format correctness
     - **Property 14: Output format correctness**
     - **Validates: Requirements 6.2, 6.3, 6.4**
 
