@@ -195,15 +195,15 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - **Property 7: Service module file structure and content**
     - **Validates: Requirements 3.3, 3.4, 3.5, 3.6**
 
-  - [~] 8.8 Write property test for resource instance subfolder structure
+  - [x] 8.8 Write property test for resource instance subfolder structure
     - **Property 8: Resource instance subfolder structure**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
 
-  - [~] 8.9 Write property test for Lambda iam.tf with file() references
+  - [x] 8.9 Write property test for Lambda iam.tf with file() references
     - **Property 9: Lambda iam.tf with file() references**
     - **Validates: Requirements 4.5, 4.6, 9.5**
 
-  - [~] 8.10 Write property test for AWS provider configuration
+  - [x] 8.10 Write property test for AWS provider configuration
     - **Property 20: AWS provider configuration**
     - **Validates: Requirements 5.2**
 

@@ -1042,3 +1042,183 @@ def test_property_7_service_module_file_structure_and_content(arch):
                 f"Module '{stype.value}' outputs.tf output for '{inst_name}' "
                 f"doesn't reference module.{inst_name}"
             )
+
+
+# --- Property 8: Resource instance subfolder structure ---
+# Feature: terraform-iac-generator, Property 8: Resource instance subfolder structure
+# Validates: Requirements 4.1, 4.2, 4.3, 4.4
+
+EXPECTED_INSTANCE_BASE_FILES = {"variables.tf", "outputs.tf"}
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_8_resource_instance_subfolder_structure(arch):
+    """Each resource instance has a named subfolder with {service_type}.tf, variables.tf, outputs.tf."""
+    ir_builder = IRBuilder()
+    code_gen = CodeGenerator()
+
+    project_ir = ir_builder.build(arch)
+    file_tree = code_gen.generate(project_ir)
+
+    root = arch.project_name
+
+    for resource in arch.resources:
+        stype_name = resource.service_type.value
+        inst_base = f"{root}/modules/{stype_name}/{resource.name}"
+
+        # Req 4.1 & 4.2: a subfolder named after the resource exists
+        instance_files = {
+            path.removeprefix(f"{inst_base}/")
+            for path in file_tree
+            if path.startswith(f"{inst_base}/") and "/" not in path.removeprefix(f"{inst_base}/")
+        }
+
+        # Req 4.3: main resource file named after service type
+        resource_tf = f"{stype_name}.tf"
+        assert resource_tf in instance_files, (
+            f"Resource '{resource.name}' missing {resource_tf} in subfolder"
+        )
+
+        # Req 4.4: variables.tf and outputs.tf
+        for expected_file in EXPECTED_INSTANCE_BASE_FILES:
+            assert expected_file in instance_files, (
+                f"Resource '{resource.name}' missing {expected_file} in subfolder"
+            )
+
+# --- Property 9: Lambda iam.tf with file() references ---
+# Feature: terraform-iac-generator, Property 9: Lambda iam.tf with file() references
+# Validates: Requirements 4.5, 4.6, 9.5
+
+
+@st.composite
+def _architecture_with_lambdas_st(draw):
+    """Generate a valid ArchitectureDescription that always includes at least one Lambda resource."""
+    project_name = draw(_project_name_st)
+
+    env_names = draw(st.lists(_env_name_st, min_size=1, max_size=2, unique=True))
+    environments = [
+        EnvironmentConfig(name=name, variables={})
+        for name in env_names
+    ]
+
+    # At least one Lambda (may be a layer)
+    lambda_resources = draw(
+        st.lists(
+            st.builds(
+                ResourceInstance,
+                name=_resource_name_st,
+                service_type=st.just(ServiceType.LAMBDA),
+                config=_lambda_config_st,
+            ),
+            min_size=1,
+            max_size=3,
+        ).filter(lambda rs: len({r.name for r in rs}) == len(rs))
+    )
+
+    # Optionally add non-Lambda resources
+    other_resources = draw(
+        st.lists(
+            st.one_of(_s3_resource_st, _dynamodb_resource_st, _apigw_resource_st, _cloudwatch_resource_st),
+            min_size=0,
+            max_size=2,
+        )
+    )
+
+    all_resources = lambda_resources + other_resources
+    # Ensure unique names across all resources
+    from hypothesis import assume
+    assume(len({r.name for r in all_resources}) == len(all_resources))
+
+    return ArchitectureDescription(
+        project_name=project_name,
+        environments=environments,
+        resources=all_resources,
+        connections=[],
+    )
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_with_lambdas_st())
+def test_property_9_lambda_iam_tf_with_file_references(arch):
+    """Every Lambda instance (including layers) has iam.tf with file() refs to iam-policies/."""
+    ir_builder = IRBuilder()
+    code_gen = CodeGenerator()
+
+    project_ir = ir_builder.build(arch)
+    file_tree = code_gen.generate(project_ir)
+
+    root = arch.project_name
+    lambda_resources = [r for r in arch.resources if r.service_type == ServiceType.LAMBDA]
+
+    for resource in lambda_resources:
+        inst_base = f"{root}/modules/lambda/{resource.name}"
+        iam_tf_path = f"{inst_base}/iam.tf"
+
+        # Req 4.5 / 4.6: iam.tf must exist for every Lambda (including layers)
+        assert iam_tf_path in file_tree, (
+            f"Lambda '{resource.name}' (is_layer={resource.config.is_layer}) missing iam.tf"
+        )
+
+        iam_content = file_tree[iam_tf_path]
+
+        # Req 9.5: iam.tf must use file() to reference iam-policies/ folder
+        assert "file(" in iam_content, (
+            f"Lambda '{resource.name}' iam.tf does not contain file() function call"
+        )
+        assert "iam-policies/" in iam_content, (
+            f"Lambda '{resource.name}' iam.tf does not reference iam-policies/ folder"
+        )
+        assert f"{resource.name}-policy.json" in iam_content, (
+            f"Lambda '{resource.name}' iam.tf does not reference {resource.name}-policy.json"
+        )
+
+
+# --- Property 20: AWS provider configuration ---
+# Feature: terraform-iac-generator, Property 20: AWS provider configuration
+# Validates: Requirements 5.2
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_20_aws_provider_configuration(arch):
+    """Every environment main.tf contains a provider "aws" block with a configurable region."""
+    ir_builder = IRBuilder()
+    code_gen = CodeGenerator()
+
+    project_ir = ir_builder.build(arch)
+    file_tree = code_gen.generate(project_ir)
+
+    root = arch.project_name
+
+    for env in arch.environments:
+        main_tf_path = f"{root}/environments/{env.name}/main.tf"
+        assert main_tf_path in file_tree, (
+            f"Environment '{env.name}' missing main.tf"
+        )
+
+        content = file_tree[main_tf_path]
+
+        # Must contain a provider "aws" block
+        assert re.search(r'provider\s+"aws"', content), (
+            f"Environment '{env.name}' main.tf missing provider \"aws\" block"
+        )
+
+        # The provider block must contain a region attribute
+        # Extract the provider block content
+        provider_match = re.search(
+            r'provider\s+"aws"\s*\{([^}]*)\}', content, re.DOTALL
+        )
+        assert provider_match, (
+            f"Environment '{env.name}' main.tf has malformed provider \"aws\" block"
+        )
+
+        provider_body = provider_match.group(1)
+        assert "region" in provider_body, (
+            f"Environment '{env.name}' provider \"aws\" block missing region attribute"
+        )
+
+        # Region should be configurable (reference a variable, not hardcoded)
+        assert "var." in provider_body or "local." in provider_body, (
+            f"Environment '{env.name}' provider \"aws\" region is not configurable (should use var. or local.)"
+        )
