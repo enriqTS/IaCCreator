@@ -778,6 +778,117 @@ def test_property_3_project_level_folder_structure(arch):
 EXPECTED_ENV_FILES = {"main.tf", "variables.tf", "outputs.tf", "terraform.tfvars"}
 
 
+# --- Property 5: Environment variable consistency ---
+# Feature: terraform-iac-generator, Property 5: Environment variable consistency
+# Validates: Requirements 2.5, 2.7
+
+
+def _parse_tfvars(content: str) -> dict[str, str]:
+    """Parse terraform.tfvars content into a dict of key -> value."""
+    result = {}
+    for line in content.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" in line:
+            key, _, val = line.partition("=")
+            key = key.strip()
+            val = val.strip().strip('"')
+            result[key] = val
+    return result
+
+
+def _parse_variable_names(content: str) -> set[str]:
+    """Extract variable names from a variables.tf file."""
+    names = set()
+    for match in re.finditer(r'variable\s+"([^"]+)"', content):
+        names.add(match.group(1))
+    return names
+
+
+@st.composite
+def _architecture_with_env_vars_st(draw):
+    """Generate a valid ArchitectureDescription where every environment has at least one variable."""
+    project_name = draw(_project_name_st)
+
+    env_names = draw(st.lists(_env_name_st, min_size=1, max_size=3, unique=True))
+
+    # Use a shared set of variable keys across environments so we can verify per-env values
+    var_keys = draw(
+        st.lists(
+            st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
+            min_size=1,
+            max_size=4,
+            unique=True,
+        )
+    )
+
+    environments = []
+    for name in env_names:
+        variables = {}
+        for k in var_keys:
+            variables[k] = draw(st.from_regex(r"[a-z0-9\-]{1,10}", fullmatch=True))
+        environments.append(EnvironmentConfig(name=name, variables=variables))
+
+    resources = draw(
+        st.lists(_any_resource_st, min_size=1, max_size=3).filter(
+            lambda rs: len({r.name for r in rs}) == len(rs)
+        )
+    )
+
+    return ArchitectureDescription(
+        project_name=project_name,
+        environments=environments,
+        resources=resources,
+        connections=[],
+    )
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_with_env_vars_st())
+def test_property_5_environment_variable_consistency(arch):
+    """Variable names in variables.tf match terraform.tfvars keys, and tfvars values match input."""
+    ir_builder = IRBuilder()
+    code_gen = CodeGenerator()
+
+    project_ir = ir_builder.build(arch)
+    file_tree = code_gen.generate(project_ir)
+
+    root = arch.project_name
+
+    for env in arch.environments:
+        env_prefix = f"{root}/environments/{env.name}"
+
+        vars_tf_content = file_tree[f"{env_prefix}/variables.tf"]
+        tfvars_content = file_tree[f"{env_prefix}/terraform.tfvars"]
+
+        declared_vars = _parse_variable_names(vars_tf_content)
+        tfvars_dict = _parse_tfvars(tfvars_content)
+
+        # Every key in terraform.tfvars must be declared in variables.tf
+        for key in tfvars_dict:
+            assert key in declared_vars, (
+                f"Env '{env.name}': tfvars key '{key}' not declared in variables.tf"
+            )
+
+        # Every user-defined variable from the input should appear in both files
+        for key, value in env.variables.items():
+            assert key in declared_vars, (
+                f"Env '{env.name}': input variable '{key}' not declared in variables.tf"
+            )
+            assert key in tfvars_dict, (
+                f"Env '{env.name}': input variable '{key}' not in terraform.tfvars"
+            )
+            assert tfvars_dict[key] == value, (
+                f"Env '{env.name}': variable '{key}' has value '{tfvars_dict[key]}', expected '{value}'"
+            )
+
+        # The set of tfvars keys should exactly match the user-defined variable keys
+        assert set(tfvars_dict.keys()) == set(env.variables.keys()), (
+            f"Env '{env.name}': tfvars keys {set(tfvars_dict.keys())} != input keys {set(env.variables.keys())}"
+        )
+
+
 @settings(max_examples=100)
 @given(arch=_architecture_description_st())
 def test_property_4_environment_file_completeness(arch):
