@@ -175,11 +175,11 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - Orchestrate: iterate modules → use registry to get generators → generate per-instance files → run connection processor → run IAM policy generator → assemble file tree
     - _Requirements: 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4, 4.5_
 
-  - [~] 8.3 Write property test for project-level folder structure
+  - [x] 8.3 Write property test for project-level folder structure
     - **Property 3: Project-level folder structure**
     - **Validates: Requirements 2.1, 2.2, 2.3, 3.1, 3.2, 9.1**
 
-  - [ ]* 8.4 Write property test for environment file completeness
+  - [~] 8.4 Write property test for environment file completeness
     - **Property 4: Environment file completeness**
     - **Validates: Requirements 2.4**
 

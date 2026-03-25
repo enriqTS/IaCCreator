@@ -600,3 +600,172 @@ def test_property_17_terraform_references_not_hardcoded(apigw_name, lambda_name)
         # Should NOT contain hardcoded ARN patterns
         assert "arn:aws:lambda:" not in content
         assert "arn:aws:execute-api:" not in content
+
+
+# --- Imports for Property 3 ---
+
+from app.models.input_models import (
+    ArchitectureDescription,
+    EnvironmentConfig,
+    ResourceInstance,
+)
+from app.services.ir_builder import IRBuilder
+from app.services.code_generator import CodeGenerator
+
+# --- Hypothesis strategies for ArchitectureDescription ---
+
+_project_name_st = st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True)
+
+_env_name_st = st.sampled_from(["dev", "staging", "prod", "qa", "test"])
+
+_env_config_st = st.builds(
+    EnvironmentConfig,
+    name=_env_name_st,
+    variables=st.dictionaries(
+        keys=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
+        values=st.from_regex(r"[a-z0-9\-]{1,10}", fullmatch=True),
+        min_size=0,
+        max_size=3,
+    ),
+)
+
+# Per-service resource instance strategies (input model level)
+_lambda_resource_st = st.builds(
+    ResourceInstance,
+    name=_resource_name_st,
+    service_type=st.just(ServiceType.LAMBDA),
+    config=_lambda_config_st,
+)
+
+_s3_resource_st = st.builds(
+    ResourceInstance,
+    name=_resource_name_st,
+    service_type=st.just(ServiceType.S3),
+    config=_s3_config_st,
+)
+
+_dynamodb_resource_st = st.builds(
+    ResourceInstance,
+    name=_resource_name_st,
+    service_type=st.just(ServiceType.DYNAMODB),
+    config=_dynamodb_config_st,
+)
+
+_apigw_resource_st = st.builds(
+    ResourceInstance,
+    name=_resource_name_st,
+    service_type=st.just(ServiceType.API_GATEWAY),
+    config=_api_gateway_config_st,
+)
+
+_cloudwatch_resource_st = st.builds(
+    ResourceInstance,
+    name=_resource_name_st,
+    service_type=st.just(ServiceType.CLOUDWATCH),
+    config=_cloudwatch_config_st,
+)
+
+_any_resource_st = st.one_of(
+    _lambda_resource_st,
+    _s3_resource_st,
+    _dynamodb_resource_st,
+    _apigw_resource_st,
+    _cloudwatch_resource_st,
+)
+
+
+@st.composite
+def _architecture_description_st(draw):
+    """Generate a valid ArchitectureDescription with unique resource/env names."""
+    project_name = draw(_project_name_st)
+
+    # Generate 1-3 environments with unique names
+    env_names = draw(
+        st.lists(_env_name_st, min_size=1, max_size=3, unique=True)
+    )
+    environments = [
+        draw(
+            st.builds(
+                EnvironmentConfig,
+                name=st.just(name),
+                variables=st.dictionaries(
+                    keys=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
+                    values=st.from_regex(r"[a-z0-9\-]{1,10}", fullmatch=True),
+                    min_size=0,
+                    max_size=3,
+                ),
+            )
+        )
+        for name in env_names
+    ]
+
+    # Generate 1-5 resources with unique names
+    resources = draw(
+        st.lists(_any_resource_st, min_size=1, max_size=5).filter(
+            lambda rs: len({r.name for r in rs}) == len(rs)
+        )
+    )
+
+    return ArchitectureDescription(
+        project_name=project_name,
+        environments=environments,
+        resources=resources,
+        connections=[],
+    )
+
+
+# --- Property 3: Project-level folder structure ---
+# Feature: terraform-iac-generator, Property 3: Project-level folder structure
+# Validates: Requirements 2.1, 2.2, 2.3, 3.1, 3.2, 9.1
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_3_project_level_folder_structure(arch):
+    """Generated file tree has correct root, environments, modules, and iam-policies folders."""
+    ir_builder = IRBuilder()
+    code_gen = CodeGenerator()
+
+    project_ir = ir_builder.build(arch)
+    file_tree = code_gen.generate(project_ir)
+
+    root = arch.project_name
+    num_envs = len(arch.environments)
+    distinct_service_types = {r.service_type for r in arch.resources}
+    num_service_types = len(distinct_service_types)
+
+    # All paths should start with the project root name
+    for path in file_tree:
+        assert path.startswith(f"{root}/"), f"Path {path!r} doesn't start with root {root!r}"
+
+    # Verify environments/ folder has exactly E subfolders
+    env_dirs = {
+        path.split("/")[2]
+        for path in file_tree
+        if path.startswith(f"{root}/environments/")
+    }
+    assert len(env_dirs) == num_envs, (
+        f"Expected {num_envs} environment dirs, got {len(env_dirs)}: {env_dirs}"
+    )
+    for env in arch.environments:
+        assert env.name in env_dirs, f"Missing environment dir: {env.name}"
+
+    # Verify modules/ folder has exactly S subfolders (one per distinct service type)
+    module_dirs = {
+        path.split("/")[2]
+        for path in file_tree
+        if path.startswith(f"{root}/modules/")
+    }
+    assert len(module_dirs) == num_service_types, (
+        f"Expected {num_service_types} module dirs, got {len(module_dirs)}: {module_dirs}"
+    )
+    for stype in distinct_service_types:
+        assert stype.value in module_dirs, f"Missing module dir for service type: {stype.value}"
+
+    # Verify iam-policies/ folder exists (at least as a prefix in some path)
+    has_lambda = ServiceType.LAMBDA in distinct_service_types
+    iam_policy_paths = [p for p in file_tree if p.startswith(f"{root}/iam-policies/")]
+    if has_lambda:
+        assert len(iam_policy_paths) >= 1, "iam-policies/ folder should contain policy files for Lambda resources"
+    # The iam-policies/ folder should exist conceptually — if there are Lambda resources,
+    # there must be policy files; the folder is always part of the structure.
