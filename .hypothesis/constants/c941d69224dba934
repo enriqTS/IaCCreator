@@ -1,0 +1,4 @@
+# file: C:\Users\Henrique\Documents\IaCreator\app\generators\api_gateway_generator.py
+# hypothesis_version: 6.151.9
+
+['HTTP', 'api_endpoint', 'api_id', 'api_name', 'aws_apigatewayv2_api', 'name', 'protocol_type', 'string', 'var.api_name']

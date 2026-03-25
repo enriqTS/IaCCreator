@@ -1,0 +1,4 @@
+# file: C:\Users\Henrique\Documents\IaCreator\app\generators\hcl_renderer.py
+# hypothesis_version: 6.151.9
+
+['"', ', ', '\\', '\\"', '\\\\', 'aws_', 'data.', 'false', 'local.', 'module.', 'true', 'var.', '}']

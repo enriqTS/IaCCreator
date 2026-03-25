@@ -1,0 +1,4 @@
+# file: C:\Users\Henrique\Documents\IaCreator\app\services\connection_processor.py
+# hypothesis_version: 6.151.9
+
+['2.0', 'AWS_PROXY', 'Allow', 'api_id', 'callable', 'dynamodb:DeleteItem', 'dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:Query', 'dynamodb:Scan', 'dynamodb:UpdateItem', 'integration_type', 'integration_uri', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents', 'name', 's3:DeleteObject', 's3:GetObject', 's3:ListBucket', 's3:PutObject']

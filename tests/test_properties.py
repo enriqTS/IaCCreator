@@ -1,0 +1,602 @@
+"""Property-based tests for Terraform IaC Generator."""
+
+import re
+
+from hypothesis import given, settings, strategies as st
+
+from app.generators.hcl_renderer import HCLRenderer
+
+
+# --- Hypothesis strategies for HCL renderer inputs ---
+
+# Simple identifiers for block/variable/output names
+_identifier_st = st.from_regex(r"[a-z][a-z0-9_]{0,19}", fullmatch=True)
+
+# Simple string values (no newlines to keep HCL single-line values valid)
+_simple_str_st = st.text(
+    alphabet=st.characters(whitelist_categories=("L", "N", "P", "S"), blacklist_characters='\n\r"\\'),
+    min_size=1,
+    max_size=30,
+)
+
+# Flat attribute dicts (string/int/bool values)
+_flat_value_st = st.one_of(
+    _simple_str_st,
+    st.integers(min_value=0, max_value=9999),
+    st.booleans(),
+)
+
+_flat_attrs_st = st.dictionaries(
+    keys=_identifier_st,
+    values=_flat_value_st,
+    min_size=1,
+    max_size=6,
+)
+
+# Nested attribute dicts (one level of nesting)
+_nested_attrs_st = st.dictionaries(
+    keys=_identifier_st,
+    values=st.one_of(
+        _flat_value_st,
+        st.dictionaries(keys=_identifier_st, values=_flat_value_st, min_size=1, max_size=3),
+    ),
+    min_size=1,
+    max_size=6,
+)
+
+_var_type_st = st.sampled_from(["string", "number", "bool", "list(string)", "map(string)"])
+
+_region_st = st.sampled_from(["us-east-1", "us-west-2", "eu-west-1", "ap-southeast-1"])
+
+
+# --- Indentation checker ---
+
+TWO_SPACE_RE = re.compile(r"^( *)(\S.*)$")
+
+
+def _assert_two_space_indentation(hcl: str) -> None:
+    """Assert every indented line in *hcl* uses multiples of two spaces (no tabs)."""
+    for lineno, line in enumerate(hcl.splitlines(), start=1):
+        if not line or line.isspace():
+            continue
+        assert "\t" not in line, f"Tab found on line {lineno}: {line!r}"
+        m = TWO_SPACE_RE.match(line)
+        assert m, f"Line {lineno} has unexpected format: {line!r}"
+        leading = m.group(1)
+        assert len(leading) % 2 == 0, (
+            f"Line {lineno} has {len(leading)}-space indent (not a multiple of 2): {line!r}"
+        )
+
+
+# --- Property 12: Two-space indentation ---
+# Feature: terraform-iac-generator, Property 12: Two-space indentation
+# Validates: Requirements 7.4
+
+
+renderer = HCLRenderer()
+
+
+@settings(max_examples=100)
+@given(block_type=_identifier_st, name=_identifier_st, attrs=_nested_attrs_st)
+def test_property_12_render_resource_two_space_indent(block_type, name, attrs):
+    """render_resource output uses only two-space indentation."""
+    hcl = renderer.render_resource(block_type, name, attrs)
+    _assert_two_space_indentation(hcl)
+
+
+@settings(max_examples=100)
+@given(name=_identifier_st, var_type=_var_type_st, description=_simple_str_st)
+def test_property_12_render_variable_two_space_indent(name, var_type, description):
+    """render_variable output uses only two-space indentation."""
+    hcl = renderer.render_variable(name, var_type, description)
+    _assert_two_space_indentation(hcl)
+
+
+@settings(max_examples=100)
+@given(name=_identifier_st, value=_simple_str_st, description=_simple_str_st)
+def test_property_12_render_output_two_space_indent(name, value, description):
+    """render_output output uses only two-space indentation."""
+    hcl = renderer.render_output(name, value, description)
+    _assert_two_space_indentation(hcl)
+
+
+@settings(max_examples=100)
+@given(
+    name=_identifier_st,
+    source=_simple_str_st,
+    variables=st.dictionaries(keys=_identifier_st, values=_simple_str_st, min_size=0, max_size=5),
+)
+def test_property_12_render_module_two_space_indent(name, source, variables):
+    """render_module output uses only two-space indentation."""
+    hcl = renderer.render_module(name, source, variables)
+    _assert_two_space_indentation(hcl)
+
+
+@settings(max_examples=100)
+@given(provider=_identifier_st, region=_region_st)
+def test_property_12_render_provider_two_space_indent(provider, region):
+    """render_provider output uses only two-space indentation."""
+    hcl = renderer.render_provider(provider, region)
+    _assert_two_space_indentation(hcl)
+
+
+# --- Imports for Property 10 and 11 ---
+
+from app.models.input_models import ServiceType, ResourceConfig
+from app.models.ir_models import ResourceInstanceIR
+from app.generators.lambda_generator import LambdaGenerator
+from app.generators.s3_generator import S3Generator
+from app.generators.dynamodb_generator import DynamoDBGenerator
+from app.generators.api_gateway_generator import APIGatewayGenerator
+from app.generators.cloudwatch_generator import CloudWatchGenerator
+from app.generators.registry import GENERATOR_REGISTRY
+
+
+# --- Hypothesis strategies for resource instances ---
+
+_resource_name_st = st.from_regex(r"[a-z][a-z0-9\-]{0,14}", fullmatch=True)
+
+_lambda_config_st = st.builds(
+    ResourceConfig,
+    handler=st.just("index.handler"),
+    runtime=st.sampled_from(["python3.12", "python3.11", "nodejs18.x", "nodejs20.x"]),
+    memory_size=st.one_of(st.none(), st.integers(min_value=128, max_value=3008)),
+    timeout=st.one_of(st.none(), st.integers(min_value=1, max_value=900)),
+    is_layer=st.booleans(),
+)
+
+_s3_config_st = st.builds(
+    ResourceConfig,
+    versioning=st.one_of(st.none(), st.booleans()),
+)
+
+_dynamodb_config_st = st.builds(
+    ResourceConfig,
+    billing_mode=st.sampled_from(["PAY_PER_REQUEST", "PROVISIONED"]),
+    hash_key=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
+    hash_key_type=st.sampled_from(["S", "N", "B"]),
+    range_key=st.one_of(st.none(), st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True)),
+    range_key_type=st.one_of(st.none(), st.sampled_from(["S", "N", "B"])),
+)
+
+_api_gateway_config_st = st.builds(
+    ResourceConfig,
+    protocol_type=st.sampled_from(["HTTP", "WEBSOCKET"]),
+)
+
+_cloudwatch_config_st = st.builds(
+    ResourceConfig,
+    retention_in_days=st.one_of(st.none(), st.sampled_from([1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365])),
+)
+
+
+def _make_instance(name: str, service_type: ServiceType, config: ResourceConfig) -> ResourceInstanceIR:
+    return ResourceInstanceIR(name=name, service_type=service_type, config=config)
+
+
+# --- Property 10: Service-specific required attributes ---
+# Feature: terraform-iac-generator, Property 10: Service-specific required attributes
+# Validates: Requirements 5.6, 5.7, 5.8, 5.9, 5.10
+
+
+@settings(max_examples=100)
+@given(name=_resource_name_st, config=_lambda_config_st)
+def test_property_10_lambda_required_attributes(name, config):
+    """Lambda resource block contains function_name, role, handler, runtime."""
+    instance = _make_instance(name, ServiceType.LAMBDA, config)
+    hcl = LambdaGenerator().generate_resource_tf(instance)
+    assert "function_name" in hcl
+    assert "role" in hcl
+    assert "handler" in hcl
+    assert "runtime" in hcl
+
+
+@settings(max_examples=100)
+@given(name=_resource_name_st, config=_s3_config_st)
+def test_property_10_s3_required_attributes(name, config):
+    """S3 resource block contains bucket attribute."""
+    instance = _make_instance(name, ServiceType.S3, config)
+    hcl = S3Generator().generate_resource_tf(instance)
+    assert "bucket" in hcl
+
+
+@settings(max_examples=100)
+@given(name=_resource_name_st, config=_dynamodb_config_st)
+def test_property_10_dynamodb_required_attributes(name, config):
+    """DynamoDB resource block contains name, billing_mode, hash_key, and attribute block."""
+    instance = _make_instance(name, ServiceType.DYNAMODB, config)
+    hcl = DynamoDBGenerator().generate_resource_tf(instance)
+    assert "name" in hcl
+    assert "billing_mode" in hcl
+    assert "hash_key" in hcl
+    assert "attribute {" in hcl or "attribute{" in hcl
+
+
+@settings(max_examples=100)
+@given(name=_resource_name_st, config=_api_gateway_config_st)
+def test_property_10_api_gateway_required_attributes(name, config):
+    """API Gateway resource block contains name and protocol_type."""
+    instance = _make_instance(name, ServiceType.API_GATEWAY, config)
+    hcl = APIGatewayGenerator().generate_resource_tf(instance)
+    assert "name" in hcl
+    assert "protocol_type" in hcl
+
+
+@settings(max_examples=100)
+@given(name=_resource_name_st, config=_cloudwatch_config_st)
+def test_property_10_cloudwatch_required_attributes(name, config):
+    """CloudWatch resource block contains name attribute."""
+    instance = _make_instance(name, ServiceType.CLOUDWATCH, config)
+    hcl = CloudWatchGenerator().generate_resource_tf(instance)
+    assert "name" in hcl
+
+
+# --- Property 11: HCL block attribute completeness ---
+# Feature: terraform-iac-generator, Property 11: HCL block attribute completeness
+# Validates: Requirements 5.3, 5.4, 5.5
+
+
+@settings(max_examples=100)
+@given(name=_identifier_st, var_type=_var_type_st, description=_simple_str_st)
+def test_property_11_variable_block_completeness(name, var_type, description):
+    """Every variable block contains description and type attributes."""
+    hcl = renderer.render_variable(name, var_type, description)
+    assert "description" in hcl
+    assert "type" in hcl
+
+
+@settings(max_examples=100)
+@given(name=_identifier_st, value=_simple_str_st, description=_simple_str_st)
+def test_property_11_output_block_completeness(name, value, description):
+    """Every output block contains description and value attributes."""
+    hcl = renderer.render_output(name, value, description)
+    assert "description" in hcl
+    assert "value" in hcl
+
+
+@settings(max_examples=100)
+@given(
+    name=_identifier_st,
+    source=_simple_str_st,
+    variables=st.dictionaries(keys=_identifier_st, values=_simple_str_st, min_size=0, max_size=5),
+)
+def test_property_11_module_block_has_source(name, source, variables):
+    """Every module block contains a source attribute with a relative path."""
+    hcl = renderer.render_module(name, source, variables)
+    assert "source" in hcl
+
+
+# --- Imports for Properties 15–19 ---
+
+import json
+
+from app.generators.iam_policy_generator import IAMPolicyGenerator
+from app.services.connection_processor import ConnectionProcessor
+from app.models.ir_models import (
+    ConnectionIR,
+    IAMStatement,
+    ProjectIR,
+    EnvironmentIR,
+    ServiceModuleIR,
+)
+
+
+# --- Hypothesis strategies for connected architectures ---
+
+def _build_project_with_connections(
+    lambda_names: list[str],
+    target_specs: list[tuple[str, ServiceType, ResourceConfig]],
+    connections: list[tuple[str, str, str]],
+) -> ProjectIR:
+    """Build a ProjectIR with Lambda instances, target resources, and connections."""
+    lambda_instances = [
+        ResourceInstanceIR(
+            name=n,
+            service_type=ServiceType.LAMBDA,
+            config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+        )
+        for n in lambda_names
+    ]
+
+    # Group targets by service type
+    from collections import defaultdict
+    target_groups: dict[ServiceType, list[ResourceInstanceIR]] = defaultdict(list)
+    for tname, tsvc, tcfg in target_specs:
+        target_groups[tsvc].append(
+            ResourceInstanceIR(name=tname, service_type=tsvc, config=tcfg)
+        )
+
+    modules = [ServiceModuleIR(service_type=ServiceType.LAMBDA, instances=lambda_instances)]
+    for svc, insts in target_groups.items():
+        modules.append(ServiceModuleIR(service_type=svc, instances=insts))
+
+    # Build resource lookup for connection validation
+    resource_map: dict[str, ServiceType] = {}
+    for m in modules:
+        for inst in m.instances:
+            resource_map[inst.name] = inst.service_type
+
+    conn_irs = [
+        ConnectionIR(
+            source_name=s,
+            target_name=t,
+            source_service=resource_map[s],
+            target_service=resource_map[t],
+            connection_type=ct,
+        )
+        for s, t, ct in connections
+    ]
+
+    return ProjectIR(
+        project_name="test-project",
+        environments=[EnvironmentIR(name="dev", variables={}, module_refs=list(resource_map.values()))],
+        modules=modules,
+        connections=conn_irs,
+    )
+
+
+# Strategy: random Lambda name
+_lambda_name_st = st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True)
+
+# Strategy: random target service type (things Lambda can connect to)
+_target_service_st = st.sampled_from([ServiceType.DYNAMODB, ServiceType.S3, ServiceType.CLOUDWATCH])
+
+# Strategy: a Lambda instance IR with random IAM statements
+_iam_actions_st = st.lists(
+    st.sampled_from([
+        "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query",
+        "s3:GetObject", "s3:PutObject", "s3:DeleteObject",
+        "logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents",
+    ]),
+    min_size=1,
+    max_size=5,
+)
+
+_iam_resource_st = st.from_regex(r"\$\{aws_[a-z_]+\.[a-z0-9\-]+\.arn\}", fullmatch=True)
+
+_iam_statement_st = st.builds(
+    IAMStatement,
+    effect=st.just("Allow"),
+    actions=_iam_actions_st,
+    resources=st.lists(_iam_resource_st, min_size=1, max_size=3),
+)
+
+_lambda_with_iam_st = st.builds(
+    lambda name, stmts: ResourceInstanceIR(
+        name=name,
+        service_type=ServiceType.LAMBDA,
+        config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+        iam_statements=stmts,
+    ),
+    name=_lambda_name_st,
+    stmts=st.lists(_iam_statement_st, min_size=0, max_size=4),
+)
+
+
+# --- Property 19: Valid IAM policy JSON syntax ---
+# Feature: terraform-iac-generator, Property 19: Valid IAM policy JSON syntax
+# Validates: Requirements 9.3
+
+iam_gen = IAMPolicyGenerator()
+
+
+@settings(max_examples=100)
+@given(instance=_lambda_with_iam_st)
+def test_property_19_valid_iam_policy_json_syntax(instance):
+    """Every generated IAM policy document is valid JSON with required fields."""
+    doc_str = iam_gen.generate_policy_document(instance)
+    doc = json.loads(doc_str)
+
+    assert doc["Version"] == "2012-10-17"
+    assert isinstance(doc["Statement"], list)
+    assert len(doc["Statement"]) >= 1  # at least the base execution policy
+
+    for stmt in doc["Statement"]:
+        assert "Effect" in stmt
+        assert "Action" in stmt
+        assert "Resource" in stmt
+
+
+# --- Property 18: One consolidated IAM policy per Lambda ---
+# Feature: terraform-iac-generator, Property 18: One consolidated IAM policy per Lambda
+# Validates: Requirements 9.2, 9.6, 9.7
+
+
+@settings(max_examples=100)
+@given(instance=_lambda_with_iam_st)
+def test_property_18_one_consolidated_policy_per_lambda(instance):
+    """Each Lambda gets exactly one policy document consolidating all statements."""
+    doc_str = iam_gen.generate_policy_document(instance)
+    doc = json.loads(doc_str)
+
+    # One document produced (single call = single doc)
+    assert doc["Version"] == "2012-10-17"
+
+    # Base execution policy is always the first statement
+    base_stmt = doc["Statement"][0]
+    assert "logs:CreateLogGroup" in base_stmt["Action"]
+    assert "logs:CreateLogStream" in base_stmt["Action"]
+    assert "logs:PutLogEvents" in base_stmt["Action"]
+
+    # Total statements = 1 (base) + number of connection-derived statements
+    expected_count = 1 + len(instance.iam_statements)
+    assert len(doc["Statement"]) == expected_count
+
+
+# --- Property 16: Connection-derived IAM policy statements ---
+# Feature: terraform-iac-generator, Property 16: Connection-derived IAM policy statements
+# Validates: Requirements 8.2, 8.3, 8.4, 9.4
+
+
+_dynamodb_target_st = st.builds(
+    lambda name: (name, ServiceType.DYNAMODB, ResourceConfig(hash_key="id", billing_mode="PAY_PER_REQUEST")),
+    name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
+)
+
+_s3_target_st = st.builds(
+    lambda name: (name, ServiceType.S3, ResourceConfig()),
+    name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
+)
+
+_cloudwatch_target_st = st.builds(
+    lambda name: (name, ServiceType.CLOUDWATCH, ResourceConfig()),
+    name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
+)
+
+
+@settings(max_examples=100)
+@given(
+    lambda_name=_lambda_name_st,
+    target=st.one_of(_dynamodb_target_st, _s3_target_st, _cloudwatch_target_st),
+)
+def test_property_16_connection_derived_iam_statements(lambda_name, target):
+    """Lambda connected to DynamoDB/S3/CloudWatch gets scoped IAM statements in its policy."""
+    from hypothesis import assume
+    tname, tsvc, tcfg = target
+    assume(lambda_name != tname)
+
+    project = _build_project_with_connections(
+        lambda_names=[lambda_name],
+        target_specs=[(tname, tsvc, tcfg)],
+        connections=[(lambda_name, tname, "uses")],
+    )
+
+    processor = ConnectionProcessor()
+    processor.process_all(project)
+
+    # Find the Lambda instance after processing
+    lambda_inst = None
+    for m in project.modules:
+        for inst in m.instances:
+            if inst.name == lambda_name:
+                lambda_inst = inst
+                break
+
+    assert lambda_inst is not None
+    assert len(lambda_inst.iam_statements) >= 1
+
+    # Generate the policy and verify connection-derived statements
+    doc_str = iam_gen.generate_policy_document(lambda_inst)
+    doc = json.loads(doc_str)
+
+    # Should have base + at least one connection-derived statement
+    assert len(doc["Statement"]) >= 2
+
+    # Verify the connection-derived statement has actions scoped to the target service
+    conn_stmts = doc["Statement"][1:]  # skip base
+    if tsvc == ServiceType.DYNAMODB:
+        assert any("dynamodb:GetItem" in s["Action"] for s in conn_stmts)
+    elif tsvc == ServiceType.S3:
+        assert any("s3:GetObject" in s["Action"] for s in conn_stmts)
+    elif tsvc == ServiceType.CLOUDWATCH:
+        assert any("logs:CreateLogGroup" in s["Action"] for s in conn_stmts)
+
+
+# --- Property 15: API Gateway–Lambda integration generation ---
+# Feature: terraform-iac-generator, Property 15: API Gateway–Lambda integration generation
+# Validates: Requirements 8.1
+
+
+@settings(max_examples=100)
+@given(
+    apigw_name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
+    lambda_name=_lambda_name_st,
+)
+def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
+    """API Gateway → Lambda connection generates an aws_apigatewayv2_integration resource."""
+    from hypothesis import assume
+    assume(apigw_name != lambda_name)
+
+    apigw_inst = ResourceInstanceIR(
+        name=apigw_name,
+        service_type=ServiceType.API_GATEWAY,
+        config=ResourceConfig(protocol_type="HTTP"),
+    )
+    lambda_inst = ResourceInstanceIR(
+        name=lambda_name,
+        service_type=ServiceType.LAMBDA,
+        config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+    )
+
+    conn = ConnectionIR(
+        source_name=apigw_name,
+        target_name=lambda_name,
+        source_service=ServiceType.API_GATEWAY,
+        target_service=ServiceType.LAMBDA,
+        connection_type="triggers",
+    )
+
+    project = ProjectIR(
+        project_name="test-project",
+        environments=[EnvironmentIR(name="dev", variables={}, module_refs=[ServiceType.API_GATEWAY, ServiceType.LAMBDA])],
+        modules=[
+            ServiceModuleIR(service_type=ServiceType.API_GATEWAY, instances=[apigw_inst]),
+            ServiceModuleIR(service_type=ServiceType.LAMBDA, instances=[lambda_inst]),
+        ],
+        connections=[conn],
+    )
+
+    processor = ConnectionProcessor()
+    files = processor.process_all(project)
+
+    assert len(files) >= 1
+    integration_files = [f for f in files if "aws_apigatewayv2_integration" in f.content]
+    assert len(integration_files) == 1
+    assert lambda_name in integration_files[0].content
+    assert apigw_name in integration_files[0].content
+
+
+# --- Property 17: Terraform references over hardcoded values ---
+# Feature: terraform-iac-generator, Property 17: Terraform references over hardcoded values
+# Validates: Requirements 8.5
+
+
+@settings(max_examples=100)
+@given(
+    apigw_name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
+    lambda_name=_lambda_name_st,
+)
+def test_property_17_terraform_references_not_hardcoded(apigw_name, lambda_name):
+    """Connection-generated HCL uses Terraform resource references, not hardcoded ARNs."""
+    from hypothesis import assume
+    assume(apigw_name != lambda_name)
+
+    apigw_inst = ResourceInstanceIR(
+        name=apigw_name,
+        service_type=ServiceType.API_GATEWAY,
+        config=ResourceConfig(protocol_type="HTTP"),
+    )
+    lambda_inst = ResourceInstanceIR(
+        name=lambda_name,
+        service_type=ServiceType.LAMBDA,
+        config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+    )
+
+    conn = ConnectionIR(
+        source_name=apigw_name,
+        target_name=lambda_name,
+        source_service=ServiceType.API_GATEWAY,
+        target_service=ServiceType.LAMBDA,
+        connection_type="triggers",
+    )
+
+    project = ProjectIR(
+        project_name="test-project",
+        environments=[EnvironmentIR(name="dev", variables={}, module_refs=[ServiceType.API_GATEWAY, ServiceType.LAMBDA])],
+        modules=[
+            ServiceModuleIR(service_type=ServiceType.API_GATEWAY, instances=[apigw_inst]),
+            ServiceModuleIR(service_type=ServiceType.LAMBDA, instances=[lambda_inst]),
+        ],
+        connections=[conn],
+    )
+
+    processor = ConnectionProcessor()
+    files = processor.process_all(project)
+
+    for f in files:
+        content = f.content
+        # Should contain Terraform resource references
+        assert "aws_apigatewayv2_api." in content or "aws_lambda_function." in content
+        # Should NOT contain hardcoded ARN patterns
+        assert "arn:aws:lambda:" not in content
+        assert "arn:aws:execute-api:" not in content

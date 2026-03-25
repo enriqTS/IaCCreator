@@ -1,0 +1,46 @@
+"""S3 service generator — produces HCL for aws_s3_bucket resources."""
+
+from app.generators.hcl_renderer import HCLRenderer
+from app.models.ir_models import ResourceInstanceIR
+
+
+class S3Generator:
+    """Generates Terraform files for S3 buckets."""
+
+    def __init__(self) -> None:
+        self._r = HCLRenderer()
+
+    def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
+        """Generate s3.tf with aws_s3_bucket resource."""
+        attrs: dict = {"bucket": "var.bucket_name"}
+        result = self._r.render_resource("aws_s3_bucket", instance.name, attrs)
+
+        if instance.config.versioning:
+            versioning_attrs = {
+                "bucket": f"aws_s3_bucket.{instance.name}.id",
+                "versioning_configuration": {"status": "Enabled"},
+            }
+            result += "\n" + self._r.render_resource(
+                "aws_s3_bucket_versioning", f"{instance.name}_versioning", versioning_attrs
+            )
+        return result
+
+    def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
+        """Generate variables.tf for an S3 instance."""
+        return self._r.render_variable("bucket_name", "string", "Name of the S3 bucket")
+
+    def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
+        """Generate outputs.tf for an S3 instance."""
+        parts = [
+            self._r.render_output(
+                "bucket_arn",
+                f"aws_s3_bucket.{instance.name}.arn",
+                "ARN of the S3 bucket",
+            ),
+            self._r.render_output(
+                "bucket_name",
+                f"aws_s3_bucket.{instance.name}.id",
+                "Name of the S3 bucket",
+            ),
+        ]
+        return "\n".join(parts)

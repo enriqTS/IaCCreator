@@ -1,0 +1,4 @@
+# file: C:\Users\Henrique\Documents\IaCreator\app\generators\iam_policy_generator.py
+# hypothesis_version: 6.151.9
+
+['2012-10-17', 'Action', 'Allow', 'Effect', 'Resource', 'Statement', 'Version', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents']
