@@ -1325,6 +1325,84 @@ def test_property_14_json_output_format(arch):
     assert len(body["files"]) > 0
 
 
+# --- Property 13: IR serialization round-trip ---
+# Feature: terraform-iac-generator, Property 13: IR serialization round-trip
+# Validates: Requirements 7.2, 7.3
+
+
+from tests.conftest import architecture_description_strategy as _full_arch_st
+
+
+@settings(max_examples=100)
+@given(arch=_full_arch_st())
+def test_property_13_ir_serialization_round_trip(arch):
+    """Building the IR, serializing it, and deserializing it back produces an equivalent IR.
+
+    Also verifies that the same IR deterministically produces the same file tree,
+    confirming no data loss during the generation pipeline for all supported service types.
+    """
+    ir_builder = IRBuilder()
+    code_gen = CodeGenerator()
+
+    # Build IR from input
+    project_ir = ir_builder.build(arch)
+
+    # --- Round-trip 1: Pydantic model serialization ---
+    # Serialize the IR to a plain dict (JSON-compatible) and reconstruct
+    serialized = project_ir.model_dump(mode="json")
+    restored_ir = ProjectIR.model_validate(serialized)
+
+    # The restored IR must be structurally equivalent
+    assert restored_ir.project_name == project_ir.project_name
+    assert len(restored_ir.environments) == len(project_ir.environments)
+    assert len(restored_ir.modules) == len(project_ir.modules)
+    assert len(restored_ir.connections) == len(project_ir.connections)
+
+    # Deep equality via Pydantic
+    assert restored_ir == project_ir
+
+    # --- Round-trip 2: Deterministic file tree generation ---
+    # The same IR must produce the exact same file tree (no data loss, no non-determinism)
+    file_tree_1 = code_gen.generate(project_ir)
+
+    # Rebuild a fresh IR from the same input to avoid mutation side-effects
+    project_ir_2 = ir_builder.build(arch)
+    file_tree_2 = code_gen.generate(project_ir_2)
+
+    assert set(file_tree_1.keys()) == set(file_tree_2.keys()), (
+        "File tree paths differ between two generations from the same input"
+    )
+    for path in file_tree_1:
+        assert file_tree_1[path] == file_tree_2[path], (
+            f"File content differs for '{path}' between two generations"
+        )
+
+    # --- Round-trip 3: No data loss for all service types ---
+    # Every service type from the input must appear as a module in the IR
+    input_service_types = {r.service_type for r in arch.resources}
+    ir_service_types = {m.service_type for m in project_ir.modules}
+    assert input_service_types == ir_service_types, (
+        f"Service types lost in IR: input={input_service_types}, ir={ir_service_types}"
+    )
+
+    # Every resource instance from the input must appear in the IR
+    input_names = {r.name for r in arch.resources}
+    ir_names = {inst.name for m in project_ir.modules for inst in m.instances}
+    assert input_names == ir_names, (
+        f"Resource instances lost in IR: input={input_names}, ir={ir_names}"
+    )
+
+    # Every environment from the input must appear in the IR
+    input_envs = {e.name for e in arch.environments}
+    ir_envs = {e.name for e in project_ir.environments}
+    assert input_envs == ir_envs, (
+        f"Environments lost in IR: input={input_envs}, ir={ir_envs}"
+    )
+
+    # Every connection from the input must appear in the IR
+    assert len(project_ir.connections) == len(arch.connections)
+
+
 @settings(max_examples=100)
 @given(arch=_architecture_description_st())
 def test_property_14_zip_output_format(arch):

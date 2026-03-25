@@ -241,7 +241,7 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - Ensure strategies produce valid inputs covering all six service types
     - _Requirements: 7.2_
 
-  - [~] 10.2 Write property test for IR serialization round-trip
+  - [x] 10.2 Write property test for IR serialization round-trip
     - **Property 13: IR serialization round-trip**
     - **Validates: Requirements 7.2, 7.3**
 
