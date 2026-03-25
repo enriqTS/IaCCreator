@@ -233,8 +233,8 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - **Property 14: Output format correctness**
     - **Validates: Requirements 6.2, 6.3, 6.4**
 
-- [ ] 10. Implement Hypothesis strategies and IR round-trip property test
-  - [ ] 10.1 Implement shared Hypothesis strategies in conftest.py
+- [x] 10. Implement Hypothesis strategies and IR round-trip property test
+  - [x] 10.1 Implement shared Hypothesis strategies in conftest.py
     - Create `architecture_description_strategy()` generating random valid `ArchitectureDescription` objects
     - Create `resource_instance_strategy(service_type)` for per-service random instances
     - Create `connection_strategy(resources)` for valid connections between existing resources
