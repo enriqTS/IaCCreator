@@ -179,7 +179,7 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - **Property 3: Project-level folder structure**
     - **Validates: Requirements 2.1, 2.2, 2.3, 3.1, 3.2, 9.1**
 
-  - [~] 8.4 Write property test for environment file completeness
+  - [x] 8.4 Write property test for environment file completeness
     - **Property 4: Environment file completeness**
     - **Validates: Requirements 2.4**
 

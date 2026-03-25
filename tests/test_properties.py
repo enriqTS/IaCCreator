@@ -769,3 +769,34 @@ def test_property_3_project_level_folder_structure(arch):
         assert len(iam_policy_paths) >= 1, "iam-policies/ folder should contain policy files for Lambda resources"
     # The iam-policies/ folder should exist conceptually — if there are Lambda resources,
     # there must be policy files; the folder is always part of the structure.
+
+
+# --- Property 4: Environment file completeness ---
+# Feature: terraform-iac-generator, Property 4: Environment file completeness
+# Validates: Requirements 2.4
+
+EXPECTED_ENV_FILES = {"main.tf", "variables.tf", "outputs.tf", "terraform.tfvars"}
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_4_environment_file_completeness(arch):
+    """Every environment subfolder contains exactly main.tf, variables.tf, outputs.tf, and terraform.tfvars."""
+    ir_builder = IRBuilder()
+    code_gen = CodeGenerator()
+
+    project_ir = ir_builder.build(arch)
+    file_tree = code_gen.generate(project_ir)
+
+    root = arch.project_name
+
+    for env in arch.environments:
+        env_prefix = f"{root}/environments/{env.name}/"
+        env_files = {
+            path.removeprefix(env_prefix)
+            for path in file_tree
+            if path.startswith(env_prefix)
+        }
+        assert env_files == EXPECTED_ENV_FILES, (
+            f"Environment '{env.name}' has files {env_files}, expected {EXPECTED_ENV_FILES}"
+        )
