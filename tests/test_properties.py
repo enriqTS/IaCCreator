@@ -911,3 +911,134 @@ def test_property_4_environment_file_completeness(arch):
         assert env_files == EXPECTED_ENV_FILES, (
             f"Environment '{env.name}' has files {env_files}, expected {EXPECTED_ENV_FILES}"
         )
+
+# --- Property 6: Environment module references ---
+# Feature: terraform-iac-generator, Property 6: Environment module references
+# Validates: Requirements 2.6, 2.8
+
+
+def _parse_module_names(content: str) -> set[str]:
+    """Extract module names from an environment main.tf file."""
+    names = set()
+    for match in re.finditer(r'module\s+"([^"]+)"', content):
+        names.add(match.group(1))
+    return names
+
+
+def _parse_output_names(content: str) -> set[str]:
+    """Extract output names from an outputs.tf file."""
+    names = set()
+    for match in re.finditer(r'output\s+"([^"]+)"', content):
+        names.add(match.group(1))
+    return names
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_6_environment_module_references(arch):
+    """Environment main.tf has a module block per service type; outputs.tf exposes module outputs."""
+    ir_builder = IRBuilder()
+    code_gen = CodeGenerator()
+
+    project_ir = ir_builder.build(arch)
+    file_tree = code_gen.generate(project_ir)
+
+    root = arch.project_name
+    distinct_service_types = {r.service_type for r in arch.resources}
+
+    for env in arch.environments:
+        env_prefix = f"{root}/environments/{env.name}"
+
+        # Verify main.tf contains a module block for each distinct service type
+        main_tf_content = file_tree[f"{env_prefix}/main.tf"]
+        module_names = _parse_module_names(main_tf_content)
+
+        for stype in distinct_service_types:
+            assert stype.value in module_names, (
+                f"Env '{env.name}': missing module block for service type '{stype.value}' in main.tf"
+            )
+
+        # Verify outputs.tf contains output blocks referencing those modules
+        outputs_tf_content = file_tree[f"{env_prefix}/outputs.tf"]
+        output_names = _parse_output_names(outputs_tf_content)
+
+        for stype in distinct_service_types:
+            expected_output = f"{stype.value}_outputs"
+            assert expected_output in output_names, (
+                f"Env '{env.name}': missing output '{expected_output}' in outputs.tf"
+            )
+
+            # Verify the output value references the module
+            assert f"module.{stype.value}" in outputs_tf_content, (
+                f"Env '{env.name}': output for '{stype.value}' doesn't reference module.{stype.value}"
+            )
+
+
+# --- Property 7: Service module file structure and content ---
+# Feature: terraform-iac-generator, Property 7: Service module file structure and content
+# Validates: Requirements 3.3, 3.4, 3.5, 3.6
+
+EXPECTED_MODULE_ROOT_FILES = {"main.tf", "variables.tf", "outputs.tf"}
+
+
+@settings(max_examples=100)
+@given(arch=_architecture_description_st())
+def test_property_7_service_module_file_structure_and_content(arch):
+    """Each service module root has main.tf, variables.tf, outputs.tf with correct content."""
+    ir_builder = IRBuilder()
+    code_gen = CodeGenerator()
+
+    project_ir = ir_builder.build(arch)
+    file_tree = code_gen.generate(project_ir)
+
+    root = arch.project_name
+
+    # Group input resources by service type to know expected instance names
+    from collections import defaultdict
+    resources_by_type: dict[ServiceType, list[str]] = defaultdict(list)
+    for r in arch.resources:
+        resources_by_type[r.service_type].append(r.name)
+
+    for stype, instance_names in resources_by_type.items():
+        mod_base = f"{root}/modules/{stype.value}"
+
+        # Req 3.3: module root should contain main.tf, variables.tf, outputs.tf
+        root_files = set()
+        for path in file_tree:
+            if path.startswith(f"{mod_base}/"):
+                # Only files directly under mod_base (not in instance subfolders)
+                remainder = path.removeprefix(f"{mod_base}/")
+                if "/" not in remainder:
+                    root_files.add(remainder)
+
+        assert root_files == EXPECTED_MODULE_ROOT_FILES, (
+            f"Module '{stype.value}' root files {root_files} != expected {EXPECTED_MODULE_ROOT_FILES}"
+        )
+
+        # Req 3.4: main.tf should have one module block per resource instance
+        main_tf = file_tree[f"{mod_base}/main.tf"]
+        module_names = _parse_module_names(main_tf)
+        for inst_name in instance_names:
+            assert inst_name in module_names, (
+                f"Module '{stype.value}' main.tf missing module block for instance '{inst_name}'"
+            )
+        assert len(module_names) == len(instance_names), (
+            f"Module '{stype.value}' main.tf has {len(module_names)} module blocks, "
+            f"expected {len(instance_names)}"
+        )
+
+        # Req 3.5: variables.tf exists (already checked above)
+
+        # Req 3.6: outputs.tf should have output blocks aggregating from all instances
+        outputs_tf = file_tree[f"{mod_base}/outputs.tf"]
+        output_names = _parse_output_names(outputs_tf)
+        for inst_name in instance_names:
+            expected_output = f"{inst_name}_outputs"
+            assert expected_output in output_names, (
+                f"Module '{stype.value}' outputs.tf missing output '{expected_output}'"
+            )
+            # Verify the output references the instance module
+            assert f"module.{inst_name}" in outputs_tf, (
+                f"Module '{stype.value}' outputs.tf output for '{inst_name}' "
+                f"doesn't reference module.{inst_name}"
+            )

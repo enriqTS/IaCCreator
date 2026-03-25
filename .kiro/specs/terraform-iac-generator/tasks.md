@@ -187,23 +187,23 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - **Property 5: Environment variable consistency**
     - **Validates: Requirements 2.5, 2.7**
 
-  - [~] 8.6 Write property test for environment module references
+  - [x] 8.6 Write property test for environment module references
     - **Property 6: Environment module references**
     - **Validates: Requirements 2.6, 2.8**
 
-  - [ ]* 8.7 Write property test for service module file structure and content
+  - [x] 8.7 Write property test for service module file structure and content
     - **Property 7: Service module file structure and content**
     - **Validates: Requirements 3.3, 3.4, 3.5, 3.6**
 
-  - [ ]* 8.8 Write property test for resource instance subfolder structure
+  - [~] 8.8 Write property test for resource instance subfolder structure
     - **Property 8: Resource instance subfolder structure**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
 
-  - [ ]* 8.9 Write property test for Lambda iam.tf with file() references
+  - [~] 8.9 Write property test for Lambda iam.tf with file() references
     - **Property 9: Lambda iam.tf with file() references**
     - **Validates: Requirements 4.5, 4.6, 9.5**
 
-  - [ ]* 8.10 Write property test for AWS provider configuration
+  - [~] 8.10 Write property test for AWS provider configuration
     - **Property 20: AWS provider configuration**
     - **Validates: Requirements 5.2**
 
@@ -221,15 +221,15 @@ Build a Python FastAPI backend that transforms a structured JSON architecture de
     - Add error handling: 422 for validation errors (automatic via Pydantic), 500 for generation failures with descriptive messages
     - _Requirements: 1.1, 1.2, 1.3, 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ]* 9.3 Write property test for valid input acceptance
+  - [ ] 9.3 Write property test for valid input acceptance
     - **Property 1: Valid input acceptance**
     - **Validates: Requirements 1.1, 1.4**
 
-  - [ ]* 9.4 Write property test for invalid input error reporting
+  - [ ] 9.4 Write property test for invalid input error reporting
     - **Property 2: Invalid input error reporting**
     - **Validates: Requirements 1.2**
 
-  - [ ]* 9.5 Write property test for output format correctness
+  - [ ] 9.5 Write property test for output format correctness
     - **Property 14: Output format correctness**
     - **Validates: Requirements 6.2, 6.3, 6.4**
 
