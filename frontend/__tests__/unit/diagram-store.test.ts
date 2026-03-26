@@ -752,3 +752,649 @@ describe('DiagramStore - serializeToArchitectureDescription', () => {
     expect(desc.connections).toEqual([]);
   });
 });
+
+describe('DiagramStore - Object Grouping', () => {
+  beforeEach(() => {
+    useDiagramStore.setState({
+      elements: new Map(),
+      connectors: new Map(),
+      canvasObjects: new Map(),
+      selectedObjectIds: new Set(),
+      objectGroups: new Map(),
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+      _undoStack: [],
+      _redoStack: [],
+      canUndo: false,
+      canRedo: false,
+    });
+  });
+
+  function addTwoObjects(): [string, string] {
+    const id1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 0, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    const id2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-2',
+      position: { x: 200, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    return [id1, id2];
+  }
+
+  it('groupSelectedObjects returns null when fewer than 2 objects selected', () => {
+    const [id1] = addTwoObjects();
+    useDiagramStore.getState().selectObject(id1);
+    const result = useDiagramStore.getState().groupSelectedObjects();
+    expect(result).toBeNull();
+    expect(useDiagramStore.getState().objectGroups.size).toBe(0);
+  });
+
+  it('groupSelectedObjects returns null when no objects selected', () => {
+    addTwoObjects();
+    const result = useDiagramStore.getState().groupSelectedObjects();
+    expect(result).toBeNull();
+  });
+
+  it('groupSelectedObjects creates a group from 2+ selected objects', () => {
+    const [id1, id2] = addTwoObjects();
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+
+    const groupId = useDiagramStore.getState().groupSelectedObjects();
+    expect(groupId).toBeTruthy();
+
+    const group = useDiagramStore.getState().objectGroups.get(groupId!);
+    expect(group).toBeDefined();
+    expect(group!.memberIds).toContain(id1);
+    expect(group!.memberIds).toContain(id2);
+    expect(group!.memberIds).toHaveLength(2);
+    expect(group!.name).toMatch(/^Group \d+$/);
+  });
+
+  it('groupSelectedObjects sets groupId on member objects', () => {
+    const [id1, id2] = addTwoObjects();
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+
+    const groupId = useDiagramStore.getState().groupSelectedObjects();
+
+    const obj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
+    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
+    expect(obj1.groupId).toBe(groupId);
+    expect(obj2.groupId).toBe(groupId);
+  });
+
+  it('ungroupObjects dissolves the group and clears groupId on members', () => {
+    const [id1, id2] = addTwoObjects();
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+
+    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
+    useDiagramStore.getState().ungroupObjects(groupId);
+
+    expect(useDiagramStore.getState().objectGroups.has(groupId)).toBe(false);
+    expect(useDiagramStore.getState().canvasObjects.get(id1)!.groupId).toBeUndefined();
+    expect(useDiagramStore.getState().canvasObjects.get(id2)!.groupId).toBeUndefined();
+  });
+
+  it('ungroupObjects is no-op for non-existent groupId', () => {
+    const [id1, id2] = addTwoObjects();
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+    useDiagramStore.getState().groupSelectedObjects();
+
+    const sizeBefore = useDiagramStore.getState().objectGroups.size;
+    useDiagramStore.getState().ungroupObjects('nonexistent');
+    expect(useDiagramStore.getState().objectGroups.size).toBe(sizeBefore);
+  });
+
+  it('removeCanvasObject auto-dissolves group when fewer than 2 members remain', () => {
+    const [id1, id2] = addTwoObjects();
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+
+    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
+    expect(useDiagramStore.getState().objectGroups.size).toBe(1);
+
+    // Remove one member — group should auto-dissolve since only 1 remains
+    useDiagramStore.getState().removeCanvasObject(id1);
+
+    expect(useDiagramStore.getState().objectGroups.has(groupId)).toBe(false);
+    expect(useDiagramStore.getState().canvasObjects.get(id2)!.groupId).toBeUndefined();
+  });
+
+  it('removeCanvasObject keeps group intact when 2+ members remain', () => {
+    const [id1, id2] = addTwoObjects();
+    const id3 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-3',
+      position: { x: 400, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2, id3]) });
+
+    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
+
+    // Remove one member — group should still have 2 members
+    useDiagramStore.getState().removeCanvasObject(id1);
+
+    const group = useDiagramStore.getState().objectGroups.get(groupId);
+    expect(group).toBeDefined();
+    expect(group!.memberIds).toHaveLength(2);
+    expect(group!.memberIds).toContain(id2);
+    expect(group!.memberIds).toContain(id3);
+  });
+
+  it('groupSelectedObjects removes members from existing groups', () => {
+    const [id1, id2] = addTwoObjects();
+    const id3 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-3',
+      position: { x: 400, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    // Group id1 and id2
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+    const group1Id = useDiagramStore.getState().groupSelectedObjects()!;
+
+    // Now group id2 and id3 — id2 should be removed from group1
+    useDiagramStore.setState({ selectedObjectIds: new Set([id2, id3]) });
+    const group2Id = useDiagramStore.getState().groupSelectedObjects()!;
+
+    // group1 should be auto-dissolved (only id1 left)
+    expect(useDiagramStore.getState().objectGroups.has(group1Id)).toBe(false);
+    expect(useDiagramStore.getState().canvasObjects.get(id1)!.groupId).toBeUndefined();
+
+    // group2 should exist with id2 and id3
+    const group2 = useDiagramStore.getState().objectGroups.get(group2Id);
+    expect(group2).toBeDefined();
+    expect(group2!.memberIds).toContain(id2);
+    expect(group2!.memberIds).toContain(id3);
+    expect(useDiagramStore.getState().canvasObjects.get(id2)!.groupId).toBe(group2Id);
+  });
+
+  it('loadDiagramState resets objectGroups', () => {
+    const [id1, id2] = addTwoObjects();
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+    useDiagramStore.getState().groupSelectedObjects();
+    expect(useDiagramStore.getState().objectGroups.size).toBe(1);
+
+    useDiagramStore.getState().loadDiagramState({
+      version: 2,
+      projectName: '',
+      environments: [],
+      elements: [],
+      connectors: [],
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+    });
+
+    expect(useDiagramStore.getState().objectGroups.size).toBe(0);
+  });
+
+  it('selectObject selects all group members when clicking a grouped object', () => {
+    const [id1, id2] = addTwoObjects();
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
+    expect(groupId).toBeTruthy();
+
+    // Clear selection, then select just one member
+    useDiagramStore.getState().clearSelection();
+    expect(useDiagramStore.getState().selectedObjectIds.size).toBe(0);
+
+    useDiagramStore.getState().selectObject(id1);
+
+    // Both group members should be selected
+    const selected = useDiagramStore.getState().selectedObjectIds;
+    expect(selected.size).toBe(2);
+    expect(selected.has(id1)).toBe(true);
+    expect(selected.has(id2)).toBe(true);
+  });
+
+  it('selectObject selects only the clicked object when it has no group', () => {
+    const [id1, id2] = addTwoObjects();
+
+    useDiagramStore.getState().selectObject(id1);
+
+    const selected = useDiagramStore.getState().selectedObjectIds;
+    expect(selected.size).toBe(1);
+    expect(selected.has(id1)).toBe(true);
+    expect(selected.has(id2)).toBe(false);
+  });
+
+  it('selectObject with null clears the selection', () => {
+    const [id1] = addTwoObjects();
+    useDiagramStore.getState().selectObject(id1);
+    expect(useDiagramStore.getState().selectedObjectIds.size).toBe(1);
+
+    useDiagramStore.getState().selectObject(null);
+    expect(useDiagramStore.getState().selectedObjectIds.size).toBe(0);
+  });
+});
+
+describe('DiagramStore - moveSelectedObjects', () => {
+  beforeEach(() => {
+    useDiagramStore.setState({
+      elements: new Map(),
+      connectors: new Map(),
+      canvasObjects: new Map(),
+      selectedObjectIds: new Set(),
+      objectGroups: new Map(),
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+      _undoStack: [],
+      _redoStack: [],
+      canUndo: false,
+      canRedo: false,
+    });
+  });
+
+  it('moves a single selected architecture-block by offset', () => {
+    const id = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'lambda',
+      name: 'lambda-1',
+      position: { x: 100, y: 200 },
+      config: {},
+      visualConfig: { width: 80, height: 80 },
+    });
+    useDiagramStore.getState().selectObject(id);
+    useDiagramStore.getState().moveSelectedObjects(10, -20);
+
+    const obj = useDiagramStore.getState().canvasObjects.get(id)!;
+    expect(obj.objectType === 'architecture-block' && obj.position).toEqual({ x: 110, y: 180 });
+  });
+
+  it('moves a single selected geometric object by offset', () => {
+    const id = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 50, y: 50 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    useDiagramStore.getState().selectObject(id);
+    useDiagramStore.getState().moveSelectedObjects(5, 15);
+
+    const obj = useDiagramStore.getState().canvasObjects.get(id)!;
+    expect(obj.objectType === 'geometric' && obj.position).toEqual({ x: 55, y: 65 });
+  });
+
+  it('moves a line object by updating both start and end points', () => {
+    const id = useDiagramStore.getState().addCanvasObject({
+      objectType: 'line',
+      name: 'line-1',
+      start: { x: 10, y: 20 },
+      end: { x: 100, y: 200 },
+      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
+    });
+    useDiagramStore.getState().selectObject(id);
+    useDiagramStore.getState().moveSelectedObjects(5, -5);
+
+    const obj = useDiagramStore.getState().canvasObjects.get(id)!;
+    if (obj.objectType === 'line') {
+      expect(obj.start).toEqual({ x: 15, y: 15 });
+      expect(obj.end).toEqual({ x: 105, y: 195 });
+    }
+  });
+
+  it('moves multiple selected objects by the same offset', () => {
+    const id1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 0, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    const id2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-2',
+      position: { x: 200, y: 200 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+    useDiagramStore.getState().moveSelectedObjects(10, 10);
+
+    const obj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
+    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
+    expect(obj1.objectType === 'geometric' && obj1.position).toEqual({ x: 10, y: 10 });
+    expect(obj2.objectType === 'geometric' && obj2.position).toEqual({ x: 210, y: 210 });
+  });
+
+  it('moves all group members when one grouped object is selected', () => {
+    const id1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 0, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    const id2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-2',
+      position: { x: 200, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    // Group them
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+    useDiagramStore.getState().groupSelectedObjects();
+
+    // Select only id1, but id2 should also move because they're grouped
+    useDiagramStore.getState().selectObject(id1);
+    useDiagramStore.getState().moveSelectedObjects(30, 40);
+
+    const obj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
+    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
+    expect(obj1.objectType === 'geometric' && obj1.position).toEqual({ x: 30, y: 40 });
+    expect(obj2.objectType === 'geometric' && obj2.position).toEqual({ x: 230, y: 40 });
+  });
+
+  it('is no-op when selection is empty', () => {
+    const id = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 50, y: 50 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    useDiagramStore.getState().moveSelectedObjects(10, 10);
+
+    const obj = useDiagramStore.getState().canvasObjects.get(id)!;
+    expect(obj.objectType === 'geometric' && obj.position).toEqual({ x: 50, y: 50 });
+  });
+
+  it('does not move unselected non-grouped objects', () => {
+    const id1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 0, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    const id2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-2',
+      position: { x: 200, y: 200 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    // Select only id1
+    useDiagramStore.getState().selectObject(id1);
+    useDiagramStore.getState().moveSelectedObjects(10, 10);
+
+    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
+    expect(obj2.objectType === 'geometric' && obj2.position).toEqual({ x: 200, y: 200 });
+  });
+});
+
+describe('DiagramStore - Serialization of zIndex, groupId, and objectGroups', () => {
+  beforeEach(() => {
+    useDiagramStore.setState({
+      elements: new Map(),
+      connectors: new Map(),
+      canvasObjects: new Map(),
+      selectedObjectIds: new Set(),
+      objectGroups: new Map(),
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+      projectName: '',
+      environments: [],
+      _undoStack: [],
+      _redoStack: [],
+      canUndo: false,
+      canRedo: false,
+    });
+  });
+
+  it('serializeDiagramState includes zIndex on each canvas object', () => {
+    const id = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 10, y: 20 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    const state = useDiagramStore.getState().serializeDiagramState();
+    const sObj = state.canvasObjects!.find((o) => o.id === id)!;
+    expect(sObj.zIndex).toBe(0);
+  });
+
+  it('serializeDiagramState includes groupId on grouped canvas objects', () => {
+    const id1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 0, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    const id2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-2',
+      position: { x: 200, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
+
+    const state = useDiagramStore.getState().serializeDiagramState();
+    const sObj1 = state.canvasObjects!.find((o) => o.id === id1)!;
+    const sObj2 = state.canvasObjects!.find((o) => o.id === id2)!;
+    expect(sObj1.groupId).toBe(groupId);
+    expect(sObj2.groupId).toBe(groupId);
+  });
+
+  it('serializeDiagramState does not include groupId on ungrouped objects', () => {
+    useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 0, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    const state = useDiagramStore.getState().serializeDiagramState();
+    expect(state.canvasObjects![0].groupId).toBeUndefined();
+  });
+
+  it('serializeDiagramState includes objectGroups when groups exist', () => {
+    const id1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 0, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    const id2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-2',
+      position: { x: 200, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
+
+    const state = useDiagramStore.getState().serializeDiagramState();
+    expect(state.objectGroups).toBeDefined();
+    expect(state.objectGroups).toHaveLength(1);
+    expect(state.objectGroups![0].id).toBe(groupId);
+    expect(state.objectGroups![0].memberIds).toContain(id1);
+    expect(state.objectGroups![0].memberIds).toContain(id2);
+  });
+
+  it('serializeDiagramState omits objectGroups when no groups exist', () => {
+    useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 0, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    const state = useDiagramStore.getState().serializeDiagramState();
+    expect(state.objectGroups).toBeUndefined();
+  });
+
+  it('loadDiagramState deserializes zIndex from serialized state', () => {
+    const state = useDiagramStore.getState().serializeDiagramState();
+
+    // Create objects with specific zIndex values
+    const id1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 0, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+    const id2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-2',
+      position: { x: 200, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    // Bring id1 to front so it has a higher zIndex
+    useDiagramStore.getState().bringToFront(id1);
+
+    const serialized = useDiagramStore.getState().serializeDiagramState();
+    useDiagramStore.getState().loadDiagramState(serialized);
+
+    const obj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
+    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
+    expect(obj1.zIndex).toBeGreaterThan(obj2.zIndex);
+  });
+
+  it('loadDiagramState defaults zIndex to insertion index when missing', () => {
+    const serialized = {
+      version: 2,
+      projectName: '',
+      environments: [],
+      elements: [],
+      connectors: [],
+      canvasObjects: [
+        {
+          id: 'a',
+          objectType: 'geometric' as const,
+          name: 'rect-1',
+          x: 0,
+          y: 0,
+          visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+        },
+        {
+          id: 'b',
+          objectType: 'geometric' as const,
+          name: 'rect-2',
+          x: 200,
+          y: 0,
+          visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+        },
+      ],
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+    };
+
+    useDiagramStore.getState().loadDiagramState(serialized as any);
+
+    expect(useDiagramStore.getState().canvasObjects.get('a')!.zIndex).toBe(0);
+    expect(useDiagramStore.getState().canvasObjects.get('b')!.zIndex).toBe(1);
+  });
+
+  it('loadDiagramState deserializes objectGroups and restores groupId on objects', () => {
+    const serialized = {
+      version: 2,
+      projectName: '',
+      environments: [],
+      elements: [],
+      connectors: [],
+      canvasObjects: [
+        {
+          id: 'a',
+          objectType: 'geometric' as const,
+          name: 'rect-1',
+          x: 0,
+          y: 0,
+          visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+          zIndex: 0,
+          groupId: 'g1',
+        },
+        {
+          id: 'b',
+          objectType: 'geometric' as const,
+          name: 'rect-2',
+          x: 200,
+          y: 0,
+          visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+          zIndex: 1,
+          groupId: 'g1',
+        },
+      ],
+      objectGroups: [
+        { id: 'g1', name: 'Group 1', memberIds: ['a', 'b'] },
+      ],
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+    };
+
+    useDiagramStore.getState().loadDiagramState(serialized as any);
+
+    // Verify objectGroups are restored
+    expect(useDiagramStore.getState().objectGroups.size).toBe(1);
+    const group = useDiagramStore.getState().objectGroups.get('g1')!;
+    expect(group.name).toBe('Group 1');
+    expect(group.memberIds).toEqual(['a', 'b']);
+
+    // Verify groupId is restored on objects
+    expect(useDiagramStore.getState().canvasObjects.get('a')!.groupId).toBe('g1');
+    expect(useDiagramStore.getState().canvasObjects.get('b')!.groupId).toBe('g1');
+  });
+
+  it('loadDiagramState defaults objectGroups to empty when missing', () => {
+    const serialized = {
+      version: 2,
+      projectName: '',
+      environments: [],
+      elements: [],
+      connectors: [],
+      canvasObjects: [],
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+    };
+
+    useDiagramStore.getState().loadDiagramState(serialized as any);
+    expect(useDiagramStore.getState().objectGroups.size).toBe(0);
+  });
+
+  it('round-trip: serialize then load preserves zIndex, groupId, and objectGroups', () => {
+    const id1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'lambda',
+      name: 'lambda-1',
+      position: { x: 10, y: 20 },
+      config: {},
+      visualConfig: { width: 80, height: 80 },
+    });
+    const id2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'geometric',
+      name: 'rect-1',
+      position: { x: 200, y: 0 },
+      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
+    });
+
+    // Group them
+    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
+    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
+
+    // Bring id2 to front
+    useDiagramStore.getState().bringToFront(id2);
+
+    const beforeObj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
+    const beforeObj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
+
+    // Serialize and reload
+    const serialized = useDiagramStore.getState().serializeDiagramState();
+    useDiagramStore.getState().loadDiagramState(serialized);
+
+    const afterObj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
+    const afterObj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
+
+    // zIndex preserved
+    expect(afterObj1.zIndex).toBe(beforeObj1.zIndex);
+    expect(afterObj2.zIndex).toBe(beforeObj2.zIndex);
+
+    // groupId preserved
+    expect(afterObj1.groupId).toBe(groupId);
+    expect(afterObj2.groupId).toBe(groupId);
+
+    // objectGroups preserved
+    expect(useDiagramStore.getState().objectGroups.size).toBe(1);
+    const group = useDiagramStore.getState().objectGroups.get(groupId)!;
+    expect(group.memberIds).toContain(id1);
+    expect(group.memberIds).toContain(id2);
+  });
+});

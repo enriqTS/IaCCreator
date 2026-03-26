@@ -1,7 +1,7 @@
 'use client';
 
+import { useRef, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { canvasToScreen } from '@/utils/viewport';
 import type { LineObject } from '@/types/diagram';
 
 interface LineObjectComponentProps {
@@ -10,23 +10,68 @@ interface LineObjectComponentProps {
 }
 
 export default function LineObjectComponent({ line, isSelected }: LineObjectComponentProps) {
-  const viewport = useDiagramStore((s) => s.viewport);
   const selectObject = useDiagramStore((s) => s.selectObject);
-
-  const screenStart = canvasToScreen(line.start, viewport);
-  const screenEnd = canvasToScreen(line.end, viewport);
+  const toggleObjectSelection = useDiagramStore((s) => s.toggleObjectSelection);
+  const moveSelectedObjects = useDiagramStore((s) => s.moveSelectedObjects);
 
   const { color, borderWidth, strokeStyle, startArrow, endArrow } = line.visualConfig;
 
-  const scaledStrokeWidth = borderWidth * viewport.scale;
   const markerId = `line-${line.id}`;
   const startMarkerId = `${markerId}-start`;
   const endMarkerId = `${markerId}-end`;
 
-  const dashArray = strokeStyle === 'dashed' ? `${scaledStrokeWidth * 3} ${scaledStrokeWidth * 2}` : undefined;
+  const dashArray = strokeStyle === 'dashed' ? `${borderWidth * 3} ${borderWidth * 2}` : undefined;
 
   // Arrowhead size scales with stroke width
-  const arrowSize = Math.max(scaledStrokeWidth * 3, 6);
+  const arrowSize = Math.max(borderWidth * 3, 6);
+
+  const isDragging = useRef(false);
+  const didDrag = useRef(false);
+  const lastMouse = useRef<{ x: number; y: number } | null>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent<SVGLineElement>) => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+
+    if (!e.shiftKey && !isSelected) {
+      selectObject(line.id);
+    }
+
+    isDragging.current = true;
+    didDrag.current = false;
+    lastMouse.current = { x: e.clientX, y: e.clientY };
+
+    const viewport = useDiagramStore.getState().viewport;
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      if (!isDragging.current || !lastMouse.current) return;
+      const dx = (ev.clientX - lastMouse.current.x) / viewport.scale;
+      const dy = (ev.clientY - lastMouse.current.y) / viewport.scale;
+      lastMouse.current = { x: ev.clientX, y: ev.clientY };
+      if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
+        didDrag.current = true;
+        moveSelectedObjects(dx, dy);
+      }
+    };
+
+    const handleMouseUp = (ev: MouseEvent) => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      isDragging.current = false;
+      lastMouse.current = null;
+
+      if (!didDrag.current) {
+        if (ev.shiftKey) {
+          toggleObjectSelection(line.id);
+        } else {
+          selectObject(line.id);
+        }
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }, [line.id, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
 
   return (
     <g data-testid={`line-object-${line.id}`} style={{ pointerEvents: 'auto', cursor: 'pointer' }}>
@@ -45,7 +90,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
               d={`M ${arrowSize} 0 L 0 ${arrowSize / 2} L ${arrowSize} ${arrowSize}`}
               fill="none"
               stroke={color}
-              strokeWidth={Math.max(scaledStrokeWidth * 0.6, 1)}
+              strokeWidth={Math.max(borderWidth * 0.6, 1)}
             />
           </marker>
         )}
@@ -63,7 +108,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
               d={`M 0 0 L ${arrowSize} ${arrowSize / 2} L 0 ${arrowSize}`}
               fill="none"
               stroke={color}
-              strokeWidth={Math.max(scaledStrokeWidth * 0.6, 1)}
+              strokeWidth={Math.max(borderWidth * 0.6, 1)}
             />
           </marker>
         )}
@@ -71,39 +116,36 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
 
       {/* Invisible wider hit area for easier clicking */}
       <line
-        x1={screenStart.x}
-        y1={screenStart.y}
-        x2={screenEnd.x}
-        y2={screenEnd.y}
+        x1={line.start.x}
+        y1={line.start.y}
+        x2={line.end.x}
+        y2={line.end.y}
         stroke="transparent"
-        strokeWidth={Math.max(scaledStrokeWidth + 10, 12)}
-        onClick={(e) => {
-          e.stopPropagation();
-          selectObject(line.id);
-        }}
+        strokeWidth={Math.max(borderWidth + 10, 12)}
+        onMouseDown={handleMouseDown}
       />
 
       {/* Selection highlight glow */}
       {isSelected && (
         <line
-          x1={screenStart.x}
-          y1={screenStart.y}
-          x2={screenEnd.x}
-          y2={screenEnd.y}
+          x1={line.start.x}
+          y1={line.start.y}
+          x2={line.end.x}
+          y2={line.end.y}
           stroke="rgba(59, 130, 246, 0.5)"
-          strokeWidth={scaledStrokeWidth + 6}
+          strokeWidth={borderWidth + 6}
           strokeLinecap="round"
         />
       )}
 
       {/* Main visible line */}
       <line
-        x1={screenStart.x}
-        y1={screenStart.y}
-        x2={screenEnd.x}
-        y2={screenEnd.y}
+        x1={line.start.x}
+        y1={line.start.y}
+        x2={line.end.x}
+        y2={line.end.y}
         stroke={color}
-        strokeWidth={scaledStrokeWidth}
+        strokeWidth={borderWidth}
         strokeDasharray={dashArray}
         strokeLinecap="round"
         markerStart={startArrow ? `url(#${startMarkerId})` : undefined}

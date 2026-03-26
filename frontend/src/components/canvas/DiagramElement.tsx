@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useState } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { canvasToScreen, screenToCanvas } from '@/utils/viewport';
+import { screenToCanvas } from '@/utils/viewport';
 import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
 import type { DiagramElement } from '@/types/diagram';
 import type { ServiceType } from '@/types/diagram';
@@ -38,7 +38,8 @@ export default function DiagramElementComponent({ element }: DiagramElementProps
   const isConnectorMode = activeTool === 'connector';
   const iconPath = getIconPath(element.serviceType);
 
-  const screenPos = canvasToScreen(element.position, viewport);
+  // Position directly in canvas coordinates (the parent transform container handles viewport)
+  const pos = element.position;
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -122,7 +123,7 @@ export default function DiagramElementComponent({ element }: DiagramElementProps
         position: 'absolute',
         left: 0,
         top: 0,
-        transform: `translate(${screenPos.x - 32}px, ${screenPos.y - 32}px)`,
+        transform: `translate(${pos.x - 32}px, ${pos.y - 32}px)`,
         pointerEvents: 'auto',
         cursor: isConnectorMode ? 'crosshair' : 'grab',
         userSelect: 'none',

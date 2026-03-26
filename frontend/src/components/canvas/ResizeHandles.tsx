@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { canvasToScreen, screenToCanvas } from '@/utils/viewport';
+import { screenToCanvas } from '@/utils/viewport';
 import type { CanvasObject, Point } from '@/types/diagram';
 
 const HANDLE_SIZE = 8;
@@ -27,10 +27,13 @@ interface ResizeHandlesProps {
 }
 
 /**
- * Compute the screen-space position for each of the 8 resize handles
- * given the object's center screen position and scaled dimensions.
+ * Compute the canvas-space position for each of the 8 resize handles
+ * given the object's center canvas position and half-dimensions.
+ *
+ * Since ResizeHandles is rendered inside the viewport transform container,
+ * all positions are in canvas coordinates directly.
  */
-function getHandleScreenPositions(
+function getHandleCanvasPositions(
   centerX: number,
   centerY: number,
   halfW: number,
@@ -76,12 +79,16 @@ export default function ResizeHandles({ object }: ResizeHandlesProps) {
   }
 
   // --- Block / Geometric: 8 resize handles ---
+  // Positions are in canvas coordinates (parent transform container handles viewport)
   const position = object.position;
   const { width, height } = object.visualConfig;
-  const screenCenter = canvasToScreen(position, viewport);
-  const halfW = (width * viewport.scale) / 2;
-  const halfH = (height * viewport.scale) / 2;
-  const handlePositions = getHandleScreenPositions(screenCenter.x, screenCenter.y, halfW, halfH);
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const handlePositions = getHandleCanvasPositions(position.x, position.y, halfW, halfH);
+
+  // Inverse scale so handles remain a constant screen-pixel size
+  const inverseScale = 1 / viewport.scale;
+  const handleSizeCanvas = HANDLE_SIZE * inverseScale;
 
   const handleMouseDown = (handle: HandlePosition) => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -150,12 +157,12 @@ export default function ResizeHandles({ object }: ResizeHandlesProps) {
             onMouseDown={handleMouseDown(pos)}
             style={{
               position: 'absolute',
-              left: hp.x - HANDLE_SIZE / 2,
-              top: hp.y - HANDLE_SIZE / 2,
-              width: HANDLE_SIZE,
-              height: HANDLE_SIZE,
+              left: hp.x - handleSizeCanvas / 2,
+              top: hp.y - handleSizeCanvas / 2,
+              width: handleSizeCanvas,
+              height: handleSizeCanvas,
               backgroundColor: '#3b82f6',
-              border: '1px solid #fff',
+              border: `${inverseScale}px solid #fff`,
               cursor: CURSOR_MAP[pos],
               zIndex: 1000,
               pointerEvents: 'auto',
@@ -183,8 +190,13 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
     origPoint: Point;
   } | null>(null);
 
-  const screenStart = canvasToScreen(object.start, viewport);
-  const screenEnd = canvasToScreen(object.end, viewport);
+  // Use canvas coordinates directly (parent transform container handles viewport)
+  const canvasStart = object.start;
+  const canvasEnd = object.end;
+
+  // Inverse scale so handles remain a constant screen-pixel size
+  const inverseScale = 1 / viewport.scale;
+  const CIRCLE_SIZE_CANVAS = 10 * inverseScale;
 
   const handleMouseDown = (endpoint: 'start' | 'end') => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -208,8 +220,6 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
     window.addEventListener('mouseup', onMouseUp);
   };
 
-  const CIRCLE_SIZE = 10;
-
   return (
     <>
       <div
@@ -217,13 +227,13 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
         onMouseDown={handleMouseDown('start')}
         style={{
           position: 'absolute',
-          left: screenStart.x - CIRCLE_SIZE / 2,
-          top: screenStart.y - CIRCLE_SIZE / 2,
-          width: CIRCLE_SIZE,
-          height: CIRCLE_SIZE,
+          left: canvasStart.x - CIRCLE_SIZE_CANVAS / 2,
+          top: canvasStart.y - CIRCLE_SIZE_CANVAS / 2,
+          width: CIRCLE_SIZE_CANVAS,
+          height: CIRCLE_SIZE_CANVAS,
           borderRadius: '50%',
           backgroundColor: '#3b82f6',
-          border: '1px solid #fff',
+          border: `${inverseScale}px solid #fff`,
           cursor: 'move',
           zIndex: 1000,
           pointerEvents: 'auto',
@@ -235,13 +245,13 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
         onMouseDown={handleMouseDown('end')}
         style={{
           position: 'absolute',
-          left: screenEnd.x - CIRCLE_SIZE / 2,
-          top: screenEnd.y - CIRCLE_SIZE / 2,
-          width: CIRCLE_SIZE,
-          height: CIRCLE_SIZE,
+          left: canvasEnd.x - CIRCLE_SIZE_CANVAS / 2,
+          top: canvasEnd.y - CIRCLE_SIZE_CANVAS / 2,
+          width: CIRCLE_SIZE_CANVAS,
+          height: CIRCLE_SIZE_CANVAS,
           borderRadius: '50%',
           backgroundColor: '#3b82f6',
-          border: '1px solid #fff',
+          border: `${inverseScale}px solid #fff`,
           cursor: 'move',
           zIndex: 1000,
           pointerEvents: 'auto',

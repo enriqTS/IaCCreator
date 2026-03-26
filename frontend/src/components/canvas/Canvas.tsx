@@ -3,10 +3,13 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas, canvasToScreen } from '@/utils/viewport';
-import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL } from '@/types/diagram';
+import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
 import type { Point } from '@/types/diagram';
 import CanvasBackground from './CanvasBackground';
 import ElementLayer from './ElementLayer';
+import PlacementPreview from './PlacementPreview';
+import DragSizingOverlay from './DragSizingOverlay';
+import MarqueeSelection from './MarqueeSelection';
 
 export default function Canvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,9 +30,9 @@ export default function Canvas() {
   const selectConnector = useDiagramStore((s) => s.selectConnector);
   const addElement = useDiagramStore((s) => s.addElement);
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
-  const selectObject = useDiagramStore((s) => s.selectObject);
   const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
+  const clearSelection = useDiagramStore((s) => s.clearSelection);
   const setActiveTool = useDiagramStore((s) => s.setActiveTool);
   const activeTool = useDiagramStore((s) => s.activeTool);
   const viewport = useDiagramStore((s) => s.viewport);
@@ -41,6 +44,61 @@ export default function Canvas() {
       setLinePreviewEnd(null);
     }
   }, [activeTool]);
+
+  // --- handlePlaceObject: called by DragSizingOverlay on mouseup ---
+  const handlePlaceObject = useCallback(
+    (payload: { canvasPosition: Point; width: number; height: number }) => {
+      const tool = useDiagramStore.getState().activeTool;
+
+      if (typeof tool === 'object' && tool.type === 'place-service') {
+        // width/height === 0 means simple click → use default dimensions
+        if (payload.width > 0 && payload.height > 0) {
+          addCanvasObject({
+            objectType: 'architecture-block',
+            serviceType: tool.serviceType,
+            name: 'Service',
+            position: payload.canvasPosition,
+            config: {},
+            visualConfig: { width: payload.width, height: payload.height },
+          });
+        } else {
+          addCanvasObject({
+            objectType: 'architecture-block',
+            serviceType: tool.serviceType,
+            name: 'Service',
+            position: payload.canvasPosition,
+            config: {},
+            visualConfig: { ...DEFAULT_BLOCK_VISUAL },
+          });
+        }
+        // Also create the legacy DiagramElement at the same position
+        addElement(tool.serviceType, payload.canvasPosition);
+        setActiveTool('pointer');
+        return;
+      }
+
+      if (typeof tool === 'object' && tool.type === 'place-shape') {
+        if (payload.width > 0 && payload.height > 0) {
+          addCanvasObject({
+            objectType: 'geometric',
+            name: 'Shape',
+            position: payload.canvasPosition,
+            visualConfig: { ...DEFAULT_GEO_VISUAL, shape: tool.shape, width: payload.width, height: payload.height },
+          });
+        } else {
+          addCanvasObject({
+            objectType: 'geometric',
+            name: 'Shape',
+            position: payload.canvasPosition,
+            visualConfig: { ...DEFAULT_GEO_VISUAL, shape: tool.shape },
+          });
+        }
+        setActiveTool('pointer');
+        return;
+      }
+    },
+    [addCanvasObject, addElement, setActiveTool],
+  );
 
   // --- Wheel → Zoom ---
   const handleWheel = useCallback(
@@ -104,41 +162,19 @@ export default function Canvas() {
           return;
         }
 
-        // Place-service mode: add element at click position
-        if (typeof activeTool === 'object' && activeTool.type === 'place-service') {
-          const rect = containerRef.current?.getBoundingClientRect();
-          if (!rect) return;
-          const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-          const canvasPoint = screenToCanvas(screenPoint, viewport);
-          addElement(activeTool.serviceType, canvasPoint);
-          setActiveTool('pointer');
-          return;
-        }
-
-        // Place-shape mode: create geometric object at click position
-        if (typeof activeTool === 'object' && activeTool.type === 'place-shape') {
-          const rect = containerRef.current?.getBoundingClientRect();
-          if (!rect) return;
-          const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-          const canvasPoint = screenToCanvas(screenPoint, viewport);
-          addCanvasObject({
-            objectType: 'geometric',
-            name: 'Shape',
-            position: canvasPoint,
-            visualConfig: { ...DEFAULT_GEO_VISUAL, shape: activeTool.shape },
-          });
-          setActiveTool('pointer');
+        // Place-service and place-shape modes are now handled by DragSizingOverlay
+        if (typeof activeTool === 'object' && (activeTool.type === 'place-service' || activeTool.type === 'place-shape')) {
           return;
         }
 
         // Deselect everything and cancel pending connector
         selectElement(null);
         selectConnector(null);
-        selectObject(null);
+        clearSelection();
         useDiagramStore.setState({ pendingConnectorSourceId: null });
       }
     },
-    [activeTool, viewport, lineStart, addElement, addCanvasObject, setActiveTool, selectElement, selectConnector, selectObject],
+    [activeTool, viewport, lineStart, addCanvasObject, selectElement, selectConnector, clearSelection],
   );
 
   // Mouse move handler for line preview and pan
@@ -285,7 +321,19 @@ export default function Canvas() {
       }}
     >
       <CanvasBackground />
-      <ElementLayer />
+      {/* Viewport transform container: positions ElementLayer children in canvas coordinates */}
+      <div
+        data-testid="viewport-transform-container"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          transformOrigin: '0 0',
+          transform: `translate(${viewport.offsetX}px, ${viewport.offsetY}px) scale(${viewport.scale})`,
+          pointerEvents: 'none',
+        }}
+      >
+        <ElementLayer />
+      </div>
 
       {/* Preview line while placing a line object */}
       {previewLineScreen && (
@@ -312,6 +360,15 @@ export default function Canvas() {
           />
         </svg>
       )}
+
+      {/* Placement preview ghost that follows mouse during place-service / place-shape */}
+      <PlacementPreview containerRef={containerRef} />
+
+      {/* Drag-sizing overlay for click-and-drag placement */}
+      <DragSizingOverlay containerRef={containerRef} onPlaceObject={handlePlaceObject} />
+
+      {/* Marquee multi-selection rectangle */}
+      <MarqueeSelection containerRef={containerRef} />
     </div>
   );
 }

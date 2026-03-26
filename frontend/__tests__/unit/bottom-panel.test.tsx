@@ -147,4 +147,54 @@ describe('BottomPanel', () => {
     rerender(<BottomPanel />);
     expect(container.innerHTML).toBe('');
   });
+
+  it('shows multi-selection summary when multiple objects are selected', () => {
+    const block = makeBlock('b1');
+    const geo = makeGeo('g1');
+    useDiagramStore.setState({
+      canvasObjects: new Map([
+        [block.id, block],
+        [geo.id, geo],
+      ]),
+      selectedObjectIds: new Set([block.id, geo.id]),
+    });
+    render(<BottomPanel />);
+    expect(screen.getByTestId('multi-selection-summary')).toBeDefined();
+    expect(screen.getByTestId('multi-selection-summary').textContent).toContain('2 objects selected');
+  });
+
+  it('does not show config tabs when multiple objects are selected', () => {
+    const block = makeBlock('b1');
+    const line = makeLine('l1');
+    useDiagramStore.setState({
+      canvasObjects: new Map([
+        [block.id, block],
+        [line.id, line],
+      ]),
+      selectedObjectIds: new Set([block.id, line.id]),
+    });
+    render(<BottomPanel />);
+    expect(screen.queryByTestId('tab-bar')).toBeNull();
+    expect(screen.queryByTestId('tab-terraform')).toBeNull();
+    expect(screen.queryByTestId('tab-visual')).toBeNull();
+  });
+
+  it('returns to config tabs when multi-selection is reduced to one', () => {
+    const block = makeBlock('b1');
+    const geo = makeGeo('g1');
+    useDiagramStore.setState({
+      canvasObjects: new Map([
+        [block.id, block],
+        [geo.id, geo],
+      ]),
+      selectedObjectIds: new Set([block.id, geo.id]),
+    });
+    const { rerender } = render(<BottomPanel />);
+    expect(screen.getByTestId('multi-selection-summary')).toBeDefined();
+
+    useDiagramStore.setState({ selectedObjectIds: new Set([block.id]) });
+    rerender(<BottomPanel />);
+    expect(screen.queryByTestId('multi-selection-summary')).toBeNull();
+    expect(screen.getByTestId('tab-bar')).toBeDefined();
+  });
 });

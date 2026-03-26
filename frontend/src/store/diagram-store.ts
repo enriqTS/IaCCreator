@@ -18,6 +18,7 @@ import type {
   LineVisualConfig,
   GeometricVisualConfig,
   Rect,
+  ObjectGroup,
 } from '@/types/diagram';
 import {
   MIN_OBJECT_WIDTH,
@@ -78,6 +79,20 @@ export interface DiagramStore {
   updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig>) => void;
   updateObjectBounds: (id: string, bounds: { width?: number; height?: number }) => void;
   updateLineEndpoint: (id: string, endpoint: 'start' | 'end', position: Point) => void;
+
+  // Z-order actions
+  bringToFront: (id: string) => void;
+  sendToBack: (id: string) => void;
+  bringForward: (id: string) => void;
+  sendBackward: (id: string) => void;
+
+  // Grouping
+  objectGroups: Map<string, ObjectGroup>;
+  groupSelectedObjects: () => string | null;
+  ungroupObjects: (groupId: string) => void;
+
+  // Multi-object move
+  moveSelectedObjects: (dx: number, dy: number) => void;
 
   // Connector state
   connectors: Map<string, Connector>;
@@ -232,6 +247,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     // --- Canvas object state ---
     canvasObjects: new Map<string, CanvasObject>(),
     selectedObjectIds: new Set<string>(),
+    objectGroups: new Map<string, ObjectGroup>(),
 
     addCanvasObject: (obj: CanvasObjectCreationPayload): string => {
       const id = uuidv4();
@@ -303,12 +319,46 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         const nextSelectedObjectIds = new Set(state.selectedObjectIds);
         nextSelectedObjectIds.delete(id);
 
-        return { canvasObjects: next, connectors: nextConnectors, selectedObjectIds: nextSelectedObjectIds };
+        // Handle group membership: remove from group, auto-dissolve if < 2 members
+        const nextGroups = new Map(state.objectGroups);
+        if (obj.groupId) {
+          const group = nextGroups.get(obj.groupId);
+          if (group) {
+            const updatedMembers = group.memberIds.filter((mid) => mid !== id);
+            if (updatedMembers.length < 2) {
+              // Auto-dissolve: clear groupId on remaining members
+              for (const memberId of updatedMembers) {
+                const member = next.get(memberId);
+                if (member) {
+                  next.set(memberId, { ...member, groupId: undefined } as CanvasObject);
+                }
+              }
+              nextGroups.delete(obj.groupId);
+            } else {
+              nextGroups.set(obj.groupId, { ...group, memberIds: updatedMembers });
+            }
+          }
+        }
+
+        return { canvasObjects: next, connectors: nextConnectors, selectedObjectIds: nextSelectedObjectIds, objectGroups: nextGroups };
       });
     },
 
     selectObject: (id: string | null): void => {
-      set({ selectedObjectIds: id ? new Set([id]) : new Set() });
+      if (!id) {
+        set({ selectedObjectIds: new Set() });
+        return;
+      }
+      const { canvasObjects, objectGroups } = get();
+      const obj = canvasObjects.get(id);
+      if (obj?.groupId) {
+        const group = objectGroups.get(obj.groupId);
+        if (group) {
+          set({ selectedObjectIds: new Set(group.memberIds) });
+          return;
+        }
+      }
+      set({ selectedObjectIds: new Set([id]) });
     },
 
     toggleObjectSelection: (id: string): void => {
@@ -392,6 +442,233 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       set((state) => {
         const next = new Map(state.canvasObjects);
         next.set(id, updated);
+        return { canvasObjects: next };
+      });
+    },
+
+    // --- Z-order actions ---
+
+    bringToFront: (id: string): void => {
+      const { canvasObjects } = get();
+      const target = canvasObjects.get(id);
+      if (!target) return;
+
+      let maxZ = -Infinity;
+      for (const obj of canvasObjects.values()) {
+        if (obj.id !== id && obj.zIndex > maxZ) maxZ = obj.zIndex;
+      }
+      // If already on top (or only object), no-op
+      if (canvasObjects.size <= 1 || target.zIndex > maxZ) return;
+
+      const newZ = maxZ + 1;
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...target, zIndex: newZ } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    sendToBack: (id: string): void => {
+      const { canvasObjects } = get();
+      const target = canvasObjects.get(id);
+      if (!target) return;
+
+      let minZ = Infinity;
+      for (const obj of canvasObjects.values()) {
+        if (obj.id !== id && obj.zIndex < minZ) minZ = obj.zIndex;
+      }
+      // If already at back (or only object), no-op
+      if (canvasObjects.size <= 1 || target.zIndex < minZ) return;
+
+      const newZ = minZ - 1;
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...target, zIndex: newZ } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    bringForward: (id: string): void => {
+      const { canvasObjects } = get();
+      const target = canvasObjects.get(id);
+      if (!target) return;
+
+      // Find the object directly above (smallest zIndex greater than target's)
+      let aboveObj: CanvasObject | null = null;
+      for (const obj of canvasObjects.values()) {
+        if (obj.id !== id && obj.zIndex > target.zIndex) {
+          if (!aboveObj || obj.zIndex < aboveObj.zIndex) {
+            aboveObj = obj;
+          }
+        }
+      }
+      if (!aboveObj) return; // Already on top
+
+      // Swap zIndex values
+      const targetNewZ = aboveObj.zIndex;
+      const aboveNewZ = target.zIndex;
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...target, zIndex: targetNewZ } as CanvasObject);
+        next.set(aboveObj!.id, { ...aboveObj!, zIndex: aboveNewZ } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    sendBackward: (id: string): void => {
+      const { canvasObjects } = get();
+      const target = canvasObjects.get(id);
+      if (!target) return;
+
+      // Find the object directly below (largest zIndex less than target's)
+      let belowObj: CanvasObject | null = null;
+      for (const obj of canvasObjects.values()) {
+        if (obj.id !== id && obj.zIndex < target.zIndex) {
+          if (!belowObj || obj.zIndex > belowObj.zIndex) {
+            belowObj = obj;
+          }
+        }
+      }
+      if (!belowObj) return; // Already at back
+
+      // Swap zIndex values
+      const targetNewZ = belowObj.zIndex;
+      const belowNewZ = target.zIndex;
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...target, zIndex: targetNewZ } as CanvasObject);
+        next.set(belowObj!.id, { ...belowObj!, zIndex: belowNewZ } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    // --- Grouping actions ---
+
+    groupSelectedObjects: (): string | null => {
+      const { selectedObjectIds, canvasObjects, objectGroups } = get();
+      // Require at least 2 selected objects
+      if (selectedObjectIds.size < 2) return null;
+
+      // Verify all selected IDs exist
+      for (const id of selectedObjectIds) {
+        if (!canvasObjects.has(id)) return null;
+      }
+
+      const groupId = uuidv4();
+      // Auto-generate group name
+      const groupNumber = objectGroups.size + 1;
+      const groupName = `Group ${groupNumber}`;
+      const memberIds = Array.from(selectedObjectIds);
+
+      set((state) => {
+        const nextObjects = new Map(state.canvasObjects);
+        const nextGroups = new Map(state.objectGroups);
+
+        // Remove members from any existing groups first
+        for (const memberId of memberIds) {
+          const obj = nextObjects.get(memberId);
+          if (obj && obj.groupId) {
+            const oldGroup = nextGroups.get(obj.groupId);
+            if (oldGroup) {
+              const remaining = oldGroup.memberIds.filter((mid) => mid !== memberId);
+              if (remaining.length < 2) {
+                // Auto-dissolve old group
+                for (const rid of remaining) {
+                  const rObj = nextObjects.get(rid);
+                  if (rObj) {
+                    nextObjects.set(rid, { ...rObj, groupId: undefined } as CanvasObject);
+                  }
+                }
+                nextGroups.delete(obj.groupId);
+              } else {
+                nextGroups.set(obj.groupId, { ...oldGroup, memberIds: remaining });
+              }
+            }
+          }
+        }
+
+        // Set groupId on all members
+        for (const memberId of memberIds) {
+          const obj = nextObjects.get(memberId);
+          if (obj) {
+            nextObjects.set(memberId, { ...obj, groupId: groupId } as CanvasObject);
+          }
+        }
+
+        // Create the new group
+        const newGroup: ObjectGroup = { id: groupId, name: groupName, memberIds };
+        nextGroups.set(groupId, newGroup);
+
+        return { canvasObjects: nextObjects, objectGroups: nextGroups };
+      });
+
+      return groupId;
+    },
+
+    ungroupObjects: (groupId: string): void => {
+      const { objectGroups } = get();
+      const group = objectGroups.get(groupId);
+      if (!group) return;
+
+      set((state) => {
+        const nextObjects = new Map(state.canvasObjects);
+        const nextGroups = new Map(state.objectGroups);
+
+        // Clear groupId on all members
+        for (const memberId of group.memberIds) {
+          const obj = nextObjects.get(memberId);
+          if (obj) {
+            nextObjects.set(memberId, { ...obj, groupId: undefined } as CanvasObject);
+          }
+        }
+
+        // Remove the group
+        nextGroups.delete(groupId);
+
+        return { canvasObjects: nextObjects, objectGroups: nextGroups };
+      });
+    },
+
+    // --- Multi-object move ---
+
+    moveSelectedObjects: (dx: number, dy: number): void => {
+      const { selectedObjectIds, canvasObjects, objectGroups } = get();
+      if (selectedObjectIds.size === 0) return;
+
+      // Expand selection to include all group members for any selected grouped object
+      const idsToMove = new Set<string>(selectedObjectIds);
+      for (const id of selectedObjectIds) {
+        const obj = canvasObjects.get(id);
+        if (obj?.groupId) {
+          const group = objectGroups.get(obj.groupId);
+          if (group) {
+            for (const memberId of group.memberIds) {
+              idsToMove.add(memberId);
+            }
+          }
+        }
+      }
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        for (const id of idsToMove) {
+          const obj = next.get(id);
+          if (!obj) continue;
+
+          if (obj.objectType === 'line') {
+            next.set(id, {
+              ...obj,
+              start: { x: obj.start.x + dx, y: obj.start.y + dy },
+              end: { x: obj.end.x + dx, y: obj.end.y + dy },
+            });
+          } else {
+            // architecture-block and geometric
+            next.set(id, {
+              ...obj,
+              position: { x: obj.position.x + dx, y: obj.position.y + dy },
+            } as CanvasObject);
+          }
+        }
         return { canvasObjects: next };
       });
     },
@@ -547,7 +824,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     // --- Serialization ---
 
     serializeDiagramState: (): DiagramState => {
-      const { elements, connectors, viewport, projectName, environments, canvasObjects } = get();
+      const { elements, connectors, viewport, projectName, environments, canvasObjects, objectGroups } = get();
 
       const serializedCanvasObjects: SerializedCanvasObject[] = Array.from(canvasObjects.values()).map((obj) => {
         const base: SerializedCanvasObject = {
@@ -555,6 +832,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           objectType: obj.objectType,
           name: obj.name,
           visualConfig: { ...obj.visualConfig } as Record<string, unknown>,
+          zIndex: obj.zIndex,
+          ...(obj.groupId !== undefined && { groupId: obj.groupId }),
         };
 
         if (obj.objectType === 'architecture-block') {
@@ -575,6 +854,12 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         return base;
       });
 
+      const serializedGroups = Array.from(objectGroups.values()).map((g) => ({
+        id: g.id,
+        name: g.name,
+        memberIds: [...g.memberIds],
+      }));
+
       return {
         version: 2,
         projectName,
@@ -594,6 +879,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           connectionType: c.connectionType,
         })),
         viewport: { ...viewport },
+        ...(serializedGroups.length > 0 && { objectGroups: serializedGroups }),
       };
     },
 
@@ -701,6 +987,18 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         }
       }
 
+      // Deserialize objectGroups
+      const objectGroupsMap = new Map<string, ObjectGroup>();
+      if (state.objectGroups && state.objectGroups.length > 0) {
+        for (const g of state.objectGroups) {
+          objectGroupsMap.set(g.id, {
+            id: g.id,
+            name: g.name,
+            memberIds: [...g.memberIds],
+          });
+        }
+      }
+
       set({
         elements: elementsMap,
         connectors: connectorsMap,
@@ -709,6 +1007,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         projectName: state.projectName,
         environments: state.environments.map((e) => ({ ...e, variables: { ...e.variables } })),
         selectedObjectIds: new Set(),
+        objectGroups: objectGroupsMap,
         _undoStack: [],
         _redoStack: [],
         canUndo: false,

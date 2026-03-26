@@ -6,13 +6,15 @@ import ArchitectureBlockComponent from './ArchitectureBlockComponent';
 import LineObjectComponent from './LineObjectComponent';
 import GeometricObjectComponent from './GeometricObjectComponent';
 import ResizeHandles from './ResizeHandles';
+import GroupBoundingBox from './GroupBoundingBox';
 
 export default function ElementLayer() {
   const elements = useDiagramStore((s) => s.elements);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
+  const objectGroups = useDiagramStore((s) => s.objectGroups);
 
-  const canvasObjectsArray = Array.from(canvasObjects.values());
+  const canvasObjectsArray = Array.from(canvasObjects.values()).sort((a, b) => a.zIndex - b.zIndex);
   const lineObjects = canvasObjectsArray.filter((obj) => obj.objectType === 'line');
   const nonLineObjects = canvasObjectsArray.filter((obj) => obj.objectType !== 'line');
 
@@ -86,6 +88,20 @@ export default function ElementLayer() {
 
       {/* Resize handles on the selected canvas object */}
       {selectedObject && <ResizeHandles object={selectedObject} />}
+
+      {/* Group bounding boxes for selected groups */}
+      {(() => {
+        const selectedGroupIds = new Set<string>();
+        for (const id of selectedObjectIds) {
+          const obj = canvasObjects.get(id);
+          if (obj?.groupId && objectGroups.has(obj.groupId)) {
+            selectedGroupIds.add(obj.groupId);
+          }
+        }
+        return Array.from(selectedGroupIds).map((gid) => (
+          <GroupBoundingBox key={gid} groupId={gid} />
+        ));
+      })()}
     </div>
   );
 }
