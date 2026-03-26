@@ -74,8 +74,10 @@ export default function Canvas() {
         return;
       }
 
-      // Left-click on empty canvas
-      if (e.button === 0 && e.target === e.currentTarget) {
+      // Left-click on empty canvas (target is either the container itself or the background canvas)
+      const target = e.target as HTMLElement;
+      const isCanvasBackground = target === e.currentTarget || target.tagName === 'CANVAS';
+      if (e.button === 0 && isCanvasBackground) {
         // Line tool mode: first click records start, second click creates line
         if (activeTool === 'line') {
           const rect = containerRef.current?.getBoundingClientRect();
