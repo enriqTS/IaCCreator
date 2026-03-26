@@ -6,7 +6,8 @@
   "when": {
     "type": "fileEdited",
     "patterns": [
-      "*"
+      "*",
+      "!.kiro/**"
     ]
   },
   "then": {

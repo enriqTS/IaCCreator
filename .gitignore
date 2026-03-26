@@ -11,3 +11,6 @@ __pycache__/
 
 # Hypothesis
 .hypothesis/
+
+#aws-icons
+aws-icons/
