@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas, canvasToScreen } from '@/utils/viewport';
 import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
-import { DEFAULT_BLOCK_VISUAL, DEFAULT_GEO_VISUAL } from '@/types/diagram';
-import type { ServiceType, GeometricShape, Point } from '@/types/diagram';
+import { DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
+import type { ServiceType, Point } from '@/types/diagram';
 
 function getIconPath(serviceType: ServiceType): string {
   for (const category of AWS_ICON_REGISTRY) {
@@ -29,8 +29,7 @@ export default function PlacementPreview({ containerRef }: PlacementPreviewProps
   const [mouseScreen, setMouseScreen] = useState<Point | null>(null);
 
   const isPlaceService = typeof activeTool === 'object' && activeTool.type === 'place-service';
-  const isPlaceShape = typeof activeTool === 'object' && activeTool.type === 'place-shape';
-  const isActive = isPlaceService || isPlaceShape;
+  const isActive = isPlaceService;
 
   // Track mouse position over the canvas container
   useEffect(() => {
@@ -134,35 +133,6 @@ export default function PlacementPreview({ containerRef }: PlacementPreviewProps
           {serviceType}
         </span>
       </div>
-    );
-  }
-
-  if (isPlaceShape) {
-    const shape = (activeTool as { type: 'place-shape'; shape: string }).shape as GeometricShape;
-    const { width, height, borderColor, borderWidth: bw } = DEFAULT_GEO_VISUAL;
-    const scaledWidth = width * viewport.scale;
-    const scaledHeight = height * viewport.scale;
-    const scaledBorderWidth = bw * viewport.scale;
-    const borderRadius = shape === 'ellipse' ? '50%' : '0px';
-
-    return (
-      <div
-        data-testid="placement-preview"
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          transform: `translate(${screenPos.x - scaledWidth / 2}px, ${screenPos.y - scaledHeight / 2}px)`,
-          width: `${scaledWidth}px`,
-          height: `${scaledHeight}px`,
-          opacity: 0.5,
-          pointerEvents: 'none',
-          border: `${scaledBorderWidth}px solid ${borderColor}`,
-          borderRadius,
-          backgroundColor: 'transparent',
-          boxSizing: 'border-box',
-        }}
-      />
     );
   }
 

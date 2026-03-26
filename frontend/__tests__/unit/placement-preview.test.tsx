@@ -60,45 +60,28 @@ describe('PlacementPreview', () => {
     expect(preview.style.pointerEvents).toBe('none');
   });
 
-  it('renders a preview element when activeTool is place-shape and mouse moves', () => {
+  it('renders nothing when activeTool is place-shape (shapes use DragSizingOverlay)', () => {
     useDiagramStore.setState({
       activeTool: { type: 'place-shape', shape: 'rectangle' },
     });
     const ref = makeContainerRef();
-    render(<PlacementPreview containerRef={ref} />);
+    const { container } = render(<PlacementPreview containerRef={ref} />);
 
     fireEvent.mouseMove(ref.current, { clientX: 300, clientY: 250 });
 
-    const preview = screen.getByTestId('placement-preview');
-    expect(preview).toBeDefined();
-    expect(preview.style.opacity).toBe('0.5');
-    expect(preview.style.pointerEvents).toBe('none');
+    expect(container.querySelector('[data-testid="placement-preview"]')).toBeNull();
   });
 
-  it('renders ellipse shape with border-radius 50%', () => {
+  it('renders nothing for ellipse shape (shapes use DragSizingOverlay)', () => {
     useDiagramStore.setState({
       activeTool: { type: 'place-shape', shape: 'ellipse' },
     });
     const ref = makeContainerRef();
-    render(<PlacementPreview containerRef={ref} />);
+    const { container } = render(<PlacementPreview containerRef={ref} />);
 
     fireEvent.mouseMove(ref.current, { clientX: 300, clientY: 250 });
 
-    const preview = screen.getByTestId('placement-preview');
-    expect(preview.style.borderRadius).toBe('50%');
-  });
-
-  it('renders rectangle shape with border-radius 0px', () => {
-    useDiagramStore.setState({
-      activeTool: { type: 'place-shape', shape: 'rectangle' },
-    });
-    const ref = makeContainerRef();
-    render(<PlacementPreview containerRef={ref} />);
-
-    fireEvent.mouseMove(ref.current, { clientX: 300, clientY: 250 });
-
-    const preview = screen.getByTestId('placement-preview');
-    expect(preview.style.borderRadius).toBe('0px');
+    expect(container.querySelector('[data-testid="placement-preview"]')).toBeNull();
   });
 
   it('cancels placement on Escape key press', () => {
