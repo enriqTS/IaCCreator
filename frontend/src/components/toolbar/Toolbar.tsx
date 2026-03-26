@@ -21,7 +21,7 @@ function ToolButton({
   return (
     <button
       title={title}
-      disabled={disabled}
+      disabled={disabled || false}
       onClick={onClick}
       data-testid={dataTestId}
       style={{

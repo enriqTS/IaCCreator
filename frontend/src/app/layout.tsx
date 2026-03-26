@@ -12,8 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body style={{ margin: 0, padding: 0, background: '#121212', color: '#e5e5e5', overflow: 'hidden' }}>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning style={{ margin: 0, padding: 0, background: '#121212', color: '#e5e5e5', overflow: 'hidden' }}>
         {children}
       </body>
     </html>
