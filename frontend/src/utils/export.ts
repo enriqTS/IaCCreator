@@ -1,10 +1,12 @@
 /**
- * Export utility — serializes diagram state and POSTs to the backend
- * /generate/zip endpoint, triggering a browser download of the resulting ZIP.
+ * Export utility — serializes diagram state and sends to the backend
+ * /generate/zip endpoint via the API client, triggering a browser download
+ * of the resulting ZIP.
  */
 
 import type { DiagramElement } from '@/types/diagram';
 import type { ArchitectureDescription } from '@/types/serialization';
+import { apiClient } from '@/utils/api-client';
 
 export interface ExportResult {
   success: boolean;
@@ -59,15 +61,14 @@ function triggerDownload(blob: Blob, filename: string): void {
 }
 
 /**
- * Export the current diagram to Terraform by POSTing to the backend.
+ * Export the current diagram to Terraform via the API client.
  *
  * 1. Rejects empty diagrams (no elements).
  * 2. Validates required config fields per service type.
- * 3. Serializes to ArchitectureDescription and POSTs to `/generate/zip`.
- * 4. On 200 — triggers browser download of `terraform.zip`.
- * 5. On 422 — parses field-level validation errors.
- * 6. On 500 — returns a generic server error.
- * 7. On network failure — returns a network error message.
+ * 3. Serializes to ArchitectureDescription and calls apiClient.generateTerraform.
+ * 4. On success — triggers browser download of `terraform.zip`.
+ * 5. On HTTP error (422/500/etc) — maps to ExportResult with appropriate errors.
+ * 6. On network failure — returns a network error message.
  */
 export async function exportToTerraform(
   serializeToArchitectureDescription: () => ArchitectureDescription,
@@ -87,53 +88,35 @@ export async function exportToTerraform(
   // 3. Serialize
   const payload = serializeToArchitectureDescription();
 
-  // 4. POST to backend
-  try {
-    const response = await fetch('/generate/zip', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+  // 4. Call API client
+  const result = await apiClient.generateTerraform(payload);
 
-    if (response.ok) {
-      const blob = await response.blob();
-      triggerDownload(blob, 'terraform.zip');
-      return { success: true };
-    }
-
-    // 5. Handle 422 validation errors
-    if (response.status === 422) {
-      try {
-        const body = await response.json();
-        const parsed: Record<string, string> = {};
-        if (body.detail && Array.isArray(body.detail)) {
-          for (const err of body.detail) {
-            const loc = Array.isArray(err.loc) ? err.loc.join('.') : String(err.loc ?? 'unknown');
-            parsed[loc] = String(err.msg ?? err.message ?? 'Validation error');
-          }
-        } else if (body.detail && typeof body.detail === 'string') {
-          parsed['detail'] = body.detail;
-        }
-        return {
-          success: false,
-          error: 'Validation error from server',
-          fieldErrors: Object.keys(parsed).length > 0 ? parsed : { detail: 'Validation error' },
-        };
-      } catch {
-        return { success: false, error: 'Validation error from server' };
-      }
-    }
-
-    // 6. Handle 500 and other server errors
-    try {
-      const body = await response.json();
-      const detail = typeof body.detail === 'string' ? body.detail : 'Server error';
-      return { success: false, error: detail };
-    } catch {
-      return { success: false, error: `Server error (${response.status})` };
-    }
-  } catch {
-    // 7. Network error
-    return { success: false, error: 'Network error: unable to reach the server. Please check your connection and try again.' };
+  if (result.ok) {
+    triggerDownload(result.data, 'terraform.zip');
+    return { success: true };
   }
+
+  // 5. Map ApiError to ExportResult
+  const { error } = result;
+
+  if (error.type === 'network') {
+    return {
+      success: false,
+      error: 'Network error: unable to reach the server. Please check your connection and try again.',
+    };
+  }
+
+  // HTTP errors
+  if (error.status === 422) {
+    return {
+      success: false,
+      error: 'Validation error from server',
+      fieldErrors: error.fieldErrors ?? { detail: 'Validation error' },
+    };
+  }
+
+  return {
+    success: false,
+    error: error.message,
+  };
 }

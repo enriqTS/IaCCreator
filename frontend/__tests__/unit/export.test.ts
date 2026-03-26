@@ -1,7 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { exportToTerraform, type ExportResult } from '@/utils/export';
 import type { DiagramElement } from '@/types/diagram';
 import type { ArchitectureDescription } from '@/types/serialization';
+
+// Mock the apiClient module
+vi.mock('@/utils/api-client', () => ({
+  apiClient: {
+    generateTerraform: vi.fn(),
+  },
+}));
+
+import { apiClient } from '@/utils/api-client';
+
+const mockGenerateTerraform = vi.mocked(apiClient.generateTerraform);
 
 function makeElement(overrides: Partial<DiagramElement> = {}): DiagramElement {
   return {
@@ -35,14 +46,7 @@ function serializeFn(): ArchitectureDescription {
 }
 
 describe('exportToTerraform', () => {
-  let originalFetch: typeof globalThis.fetch;
-
   beforeEach(() => {
-    originalFetch = globalThis.fetch;
-  });
-
-  afterEach(() => {
-    globalThis.fetch = originalFetch;
     vi.restoreAllMocks();
   });
 
@@ -85,14 +89,9 @@ describe('exportToTerraform', () => {
     elements.set('dynamo-1', makeDynamoElement('pk'));
 
     const blob = new Blob(['zipdata'], { type: 'application/zip' });
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      blob: () => Promise.resolve(blob),
-    });
+    mockGenerateTerraform.mockResolvedValue({ ok: true, data: blob });
 
-    // Mock DOM methods for download trigger
-    const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue({
+    vi.spyOn(document, 'createElement').mockReturnValue({
       href: '',
       download: '',
       click: vi.fn(),
@@ -104,8 +103,6 @@ describe('exportToTerraform', () => {
 
     const result = await exportToTerraform(serializeFn, elements);
     expect(result.success).toBe(true);
-
-    createElementSpy.mockRestore();
   });
 
   // --- Lambda has no required fields ---
@@ -115,11 +112,7 @@ describe('exportToTerraform', () => {
     elements.set('el-1', makeElement());
 
     const blob = new Blob(['zipdata'], { type: 'application/zip' });
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      blob: () => Promise.resolve(blob),
-    });
+    mockGenerateTerraform.mockResolvedValue({ ok: true, data: blob });
 
     vi.spyOn(document, 'createElement').mockReturnValue({
       href: '',
@@ -137,16 +130,12 @@ describe('exportToTerraform', () => {
 
   // --- Successful export (200) ---
 
-  it('triggers download on successful 200 response', async () => {
+  it('triggers download on successful response', async () => {
     const elements = new Map<string, DiagramElement>();
     elements.set('el-1', makeElement());
 
     const blob = new Blob(['zipdata'], { type: 'application/zip' });
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      blob: () => Promise.resolve(blob),
-    });
+    mockGenerateTerraform.mockResolvedValue({ ok: true, data: blob });
 
     const clickFn = vi.fn();
     vi.spyOn(document, 'createElement').mockReturnValue({
@@ -165,17 +154,12 @@ describe('exportToTerraform', () => {
     expect(revokeSpy).toHaveBeenCalledWith('blob:fake');
   });
 
-  it('sends correct Content-Type and payload', async () => {
+  it('calls apiClient.generateTerraform with the serialized payload', async () => {
     const elements = new Map<string, DiagramElement>();
     elements.set('el-1', makeElement());
 
     const blob = new Blob(['zipdata'], { type: 'application/zip' });
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      blob: () => Promise.resolve(blob),
-    });
-    globalThis.fetch = fetchMock;
+    mockGenerateTerraform.mockResolvedValue({ ok: true, data: blob });
 
     vi.spyOn(document, 'createElement').mockReturnValue({
       href: '',
@@ -189,28 +173,23 @@ describe('exportToTerraform', () => {
 
     await exportToTerraform(serializeFn, elements);
 
-    expect(fetchMock).toHaveBeenCalledWith('/generate/zip', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dummyPayload),
-    });
+    expect(mockGenerateTerraform).toHaveBeenCalledWith(dummyPayload);
   });
 
   // --- 422 validation errors ---
 
-  it('parses 422 response with detail array', async () => {
+  it('maps 422 error with fieldErrors from apiClient', async () => {
     const elements = new Map<string, DiagramElement>();
     elements.set('el-1', makeElement());
 
-    globalThis.fetch = vi.fn().mockResolvedValue({
+    mockGenerateTerraform.mockResolvedValue({
       ok: false,
-      status: 422,
-      json: () =>
-        Promise.resolve({
-          detail: [
-            { loc: ['body', 'resources', 0, 'config'], msg: 'field required' },
-          ],
-        }),
+      error: {
+        type: 'http',
+        status: 422,
+        message: 'Validation error',
+        fieldErrors: { 'body.resources.0.config': 'field required' },
+      },
     });
 
     const result = await exportToTerraform(serializeFn, elements);
@@ -220,20 +199,23 @@ describe('exportToTerraform', () => {
     expect(result.fieldErrors!['body.resources.0.config']).toBe('field required');
   });
 
-  it('parses 422 response with detail string', async () => {
+  it('maps 422 error without fieldErrors to default', async () => {
     const elements = new Map<string, DiagramElement>();
     elements.set('el-1', makeElement());
 
-    globalThis.fetch = vi.fn().mockResolvedValue({
+    mockGenerateTerraform.mockResolvedValue({
       ok: false,
-      status: 422,
-      json: () => Promise.resolve({ detail: 'Invalid input' }),
+      error: {
+        type: 'http',
+        status: 422,
+        message: 'Validation error',
+      },
     });
 
     const result = await exportToTerraform(serializeFn, elements);
     expect(result.success).toBe(false);
     expect(result.fieldErrors).toBeDefined();
-    expect(result.fieldErrors!['detail']).toBe('Invalid input');
+    expect(result.fieldErrors!['detail']).toBe('Validation error');
   });
 
   // --- 500 server errors ---
@@ -242,10 +224,13 @@ describe('exportToTerraform', () => {
     const elements = new Map<string, DiagramElement>();
     elements.set('el-1', makeElement());
 
-    globalThis.fetch = vi.fn().mockResolvedValue({
+    mockGenerateTerraform.mockResolvedValue({
       ok: false,
-      status: 500,
-      json: () => Promise.resolve({ detail: 'Generation failed: boom' }),
+      error: {
+        type: 'http',
+        status: 500,
+        message: 'Generation failed: boom',
+      },
     });
 
     const result = await exportToTerraform(serializeFn, elements);
@@ -253,28 +238,37 @@ describe('exportToTerraform', () => {
     expect(result.error).toBe('Generation failed: boom');
   });
 
-  it('returns generic error when 500 body is not JSON', async () => {
+  it('returns generic HTTP message for non-422 errors', async () => {
     const elements = new Map<string, DiagramElement>();
     elements.set('el-1', makeElement());
 
-    globalThis.fetch = vi.fn().mockResolvedValue({
+    mockGenerateTerraform.mockResolvedValue({
       ok: false,
-      status: 500,
-      json: () => Promise.reject(new Error('not json')),
+      error: {
+        type: 'http',
+        status: 500,
+        message: 'HTTP 500',
+      },
     });
 
     const result = await exportToTerraform(serializeFn, elements);
     expect(result.success).toBe(false);
-    expect(result.error).toBe('Server error (500)');
+    expect(result.error).toBe('HTTP 500');
   });
 
   // --- Network errors ---
 
-  it('returns network error on fetch failure', async () => {
+  it('returns network error on apiClient network failure', async () => {
     const elements = new Map<string, DiagramElement>();
     elements.set('el-1', makeElement());
 
-    globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    mockGenerateTerraform.mockResolvedValue({
+      ok: false,
+      error: {
+        type: 'network',
+        message: 'Failed to fetch',
+      },
+    });
 
     const result = await exportToTerraform(serializeFn, elements);
     expect(result.success).toBe(false);

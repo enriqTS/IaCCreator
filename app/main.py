@@ -1,19 +1,44 @@
 """FastAPI application — Terraform IaC Generator endpoints."""
 
+import os
+
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
+from app.middleware.session_middleware import SessionMiddleware
 from app.models.input_models import ArchitectureDescription
 from app.models.ir_models import GenerationSummary
+from app.persistence.factory import get_repository
+from app.routers.diagrams import router as diagram_router, set_repository
 from app.services.code_generator import CodeGenerator
 from app.services.ir_builder import IRBuilder
 from app.services.output_serializer import OutputSerializer
+from app.services.session_manager import SessionManager
 
 app = FastAPI(
     title="Terraform IaC Generator",
     description="Generates modular Terraform file structures from architecture descriptions",
     version="0.1.0",
 )
+
+# --- CORS middleware (must be added BEFORE session middleware) ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[os.getenv("CORS_ORIGIN", "http://localhost:3000")],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
+
+# --- Session middleware ---
+_repository = get_repository()
+_session_manager = SessionManager(_repository)
+app.add_middleware(SessionMiddleware, session_manager=_session_manager)
+
+# --- Diagram router ---
+set_repository(_repository)
+app.include_router(diagram_router)
 
 _ir_builder = IRBuilder()
 _code_gen = CodeGenerator()
