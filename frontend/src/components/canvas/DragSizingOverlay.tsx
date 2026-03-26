@@ -3,8 +3,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
-import { MIN_OBJECT_WIDTH, MIN_OBJECT_HEIGHT } from '@/types/diagram';
-import type { Point } from '@/types/diagram';
+import { MIN_OBJECT_WIDTH, MIN_OBJECT_HEIGHT, DEFAULT_GEO_VISUAL } from '@/types/diagram';
+import type { Point, GeometricShape } from '@/types/diagram';
 
 /** Minimum drag distance (px) in either axis to count as a drag vs. a click */
 const DRAG_THRESHOLD = 5;
@@ -164,9 +164,18 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
 
   if (!showRect) return null;
 
+  // Determine if we're placing a shape (render shape preview) or service (render generic rect)
+  const isPlaceShape = typeof activeTool === 'object' && activeTool.type === 'place-shape';
+  const shape: GeometricShape = isPlaceShape
+    ? (activeTool as { type: 'place-shape'; shape: string }).shape as GeometricShape
+    : 'rectangle';
+
+  const { borderColor, borderWidth: bw, fill, fillColor } = DEFAULT_GEO_VISUAL;
+  const borderRadius = shape === 'ellipse' ? '50%' : '0px';
+
   return (
     <>
-      {/* Sizing rectangle */}
+      {/* Sizing preview */}
       <div
         data-testid="drag-sizing-rect"
         style={{
@@ -175,9 +184,19 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
           top: `${top}px`,
           width: `${screenWidth}px`,
           height: `${screenHeight}px`,
-          border: '2px dashed rgba(59, 130, 246, 0.8)',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          ...(isPlaceShape
+            ? {
+                border: `${bw}px solid ${borderColor}`,
+                borderRadius,
+                backgroundColor: fill ? fillColor : 'transparent',
+                opacity: 0.8,
+              }
+            : {
+                border: '2px dashed rgba(59, 130, 246, 0.8)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              }),
           pointerEvents: 'none',
+          boxSizing: 'border-box',
           zIndex: 9999,
         }}
       />
