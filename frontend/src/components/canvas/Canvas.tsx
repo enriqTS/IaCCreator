@@ -28,7 +28,6 @@ export default function Canvas() {
   const pan = useDiagramStore((s) => s.pan);
   const selectElement = useDiagramStore((s) => s.selectElement);
   const selectConnector = useDiagramStore((s) => s.selectConnector);
-  const addElement = useDiagramStore((s) => s.addElement);
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
   const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
@@ -71,8 +70,6 @@ export default function Canvas() {
             visualConfig: { ...DEFAULT_BLOCK_VISUAL },
           });
         }
-        // Also create the legacy DiagramElement at the same position
-        addElement(tool.serviceType, payload.canvasPosition);
         setActiveTool('pointer');
         return;
       }
@@ -97,7 +94,7 @@ export default function Canvas() {
         return;
       }
     },
-    [addCanvasObject, addElement, setActiveTool],
+    [addCanvasObject, setActiveTool],
   );
 
   // --- Wheel → Zoom ---
