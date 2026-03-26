@@ -9,7 +9,7 @@ function resetStore() {
     canvasObjects: new Map(),
     connectors: new Map(),
     elements: new Map(),
-    selectedObjectId: null,
+    selectedObjectIds: new Set(),
     _undoStack: [],
     _redoStack: [],
     canUndo: false,

@@ -110,6 +110,8 @@ export interface ArchitectureBlock {
   position: Point;
   config: ResourceConfig;
   visualConfig: ArchitectureBlockVisualConfig;
+  zIndex: number;
+  groupId?: string;
 }
 
 export interface LineObject {
@@ -119,6 +121,8 @@ export interface LineObject {
   start: Point;
   end: Point;
   visualConfig: LineVisualConfig;
+  zIndex: number;
+  groupId?: string;
 }
 
 export interface GeometricObject {
@@ -127,9 +131,32 @@ export interface GeometricObject {
   name: string;
   position: Point;
   visualConfig: GeometricVisualConfig;
+  zIndex: number;
+  groupId?: string;
+}
+
+// Object group
+export interface ObjectGroup {
+  id: string;
+  name: string;
+  memberIds: string[];
+}
+
+// Axis-aligned bounding rectangle
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export type CanvasObject = ArchitectureBlock | LineObject | GeometricObject;
+
+/** Distributive Omit that works correctly with discriminated unions */
+export type CanvasObjectCreationPayload =
+  | Omit<ArchitectureBlock, 'id' | 'zIndex'>
+  | Omit<LineObject, 'id' | 'zIndex'>
+  | Omit<GeometricObject, 'id' | 'zIndex'>;
 
 // Dimension constraints
 export const MIN_OBJECT_WIDTH = 40;
@@ -158,3 +185,25 @@ export const DEFAULT_GEO_VISUAL: GeometricVisualConfig = {
   borderWidth: 2,
   shape: 'rectangle',
 };
+
+/** Compute the axis-aligned bounding box for any CanvasObject. */
+export function getObjectBounds(obj: CanvasObject): Rect {
+  if (obj.objectType === 'line') {
+    const minX = Math.min(obj.start.x, obj.end.x);
+    const minY = Math.min(obj.start.y, obj.end.y);
+    return {
+      x: minX,
+      y: minY,
+      width: Math.abs(obj.end.x - obj.start.x),
+      height: Math.abs(obj.end.y - obj.start.y),
+    };
+  }
+  // architecture-block and geometric: position is center
+  const vc = obj.visualConfig as { width: number; height: number };
+  return {
+    x: obj.position.x - vc.width / 2,
+    y: obj.position.y - vc.height / 2,
+    width: vc.width,
+    height: vc.height,
+  };
+}

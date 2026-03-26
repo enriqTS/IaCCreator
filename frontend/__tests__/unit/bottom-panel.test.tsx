@@ -14,6 +14,7 @@ function makeBlock(id = 'block-1'): ArchitectureBlock {
     position: { x: 0, y: 0 },
     config: {},
     visualConfig: { ...DEFAULT_BLOCK_VISUAL },
+    zIndex: 0,
   };
 }
 
@@ -25,6 +26,7 @@ function makeLine(id = 'line-1'): LineObject {
     start: { x: 0, y: 0 },
     end: { x: 100, y: 100 },
     visualConfig: { ...DEFAULT_LINE_VISUAL },
+    zIndex: 0,
   };
 }
 
@@ -35,6 +37,7 @@ function makeGeo(id = 'geo-1'): GeometricObject {
     name: 'rect-1',
     position: { x: 0, y: 0 },
     visualConfig: { ...DEFAULT_GEO_VISUAL },
+    zIndex: 0,
   };
 }
 

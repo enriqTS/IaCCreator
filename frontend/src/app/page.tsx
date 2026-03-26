@@ -43,8 +43,10 @@ export default function DiagramEditorPage() {
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        if (store.selectedObjectId) {
-          store.removeCanvasObject(store.selectedObjectId);
+        if (store.selectedObjectIds.size > 0) {
+          for (const id of store.selectedObjectIds) {
+            store.removeCanvasObject(id);
+          }
         } else if (store.selectedElementId) {
           const id = store.selectedElementId;
           store.removeElement(id);

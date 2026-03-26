@@ -15,10 +15,12 @@ export function getTabsForObject(obj: CanvasObject): string[] {
 }
 
 export default function BottomPanel() {
-  const selectedObjectId = useDiagramStore((s) => s.selectedObjectId);
+  const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
 
+  // Get the single selected object (only when exactly one is selected)
+  const selectedObjectId = selectedObjectIds.size === 1 ? Array.from(selectedObjectIds)[0] : null;
   const selectedObject = selectedObjectId ? canvasObjects.get(selectedObjectId) ?? null : null;
   const tabs = selectedObject ? getTabsForObject(selectedObject) : [];
 
@@ -31,7 +33,7 @@ export default function BottomPanel() {
     } else {
       setActiveTab('');
     }
-  }, [selectedObjectId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedObjectIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close panel when no object is selected
   if (!selectedObject) return null;

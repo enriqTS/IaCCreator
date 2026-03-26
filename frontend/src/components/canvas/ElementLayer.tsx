@@ -10,13 +10,16 @@ import ResizeHandles from './ResizeHandles';
 export default function ElementLayer() {
   const elements = useDiagramStore((s) => s.elements);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
-  const selectedObjectId = useDiagramStore((s) => s.selectedObjectId);
+  const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
 
   const canvasObjectsArray = Array.from(canvasObjects.values());
   const lineObjects = canvasObjectsArray.filter((obj) => obj.objectType === 'line');
   const nonLineObjects = canvasObjectsArray.filter((obj) => obj.objectType !== 'line');
 
-  const selectedObject = selectedObjectId ? canvasObjects.get(selectedObjectId) ?? null : null;
+  // Show resize handles only when exactly one object is selected
+  const selectedObject = selectedObjectIds.size === 1
+    ? canvasObjects.get([...selectedObjectIds][0]) ?? null
+    : null;
 
   return (
     <div
@@ -33,7 +36,7 @@ export default function ElementLayer() {
 
       {/* Canvas objects: architecture blocks and geometric objects (DOM elements) */}
       {nonLineObjects.map((obj) => {
-        const isSelected = obj.id === selectedObjectId;
+        const isSelected = selectedObjectIds.has(obj.id);
         if (obj.objectType === 'architecture-block') {
           return (
             <ArchitectureBlockComponent
@@ -74,7 +77,7 @@ export default function ElementLayer() {
               <LineObjectComponent
                 key={obj.id}
                 line={obj}
-                isSelected={obj.id === selectedObjectId}
+                isSelected={selectedObjectIds.has(obj.id)}
               />
             );
           })}

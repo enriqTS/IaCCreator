@@ -20,6 +20,7 @@ export interface DiagramState {
   canvasObjects?: SerializedCanvasObject[];
   connectors: SerializedConnector[];
   viewport: Viewport;
+  objectGroups?: SerializedObjectGroup[];
 }
 
 export interface SerializedElement {
@@ -43,6 +44,14 @@ export interface SerializedCanvasObject {
   serviceType?: ServiceType;
   config?: ResourceConfig;
   visualConfig: Record<string, unknown>;
+  zIndex?: number;
+  groupId?: string;
+}
+
+export interface SerializedObjectGroup {
+  id: string;
+  name: string;
+  memberIds: string[];
 }
 
 export interface SerializedConnector {

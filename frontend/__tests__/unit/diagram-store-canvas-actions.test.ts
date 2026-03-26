@@ -8,7 +8,7 @@ function resetStore() {
     canvasObjects: new Map(),
     connectors: new Map(),
     elements: new Map(),
-    selectedObjectId: null,
+    selectedObjectIds: new Set(),
     _undoStack: [],
     _redoStack: [],
     canUndo: false,
@@ -231,21 +231,21 @@ describe('DiagramStore - removeCanvasObject cascade and selection clearing', () 
     expect(useDiagramStore.getState().connectors.has(cid)).toBe(true);
   });
 
-  it('clears selectedObjectId when deleting the selected object', () => {
+  it('clears selectedObjectIds when deleting the selected object', () => {
     const id = addBlock();
     useDiagramStore.getState().selectObject(id);
-    expect(useDiagramStore.getState().selectedObjectId).toBe(id);
+    expect(useDiagramStore.getState().selectedObjectIds.has(id)).toBe(true);
 
     useDiagramStore.getState().removeCanvasObject(id);
-    expect(useDiagramStore.getState().selectedObjectId).toBeNull();
+    expect(useDiagramStore.getState().selectedObjectIds.size).toBe(0);
   });
 
-  it('does not clear selectedObjectId when deleting a different object', () => {
+  it('does not clear selectedObjectIds when deleting a different object', () => {
     const id1 = addBlock();
     const id2 = addLine();
     useDiagramStore.getState().selectObject(id1);
 
     useDiagramStore.getState().removeCanvasObject(id2);
-    expect(useDiagramStore.getState().selectedObjectId).toBe(id1);
+    expect(useDiagramStore.getState().selectedObjectIds.has(id1)).toBe(true);
   });
 });

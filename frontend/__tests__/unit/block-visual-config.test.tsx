@@ -14,6 +14,7 @@ function makeBlock(overrides?: Partial<ArchitectureBlock['visualConfig']>): Arch
     position: { x: 0, y: 0 },
     config: {},
     visualConfig: { ...DEFAULT_BLOCK_VISUAL, ...overrides },
+    zIndex: 0,
   };
 }
 

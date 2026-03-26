@@ -29,7 +29,7 @@ export default function Canvas() {
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
   const selectObject = useDiagramStore((s) => s.selectObject);
   const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
-  const selectedObjectId = useDiagramStore((s) => s.selectedObjectId);
+  const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const setActiveTool = useDiagramStore((s) => s.setActiveTool);
   const activeTool = useDiagramStore((s) => s.activeTool);
   const viewport = useDiagramStore((s) => s.viewport);
@@ -228,10 +228,12 @@ export default function Canvas() {
         return;
       }
 
-      const currentSelectedId = useDiagramStore.getState().selectedObjectId;
-      if (currentSelectedId) {
+      const currentSelectedIds = useDiagramStore.getState().selectedObjectIds;
+      if (currentSelectedIds.size > 0) {
         e.preventDefault();
-        useDiagramStore.getState().removeCanvasObject(currentSelectedId);
+        for (const id of currentSelectedIds) {
+          useDiagramStore.getState().removeCanvasObject(id);
+        }
       }
     };
 

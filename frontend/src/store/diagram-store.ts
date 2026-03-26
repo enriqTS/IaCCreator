@@ -10,12 +10,14 @@ import type {
   Tool,
   EnvironmentConfig,
   CanvasObject,
+  CanvasObjectCreationPayload,
   ArchitectureBlock,
   LineObject,
   GeometricObject,
   ArchitectureBlockVisualConfig,
   LineVisualConfig,
   GeometricVisualConfig,
+  Rect,
 } from '@/types/diagram';
 import {
   MIN_OBJECT_WIDTH,
@@ -23,6 +25,7 @@ import {
   DEFAULT_BLOCK_VISUAL,
   DEFAULT_LINE_VISUAL,
   DEFAULT_GEO_VISUAL,
+  getObjectBounds,
 } from '@/types/diagram';
 import type { DiagramState, ArchitectureDescription, SerializedCanvasObject } from '@/types/serialization';
 import type { DiagramSummary } from '@/types/api';
@@ -64,11 +67,14 @@ export interface DiagramStore {
 
   // Canvas object state
   canvasObjects: Map<string, CanvasObject>;
-  selectedObjectId: string | null;
-  addCanvasObject: (obj: Omit<CanvasObject, 'id'>) => string;
+  selectedObjectIds: Set<string>;
+  addCanvasObject: (obj: CanvasObjectCreationPayload) => string;
   updateCanvasObject: (id: string, updates: Partial<CanvasObject>) => void;
   removeCanvasObject: (id: string) => void;
   selectObject: (id: string | null) => void;
+  toggleObjectSelection: (id: string) => void;
+  selectObjectsByRect: (rect: Rect) => void;
+  clearSelection: () => void;
   updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig>) => void;
   updateObjectBounds: (id: string, bounds: { width?: number; height?: number }) => void;
   updateLineEndpoint: (id: string, endpoint: 'start' | 'end', position: Point) => void;
@@ -225,11 +231,17 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     // --- Canvas object state ---
     canvasObjects: new Map<string, CanvasObject>(),
-    selectedObjectId: null as string | null,
+    selectedObjectIds: new Set<string>(),
 
-    addCanvasObject: (obj: Omit<CanvasObject, 'id'>): string => {
+    addCanvasObject: (obj: CanvasObjectCreationPayload): string => {
       const id = uuidv4();
-      const canvasObject = { ...obj, id } as CanvasObject;
+      // Assign zIndex as maxZIndex + 1
+      const { canvasObjects } = get();
+      let maxZ = -1;
+      for (const existing of canvasObjects.values()) {
+        if (existing.zIndex > maxZ) maxZ = existing.zIndex;
+      }
+      const canvasObject = { ...obj, id, zIndex: maxZ + 1 } as CanvasObject;
 
       set((state) => {
         const next = new Map(state.canvasObjects);
@@ -288,14 +300,49 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         }
 
         // Clear selection if deleting the selected object
-        const nextSelectedObjectId = state.selectedObjectId === id ? null : state.selectedObjectId;
+        const nextSelectedObjectIds = new Set(state.selectedObjectIds);
+        nextSelectedObjectIds.delete(id);
 
-        return { canvasObjects: next, connectors: nextConnectors, selectedObjectId: nextSelectedObjectId };
+        return { canvasObjects: next, connectors: nextConnectors, selectedObjectIds: nextSelectedObjectIds };
       });
     },
 
     selectObject: (id: string | null): void => {
-      set({ selectedObjectId: id });
+      set({ selectedObjectIds: id ? new Set([id]) : new Set() });
+    },
+
+    toggleObjectSelection: (id: string): void => {
+      set((state) => {
+        const next = new Set(state.selectedObjectIds);
+        if (next.has(id)) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
+        return { selectedObjectIds: next };
+      });
+    },
+
+    selectObjectsByRect: (rect: Rect): void => {
+      const { canvasObjects } = get();
+      const selected = new Set<string>();
+      for (const obj of canvasObjects.values()) {
+        const bounds = getObjectBounds(obj);
+        // Check AABB intersection
+        if (
+          bounds.x + bounds.width > rect.x &&
+          bounds.x < rect.x + rect.width &&
+          bounds.y + bounds.height > rect.y &&
+          bounds.y < rect.y + rect.height
+        ) {
+          selected.add(obj.id);
+        }
+      }
+      set({ selectedObjectIds: selected });
+    },
+
+    clearSelection: (): void => {
+      set({ selectedObjectIds: new Set() });
     },
 
     updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig>): void => {
@@ -577,7 +624,10 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
       if (state.canvasObjects && state.canvasObjects.length > 0) {
         // v2 format: deserialize canvasObjects from the serialized array
-        for (const sObj of state.canvasObjects) {
+        for (let i = 0; i < state.canvasObjects.length; i++) {
+          const sObj = state.canvasObjects[i];
+          const zIndex = (sObj as unknown as Record<string, unknown>).zIndex as number ?? i;
+          const groupId = (sObj as unknown as Record<string, unknown>).groupId as string | undefined;
           if (sObj.objectType === 'architecture-block') {
             const obj: ArchitectureBlock = {
               id: sObj.id,
@@ -590,6 +640,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
                 width: (sObj.visualConfig.width as number) ?? DEFAULT_BLOCK_VISUAL.width,
                 height: (sObj.visualConfig.height as number) ?? DEFAULT_BLOCK_VISUAL.height,
               },
+              zIndex,
+              ...(groupId !== undefined && { groupId }),
             };
             canvasObjectsMap.set(obj.id, obj);
           } else if (sObj.objectType === 'line') {
@@ -606,6 +658,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
                 startArrow: (sObj.visualConfig.startArrow as boolean) ?? DEFAULT_LINE_VISUAL.startArrow,
                 endArrow: (sObj.visualConfig.endArrow as boolean) ?? DEFAULT_LINE_VISUAL.endArrow,
               },
+              zIndex,
+              ...(groupId !== undefined && { groupId }),
             };
             canvasObjectsMap.set(obj.id, obj);
           } else if (sObj.objectType === 'geometric') {
@@ -623,12 +677,15 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
                 borderWidth: (sObj.visualConfig.borderWidth as number) ?? DEFAULT_GEO_VISUAL.borderWidth,
                 shape: (sObj.visualConfig.shape as 'rectangle' | 'ellipse') ?? DEFAULT_GEO_VISUAL.shape,
               },
+              zIndex,
+              ...(groupId !== undefined && { groupId }),
             };
             canvasObjectsMap.set(obj.id, obj);
           }
         }
       } else if (!state.version || state.version === 1) {
         // v1→v2 migration: convert elements to canvasObjects with default visual configs
+        let migrationIndex = 0;
         for (const el of state.elements) {
           const obj: ArchitectureBlock = {
             id: el.id,
@@ -638,6 +695,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             position: { ...el.position },
             config: { ...el.config },
             visualConfig: { ...DEFAULT_BLOCK_VISUAL },
+            zIndex: migrationIndex++,
           };
           canvasObjectsMap.set(obj.id, obj);
         }
@@ -650,7 +708,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         viewport: { ...state.viewport },
         projectName: state.projectName,
         environments: state.environments.map((e) => ({ ...e, variables: { ...e.variables } })),
-        selectedObjectId: null,
+        selectedObjectIds: new Set(),
         _undoStack: [],
         _redoStack: [],
         canUndo: false,

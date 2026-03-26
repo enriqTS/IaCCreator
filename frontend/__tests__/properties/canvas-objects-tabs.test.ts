@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { getTabsForObject } from '@/components/config/BottomPanel';
-import type { CanvasObject } from '@/types/diagram';
+import type { CanvasObject, CanvasObjectCreationPayload } from '@/types/diagram';
 import {
   canvasObjectWithoutIdArbitrary,
   architectureBlockWithoutIdArbitrary,
@@ -11,8 +11,8 @@ import {
 /**
  * Helper: attach a random UUID-style id to a canvas object without id.
  */
-function withId(obj: Omit<CanvasObject, 'id'>): CanvasObject {
-  return { ...obj, id: crypto.randomUUID() } as CanvasObject;
+function withId(obj: CanvasObjectCreationPayload): CanvasObject {
+  return { ...obj, id: crypto.randomUUID(), zIndex: 0 } as CanvasObject;
 }
 
 // Feature: canvas-objects-editor, Property 7: Tab configuration matches object type

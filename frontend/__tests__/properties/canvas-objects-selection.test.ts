@@ -7,7 +7,7 @@ function resetStore() {
     canvasObjects: new Map(),
     connectors: new Map(),
     elements: new Map(),
-    selectedObjectId: null,
+    selectedObjectIds: new Set(),
     _undoStack: [],
     _redoStack: [],
     canUndo: false,
@@ -20,7 +20,7 @@ function resetStore() {
 describe('Property 4: Single selection invariant', () => {
   beforeEach(resetStore);
 
-  test('after any sequence of selectObject calls, selectedObjectId is always the last selected value', () => {
+  test('after any sequence of selectObject calls, selectedObjectIds contains exactly the last selected value', () => {
     fc.assert(
       fc.property(
         // Generate 1-10 objects to add to the store
@@ -44,12 +44,13 @@ describe('Property 4: Single selection invariant', () => {
 
             const state = useDiagramStore.getState();
 
-            // The selectedObjectId must be exactly the last value passed to selectObject
-            expect(state.selectedObjectId).toBe(selectValue);
-
-            // The selectedObjectId is either null or a single string ID — never an array or multiple values
-            if (state.selectedObjectId !== null) {
-              expect(typeof state.selectedObjectId).toBe('string');
+            if (selectValue === null) {
+              // selectObject(null) clears the selection
+              expect(state.selectedObjectIds.size).toBe(0);
+            } else {
+              // selectObject(id) sets the selection to exactly {id}
+              expect(state.selectedObjectIds.size).toBe(1);
+              expect(state.selectedObjectIds.has(selectValue)).toBe(true);
             }
           }
         }
@@ -71,14 +72,16 @@ describe('Property 4: Single selection invariant', () => {
 
           // Select A
           useDiagramStore.getState().selectObject(idA);
-          expect(useDiagramStore.getState().selectedObjectId).toBe(idA);
+          expect(useDiagramStore.getState().selectedObjectIds.has(idA)).toBe(true);
+          expect(useDiagramStore.getState().selectedObjectIds.size).toBe(1);
 
           // Select B — A should no longer be selected
           useDiagramStore.getState().selectObject(idB);
           const state = useDiagramStore.getState();
 
-          expect(state.selectedObjectId).toBe(idB);
-          expect(state.selectedObjectId).not.toBe(idA);
+          expect(state.selectedObjectIds.has(idB)).toBe(true);
+          expect(state.selectedObjectIds.size).toBe(1);
+          expect(state.selectedObjectIds.has(idA)).toBe(false);
         }
       ),
       { numRuns: 100 }

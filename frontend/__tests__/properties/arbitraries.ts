@@ -7,6 +7,7 @@ import type {
   Connector,
   ResourceConfig,
   CanvasObject,
+  CanvasObjectCreationPayload,
   ArchitectureBlock,
   LineObject,
   GeometricObject,
@@ -253,7 +254,7 @@ export function strokeStyleArbitrary(): fc.Arbitrary<StrokeStyle> {
  * Generates a random canvas object creation payload (without id) for any of the three types.
  * Uses fc.oneof to randomly pick between architecture-block, line, and geometric.
  */
-export function canvasObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<CanvasObject, 'id'>> {
+export function canvasObjectWithoutIdArbitrary(): fc.Arbitrary<CanvasObjectCreationPayload> {
   return fc.oneof(
     architectureBlockWithoutIdArbitrary(),
     lineObjectWithoutIdArbitrary(),
@@ -264,7 +265,7 @@ export function canvasObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<CanvasObject
 /**
  * Generates a random ArchitectureBlock creation payload (without id).
  */
-export function architectureBlockWithoutIdArbitrary(): fc.Arbitrary<Omit<ArchitectureBlock, 'id'>> {
+export function architectureBlockWithoutIdArbitrary(): fc.Arbitrary<Omit<ArchitectureBlock, 'id' | 'zIndex'>> {
   return serviceTypeArbitrary().chain((st) =>
     fc.record({
       objectType: fc.constant('architecture-block' as const),
@@ -280,7 +281,7 @@ export function architectureBlockWithoutIdArbitrary(): fc.Arbitrary<Omit<Archite
 /**
  * Generates a random LineObject creation payload (without id).
  */
-export function lineObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<LineObject, 'id'>> {
+export function lineObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<LineObject, 'id' | 'zIndex'>> {
   return fc.record({
     objectType: fc.constant('line' as const),
     name: fc.string({ minLength: 1, maxLength: 30 }),
@@ -293,7 +294,7 @@ export function lineObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<LineObject, 'i
 /**
  * Generates a random GeometricObject creation payload (without id).
  */
-export function geometricObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<GeometricObject, 'id'>> {
+export function geometricObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<GeometricObject, 'id' | 'zIndex'>> {
   return fc.record({
     objectType: fc.constant('geometric' as const),
     name: fc.string({ minLength: 1, maxLength: 30 }),

@@ -14,6 +14,7 @@ function makeBlock(id = 'block-1'): ArchitectureBlock {
     position: { x: 0, y: 0 },
     config: {},
     visualConfig: { ...DEFAULT_BLOCK_VISUAL },
+    zIndex: 0,
   };
 }
 
@@ -25,6 +26,7 @@ function makeLine(id = 'line-1'): LineObject {
     start: { x: 0, y: 0 },
     end: { x: 100, y: 100 },
     visualConfig: { ...DEFAULT_LINE_VISUAL },
+    zIndex: 0,
   };
 }
 
@@ -35,6 +37,7 @@ function makeGeo(id = 'geo-1'): GeometricObject {
     name: 'rect-1',
     position: { x: 0, y: 0 },
     visualConfig: { ...DEFAULT_GEO_VISUAL },
+    zIndex: 0,
   };
 }
 
@@ -42,7 +45,7 @@ describe('Delete button in BottomPanel', () => {
   beforeEach(() => {
     useDiagramStore.setState({
       canvasObjects: new Map(),
-      selectedObjectId: null,
+      selectedObjectIds: new Set(),
       connectors: new Map(),
     });
   });
@@ -51,7 +54,7 @@ describe('Delete button in BottomPanel', () => {
     const line = makeLine();
     useDiagramStore.setState({
       canvasObjects: new Map([[line.id, line]]),
-      selectedObjectId: line.id,
+      selectedObjectIds: new Set([line.id]),
     });
     render(<BottomPanel />);
     expect(screen.getByTestId('delete-object-button')).toBeDefined();
@@ -61,7 +64,7 @@ describe('Delete button in BottomPanel', () => {
     const geo = makeGeo();
     useDiagramStore.setState({
       canvasObjects: new Map([[geo.id, geo]]),
-      selectedObjectId: geo.id,
+      selectedObjectIds: new Set([geo.id]),
     });
     render(<BottomPanel />);
 
@@ -69,14 +72,14 @@ describe('Delete button in BottomPanel', () => {
 
     const state = useDiagramStore.getState();
     expect(state.canvasObjects.has(geo.id)).toBe(false);
-    expect(state.selectedObjectId).toBeNull();
+    expect(state.selectedObjectIds.size).toBe(0);
   });
 
   it('removes architecture block and cascades to connectors', () => {
     const block = makeBlock();
     useDiagramStore.setState({
       canvasObjects: new Map([[block.id, block]]),
-      selectedObjectId: block.id,
+      selectedObjectIds: new Set([block.id]),
       connectors: new Map([
         ['conn-1', { id: 'conn-1', sourceId: block.id, targetId: 'other', connectionType: 'triggers' }],
       ]),
@@ -88,7 +91,7 @@ describe('Delete button in BottomPanel', () => {
     const state = useDiagramStore.getState();
     expect(state.canvasObjects.has(block.id)).toBe(false);
     expect(state.connectors.has('conn-1')).toBe(false);
-    expect(state.selectedObjectId).toBeNull();
+    expect(state.selectedObjectIds.size).toBe(0);
   });
 });
 
@@ -96,7 +99,7 @@ describe('Delete key handler', () => {
   beforeEach(() => {
     useDiagramStore.setState({
       canvasObjects: new Map(),
-      selectedObjectId: null,
+      selectedObjectIds: new Set(),
       connectors: new Map(),
     });
   });
@@ -105,7 +108,7 @@ describe('Delete key handler', () => {
     const line = makeLine();
     useDiagramStore.setState({
       canvasObjects: new Map([[line.id, line]]),
-      selectedObjectId: line.id,
+      selectedObjectIds: new Set([line.id]),
     });
 
     // Import and render Canvas to attach the keydown listener
@@ -116,14 +119,14 @@ describe('Delete key handler', () => {
 
     const state = useDiagramStore.getState();
     expect(state.canvasObjects.has(line.id)).toBe(false);
-    expect(state.selectedObjectId).toBeNull();
+    expect(state.selectedObjectIds.size).toBe(0);
   });
 
   it('removes selected object on Backspace key press', async () => {
     const geo = makeGeo();
     useDiagramStore.setState({
       canvasObjects: new Map([[geo.id, geo]]),
-      selectedObjectId: geo.id,
+      selectedObjectIds: new Set([geo.id]),
     });
 
     const { default: Canvas } = await import('@/components/canvas/Canvas');
@@ -133,14 +136,14 @@ describe('Delete key handler', () => {
 
     const state = useDiagramStore.getState();
     expect(state.canvasObjects.has(geo.id)).toBe(false);
-    expect(state.selectedObjectId).toBeNull();
+    expect(state.selectedObjectIds.size).toBe(0);
   });
 
   it('does not delete when no object is selected', async () => {
     const line = makeLine();
     useDiagramStore.setState({
       canvasObjects: new Map([[line.id, line]]),
-      selectedObjectId: null,
+      selectedObjectIds: new Set(),
     });
 
     const { default: Canvas } = await import('@/components/canvas/Canvas');
@@ -156,7 +159,7 @@ describe('Delete key handler', () => {
     const line = makeLine();
     useDiagramStore.setState({
       canvasObjects: new Map([[line.id, line]]),
-      selectedObjectId: line.id,
+      selectedObjectIds: new Set([line.id]),
     });
 
     const { default: Canvas } = await import('@/components/canvas/Canvas');

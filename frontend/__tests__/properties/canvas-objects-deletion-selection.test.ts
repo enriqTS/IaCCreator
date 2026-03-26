@@ -7,7 +7,7 @@ function resetStore() {
     canvasObjects: new Map(),
     connectors: new Map(),
     elements: new Map(),
-    selectedObjectId: null,
+    selectedObjectIds: new Set(),
     _undoStack: [],
     _redoStack: [],
     canUndo: false,
@@ -20,7 +20,7 @@ function resetStore() {
 describe('Property 11: Deletion clears selection', () => {
   beforeEach(resetStore);
 
-  test('deleting the selected object sets selectedObjectId to null', () => {
+  test('deleting the selected object removes it from selectedObjectIds', () => {
     fc.assert(
       fc.property(
         canvasObjectWithoutIdArbitrary(),
@@ -32,13 +32,14 @@ describe('Property 11: Deletion clears selection', () => {
 
           // Select the object
           useDiagramStore.getState().selectObject(id);
-          expect(useDiagramStore.getState().selectedObjectId).toBe(id);
+          expect(useDiagramStore.getState().selectedObjectIds.has(id)).toBe(true);
 
           // Delete the selected object
           useDiagramStore.getState().removeCanvasObject(id);
 
           // Selection should be cleared
-          expect(useDiagramStore.getState().selectedObjectId).toBeNull();
+          expect(useDiagramStore.getState().selectedObjectIds.has(id)).toBe(false);
+          expect(useDiagramStore.getState().selectedObjectIds.size).toBe(0);
         },
       ),
       { numRuns: 100 },
@@ -59,13 +60,13 @@ describe('Property 11: Deletion clears selection', () => {
 
           // Select the first object
           useDiagramStore.getState().selectObject(selectedId);
-          expect(useDiagramStore.getState().selectedObjectId).toBe(selectedId);
+          expect(useDiagramStore.getState().selectedObjectIds.has(selectedId)).toBe(true);
 
           // Delete the OTHER (non-selected) object
           useDiagramStore.getState().removeCanvasObject(otherId);
 
           // Selection should still point to the first object
-          expect(useDiagramStore.getState().selectedObjectId).toBe(selectedId);
+          expect(useDiagramStore.getState().selectedObjectIds.has(selectedId)).toBe(true);
           // The selected object should still exist
           expect(useDiagramStore.getState().canvasObjects.has(selectedId)).toBe(true);
           // The deleted object should be gone
