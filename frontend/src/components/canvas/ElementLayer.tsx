@@ -31,8 +31,8 @@ export default function ElementLayer() {
         pointerEvents: 'none',
       }}
     >
-      {/* Backward-compatible: existing DiagramElement rendering */}
-      {Array.from(elements.values()).map((element) => (
+      {/* Legacy DiagramElement rendering — hidden when canvas objects handle rendering */}
+      {canvasObjects.size === 0 && Array.from(elements.values()).map((element) => (
         <DiagramElementComponent key={element.id} element={element} />
       ))}
 
