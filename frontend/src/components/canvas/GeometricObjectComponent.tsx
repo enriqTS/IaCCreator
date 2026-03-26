@@ -32,6 +32,11 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return;
+
+    // In placement mode, let the DragSizingOverlay handle the mousedown instead
+    const tool = useDiagramStore.getState().activeTool;
+    if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
+
     e.stopPropagation();
 
     if (!e.shiftKey && !isSelected) {

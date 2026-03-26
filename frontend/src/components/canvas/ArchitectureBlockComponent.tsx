@@ -64,6 +64,11 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return;
+
+    // In placement mode, let the DragSizingOverlay handle the mousedown instead
+    const tool = useDiagramStore.getState().activeTool;
+    if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
+
     e.stopPropagation();
 
     // If shift is not held and the object is not already selected, select it immediately

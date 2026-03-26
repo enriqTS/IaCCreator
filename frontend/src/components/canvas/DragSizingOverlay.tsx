@@ -200,13 +200,13 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
           zIndex: 9999,
         }}
       />
-      {/* Dimension tooltip */}
+      {/* Dimension tooltip — positioned inside the drag rect to avoid overflow */}
       <div
         data-testid="drag-sizing-tooltip"
         style={{
           position: 'absolute',
-          left: `${left + screenWidth + 8}px`,
-          top: `${top + screenHeight + 8}px`,
+          left: `${left + screenWidth - 80}px`,
+          top: `${top + screenHeight - 28}px`,
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
           color: '#fff',
           padding: '2px 6px',
