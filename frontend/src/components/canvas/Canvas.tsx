@@ -97,18 +97,22 @@ export default function Canvas() {
     [addCanvasObject, setActiveTool],
   );
 
-  // --- Wheel → Zoom ---
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
+  // --- Wheel → Zoom (non-passive to allow preventDefault) ---
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       const factor = e.deltaY > 0 ? 0.9 : 1.1;
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
+      const rect = container.getBoundingClientRect();
       const cursorScreen = { x: e.clientX - rect.left, y: e.clientY - rect.top };
       zoom(factor, cursorScreen);
-    },
-    [zoom],
-  );
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [zoom]);
 
   // --- Middle-click drag → Pan ---
   const handleMouseDown = useCallback(
@@ -305,7 +309,6 @@ export default function Canvas() {
   return (
     <div
       ref={containerRef}
-      onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onAuxClick={handleAuxClick}
