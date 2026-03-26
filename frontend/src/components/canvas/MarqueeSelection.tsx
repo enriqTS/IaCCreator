@@ -145,7 +145,7 @@ export default function MarqueeSelection({ containerRef }: MarqueeSelectionProps
           border: '1px solid rgba(59, 130, 246, 0.8)',
           backgroundColor: 'rgba(59, 130, 246, 0.15)',
           pointerEvents: 'none',
-          zIndex: 9998,
+          zIndex: 10,
         }}
       />
       {/* Highlight overlays on intersected objects */}
@@ -219,7 +219,7 @@ function MarqueeHighlight({
         backgroundColor: 'rgba(59, 130, 246, 0.08)',
         borderRadius: '2px',
         pointerEvents: 'none',
-        zIndex: 9997,
+        zIndex: 9,
       }}
     />
   );

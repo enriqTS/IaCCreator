@@ -197,7 +197,7 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
               }),
           pointerEvents: 'none',
           boxSizing: 'border-box',
-          zIndex: 9999,
+          zIndex: 10,
         }}
       />
       {/* Dimension tooltip — positioned inside the drag rect to avoid overflow */}
@@ -214,7 +214,7 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
           fontSize: '12px',
           whiteSpace: 'nowrap',
           pointerEvents: 'none',
-          zIndex: 10000,
+          zIndex: 11,
         }}
       >
         {canvasWidth} × {canvasHeight}
