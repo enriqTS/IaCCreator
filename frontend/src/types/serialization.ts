@@ -3,6 +3,7 @@
  */
 
 import type {
+  CanvasObjectType,
   EnvironmentConfig,
   Point,
   ResourceConfig,
@@ -16,6 +17,7 @@ export interface DiagramState {
   projectName: string;
   environments: EnvironmentConfig[];
   elements: SerializedElement[];
+  canvasObjects?: SerializedCanvasObject[];
   connectors: SerializedConnector[];
   viewport: Viewport;
 }
@@ -26,6 +28,21 @@ export interface SerializedElement {
   name: string;
   position: Point;
   config: ResourceConfig;
+}
+
+export interface SerializedCanvasObject {
+  id: string;
+  objectType: CanvasObjectType;
+  name: string;
+  x?: number;
+  y?: number;
+  startX?: number;
+  startY?: number;
+  endX?: number;
+  endY?: number;
+  serviceType?: ServiceType;
+  config?: ResourceConfig;
+  visualConfig: Record<string, unknown>;
 }
 
 export interface SerializedConnector {
