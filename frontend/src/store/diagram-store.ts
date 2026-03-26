@@ -9,8 +9,22 @@ import type {
   Viewport,
   Tool,
   EnvironmentConfig,
+  CanvasObject,
+  ArchitectureBlock,
+  LineObject,
+  GeometricObject,
+  ArchitectureBlockVisualConfig,
+  LineVisualConfig,
+  GeometricVisualConfig,
 } from '@/types/diagram';
-import type { DiagramState, ArchitectureDescription } from '@/types/serialization';
+import {
+  MIN_OBJECT_WIDTH,
+  MIN_OBJECT_HEIGHT,
+  DEFAULT_BLOCK_VISUAL,
+  DEFAULT_LINE_VISUAL,
+  DEFAULT_GEO_VISUAL,
+} from '@/types/diagram';
+import type { DiagramState, ArchitectureDescription, SerializedCanvasObject } from '@/types/serialization';
 import type { DiagramSummary } from '@/types/api';
 import { zoomAtPoint } from '@/utils/viewport';
 import { apiClient } from '@/utils/api-client';
@@ -47,6 +61,17 @@ export interface DiagramStore {
   updateElementConfig: (id: string, config: Partial<ResourceConfig>) => void;
   updateElementName: (id: string, name: string) => void;
   removeElement: (id: string) => void;
+
+  // Canvas object state
+  canvasObjects: Map<string, CanvasObject>;
+  selectedObjectId: string | null;
+  addCanvasObject: (obj: Omit<CanvasObject, 'id'>) => string;
+  updateCanvasObject: (id: string, updates: Partial<CanvasObject>) => void;
+  removeCanvasObject: (id: string) => void;
+  selectObject: (id: string | null) => void;
+  updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig>) => void;
+  updateObjectBounds: (id: string, bounds: { width?: number; height?: number }) => void;
+  updateLineEndpoint: (id: string, endpoint: 'start' | 'end', position: Point) => void;
 
   // Connector state
   connectors: Map<string, Connector>;
@@ -195,6 +220,132 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         }
 
         return { elements: nextElements, connectors: nextConnectors };
+      });
+    },
+
+    // --- Canvas object state ---
+    canvasObjects: new Map<string, CanvasObject>(),
+    selectedObjectId: null as string | null,
+
+    addCanvasObject: (obj: Omit<CanvasObject, 'id'>): string => {
+      const id = uuidv4();
+      const canvasObject = { ...obj, id } as CanvasObject;
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, canvasObject);
+        return { canvasObjects: next };
+      });
+
+      return id;
+    },
+
+    updateCanvasObject: (id: string, updates: Partial<CanvasObject>): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing) return;
+
+      const merged = { ...existing, ...updates, id: existing.id, objectType: existing.objectType } as CanvasObject;
+
+      // Enforce minimum dimension clamping for objects with width/height
+      if (merged.objectType === 'architecture-block') {
+        merged.visualConfig = {
+          ...merged.visualConfig,
+          width: Math.max(merged.visualConfig.width, MIN_OBJECT_WIDTH),
+          height: Math.max(merged.visualConfig.height, MIN_OBJECT_HEIGHT),
+        };
+      } else if (merged.objectType === 'geometric') {
+        merged.visualConfig = {
+          ...merged.visualConfig,
+          width: Math.max(merged.visualConfig.width, MIN_OBJECT_WIDTH),
+          height: Math.max(merged.visualConfig.height, MIN_OBJECT_HEIGHT),
+        };
+      }
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, merged);
+        return { canvasObjects: next };
+      });
+    },
+
+    removeCanvasObject: (id: string): void => {
+      if (!get().canvasObjects.has(id)) return;
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        const obj = state.canvasObjects.get(id)!;
+        next.delete(id);
+
+        // Cascade-delete connectors for architecture blocks
+        let nextConnectors = state.connectors;
+        if (obj.objectType === 'architecture-block') {
+          nextConnectors = new Map(state.connectors);
+          for (const [cid, conn] of state.connectors) {
+            if (conn.sourceId === id || conn.targetId === id) {
+              nextConnectors.delete(cid);
+            }
+          }
+        }
+
+        // Clear selection if deleting the selected object
+        const nextSelectedObjectId = state.selectedObjectId === id ? null : state.selectedObjectId;
+
+        return { canvasObjects: next, connectors: nextConnectors, selectedObjectId: nextSelectedObjectId };
+      });
+    },
+
+    selectObject: (id: string | null): void => {
+      set({ selectedObjectId: id });
+    },
+
+    updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig>): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing) return;
+
+      const mergedConfig = { ...existing.visualConfig, ...config };
+
+      // Enforce minimum dimensions for object types with width/height
+      if (existing.objectType === 'architecture-block' || existing.objectType === 'geometric') {
+        const withDims = mergedConfig as { width: number; height: number };
+        withDims.width = Math.max(withDims.width, MIN_OBJECT_WIDTH);
+        withDims.height = Math.max(withDims.height, MIN_OBJECT_HEIGHT);
+      }
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...existing, visualConfig: mergedConfig } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    updateObjectBounds: (id: string, bounds: { width?: number; height?: number }): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing) return;
+      if (existing.objectType === 'line') return; // Lines don't have width/height bounds
+
+      const currentConfig = existing.visualConfig as { width: number; height: number };
+      const newWidth = Math.max(bounds.width ?? currentConfig.width, MIN_OBJECT_WIDTH);
+      const newHeight = Math.max(bounds.height ?? currentConfig.height, MIN_OBJECT_HEIGHT);
+
+      const mergedConfig = { ...existing.visualConfig, width: newWidth, height: newHeight };
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...existing, visualConfig: mergedConfig } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    updateLineEndpoint: (id: string, endpoint: 'start' | 'end', position: Point): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing || existing.objectType !== 'line') return;
+
+      const updated = { ...existing, [endpoint]: { ...position } };
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, updated);
+        return { canvasObjects: next };
       });
     },
 
@@ -349,9 +500,36 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     // --- Serialization ---
 
     serializeDiagramState: (): DiagramState => {
-      const { elements, connectors, viewport, projectName, environments } = get();
+      const { elements, connectors, viewport, projectName, environments, canvasObjects } = get();
+
+      const serializedCanvasObjects: SerializedCanvasObject[] = Array.from(canvasObjects.values()).map((obj) => {
+        const base: SerializedCanvasObject = {
+          id: obj.id,
+          objectType: obj.objectType,
+          name: obj.name,
+          visualConfig: { ...obj.visualConfig } as Record<string, unknown>,
+        };
+
+        if (obj.objectType === 'architecture-block') {
+          base.x = obj.position.x;
+          base.y = obj.position.y;
+          base.serviceType = obj.serviceType;
+          base.config = { ...obj.config };
+        } else if (obj.objectType === 'line') {
+          base.startX = obj.start.x;
+          base.startY = obj.start.y;
+          base.endX = obj.end.x;
+          base.endY = obj.end.y;
+        } else if (obj.objectType === 'geometric') {
+          base.x = obj.position.x;
+          base.y = obj.position.y;
+        }
+
+        return base;
+      });
+
       return {
-        version: 1,
+        version: 2,
         projectName,
         environments: environments.map((e) => ({ ...e, variables: { ...e.variables } })),
         elements: Array.from(elements.values()).map((el) => ({
@@ -361,6 +539,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           position: { ...el.position },
           config: { ...el.config },
         })),
+        canvasObjects: serializedCanvasObjects,
         connectors: Array.from(connectors.values()).map((c) => ({
           id: c.id,
           sourceId: c.sourceId,
@@ -393,12 +572,85 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         });
       }
 
+      // Deserialize canvasObjects
+      const canvasObjectsMap = new Map<string, CanvasObject>();
+
+      if (state.canvasObjects && state.canvasObjects.length > 0) {
+        // v2 format: deserialize canvasObjects from the serialized array
+        for (const sObj of state.canvasObjects) {
+          if (sObj.objectType === 'architecture-block') {
+            const obj: ArchitectureBlock = {
+              id: sObj.id,
+              objectType: 'architecture-block',
+              name: sObj.name,
+              position: { x: sObj.x ?? 0, y: sObj.y ?? 0 },
+              serviceType: sObj.serviceType!,
+              config: sObj.config ? { ...sObj.config } : {},
+              visualConfig: {
+                width: (sObj.visualConfig.width as number) ?? DEFAULT_BLOCK_VISUAL.width,
+                height: (sObj.visualConfig.height as number) ?? DEFAULT_BLOCK_VISUAL.height,
+              },
+            };
+            canvasObjectsMap.set(obj.id, obj);
+          } else if (sObj.objectType === 'line') {
+            const obj: LineObject = {
+              id: sObj.id,
+              objectType: 'line',
+              name: sObj.name,
+              start: { x: sObj.startX ?? 0, y: sObj.startY ?? 0 },
+              end: { x: sObj.endX ?? 0, y: sObj.endY ?? 0 },
+              visualConfig: {
+                color: (sObj.visualConfig.color as string) ?? DEFAULT_LINE_VISUAL.color,
+                borderWidth: (sObj.visualConfig.borderWidth as number) ?? DEFAULT_LINE_VISUAL.borderWidth,
+                strokeStyle: (sObj.visualConfig.strokeStyle as 'solid' | 'dashed') ?? DEFAULT_LINE_VISUAL.strokeStyle,
+                startArrow: (sObj.visualConfig.startArrow as boolean) ?? DEFAULT_LINE_VISUAL.startArrow,
+                endArrow: (sObj.visualConfig.endArrow as boolean) ?? DEFAULT_LINE_VISUAL.endArrow,
+              },
+            };
+            canvasObjectsMap.set(obj.id, obj);
+          } else if (sObj.objectType === 'geometric') {
+            const obj: GeometricObject = {
+              id: sObj.id,
+              objectType: 'geometric',
+              name: sObj.name,
+              position: { x: sObj.x ?? 0, y: sObj.y ?? 0 },
+              visualConfig: {
+                width: (sObj.visualConfig.width as number) ?? DEFAULT_GEO_VISUAL.width,
+                height: (sObj.visualConfig.height as number) ?? DEFAULT_GEO_VISUAL.height,
+                fill: (sObj.visualConfig.fill as boolean) ?? DEFAULT_GEO_VISUAL.fill,
+                fillColor: (sObj.visualConfig.fillColor as string) ?? DEFAULT_GEO_VISUAL.fillColor,
+                borderColor: (sObj.visualConfig.borderColor as string) ?? DEFAULT_GEO_VISUAL.borderColor,
+                borderWidth: (sObj.visualConfig.borderWidth as number) ?? DEFAULT_GEO_VISUAL.borderWidth,
+                shape: (sObj.visualConfig.shape as 'rectangle' | 'ellipse') ?? DEFAULT_GEO_VISUAL.shape,
+              },
+            };
+            canvasObjectsMap.set(obj.id, obj);
+          }
+        }
+      } else if (!state.version || state.version === 1) {
+        // v1→v2 migration: convert elements to canvasObjects with default visual configs
+        for (const el of state.elements) {
+          const obj: ArchitectureBlock = {
+            id: el.id,
+            objectType: 'architecture-block',
+            serviceType: el.serviceType,
+            name: el.name,
+            position: { ...el.position },
+            config: { ...el.config },
+            visualConfig: { ...DEFAULT_BLOCK_VISUAL },
+          };
+          canvasObjectsMap.set(obj.id, obj);
+        }
+      }
+
       set({
         elements: elementsMap,
         connectors: connectorsMap,
+        canvasObjects: canvasObjectsMap,
         viewport: { ...state.viewport },
         projectName: state.projectName,
         environments: state.environments.map((e) => ({ ...e, variables: { ...e.variables } })),
+        selectedObjectId: null,
         _undoStack: [],
         _redoStack: [],
         canUndo: false,

@@ -411,6 +411,7 @@ describe('DiagramStore - serializeDiagramState', () => {
     useDiagramStore.setState({
       elements: new Map(),
       connectors: new Map(),
+      canvasObjects: new Map(),
       viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
       projectName: '',
       environments: [],
@@ -421,15 +422,16 @@ describe('DiagramStore - serializeDiagramState', () => {
     });
   });
 
-  it('returns DiagramState with version 1', () => {
+  it('returns DiagramState with version 2', () => {
     const state = useDiagramStore.getState().serializeDiagramState();
-    expect(state.version).toBe(1);
+    expect(state.version).toBe(2);
   });
 
   it('serializes empty diagram correctly', () => {
     const state = useDiagramStore.getState().serializeDiagramState();
     expect(state.elements).toEqual([]);
     expect(state.connectors).toEqual([]);
+    expect(state.canvasObjects).toEqual([]);
     expect(state.viewport).toEqual({ offsetX: 0, offsetY: 0, scale: 1.0 });
     expect(state.projectName).toBe('');
     expect(state.environments).toEqual([]);
@@ -469,6 +471,27 @@ describe('DiagramStore - serializeDiagramState', () => {
     expect(state.projectName).toBe('test-project');
     expect(state.environments).toEqual([{ name: 'dev', variables: { key: 'val' } }]);
   });
+
+  it('serializes canvasObjects as array', () => {
+    const id = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'lambda',
+      name: 'lambda-1',
+      position: { x: 10, y: 20 },
+      config: { handler: 'index.handler' },
+      visualConfig: { width: 80, height: 80 },
+    });
+    const state = useDiagramStore.getState().serializeDiagramState();
+
+    expect(state.canvasObjects).toBeDefined();
+    expect(state.canvasObjects!).toHaveLength(1);
+    expect(state.canvasObjects![0].id).toBe(id);
+    expect(state.canvasObjects![0].objectType).toBe('architecture-block');
+    expect(state.canvasObjects![0].x).toBe(10);
+    expect(state.canvasObjects![0].y).toBe(20);
+    expect(state.canvasObjects![0].serviceType).toBe('lambda');
+    expect(state.canvasObjects![0].visualConfig).toEqual({ width: 80, height: 80 });
+  });
 });
 
 describe('DiagramStore - loadDiagramState', () => {
@@ -476,6 +499,7 @@ describe('DiagramStore - loadDiagramState', () => {
     useDiagramStore.setState({
       elements: new Map(),
       connectors: new Map(),
+      canvasObjects: new Map(),
       viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
       projectName: '',
       environments: [],
@@ -568,6 +592,104 @@ describe('DiagramStore - loadDiagramState', () => {
     expect(useDiagramStore.getState().canRedo).toBe(false);
     expect(useDiagramStore.getState()._undoStack).toHaveLength(0);
     expect(useDiagramStore.getState()._redoStack).toHaveLength(0);
+  });
+
+  it('deserializes canvasObjects from v2 state', () => {
+    const state: Parameters<typeof useDiagramStore.getState>extends never ? never : {
+      version: 2;
+      projectName: string;
+      environments: never[];
+      elements: never[];
+      connectors: never[];
+      canvasObjects: {
+        id: string;
+        objectType: 'architecture-block';
+        name: string;
+        x: number;
+        y: number;
+        serviceType: 'lambda';
+        config: { handler: string };
+        visualConfig: { width: number; height: number };
+      }[];
+      viewport: { offsetX: number; offsetY: number; scale: number };
+    } = {
+      version: 2,
+      projectName: 'v2-proj',
+      environments: [],
+      elements: [],
+      connectors: [],
+      canvasObjects: [
+        {
+          id: 'obj1',
+          objectType: 'architecture-block',
+          name: 'lambda-1',
+          x: 10,
+          y: 20,
+          serviceType: 'lambda',
+          config: { handler: 'index.handler' },
+          visualConfig: { width: 100, height: 100 },
+        },
+      ],
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+    };
+
+    useDiagramStore.getState().loadDiagramState(state as any);
+
+    const obj = useDiagramStore.getState().canvasObjects.get('obj1');
+    expect(obj).toBeDefined();
+    expect(obj!.objectType).toBe('architecture-block');
+    expect(obj!.name).toBe('lambda-1');
+    if (obj!.objectType === 'architecture-block') {
+      expect(obj!.position).toEqual({ x: 10, y: 20 });
+      expect(obj!.serviceType).toBe('lambda');
+      expect(obj!.visualConfig).toEqual({ width: 100, height: 100 });
+    }
+  });
+
+  it('migrates v1 elements to canvasObjects with default visual configs', () => {
+    const state = {
+      version: 1,
+      projectName: 'v1-proj',
+      environments: [],
+      elements: [
+        { id: 'e1', serviceType: 'lambda' as const, name: 'lambda-1', position: { x: 50, y: 60 }, config: { handler: 'main.handler' } },
+      ],
+      connectors: [],
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+    };
+
+    useDiagramStore.getState().loadDiagramState(state);
+
+    const canvasObjects = useDiagramStore.getState().canvasObjects;
+    expect(canvasObjects.size).toBe(1);
+
+    const obj = canvasObjects.get('e1');
+    expect(obj).toBeDefined();
+    expect(obj!.objectType).toBe('architecture-block');
+    if (obj!.objectType === 'architecture-block') {
+      expect(obj!.position).toEqual({ x: 50, y: 60 });
+      expect(obj!.serviceType).toBe('lambda');
+      expect(obj!.config.handler).toBe('main.handler');
+      expect(obj!.visualConfig).toEqual({ width: 80, height: 80 });
+    }
+  });
+
+  it('handles missing canvasObjects in v2 state gracefully', () => {
+    const state = {
+      version: 2,
+      projectName: 'v2-no-canvas',
+      environments: [],
+      elements: [
+        { id: 'e1', serviceType: 'lambda' as const, name: 'lambda-1', position: { x: 0, y: 0 }, config: {} },
+      ],
+      connectors: [],
+      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+    };
+
+    useDiagramStore.getState().loadDiagramState(state);
+
+    // v2 with no canvasObjects should result in empty canvasObjects map (no migration)
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(0);
   });
 });
 

@@ -9,18 +9,21 @@ function ToolButton({
   active,
   disabled,
   onClick,
+  'data-testid': dataTestId,
 }: {
   label: string;
   title: string;
   active: boolean;
   disabled?: boolean;
   onClick: () => void;
+  'data-testid'?: string;
 }) {
   return (
     <button
       title={title}
       disabled={disabled}
       onClick={onClick}
+      data-testid={dataTestId}
       style={{
         width: 36,
         height: 36,
@@ -62,6 +65,15 @@ export default function Toolbar() {
 
   const isPointer = activeTool === 'pointer';
   const isConnector = activeTool === 'connector';
+  const isLine = activeTool === 'line';
+  const isRectangle =
+    typeof activeTool === 'object' &&
+    activeTool.type === 'place-shape' &&
+    activeTool.shape === 'rectangle';
+  const isEllipse =
+    typeof activeTool === 'object' &&
+    activeTool.type === 'place-shape' &&
+    activeTool.shape === 'ellipse';
 
   return (
     <div
@@ -93,6 +105,27 @@ export default function Toolbar() {
         title="Connector (C)"
         active={isConnector}
         onClick={() => setActiveTool('connector')}
+      />
+      <ToolButton
+        label="╱"
+        title="Line (L)"
+        active={isLine}
+        onClick={() => setActiveTool('line')}
+        data-testid="tool-line"
+      />
+      <ToolButton
+        label="□"
+        title="Rectangle (R)"
+        active={isRectangle}
+        onClick={() => setActiveTool({ type: 'place-shape', shape: 'rectangle' })}
+        data-testid="tool-rectangle"
+      />
+      <ToolButton
+        label="○"
+        title="Ellipse (E)"
+        active={isEllipse}
+        onClick={() => setActiveTool({ type: 'place-shape', shape: 'ellipse' })}
+        data-testid="tool-ellipse"
       />
 
       {/* Separator */}

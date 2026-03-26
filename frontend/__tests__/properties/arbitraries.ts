@@ -6,6 +6,17 @@ import type {
   DiagramElement,
   Connector,
   ResourceConfig,
+  CanvasObject,
+  ArchitectureBlock,
+  LineObject,
+  GeometricObject,
+  GeometricShape,
+  StrokeStyle,
+} from '@/types/diagram';
+import {
+  DEFAULT_BLOCK_VISUAL,
+  DEFAULT_LINE_VISUAL,
+  DEFAULT_GEO_VISUAL,
 } from '@/types/diagram';
 
 const SERVICE_TYPES: ServiceType[] = [
@@ -219,4 +230,74 @@ export function operationArbitrary(elementIds: string[], connectorIds: string[])
   }
 
   return fc.oneof(...ops);
+}
+
+
+// --- Canvas Object Arbitraries ---
+
+/**
+ * Generates a random GeometricShape.
+ */
+export function geometricShapeArbitrary(): fc.Arbitrary<GeometricShape> {
+  return fc.constantFrom('rectangle', 'ellipse');
+}
+
+/**
+ * Generates a random StrokeStyle.
+ */
+export function strokeStyleArbitrary(): fc.Arbitrary<StrokeStyle> {
+  return fc.constantFrom('solid', 'dashed');
+}
+
+/**
+ * Generates a random canvas object creation payload (without id) for any of the three types.
+ * Uses fc.oneof to randomly pick between architecture-block, line, and geometric.
+ */
+export function canvasObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<CanvasObject, 'id'>> {
+  return fc.oneof(
+    architectureBlockWithoutIdArbitrary(),
+    lineObjectWithoutIdArbitrary(),
+    geometricObjectWithoutIdArbitrary(),
+  );
+}
+
+/**
+ * Generates a random ArchitectureBlock creation payload (without id).
+ */
+export function architectureBlockWithoutIdArbitrary(): fc.Arbitrary<Omit<ArchitectureBlock, 'id'>> {
+  return serviceTypeArbitrary().chain((st) =>
+    fc.record({
+      objectType: fc.constant('architecture-block' as const),
+      serviceType: fc.constant(st),
+      name: fc.string({ minLength: 1, maxLength: 30 }),
+      position: pointArbitrary(),
+      config: resourceConfigArbitrary(st),
+      visualConfig: fc.constant({ ...DEFAULT_BLOCK_VISUAL }),
+    })
+  );
+}
+
+/**
+ * Generates a random LineObject creation payload (without id).
+ */
+export function lineObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<LineObject, 'id'>> {
+  return fc.record({
+    objectType: fc.constant('line' as const),
+    name: fc.string({ minLength: 1, maxLength: 30 }),
+    start: pointArbitrary(),
+    end: pointArbitrary(),
+    visualConfig: fc.constant({ ...DEFAULT_LINE_VISUAL }),
+  });
+}
+
+/**
+ * Generates a random GeometricObject creation payload (without id).
+ */
+export function geometricObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<GeometricObject, 'id'>> {
+  return fc.record({
+    objectType: fc.constant('geometric' as const),
+    name: fc.string({ minLength: 1, maxLength: 30 }),
+    position: pointArbitrary(),
+    visualConfig: fc.constant({ ...DEFAULT_GEO_VISUAL }),
+  });
 }

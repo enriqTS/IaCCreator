@@ -6,7 +6,7 @@ import { useToastStore } from '@/store/toast-store';
 import Canvas from '@/components/canvas/Canvas';
 import Toolbar from '@/components/toolbar/Toolbar';
 import HamburgerMenu from '@/components/menu/HamburgerMenu';
-import ConfigPanel from '@/components/config/ConfigPanel';
+import BottomPanel from '@/components/config/BottomPanel';
 import NewDiagramDialog from '@/components/menu/NewDiagramDialog';
 import ProjectSettingsDialog from '@/components/menu/ProjectSettingsDialog';
 import ToastProvider from '@/components/toast/ToastProvider';
@@ -43,7 +43,9 @@ export default function DiagramEditorPage() {
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        if (store.selectedElementId) {
+        if (store.selectedObjectId) {
+          store.removeCanvasObject(store.selectedObjectId);
+        } else if (store.selectedElementId) {
           const id = store.selectedElementId;
           store.removeElement(id);
           store.selectElement(null);
@@ -59,6 +61,7 @@ export default function DiagramEditorPage() {
         e.preventDefault();
         store.selectElement(null);
         store.selectConnector(null);
+        store.selectObject(null);
         useDiagramStore.setState({ pendingConnectorSourceId: null });
         store.setActiveTool('pointer');
         return;
@@ -161,7 +164,7 @@ export default function DiagramEditorPage() {
         onExport={handleExport}
         onProjectSettings={handleProjectSettings}
       />
-      <ConfigPanel />
+      <BottomPanel />
       <NewDiagramDialog
         open={newDiagramOpen}
         onClose={() => setNewDiagramOpen(false)}
