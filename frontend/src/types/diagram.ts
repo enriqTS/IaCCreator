@@ -113,6 +113,7 @@ export interface ArchitectureBlock {
   visualConfig: ArchitectureBlockVisualConfig;
   zIndex: number;
   groupId?: string;
+  locked?: boolean;
 }
 
 export interface LineObject {
@@ -124,6 +125,7 @@ export interface LineObject {
   visualConfig: LineVisualConfig;
   zIndex: number;
   groupId?: string;
+  locked?: boolean;
 }
 
 export interface GeometricObject {
@@ -134,6 +136,7 @@ export interface GeometricObject {
   visualConfig: GeometricVisualConfig;
   zIndex: number;
   groupId?: string;
+  locked?: boolean;
 }
 
 // Object group

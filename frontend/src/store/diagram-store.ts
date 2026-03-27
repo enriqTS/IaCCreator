@@ -104,6 +104,23 @@ export interface DiagramStore {
   groupSelectedObjects: () => string | null;
   ungroupObjects: (groupId: string) => void;
 
+  // Clipboard
+  clipboard: CanvasObject[];
+  copySelectedObjects: () => void;
+  pasteObjects: (position: Point) => void;
+
+  // Duplicate
+  duplicateSelectedObjects: () => void;
+
+  // Lock
+  toggleLockObjects: (ids: Set<string>) => void;
+
+  // Select all
+  selectAllObjects: () => void;
+
+  // Fit to screen
+  fitToScreen: (containerRect: { width: number; height: number }) => void;
+
   // Multi-object move
   moveSelectedObjects: (dx: number, dy: number) => void;
 
@@ -282,6 +299,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     canvasObjects: new Map<string, CanvasObject>(),
     selectedObjectIds: new Set<string>(),
     objectGroups: new Map<string, ObjectGroup>(),
+    clipboard: [] as CanvasObject[],
 
     addCanvasObject: (obj: CanvasObjectCreationPayload): string => {
       pushHistory();
@@ -680,6 +698,250 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       });
     },
 
+    // --- Clipboard actions ---
+
+    copySelectedObjects: (): void => {
+      const { selectedObjectIds, canvasObjects } = get();
+      if (selectedObjectIds.size === 0) return;
+
+      const copied: CanvasObject[] = [];
+      for (const id of selectedObjectIds) {
+        const obj = canvasObjects.get(id);
+        if (obj) {
+          copied.push({ ...obj });
+        }
+      }
+      set({ clipboard: copied });
+    },
+
+    pasteObjects: (position: Point): void => {
+      const { clipboard, canvasObjects } = get();
+      if (clipboard.length === 0) return;
+
+      pushHistory();
+
+      // Compute centroid of copied objects
+      let sumX = 0;
+      let sumY = 0;
+      for (const obj of clipboard) {
+        if (obj.objectType === 'line') {
+          sumX += (obj.start.x + obj.end.x) / 2;
+          sumY += (obj.start.y + obj.end.y) / 2;
+        } else {
+          sumX += obj.position.x;
+          sumY += obj.position.y;
+        }
+      }
+      const centroidX = sumX / clipboard.length;
+      const centroidY = sumY / clipboard.length;
+
+      // Compute max zIndex
+      let maxZ = -1;
+      for (const existing of canvasObjects.values()) {
+        if (existing.zIndex > maxZ) maxZ = existing.zIndex;
+      }
+
+      const newIds = new Set<string>();
+      const nextObjects = new Map(canvasObjects);
+
+      for (const obj of clipboard) {
+        const newId = uuidv4();
+        newIds.add(newId);
+        maxZ++;
+
+        if (obj.objectType === 'line') {
+          const offsetX = position.x - centroidX;
+          const offsetY = position.y - centroidY;
+          const pasted: LineObject = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            start: { x: obj.start.x + offsetX, y: obj.start.y + offsetY },
+            end: { x: obj.end.x + offsetX, y: obj.end.y + offsetY },
+          };
+          nextObjects.set(newId, pasted);
+        } else if (obj.objectType === 'architecture-block') {
+          const offsetX = position.x - centroidX;
+          const offsetY = position.y - centroidY;
+          const pasted: ArchitectureBlock = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            position: { x: obj.position.x + offsetX, y: obj.position.y + offsetY },
+          };
+          nextObjects.set(newId, pasted);
+        } else {
+          // geometric
+          const offsetX = position.x - centroidX;
+          const offsetY = position.y - centroidY;
+          const pasted: GeometricObject = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            position: { x: obj.position.x + offsetX, y: obj.position.y + offsetY },
+          };
+          nextObjects.set(newId, pasted);
+        }
+      }
+
+      set({ canvasObjects: nextObjects, selectedObjectIds: newIds });
+    },
+
+    // --- Duplicate ---
+
+    duplicateSelectedObjects: (): void => {
+      const { selectedObjectIds, canvasObjects } = get();
+      if (selectedObjectIds.size === 0) return;
+
+      pushHistory();
+
+      let maxZ = -1;
+      for (const existing of canvasObjects.values()) {
+        if (existing.zIndex > maxZ) maxZ = existing.zIndex;
+      }
+
+      const newIds = new Set<string>();
+      const nextObjects = new Map(canvasObjects);
+
+      for (const id of selectedObjectIds) {
+        const obj = canvasObjects.get(id);
+        if (!obj) continue;
+
+        const newId = uuidv4();
+        newIds.add(newId);
+        maxZ++;
+
+        if (obj.objectType === 'line') {
+          const dup: LineObject = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            start: { x: obj.start.x + 20, y: obj.start.y + 20 },
+            end: { x: obj.end.x + 20, y: obj.end.y + 20 },
+          };
+          nextObjects.set(newId, dup);
+        } else if (obj.objectType === 'architecture-block') {
+          const dup: ArchitectureBlock = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            position: { x: obj.position.x + 20, y: obj.position.y + 20 },
+          };
+          nextObjects.set(newId, dup);
+        } else {
+          // geometric
+          const dup: GeometricObject = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            position: { x: obj.position.x + 20, y: obj.position.y + 20 },
+          };
+          nextObjects.set(newId, dup);
+        }
+      }
+
+      set({ canvasObjects: nextObjects, selectedObjectIds: newIds });
+    },
+
+    // --- Lock/Unlock ---
+
+    toggleLockObjects: (ids: Set<string>): void => {
+      const { canvasObjects } = get();
+      if (ids.size === 0) return;
+
+      // Determine if any are unlocked
+      let anyUnlocked = false;
+      for (const id of ids) {
+        const obj = canvasObjects.get(id);
+        if (obj && !obj.locked) {
+          anyUnlocked = true;
+          break;
+        }
+      }
+
+      pushHistory();
+
+      const newLocked = anyUnlocked; // if any unlocked, lock all; if all locked, unlock all
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        for (const id of ids) {
+          const obj = next.get(id);
+          if (obj) {
+            next.set(id, { ...obj, locked: newLocked } as CanvasObject);
+          }
+        }
+        return { canvasObjects: next };
+      });
+    },
+
+    // --- Select all ---
+
+    selectAllObjects: (): void => {
+      const { canvasObjects } = get();
+      if (canvasObjects.size === 0) return;
+      const allIds = new Set<string>(canvasObjects.keys());
+      set({ selectedObjectIds: allIds });
+    },
+
+    // --- Fit to screen ---
+
+    fitToScreen: (containerRect: { width: number; height: number }): void => {
+      const { canvasObjects } = get();
+      if (canvasObjects.size === 0) return;
+
+      const PADDING = 40;
+
+      // Compute bounding box of all objects
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      for (const obj of canvasObjects.values()) {
+        const bounds = getObjectBounds(obj);
+        minX = Math.min(minX, bounds.x);
+        minY = Math.min(minY, bounds.y);
+        maxX = Math.max(maxX, bounds.x + bounds.width);
+        maxY = Math.max(maxY, bounds.y + bounds.height);
+      }
+
+      const contentWidth = maxX - minX;
+      const contentHeight = maxY - minY;
+
+      // Available space after padding
+      const availableWidth = containerRect.width - PADDING * 2;
+      const availableHeight = containerRect.height - PADDING * 2;
+
+      if (availableWidth <= 0 || availableHeight <= 0) return;
+
+      // Calculate scale to fit
+      let scale = Math.min(
+        availableWidth / contentWidth,
+        availableHeight / contentHeight
+      );
+
+      // Clamp scale to 0.1-5.0
+      scale = Math.max(0.1, Math.min(5.0, scale));
+
+      // Center the content: offset so that the center of the bounding box maps to the center of the container
+      const contentCenterX = (minX + maxX) / 2;
+      const contentCenterY = (minY + maxY) / 2;
+
+      const offsetX = containerRect.width / 2 - contentCenterX * scale;
+      const offsetY = containerRect.height / 2 - contentCenterY * scale;
+
+      set({
+        viewport: { offsetX, offsetY, scale },
+      });
+    },
+
     // --- Multi-object move ---
 
     moveSelectedObjects: (dx: number, dy: number): void => {
@@ -705,6 +967,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         for (const id of idsToMove) {
           const obj = next.get(id);
           if (!obj) continue;
+          if (obj.locked) continue;
 
           if (obj.objectType === 'line') {
             next.set(id, {

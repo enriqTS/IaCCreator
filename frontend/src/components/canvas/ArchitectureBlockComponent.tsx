@@ -69,6 +69,17 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
     const tool = useDiagramStore.getState().activeTool;
     if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
 
+    // Locked: allow selection but prevent drag
+    if (block.locked) {
+      e.stopPropagation();
+      if (e.shiftKey) {
+        toggleObjectSelection(block.id);
+      } else {
+        dispatchSelect(block.id);
+      }
+      return;
+    }
+
     e.stopPropagation();
     useDiagramStore.getState().beginDragGesture();
 
@@ -113,7 +124,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [block.id, isSelected, dispatchSelect, toggleObjectSelection, moveSelectedObjects]);
+  }, [block.id, block.locked, isSelected, dispatchSelect, toggleObjectSelection, moveSelectedObjects]);
 
   return (
     <div
@@ -128,7 +139,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
         width: `${width}px`,
         height: `${height}px`,
         pointerEvents: 'auto',
-        cursor: 'grab',
+        cursor: block.locked ? 'not-allowed' : 'grab',
         userSelect: 'none',
         display: 'flex',
         flexDirection: 'column',
@@ -142,6 +153,21 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
         overflow: 'hidden',
       }}
     >
+      {block.locked && (
+        <span
+          data-testid={`lock-badge-${block.id}`}
+          style={{
+            position: 'absolute',
+            top: 2,
+            right: 2,
+            fontSize: '10px',
+            lineHeight: 1,
+            pointerEvents: 'none',
+          }}
+        >
+          🔒
+        </span>
+      )}
       {iconPath && (
         <img
           src={iconPath}

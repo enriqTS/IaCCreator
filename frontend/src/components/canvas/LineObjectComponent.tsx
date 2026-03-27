@@ -36,6 +36,17 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
     const tool = useDiagramStore.getState().activeTool;
     if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
 
+    // Locked: allow selection but prevent drag
+    if (line.locked) {
+      e.stopPropagation();
+      if (e.shiftKey) {
+        toggleObjectSelection(line.id);
+      } else {
+        selectObject(line.id);
+      }
+      return;
+    }
+
     e.stopPropagation();
     useDiagramStore.getState().beginDragGesture();
 
@@ -77,10 +88,14 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [line.id, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
+  }, [line.id, line.locked, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
+
+  // Compute midpoint for lock indicator
+  const midX = (line.start.x + line.end.x) / 2;
+  const midY = (line.start.y + line.end.y) / 2;
 
   return (
-    <g data-testid={`line-object-${line.id}`} data-object-id={line.id} style={{ pointerEvents: 'auto', cursor: 'pointer' }}>
+    <g data-testid={`line-object-${line.id}`} data-object-id={line.id} style={{ pointerEvents: 'auto', cursor: line.locked ? 'not-allowed' : 'pointer' }}>
       <defs>
         {startArrow && (
           <marker
@@ -157,6 +172,20 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
         markerStart={startArrow ? `url(#${startMarkerId})` : undefined}
         markerEnd={endArrow ? `url(#${endMarkerId})` : undefined}
       />
+
+      {/* Lock indicator at midpoint */}
+      {line.locked && (
+        <text
+          data-testid={`lock-badge-${line.id}`}
+          x={midX}
+          y={midY - 8}
+          textAnchor="middle"
+          fontSize="12"
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          🔒
+        </text>
+      )}
     </g>
   );
 }

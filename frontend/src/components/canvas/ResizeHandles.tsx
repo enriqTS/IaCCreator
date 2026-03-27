@@ -67,6 +67,9 @@ export default function ResizeHandles({ object }: ResizeHandlesProps) {
     origEnd?: Point;
   } | null>(null);
 
+  // Don't render resize handles for locked objects
+  if (object.locked) return null;
+
   // --- Line endpoint handles ---
   if (object.objectType === 'line') {
     return (

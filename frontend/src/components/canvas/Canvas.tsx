@@ -10,7 +10,13 @@ import ElementLayer from './ElementLayer';
 import PlacementPreview from './PlacementPreview';
 import DragSizingOverlay from './DragSizingOverlay';
 import MarqueeSelection from './MarqueeSelection';
-import CanvasObjectContextMenu, { type ContextMenuState } from './CanvasObjectContextMenu';
+import CanvasObjectContextMenu from './CanvasObjectContextMenu';
+import CanvasContextMenu from './CanvasContextMenu';
+import InlineRenameOverlay from './InlineRenameOverlay';
+
+type ContextMenuState =
+  | { type: 'object'; objectId: string; x: number; y: number }
+  | { type: 'canvas'; x: number; y: number; canvasPosition: { x: number; y: number } };
 
 export default function Canvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,6 +32,9 @@ export default function Canvas() {
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+
+  // Inline rename overlay state
+  const [renamingObjectId, setRenamingObjectId] = useState<string | null>(null);
 
   // Store actions (stable references)
   const zoom = useDiagramStore((s) => s.zoom);
@@ -305,13 +314,19 @@ export default function Canvas() {
           if (!store.selectedObjectIds.has(objectId)) {
             store.selectObject(objectId);
           }
-          setContextMenu({ objectId, x: e.clientX, y: e.clientY });
+          setContextMenu({ type: 'object', objectId, x: e.clientX, y: e.clientY });
           return;
         }
         target = target.parentElement;
       }
-      // Right-click on empty canvas — close any open context menu
-      setContextMenu(null);
+      // Right-click on empty canvas — open canvas context menu
+      e.preventDefault();
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      const vp = useDiagramStore.getState().viewport;
+      const canvasPosition = screenToCanvas(screenPoint, vp);
+      setContextMenu({ type: 'canvas', x: e.clientX, y: e.clientY, canvasPosition });
     },
     [],
   );
@@ -402,11 +417,26 @@ export default function Canvas() {
       {/* Marquee multi-selection rectangle */}
       <MarqueeSelection containerRef={containerRef} />
 
-      {/* Right-click context menu for canvas objects */}
-      {contextMenu && (
+      {/* Right-click context menu */}
+      {contextMenu?.type === 'object' && (
         <CanvasObjectContextMenu
-          menu={contextMenu}
+          menu={{ objectId: contextMenu.objectId, x: contextMenu.x, y: contextMenu.y }}
           onClose={() => setContextMenu(null)}
+          onRename={(id) => { setContextMenu(null); setRenamingObjectId(id); }}
+        />
+      )}
+      {contextMenu?.type === 'canvas' && (
+        <CanvasContextMenu
+          menu={{ x: contextMenu.x, y: contextMenu.y, canvasPosition: contextMenu.canvasPosition }}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {/* Inline rename overlay */}
+      {renamingObjectId && (
+        <InlineRenameOverlay
+          objectId={renamingObjectId}
+          onClose={() => setRenamingObjectId(null)}
         />
       )}
     </div>

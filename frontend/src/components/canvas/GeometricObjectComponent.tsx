@@ -37,6 +37,17 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
     const tool = useDiagramStore.getState().activeTool;
     if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
 
+    // Locked: allow selection but prevent drag
+    if (object.locked) {
+      e.stopPropagation();
+      if (e.shiftKey) {
+        toggleObjectSelection(object.id);
+      } else {
+        selectObject(object.id);
+      }
+      return;
+    }
+
     e.stopPropagation();
     useDiagramStore.getState().beginDragGesture();
 
@@ -78,7 +89,7 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [object.id, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
+  }, [object.id, object.locked, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
 
   // When filled, the entire area captures pointer events — single div is sufficient
   if (fill) {
@@ -99,10 +110,26 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
           borderRadius,
           boxSizing: 'border-box',
           pointerEvents: 'auto',
-          cursor: 'grab',
+          cursor: object.locked ? 'not-allowed' : 'grab',
           userSelect: 'none',
         }}
-      />
+      >
+        {object.locked && (
+          <span
+            data-testid={`lock-badge-${object.id}`}
+            style={{
+              position: 'absolute',
+              top: 2,
+              right: 2,
+              fontSize: '10px',
+              lineHeight: 1,
+              pointerEvents: 'none',
+            }}
+          >
+            🔒
+          </span>
+        )}
+      </div>
     );
   }
 
@@ -125,6 +152,22 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
         userSelect: 'none',
       }}
     >
+      {object.locked && (
+        <span
+          data-testid={`lock-badge-${object.id}`}
+          style={{
+            position: 'absolute',
+            top: 2,
+            right: 2,
+            fontSize: '10px',
+            lineHeight: 1,
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        >
+          🔒
+        </span>
+      )}
       {/* Visual interior — renders the visible border but does not capture events */}
       <div
         data-testid={`geometric-interior-${object.id}`}
@@ -149,7 +192,7 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
           border: `${strokeHitWidth}px solid transparent`,
           boxSizing: 'border-box',
           pointerEvents: 'auto',
-          cursor: 'grab',
+          cursor: object.locked ? 'not-allowed' : 'grab',
         }}
       />
     </div>
