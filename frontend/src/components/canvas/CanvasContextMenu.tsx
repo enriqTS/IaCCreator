@@ -30,8 +30,8 @@ export default function CanvasContextMenu({ menu, onClose }: CanvasContextMenuPr
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose();
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('pointerdown', handleClickOutside, true);
+    return () => document.removeEventListener('pointerdown', handleClickOutside, true);
   }, [onClose]);
 
   useEffect(() => {
