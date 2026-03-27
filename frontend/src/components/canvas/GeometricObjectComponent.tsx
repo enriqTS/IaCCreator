@@ -38,6 +38,7 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
     if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
 
     e.stopPropagation();
+    useDiagramStore.getState().beginDragGesture();
 
     if (!e.shiftKey && !isSelected) {
       selectObject(object.id);

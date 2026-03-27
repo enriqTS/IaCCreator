@@ -94,6 +94,8 @@ export default function ResizeHandles({ object }: ResizeHandlesProps) {
     e.stopPropagation();
     e.preventDefault();
 
+    useDiagramStore.getState().beginDragGesture();
+
     draggingRef.current = {
       handle,
       startMouse: { x: e.clientX, y: e.clientY },
@@ -201,6 +203,8 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
   const handleMouseDown = (endpoint: 'start' | 'end') => (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+
+    useDiagramStore.getState().beginDragGesture();
 
     const origPoint = endpoint === 'start' ? { ...object.start } : { ...object.end };
     draggingRef.current = { endpoint, origPoint };

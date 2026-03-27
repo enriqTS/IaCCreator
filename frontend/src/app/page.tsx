@@ -25,19 +25,14 @@ export default function DiagramEditorPage() {
 
       const store = useDiagramStore.getState();
 
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && e.shiftKey) {
+        e.preventDefault();
+        store.redo();
+        return;
+      }
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         store.undo();
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Z' && e.shiftKey) {
-        e.preventDefault();
-        store.redo();
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
-        e.preventDefault();
-        store.redo();
         return;
       }
 

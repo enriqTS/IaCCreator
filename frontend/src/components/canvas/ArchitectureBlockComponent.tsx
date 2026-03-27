@@ -70,6 +70,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
     if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
 
     e.stopPropagation();
+    useDiagramStore.getState().beginDragGesture();
 
     // If shift is not held and the object is not already selected, select it immediately
     // so that dragging works right away

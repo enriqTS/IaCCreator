@@ -37,6 +37,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
     if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
 
     e.stopPropagation();
+    useDiagramStore.getState().beginDragGesture();
 
     if (!e.shiftKey && !isSelected) {
       selectObject(line.id);

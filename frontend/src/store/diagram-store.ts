@@ -37,6 +37,8 @@ import { useToastStore } from '@/store/toast-store';
 interface HistoryEntry {
   elements: Map<string, DiagramElement>;
   connectors: Map<string, Connector>;
+  canvasObjects: Map<string, CanvasObject>;
+  objectGroups: Map<string, ObjectGroup>;
 }
 
 const MAX_HISTORY = 50;
@@ -50,10 +52,17 @@ function cloneMap<K, V>(map: Map<K, V>): Map<K, V> {
   return result;
 }
 
-function takeSnapshot(state: { elements: Map<string, DiagramElement>; connectors: Map<string, Connector> }): HistoryEntry {
+function takeSnapshot(state: {
+  elements: Map<string, DiagramElement>;
+  connectors: Map<string, Connector>;
+  canvasObjects?: Map<string, CanvasObject>;
+  objectGroups?: Map<string, ObjectGroup>;
+}): HistoryEntry {
   return {
     elements: cloneMap(state.elements),
     connectors: cloneMap(state.connectors),
+    canvasObjects: cloneMap(state.canvasObjects ?? new Map()),
+    objectGroups: cloneMap(state.objectGroups ?? new Map()),
   };
 }
 
@@ -119,6 +128,7 @@ export interface DiagramStore {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  beginDragGesture: () => void;
 
   // Project state
   projectName: string;
@@ -149,8 +159,8 @@ export interface DiagramStore {
 
 export const useDiagramStore = create<DiagramStore>((set, get) => {
   function pushHistory() {
-    const { elements, connectors, _undoStack } = get();
-    const snapshot = takeSnapshot({ elements, connectors });
+    const { elements, connectors, canvasObjects, objectGroups, _undoStack } = get();
+    const snapshot = takeSnapshot({ elements, connectors, canvasObjects, objectGroups });
     let newStack = [..._undoStack, snapshot];
     if (newStack.length > MAX_HISTORY) {
       newStack = newStack.slice(newStack.length - MAX_HISTORY);
@@ -298,6 +308,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     removeCanvasObject: (id: string): void => {
       if (!get().canvasObjects.has(id)) return;
+      pushHistory();
 
       set((state) => {
         const next = new Map(state.canvasObjects);
@@ -398,6 +409,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig>): void => {
       const existing = get().canvasObjects.get(id);
       if (!existing) return;
+      pushHistory();
 
       const mergedConfig = { ...existing.visualConfig, ...config };
 
@@ -554,6 +566,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         if (!canvasObjects.has(id)) return null;
       }
 
+      pushHistory();
+
       const groupId = uuidv4();
       // Auto-generate group name
       const groupNumber = objectGroups.size + 1;
@@ -609,6 +623,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       const { objectGroups } = get();
       const group = objectGroups.get(groupId);
       if (!group) return;
+      pushHistory();
 
       set((state) => {
         const nextObjects = new Map(state.canvasObjects);
@@ -772,9 +787,9 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     _redoStack: [],
 
     undo: (): void => {
-      const { _undoStack, _redoStack, elements, connectors } = get();
+      const { _undoStack, _redoStack, elements, connectors, canvasObjects, objectGroups } = get();
       if (_undoStack.length === 0) return;
-      const currentSnapshot = takeSnapshot({ elements, connectors });
+      const currentSnapshot = takeSnapshot({ elements, connectors, canvasObjects, objectGroups });
       const newRedoStack = [..._redoStack, currentSnapshot];
 
       const previous = _undoStack[_undoStack.length - 1];
@@ -783,6 +798,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       set({
         elements: cloneMap(previous.elements),
         connectors: cloneMap(previous.connectors),
+        canvasObjects: cloneMap(previous.canvasObjects),
+        objectGroups: cloneMap(previous.objectGroups),
         _undoStack: newUndoStack,
         _redoStack: newRedoStack,
         canUndo: newUndoStack.length > 0,
@@ -791,9 +808,9 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     redo: (): void => {
-      const { _undoStack, _redoStack, elements, connectors } = get();
+      const { _undoStack, _redoStack, elements, connectors, canvasObjects, objectGroups } = get();
       if (_redoStack.length === 0) return;
-      const currentSnapshot = takeSnapshot({ elements, connectors });
+      const currentSnapshot = takeSnapshot({ elements, connectors, canvasObjects, objectGroups });
       const newUndoStack = [..._undoStack, currentSnapshot];
 
       const next = _redoStack[_redoStack.length - 1];
@@ -802,11 +819,17 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       set({
         elements: cloneMap(next.elements),
         connectors: cloneMap(next.connectors),
+        canvasObjects: cloneMap(next.canvasObjects),
+        objectGroups: cloneMap(next.objectGroups),
         _undoStack: newUndoStack,
         _redoStack: newRedoStack,
         canUndo: true,
         canRedo: newRedoStack.length > 0,
       });
+    },
+
+    beginDragGesture: (): void => {
+      pushHistory();
     },
 
     // --- Project state ---
