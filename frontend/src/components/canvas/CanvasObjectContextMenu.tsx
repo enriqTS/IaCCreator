@@ -3,12 +3,6 @@
 import { useEffect, useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {
   ArrowUpToLine,
   ArrowUp,
   ArrowDown,
@@ -47,43 +41,25 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
 
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Derive state for conditional menu items
   const isSingleSelection = selectedObjectIds.size === 1;
+  const allLocked = selectedObjectIds.size > 0 && Array.from(selectedObjectIds).every((id) => canvasObjects.get(id)?.locked);
 
-  // Check if ALL selected objects are locked
-  const allLocked = selectedObjectIds.size > 0 && Array.from(selectedObjectIds).every((id) => {
-    const obj = canvasObjects.get(id);
-    return obj?.locked;
-  });
-
-  // Check if any selected object has a groupId (for Ungroup)
   const groupIdsInSelection = new Set<string>();
   for (const id of selectedObjectIds) {
     const obj = canvasObjects.get(id);
-    if (obj?.groupId) {
-      groupIdsInSelection.add(obj.groupId);
-    }
+    if (obj?.groupId) groupIdsInSelection.add(obj.groupId);
   }
   const hasGroupedObjects = groupIdsInSelection.size > 0;
-
-  // Check if Group should be shown: >=2 selected AND none have a groupId
   const canGroup = selectedObjectIds.size >= 2 && !hasGroupedObjects;
 
-  // Determine object type for type-specific items (single selection only)
   const singleObject = isSingleSelection ? canvasObjects.get(menu.objectId) : null;
   const objectType = singleObject?.objectType;
   const showEditConnection = isSingleSelection && objectType === 'line';
   const showConfigureService = isSingleSelection && objectType === 'architecture-block';
-  const showTypeSpecific = showEditConnection || showConfigureService;
-
-  // Show grouping separator/items only if group or ungroup is visible
-  const showGroupingSection = canGroup || hasGroupedObjects;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
-      }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose();
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -97,125 +73,101 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
+  const itemClass = 'flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm cursor-default select-none hover:bg-accent hover:text-accent-foreground outline-none';
+  const destructiveClass = 'flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm cursor-default select-none text-destructive hover:bg-destructive/10 hover:text-destructive outline-none';
+  const disabledClass = 'opacity-50 pointer-events-none';
+  const separatorClass = '-mx-1 my-1 h-px bg-border';
+
+  function Item({ onClick, children, disabled, destructive }: { onClick: () => void; children: React.ReactNode; disabled?: boolean; destructive?: boolean }) {
+    return (
+      <div
+        role="menuitem"
+        tabIndex={-1}
+        className={`${destructive ? destructiveClass : itemClass} ${disabled ? disabledClass : ''}`}
+        onClick={disabled ? undefined : onClick}
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div
       ref={menuRef}
       data-testid="canvas-context-menu"
-      style={{
-        position: 'fixed',
-        top: menu.y,
-        left: menu.x,
-        zIndex: 100,
-      }}
+      role="menu"
+      style={{ position: 'fixed', top: menu.y, left: menu.x, zIndex: 9999 }}
+      className="min-w-[180px] rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
     >
-      <DropdownMenu open onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DropdownMenuContent align="start" side="bottom" sideOffset={0}>
-          {/* Group 1 - Layering */}
-          <DropdownMenuItem onSelect={() => { bringToFront(menu.objectId); onClose(); }}>
-            <ArrowUpToLine className="size-4" />
-            Bring to Front
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => { bringForward(menu.objectId); onClose(); }}>
-            <ArrowUp className="size-4" />
-            Bring Forward
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => { sendBackward(menu.objectId); onClose(); }}>
-            <ArrowDown className="size-4" />
-            Send Backward
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => { sendToBack(menu.objectId); onClose(); }}>
-            <ArrowDownToLine className="size-4" />
-            Send to Back
-          </DropdownMenuItem>
+      {/* Layering */}
+      <Item onClick={() => { bringToFront(menu.objectId); onClose(); }}>
+        <ArrowUpToLine className="size-4" /> Bring to Front
+      </Item>
+      <Item onClick={() => { bringForward(menu.objectId); onClose(); }}>
+        <ArrowUp className="size-4" /> Bring Forward
+      </Item>
+      <Item onClick={() => { sendBackward(menu.objectId); onClose(); }}>
+        <ArrowDown className="size-4" /> Send Backward
+      </Item>
+      <Item onClick={() => { sendToBack(menu.objectId); onClose(); }}>
+        <ArrowDownToLine className="size-4" /> Send to Back
+      </Item>
 
-          <DropdownMenuSeparator />
+      <div className={separatorClass} />
 
-          {/* Group 2 - Edit */}
-          <DropdownMenuItem onSelect={() => { duplicateSelectedObjects(); onClose(); }}>
-            <Copy className="size-4" />
-            Duplicate
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => { copySelectedObjects(); onClose(); }}>
-            <Clipboard className="size-4" />
-            Copy
-          </DropdownMenuItem>
+      {/* Edit */}
+      <Item onClick={() => { duplicateSelectedObjects(); onClose(); }}>
+        <Copy className="size-4" /> Duplicate
+      </Item>
+      <Item onClick={() => { copySelectedObjects(); onClose(); }}>
+        <Clipboard className="size-4" /> Copy
+      </Item>
 
-          <DropdownMenuSeparator />
+      <div className={separatorClass} />
 
-          {/* Group 3 - Object management */}
-          <DropdownMenuItem onSelect={() => { toggleLockObjects(selectedObjectIds); onClose(); }}>
-            {allLocked ? <Unlock className="size-4" /> : <Lock className="size-4" />}
-            {allLocked ? 'Unlock' : 'Lock'}
-          </DropdownMenuItem>
-          {isSingleSelection && (
-            <DropdownMenuItem onSelect={() => { onRename?.(menu.objectId); }}>
-              <Pencil className="size-4" />
-              Rename
-            </DropdownMenuItem>
-          )}
+      {/* Object management */}
+      <Item onClick={() => { toggleLockObjects(selectedObjectIds); onClose(); }}>
+        {allLocked ? <Unlock className="size-4" /> : <Lock className="size-4" />}
+        {allLocked ? 'Unlock' : 'Lock'}
+      </Item>
+      {isSingleSelection && (
+        <Item onClick={() => { onRename?.(menu.objectId); }}>
+          <Pencil className="size-4" /> Rename
+        </Item>
+      )}
 
-          {/* Separator before grouping (only if group/ungroup items shown) */}
-          {showGroupingSection && <DropdownMenuSeparator />}
+      {/* Grouping */}
+      {(canGroup || hasGroupedObjects) && <div className={separatorClass} />}
+      {canGroup && (
+        <Item onClick={() => { groupSelectedObjects(); onClose(); }}>
+          <Group className="size-4" /> Group
+        </Item>
+      )}
+      {hasGroupedObjects && (
+        <Item onClick={() => { for (const gid of groupIdsInSelection) ungroupObjects(gid); onClose(); }}>
+          <Ungroup className="size-4" /> Ungroup
+        </Item>
+      )}
 
-          {/* Group 4 - Grouping (conditional) */}
-          {canGroup && (
-            <DropdownMenuItem onSelect={() => { groupSelectedObjects(); onClose(); }}>
-              <Group className="size-4" />
-              Group
-            </DropdownMenuItem>
-          )}
-          {hasGroupedObjects && (
-            <DropdownMenuItem onSelect={() => {
-              for (const gid of groupIdsInSelection) {
-                ungroupObjects(gid);
-              }
-              onClose();
-            }}>
-              <Ungroup className="size-4" />
-              Ungroup
-            </DropdownMenuItem>
-          )}
+      {/* Type-specific */}
+      {(showEditConnection || showConfigureService) && <div className={separatorClass} />}
+      {showEditConnection && (
+        <Item onClick={() => { useDiagramStore.getState().setSidebarExpanded(true); onClose(); }}>
+          <Cable className="size-4" /> Edit Connection
+        </Item>
+      )}
+      {showConfigureService && (
+        <Item onClick={() => { useDiagramStore.getState().setSidebarExpanded(true); onClose(); }}>
+          <Settings className="size-4" /> Configure Service
+        </Item>
+      )}
 
-          {/* Separator before type-specific (only if type-specific items shown) */}
-          {showTypeSpecific && <DropdownMenuSeparator />}
+      <div className={separatorClass} />
 
-          {/* Group 5 - Type-specific (conditional, single selection only) */}
-          {showEditConnection && (
-            <DropdownMenuItem onSelect={() => {
-              useDiagramStore.getState().setSidebarExpanded(true);
-              onClose();
-            }}>
-              <Cable className="size-4" />
-              Edit Connection
-            </DropdownMenuItem>
-          )}
-          {showConfigureService && (
-            <DropdownMenuItem onSelect={() => {
-              useDiagramStore.getState().setSidebarExpanded(true);
-              onClose();
-            }}>
-              <Settings className="size-4" />
-              Configure Service
-            </DropdownMenuItem>
-          )}
-
-          <DropdownMenuSeparator />
-
-          {/* Group 6 - Destructive */}
-          <DropdownMenuItem
-            variant="destructive"
-            onSelect={() => {
-              for (const id of selectedObjectIds) {
-                removeCanvasObject(id);
-              }
-              onClose();
-            }}
-          >
-            <Trash2 className="size-4" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Delete */}
+      <Item destructive onClick={() => { for (const id of selectedObjectIds) removeCanvasObject(id); onClose(); }}>
+        <Trash2 className="size-4" /> Delete
+      </Item>
     </div>
   );
 }

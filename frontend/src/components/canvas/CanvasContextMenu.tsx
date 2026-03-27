@@ -3,11 +3,6 @@
 import { useEffect, useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
-import {
   ClipboardPaste,
   MousePointerSquareDashed,
   Maximize,
@@ -33,9 +28,7 @@ export default function CanvasContextMenu({ menu, onClose }: CanvasContextMenuPr
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
-      }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose();
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -52,45 +45,39 @@ export default function CanvasContextMenu({ menu, onClose }: CanvasContextMenuPr
   const hasObjects = canvasObjects.size > 0;
   const hasClipboard = clipboard.length > 0;
 
+  const itemClass = 'flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm cursor-default select-none hover:bg-accent hover:text-accent-foreground outline-none';
+  const disabledClass = 'opacity-50 pointer-events-none';
+
+  function Item({ onClick, children, disabled }: { onClick: () => void; children: React.ReactNode; disabled?: boolean }) {
+    return (
+      <div
+        role="menuitem"
+        tabIndex={-1}
+        className={`${itemClass} ${disabled ? disabledClass : ''}`}
+        onClick={disabled ? undefined : onClick}
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div
       ref={menuRef}
       data-testid="canvas-context-menu-canvas"
-      style={{
-        position: 'fixed',
-        top: menu.y,
-        left: menu.x,
-        zIndex: 100,
-      }}
+      role="menu"
+      style={{ position: 'fixed', top: menu.y, left: menu.x, zIndex: 9999 }}
+      className="min-w-[160px] rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
     >
-      <DropdownMenu open onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DropdownMenuContent align="start" side="bottom" sideOffset={0}>
-          <DropdownMenuItem
-            disabled={!hasClipboard}
-            onSelect={() => { pasteObjects(menu.canvasPosition); onClose(); }}
-          >
-            <ClipboardPaste className="size-4" />
-            Paste
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={!hasObjects}
-            onSelect={() => { selectAllObjects(); onClose(); }}
-          >
-            <MousePointerSquareDashed className="size-4" />
-            Select All
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={!hasObjects}
-            onSelect={() => {
-              fitToScreen({ width: window.innerWidth, height: window.innerHeight });
-              onClose();
-            }}
-          >
-            <Maximize className="size-4" />
-            Fit to Screen
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Item disabled={!hasClipboard} onClick={() => { pasteObjects(menu.canvasPosition); onClose(); }}>
+        <ClipboardPaste className="size-4" /> Paste
+      </Item>
+      <Item disabled={!hasObjects} onClick={() => { selectAllObjects(); onClose(); }}>
+        <MousePointerSquareDashed className="size-4" /> Select All
+      </Item>
+      <Item disabled={!hasObjects} onClick={() => { fitToScreen({ width: window.innerWidth, height: window.innerHeight }); onClose(); }}>
+        <Maximize className="size-4" /> Fit to Screen
+      </Item>
     </div>
   );
 }
