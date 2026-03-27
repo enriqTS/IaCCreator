@@ -46,6 +46,7 @@ class ResourceInstance(BaseModel):
     name: str = Field(..., description="User-defined resource name, used as subfolder name")
     service_type: ServiceType
     config: ResourceConfig = Field(default_factory=ResourceConfig)
+    terraform_variables: dict[str, str | int | float | bool] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_dynamodb_hash_key(self) -> "ResourceInstance":
@@ -74,6 +75,17 @@ class EnvironmentConfig(BaseModel):
     variables: dict[str, str] = Field(default_factory=dict)
 
 
+class GlobalTerraformConfig(BaseModel):
+    """Project-level Terraform configuration for backend, provider, and version constraints."""
+
+    backend_type: str = "local"
+    backend_config: dict[str, str] = Field(default_factory=dict)
+    provider_region: str = "us-east-1"
+    provider_profile: str | None = None
+    terraform_version: str | None = None
+    aws_provider_version: str | None = None
+
+
 class ArchitectureDescription(BaseModel):
     """Top-level input schema for the Terraform IaC Generator."""
 
@@ -83,3 +95,4 @@ class ArchitectureDescription(BaseModel):
     environments: list[EnvironmentConfig] = Field(..., min_length=1)
     resources: list[ResourceInstance] = Field(..., min_length=1)
     connections: list[Connection] = Field(default_factory=list)
+    global_terraform_config: GlobalTerraformConfig = Field(default_factory=GlobalTerraformConfig)

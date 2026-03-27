@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { CanvasObject } from '@/types/diagram';
 import TerraformTab from './TerraformTab';
+import VariablesPanel from './VariablesPanel';
 import VisualTab from './VisualTab';
 import ZOrderControls from './ZOrderControls';
+import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
 
 /** Determine available tabs for a given canvas object type. */
 export function getTabsForObject(obj: CanvasObject): string[] {
   if (obj.objectType === 'architecture-block') {
-    return ['Terraform', 'Visual'];
+    return ['Terraform', 'Variables', 'Visual'];
   }
   return ['Visual'];
 }
@@ -34,12 +36,64 @@ export default function BottomPanel() {
     if (tabs.length > 0) {
       setActiveTab(tabs[0]);
     } else {
-      setActiveTab('');
+      setActiveTab('Terraform');
     }
   }, [selectedObjectIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Close panel when no objects are selected
-  if (selectedObjectIds.size === 0) return null;
+  // No selection — show global Terraform config panel
+  if (selectedObjectIds.size === 0) {
+    return (
+      <div
+        data-testid="bottom-panel"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: '#1e1e1e',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          zIndex: 50,
+          color: 'rgba(255, 255, 255, 0.9)',
+        }}
+      >
+        {/* Tab bar */}
+        <div
+          data-testid="tab-bar"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          }}
+        >
+          <button
+            data-testid="tab-terraform"
+            style={{
+              padding: '10px 20px',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#fff',
+              backgroundColor: '#2a2a2a',
+              borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
+              borderBottomStyle: 'solid',
+              borderBottomWidth: '2px',
+              borderBottomColor: '#3b82f6',
+              cursor: 'pointer',
+            }}
+          >
+            Terraform
+          </button>
+        </div>
+        {/* Tab content */}
+        <div data-testid="tab-content" style={{ padding: '16px 24px' }}>
+          <div data-testid="global-terraform-tab-content">
+            <GlobalTerraformConfigPanel />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Multi-selection summary
   if (selectedObjectIds.size > 1) {
@@ -206,6 +260,11 @@ export default function BottomPanel() {
         {activeTab === 'Terraform' && selectedObject?.objectType === 'architecture-block' && (
           <div data-testid="terraform-tab-content">
             <TerraformTab block={selectedObject} />
+          </div>
+        )}
+        {activeTab === 'Variables' && selectedObject?.objectType === 'architecture-block' && (
+          <div data-testid="variables-tab-content">
+            <VariablesPanel block={selectedObject} />
           </div>
         )}
         {activeTab === 'Visual' && (

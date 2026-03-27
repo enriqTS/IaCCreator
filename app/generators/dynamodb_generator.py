@@ -14,7 +14,7 @@ class DynamoDBGenerator:
         """Generate dynamodb.tf with aws_dynamodb_table resource."""
         attrs: dict = {
             "name": "var.table_name",
-            "billing_mode": instance.config.billing_mode or "PAY_PER_REQUEST",
+            "billing_mode": "var.billing_mode",
             "hash_key": "var.hash_key",
         }
 
@@ -37,6 +37,7 @@ class DynamoDBGenerator:
         """Generate variables.tf for a DynamoDB instance."""
         parts = [
             self._r.render_variable("table_name", "string", "Name of the DynamoDB table"),
+            self._r.render_variable("billing_mode", "string", "Billing mode", default="PAY_PER_REQUEST"),
             self._r.render_variable("hash_key", "string", "Hash key attribute name"),
         ]
         if instance.config.range_key:

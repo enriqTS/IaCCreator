@@ -109,6 +109,7 @@ export interface ArchitectureBlock {
   name: string;
   position: Point;
   config: ResourceConfig;
+  terraformVariables: Record<string, string | number | boolean>;
   visualConfig: ArchitectureBlockVisualConfig;
   zIndex: number;
   groupId?: string;

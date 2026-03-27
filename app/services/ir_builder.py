@@ -12,6 +12,7 @@ from app.models.input_models import (
 from app.models.ir_models import (
     ConnectionIR,
     EnvironmentIR,
+    GlobalTerraformConfigIR,
     IAMStatement,
     ProjectIR,
     ResourceInstanceIR,
@@ -91,6 +92,7 @@ class IRBuilder:
                 config=resource.config,
                 iam_statements=iam_statements,
                 connections=instance_connections,
+                terraform_variables=resource.terraform_variables,
             )
             service_groups[resource.service_type].append(instance_ir)
 
@@ -113,11 +115,22 @@ class IRBuilder:
             for env in input.environments
         ]
 
+        # Build global config
+        global_config = GlobalTerraformConfigIR(
+            backend_type=input.global_terraform_config.backend_type,
+            backend_config=input.global_terraform_config.backend_config,
+            provider_region=input.global_terraform_config.provider_region,
+            provider_profile=input.global_terraform_config.provider_profile,
+            terraform_version=input.global_terraform_config.terraform_version,
+            aws_provider_version=input.global_terraform_config.aws_provider_version,
+        )
+
         return ProjectIR(
             project_name=input.project_name,
             environments=environments,
             modules=modules,
             connections=connections_ir,
+            global_config=global_config,
         )
 
     def _build_connections(

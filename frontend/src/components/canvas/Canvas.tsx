@@ -58,6 +58,7 @@ export default function Canvas() {
             name: 'Service',
             position: payload.canvasPosition,
             config: {},
+            terraformVariables: {},
             visualConfig: { width: payload.width, height: payload.height },
           });
         } else {
@@ -67,6 +68,7 @@ export default function Canvas() {
             name: 'Service',
             position: payload.canvasPosition,
             config: {},
+            terraformVariables: {},
             visualConfig: { ...DEFAULT_BLOCK_VISUAL },
           });
         }

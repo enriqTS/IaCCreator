@@ -1,8 +1,10 @@
 """FileTreeAssembler — walks ProjectIR and collects all generated content into a FileTree."""
 
+from app.generators.global_config_generator import GlobalConfigGenerator
 from app.generators.hcl_renderer import HCLRenderer
 from app.generators.iam_policy_generator import IAMPolicyGenerator
 from app.generators.registry import GENERATOR_REGISTRY
+from app.generators.tfvars_generator import TfvarsGenerator
 from app.models.input_models import ServiceType
 from app.models.ir_models import (
     EnvironmentIR,
@@ -20,6 +22,8 @@ class FileTreeAssembler:
     def __init__(self) -> None:
         self._renderer = HCLRenderer()
         self._iam_policy_gen = IAMPolicyGenerator()
+        self._tfvars_gen = TfvarsGenerator()
+        self._global_config_gen = GlobalConfigGenerator()
 
     def assemble(
         self,
@@ -34,9 +38,14 @@ class FileTreeAssembler:
         tree: FileTree = {}
         root = project.project_name
 
+        # Collect all resource instances across all modules
+        all_instances: list[ResourceInstanceIR] = []
+        for module in project.modules:
+            all_instances.extend(module.instances)
+
         # 1. Environment files
         for env in project.environments:
-            self._add_environment_files(tree, root, env, project)
+            self._add_environment_files(tree, root, env, project, all_instances)
 
         # 2. Service module files + resource instance files
         for module in project.modules:
@@ -62,6 +71,7 @@ class FileTreeAssembler:
         root: str,
         env: EnvironmentIR,
         project: ProjectIR,
+        all_instances: list[ResourceInstanceIR],
     ) -> None:
         """Generate main.tf, variables.tf, outputs.tf, terraform.tfvars for an environment."""
         base = f"{root}/environments/{env.name}"
@@ -74,12 +84,15 @@ class FileTreeAssembler:
             parts.append(self._renderer.render_module(mod_name, source, {}))
         tree[f"{base}/main.tf"] = "\n".join(parts)
 
-        # variables.tf
+        # variables.tf — environment variables + resource terraform variables
         var_parts = [
             self._renderer.render_variable("aws_region", "string", "AWS region for this environment"),
         ]
         for key in sorted(env.variables.keys()):
             var_parts.append(self._renderer.render_variable(key, "string", f"Variable {key}"))
+        resource_vars_tf = self._tfvars_gen.generate_variables_tf(all_instances)
+        if resource_vars_tf:
+            var_parts.append(resource_vars_tf)
         tree[f"{base}/variables.tf"] = "\n".join(var_parts)
 
         # outputs.tf
@@ -95,12 +108,21 @@ class FileTreeAssembler:
             )
         tree[f"{base}/outputs.tf"] = "\n".join(out_parts) if out_parts else ""
 
-        # terraform.tfvars
+        # terraform.tfvars — environment variables + resource terraform variables
         tfvars_lines = []
         for key in sorted(env.variables.keys()):
             val = env.variables[key]
             tfvars_lines.append(f'{key} = "{val}"')
+        resource_tfvars = self._tfvars_gen.generate_tfvars(all_instances)
+        if resource_tfvars:
+            tfvars_lines.append(resource_tfvars.rstrip("\n"))
         tree[f"{base}/terraform.tfvars"] = "\n".join(tfvars_lines) + ("\n" if tfvars_lines else "")
+
+        # Global config files: backend.tf, provider.tf, versions.tf
+        global_cfg = project.global_config
+        tree[f"{base}/backend.tf"] = self._global_config_gen.generate_backend_tf(global_cfg)
+        tree[f"{base}/provider.tf"] = self._global_config_gen.generate_provider_tf(global_cfg)
+        tree[f"{base}/versions.tf"] = self._global_config_gen.generate_versions_tf(global_cfg)
 
     # ------------------------------------------------------------------
     # Service module root files

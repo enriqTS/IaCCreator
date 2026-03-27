@@ -775,7 +775,7 @@ def test_property_3_project_level_folder_structure(arch):
 # Feature: terraform-iac-generator, Property 4: Environment file completeness
 # Validates: Requirements 2.4
 
-EXPECTED_ENV_FILES = {"main.tf", "variables.tf", "outputs.tf", "terraform.tfvars"}
+EXPECTED_ENV_FILES = {"main.tf", "variables.tf", "outputs.tf", "terraform.tfvars", "backend.tf", "provider.tf", "versions.tf"}
 
 
 # --- Property 5: Environment variable consistency ---

@@ -10,6 +10,7 @@ import type {
   ServiceType,
   Viewport,
 } from './diagram';
+import type { GlobalTerraformConfig } from './terraform-variables';
 
 /** Full diagram state for save/load to localStorage. */
 export interface DiagramState {
@@ -21,6 +22,7 @@ export interface DiagramState {
   connectors: SerializedConnector[];
   viewport: Viewport;
   objectGroups?: SerializedObjectGroup[];
+  globalTerraformConfig?: GlobalTerraformConfig;
 }
 
 export interface SerializedElement {
@@ -44,6 +46,7 @@ export interface SerializedCanvasObject {
   serviceType?: ServiceType;
   config?: ResourceConfig;
   visualConfig: Record<string, unknown>;
+  terraformVariables?: Record<string, string | number | boolean>;
   zIndex?: number;
   groupId?: string;
 }
@@ -69,10 +72,19 @@ export interface ArchitectureDescription {
     name: string;
     service_type: string;
     config: ResourceConfig;
+    terraform_variables?: Record<string, string | number | boolean>;
   }[];
   connections: {
     source: string;
     target: string;
     connection_type: string;
   }[];
+  global_terraform_config?: {
+    backend_type: string;
+    backend_config: Record<string, string>;
+    provider_region: string;
+    provider_profile?: string;
+    terraform_version?: string;
+    aws_provider_version?: string;
+  };
 }

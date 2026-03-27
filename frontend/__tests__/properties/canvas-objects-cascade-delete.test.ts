@@ -3,6 +3,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { serviceTypeArbitrary, pointArbitrary } from './arbitraries';
 import type { ArchitectureBlock, Connector } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
+import { getDefaultVariables } from '@/types/terraform-variables';
 
 function resetStore() {
   useDiagramStore.setState({
@@ -40,6 +41,7 @@ function addBlockWithElement(
       name,
       position,
       config: {},
+      terraformVariables: getDefaultVariables(serviceType),
       visualConfig: { ...DEFAULT_BLOCK_VISUAL },
     } as ArchitectureBlock);
     return { canvasObjects: next };

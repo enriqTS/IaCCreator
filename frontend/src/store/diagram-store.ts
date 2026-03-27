@@ -33,6 +33,8 @@ import type { DiagramSummary } from '@/types/api';
 import { zoomAtPoint } from '@/utils/viewport';
 import { apiClient } from '@/utils/api-client';
 import { useToastStore } from '@/store/toast-store';
+import type { GlobalTerraformConfig } from '@/types/terraform-variables';
+import { getDefaultVariables, DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
 
 interface HistoryEntry {
   elements: Map<string, DiagramElement>;
@@ -135,6 +137,12 @@ export interface DiagramStore {
   environments: EnvironmentConfig[];
   setProjectName: (name: string) => void;
   setEnvironments: (envs: EnvironmentConfig[]) => void;
+
+  // Terraform variables
+  setTerraformVariable: (objectId: string, varName: string, value: string | number | boolean) => void;
+  setTerraformVariables: (objectId: string, vars: Record<string, string | number | boolean>) => void;
+  globalTerraformConfig: GlobalTerraformConfig;
+  updateGlobalTerraformConfig: (updates: Partial<GlobalTerraformConfig>) => void;
 
   // Serialization
   serializeDiagramState: () => DiagramState;
@@ -268,7 +276,18 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       for (const existing of canvasObjects.values()) {
         if (existing.zIndex > maxZ) maxZ = existing.zIndex;
       }
-      const canvasObject = { ...obj, id, zIndex: maxZ + 1 } as CanvasObject;
+      let canvasObject = { ...obj, id, zIndex: maxZ + 1 } as CanvasObject;
+
+      // Initialize terraformVariables for architecture blocks
+      if (canvasObject.objectType === 'architecture-block') {
+        canvasObject = {
+          ...canvasObject,
+          terraformVariables: {
+            ...getDefaultVariables(canvasObject.serviceType),
+            ...(obj as { terraformVariables?: Record<string, string | number | boolean> }).terraformVariables,
+          },
+        };
+      }
 
       set((state) => {
         const next = new Map(state.canvasObjects);
@@ -845,10 +864,49 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       set({ environments: envs });
     },
 
+    // --- Terraform variables ---
+    globalTerraformConfig: { ...DEFAULT_GLOBAL_CONFIG },
+
+    setTerraformVariable: (objectId: string, varName: string, value: string | number | boolean): void => {
+      const existing = get().canvasObjects.get(objectId);
+      if (!existing || existing.objectType !== 'architecture-block') return;
+      pushHistory();
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        const block = state.canvasObjects.get(objectId) as ArchitectureBlock;
+        next.set(objectId, {
+          ...block,
+          terraformVariables: { ...block.terraformVariables, [varName]: value },
+        });
+        return { canvasObjects: next };
+      });
+    },
+
+    setTerraformVariables: (objectId: string, vars: Record<string, string | number | boolean>): void => {
+      const existing = get().canvasObjects.get(objectId);
+      if (!existing || existing.objectType !== 'architecture-block') return;
+      pushHistory();
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        const block = state.canvasObjects.get(objectId) as ArchitectureBlock;
+        next.set(objectId, {
+          ...block,
+          terraformVariables: { ...block.terraformVariables, ...vars },
+        });
+        return { canvasObjects: next };
+      });
+    },
+
+    updateGlobalTerraformConfig: (updates: Partial<GlobalTerraformConfig>): void => {
+      set((state) => ({
+        globalTerraformConfig: { ...state.globalTerraformConfig, ...updates },
+      }));
+    },
+
     // --- Serialization ---
 
     serializeDiagramState: (): DiagramState => {
-      const { elements, connectors, viewport, projectName, environments, canvasObjects, objectGroups } = get();
+      const { elements, connectors, viewport, projectName, environments, canvasObjects, objectGroups, globalTerraformConfig } = get();
 
       const serializedCanvasObjects: SerializedCanvasObject[] = Array.from(canvasObjects.values()).map((obj) => {
         const base: SerializedCanvasObject = {
@@ -865,6 +923,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           base.y = obj.position.y;
           base.serviceType = obj.serviceType;
           base.config = { ...obj.config };
+          base.terraformVariables = { ...obj.terraformVariables };
         } else if (obj.objectType === 'line') {
           base.startX = obj.start.x;
           base.startY = obj.start.y;
@@ -904,6 +963,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         })),
         viewport: { ...viewport },
         ...(serializedGroups.length > 0 && { objectGroups: serializedGroups }),
+        globalTerraformConfig: { ...globalTerraformConfig },
       };
     },
 
@@ -946,6 +1006,9 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
               position: { x: sObj.x ?? 0, y: sObj.y ?? 0 },
               serviceType: sObj.serviceType!,
               config: sObj.config ? { ...sObj.config } : {},
+              terraformVariables: sObj.terraformVariables
+                ? { ...sObj.terraformVariables }
+                : getDefaultVariables(sObj.serviceType!),
               visualConfig: {
                 width: (sObj.visualConfig.width as number) ?? DEFAULT_BLOCK_VISUAL.width,
                 height: (sObj.visualConfig.height as number) ?? DEFAULT_BLOCK_VISUAL.height,
@@ -1004,6 +1067,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             name: el.name,
             position: { ...el.position },
             config: { ...el.config },
+            terraformVariables: getDefaultVariables(el.serviceType),
             visualConfig: { ...DEFAULT_BLOCK_VISUAL },
             zIndex: migrationIndex++,
           };
@@ -1032,6 +1096,9 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         environments: state.environments.map((e) => ({ ...e, variables: { ...e.variables } })),
         selectedObjectIds: new Set(),
         objectGroups: objectGroupsMap,
+        globalTerraformConfig: state.globalTerraformConfig
+          ? { ...state.globalTerraformConfig }
+          : { ...DEFAULT_GLOBAL_CONFIG },
         _undoStack: [],
         _redoStack: [],
         canUndo: false,
@@ -1040,23 +1107,35 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     serializeToArchitectureDescription: (): ArchitectureDescription => {
-      const { elements, connectors, projectName, environments } = get();
+      const { elements, canvasObjects, connectors, projectName, environments, globalTerraformConfig } = get();
 
-      const resources = Array.from(elements.values()).map((el) => ({
-        name: el.name,
-        service_type: el.serviceType,
-        config: { ...el.config },
+      // Use canvasObjects (architecture blocks) as the source of resources
+      const resources = Array.from(canvasObjects.values())
+        .filter((obj): obj is ArchitectureBlock => obj.objectType === 'architecture-block')
+        .map((block) => ({
+          name: block.name,
+          service_type: block.serviceType,
+          config: { ...block.config },
+          terraform_variables: { ...block.terraformVariables },
+        }));
+
+      // Build a name lookup from canvasObjects and elements for connector resolution
+      const nameById = new Map<string, string>();
+      for (const obj of canvasObjects.values()) {
+        nameById.set(obj.id, obj.name);
+      }
+      // Fallback to elements for backward compatibility
+      for (const el of elements.values()) {
+        if (!nameById.has(el.id)) {
+          nameById.set(el.id, el.name);
+        }
+      }
+
+      const connections = Array.from(connectors.values()).map((c) => ({
+        source: nameById.get(c.sourceId) ?? '',
+        target: nameById.get(c.targetId) ?? '',
+        connection_type: c.connectionType,
       }));
-
-      const connections = Array.from(connectors.values()).map((c) => {
-        const source = elements.get(c.sourceId);
-        const target = elements.get(c.targetId);
-        return {
-          source: source?.name ?? '',
-          target: target?.name ?? '',
-          connection_type: c.connectionType,
-        };
-      });
 
       return {
         project_name: projectName,
@@ -1066,6 +1145,14 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         })),
         resources,
         connections,
+        global_terraform_config: {
+          backend_type: globalTerraformConfig.backend.type,
+          backend_config: { ...globalTerraformConfig.backend.config },
+          provider_region: globalTerraformConfig.provider.region,
+          ...(globalTerraformConfig.provider.profile && { provider_profile: globalTerraformConfig.provider.profile }),
+          ...(globalTerraformConfig.versionConstraints.terraformVersion && { terraform_version: globalTerraformConfig.versionConstraints.terraformVersion }),
+          ...(globalTerraformConfig.versionConstraints.awsProviderVersion && { aws_provider_version: globalTerraformConfig.versionConstraints.awsProviderVersion }),
+        },
       };
     },
 

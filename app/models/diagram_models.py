@@ -4,6 +4,8 @@ These models validate incoming diagram state payloads from the frontend.
 Element and connector models allow extra fields for extensibility.
 """
 
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -54,3 +56,4 @@ class DiagramStateInput(BaseModel):
     elements: list[SerializedElementInput]
     connectors: list[SerializedConnectorInput]
     viewport: ViewportInput
+    globalTerraformConfig: dict[str, Any] | None = None

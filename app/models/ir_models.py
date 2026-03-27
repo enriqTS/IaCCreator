@@ -34,6 +34,7 @@ class ResourceInstanceIR(BaseModel):
     config: ResourceConfig
     iam_statements: list[IAMStatement] = Field(default_factory=list)
     connections: list[ConnectionIR] = Field(default_factory=list)
+    terraform_variables: dict[str, str | int | float | bool] = Field(default_factory=dict)
 
 
 class ServiceModuleIR(BaseModel):
@@ -51,6 +52,17 @@ class EnvironmentIR(BaseModel):
     module_refs: list[ServiceType]  # Which modules this environment references
 
 
+class GlobalTerraformConfigIR(BaseModel):
+    """Project-level Terraform configuration in the IR."""
+
+    backend_type: str = "local"
+    backend_config: dict[str, str] = Field(default_factory=dict)
+    provider_region: str = "us-east-1"
+    provider_profile: str | None = None
+    terraform_version: str | None = None
+    aws_provider_version: str | None = None
+
+
 class ProjectIR(BaseModel):
     """Top-level IR representing the entire Terraform project."""
 
@@ -58,6 +70,7 @@ class ProjectIR(BaseModel):
     environments: list[EnvironmentIR]
     modules: list[ServiceModuleIR]
     connections: list[ConnectionIR]
+    global_config: GlobalTerraformConfigIR = Field(default_factory=GlobalTerraformConfigIR)
 
 
 class GeneratedFile(BaseModel):

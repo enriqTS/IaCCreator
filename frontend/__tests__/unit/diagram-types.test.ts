@@ -11,6 +11,7 @@ describe('getObjectBounds', () => {
       name: 'lambda-1',
       position: { x: 100, y: 200 },
       config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 60 },
       zIndex: 0,
     };
@@ -102,6 +103,7 @@ describe('Type structure validation', () => {
       name: 'test',
       position: { x: 0, y: 0 },
       config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
       zIndex: 5,
       groupId: 'g1',

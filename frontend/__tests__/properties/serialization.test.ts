@@ -156,6 +156,7 @@ describe('Property 10: Export serialization maps diagram to ArchitectureDescript
           useDiagramStore.setState({
             elements: new Map(),
             connectors: new Map(),
+            canvasObjects: new Map(),
             viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
             projectName: '',
             environments: [],
@@ -167,7 +168,7 @@ describe('Property 10: Export serialization maps diagram to ArchitectureDescript
 
           const store = useDiagramStore.getState();
 
-          // Add elements to the store
+          // Add elements to the store (for connector validation) and canvas objects (for resource serialization)
           const idMapping = new Map<string, string>();
           for (const el of diagramState.elements) {
             const newId = store.addElement(el.serviceType, el.position);
@@ -177,6 +178,22 @@ describe('Property 10: Export serialization maps diagram to ArchitectureDescript
             if (Object.keys(el.config).length > 0) {
               useDiagramStore.getState().updateElementConfig(newId, el.config);
             }
+            // Also add a corresponding canvas object for serializeToArchitectureDescription
+            useDiagramStore.setState((state) => {
+              const next = new Map(state.canvasObjects);
+              next.set(newId, {
+                id: newId,
+                objectType: 'architecture-block' as const,
+                serviceType: el.serviceType,
+                name: useDiagramStore.getState().elements.get(newId)!.name,
+                position: { ...el.position },
+                config: { ...useDiagramStore.getState().elements.get(newId)!.config },
+                terraformVariables: {},
+                visualConfig: { width: 80, height: 80 },
+                zIndex: next.size,
+              });
+              return { canvasObjects: next };
+            });
           }
 
           // Add connectors using the mapped IDs

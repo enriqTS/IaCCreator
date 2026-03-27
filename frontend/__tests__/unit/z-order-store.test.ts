@@ -8,6 +8,7 @@ function addBlock(name: string, x = 0, y = 0): string {
     name,
     position: { x, y },
     config: {},
+    terraformVariables: {},
     visualConfig: { width: 80, height: 80 },
   });
 }

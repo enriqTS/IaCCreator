@@ -15,19 +15,22 @@ class S3Generator:
         attrs: dict = {"bucket": "var.bucket_name"}
         result = self._r.render_resource("aws_s3_bucket", instance.name, attrs)
 
-        if instance.config.versioning:
-            versioning_attrs = {
-                "bucket": f"aws_s3_bucket.{instance.name}.id",
-                "versioning_configuration": {"status": "Enabled"},
-            }
-            result += "\n" + self._r.render_resource(
-                "aws_s3_bucket_versioning", f"{instance.name}_versioning", versioning_attrs
-            )
+        versioning_attrs = {
+            "bucket": f"aws_s3_bucket.{instance.name}.id",
+            "versioning_configuration": {"status": "var.versioning_enabled"},
+        }
+        result += "\n" + self._r.render_resource(
+            "aws_s3_bucket_versioning", f"{instance.name}_versioning", versioning_attrs
+        )
         return result
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an S3 instance."""
-        return self._r.render_variable("bucket_name", "string", "Name of the S3 bucket")
+        parts = [
+            self._r.render_variable("bucket_name", "string", "Name of the S3 bucket"),
+            self._r.render_variable("versioning_enabled", "string", "Versioning status (Enabled or Suspended)", default="Enabled"),
+        ]
+        return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate outputs.tf for an S3 instance."""

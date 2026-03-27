@@ -42,8 +42,8 @@ function makeGeo(id = 'geo-1'): GeometricObject {
 }
 
 describe('getTabsForObject', () => {
-  it('returns Terraform and Visual tabs for architecture blocks', () => {
-    expect(getTabsForObject(makeBlock())).toEqual(['Terraform', 'Visual']);
+  it('returns Terraform, Variables, and Visual tabs for architecture blocks', () => {
+    expect(getTabsForObject(makeBlock())).toEqual(['Terraform', 'Variables', 'Visual']);
   });
 
   it('returns only Visual tab for line objects', () => {
@@ -68,9 +68,9 @@ describe('BottomPanel', () => {
     useDiagramStore.getState().selectObject(null);
   });
 
-  it('returns null when no object is selected', () => {
-    const { container } = render(<BottomPanel />);
-    expect(container.innerHTML).toBe('');
+  it('shows global terraform config when no object is selected', () => {
+    render(<BottomPanel />);
+    expect(screen.getByTestId('global-terraform-tab-content')).toBeDefined();
   });
 
   it('renders panel when an architecture block is selected', () => {
@@ -138,14 +138,14 @@ describe('BottomPanel', () => {
     expect(visualTab.style.borderBottomColor).toBe('transparent');
   });
 
-  it('closes panel when selection is cleared', () => {
+  it('shows global config when selection is cleared', () => {
     selectWithObject(makeBlock());
-    const { rerender, container } = render(<BottomPanel />);
+    const { rerender } = render(<BottomPanel />);
     expect(screen.getByTestId('bottom-panel')).toBeDefined();
 
     useDiagramStore.getState().selectObject(null);
     rerender(<BottomPanel />);
-    expect(container.innerHTML).toBe('');
+    expect(screen.getByTestId('global-terraform-tab-content')).toBeDefined();
   });
 
   it('shows multi-selection summary when multiple objects are selected', () => {

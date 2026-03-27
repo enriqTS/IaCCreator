@@ -23,6 +23,7 @@ function addBlock(): string {
     name: 'lambda-1',
     position: { x: 0, y: 0 },
     config: {},
+    terraformVariables: {},
     visualConfig: { ...DEFAULT_BLOCK_VISUAL },
   } as Omit<ArchitectureBlock, 'id'>);
 }
@@ -196,6 +197,7 @@ describe('DiagramStore - removeCanvasObject cascade and selection clearing', () 
         name: 'lambda-1',
         position: { x: 0, y: 0 },
         config: {},
+        terraformVariables: {},
         visualConfig: { ...DEFAULT_BLOCK_VISUAL },
       } as ArchitectureBlock);
       next.set(elemId2, {
@@ -205,6 +207,7 @@ describe('DiagramStore - removeCanvasObject cascade and selection clearing', () 
         name: 's3-1',
         position: { x: 100, y: 0 },
         config: {},
+        terraformVariables: {},
         visualConfig: { ...DEFAULT_BLOCK_VISUAL },
       } as ArchitectureBlock);
       return { canvasObjects: next };

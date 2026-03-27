@@ -479,6 +479,7 @@ describe('DiagramStore - serializeDiagramState', () => {
       name: 'lambda-1',
       position: { x: 10, y: 20 },
       config: { handler: 'index.handler' },
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
     const state = useDiagramStore.getState().serializeDiagramState();
@@ -698,6 +699,7 @@ describe('DiagramStore - serializeToArchitectureDescription', () => {
     useDiagramStore.setState({
       elements: new Map(),
       connectors: new Map(),
+      canvasObjects: new Map(),
       viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
       projectName: '',
       environments: [],
@@ -709,8 +711,15 @@ describe('DiagramStore - serializeToArchitectureDescription', () => {
   });
 
   it('maps elements to resources with name, service_type, config', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    useDiagramStore.getState().updateElementConfig(id, { handler: 'app.handler', runtime: 'python3.12' });
+    const id = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'lambda',
+      name: 'lambda-1',
+      position: { x: 0, y: 0 },
+      config: { handler: 'app.handler', runtime: 'python3.12' },
+      terraformVariables: {},
+      visualConfig: { width: 80, height: 80 },
+    });
 
     const desc = useDiagramStore.getState().serializeToArchitectureDescription();
 
@@ -994,6 +1003,7 @@ describe('DiagramStore - moveSelectedObjects', () => {
       name: 'lambda-1',
       position: { x: 100, y: 200 },
       config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
     useDiagramStore.getState().selectObject(id);
@@ -1357,6 +1367,7 @@ describe('DiagramStore - Serialization of zIndex, groupId, and objectGroups', ()
       name: 'lambda-1',
       position: { x: 10, y: 20 },
       config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
     const id2 = useDiagramStore.getState().addCanvasObject({

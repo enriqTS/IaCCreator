@@ -14,13 +14,17 @@ class APIGatewayGenerator:
         """Generate api-gateway.tf with aws_apigatewayv2_api resource."""
         attrs = {
             "name": "var.api_name",
-            "protocol_type": instance.config.protocol_type or "HTTP",
+            "protocol_type": "var.protocol_type",
         }
         return self._r.render_resource("aws_apigatewayv2_api", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an API Gateway instance."""
-        return self._r.render_variable("api_name", "string", "Name of the API Gateway")
+        parts = [
+            self._r.render_variable("api_name", "string", "Name of the API Gateway"),
+            self._r.render_variable("protocol_type", "string", "Protocol type", default="HTTP"),
+        ]
+        return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate outputs.tf for an API Gateway instance."""
