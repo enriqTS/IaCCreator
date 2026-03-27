@@ -6,7 +6,8 @@ import { useToastStore } from '@/store/toast-store';
 import Canvas from '@/components/canvas/Canvas';
 import Toolbar from '@/components/toolbar/Toolbar';
 import HamburgerMenu from '@/components/menu/HamburgerMenu';
-import BottomPanel from '@/components/config/BottomPanel';
+import SidebarPanel from '@/components/config/SidebarPanel';
+import PreferencesDialog from '@/components/menu/PreferencesDialog';
 import NewDiagramDialog from '@/components/menu/NewDiagramDialog';
 import ProjectSettingsDialog from '@/components/menu/ProjectSettingsDialog';
 import ToastProvider from '@/components/toast/ToastProvider';
@@ -16,6 +17,7 @@ import { exportToTerraform } from '@/utils/export';
 export default function DiagramEditorPage() {
   const [newDiagramOpen, setNewDiagramOpen] = useState(false);
   const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -160,8 +162,9 @@ export default function DiagramEditorPage() {
         onLoad={handleLoad}
         onExport={handleExport}
         onProjectSettings={handleProjectSettings}
+        onPreferences={() => setPreferencesOpen(true)}
       />
-      <BottomPanel />
+      <SidebarPanel />
       <NewDiagramDialog
         open={newDiagramOpen}
         onClose={() => setNewDiagramOpen(false)}
@@ -169,6 +172,10 @@ export default function DiagramEditorPage() {
       <ProjectSettingsDialog
         open={projectSettingsOpen}
         onClose={() => setProjectSettingsOpen(false)}
+      />
+      <PreferencesDialog
+        open={preferencesOpen}
+        onClose={() => setPreferencesOpen(false)}
       />
       <ToastProvider />
     </div>

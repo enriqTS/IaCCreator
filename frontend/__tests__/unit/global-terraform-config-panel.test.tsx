@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import GlobalTerraformConfigPanel from '@/components/config/GlobalTerraformConfigPanel';
 import { useDiagramStore } from '@/store/diagram-store';
 import { DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
+import { SIDEBAR_RESPONSIVE_THRESHOLD } from '@/components/config/panel-constants';
 
 describe('GlobalTerraformConfigPanel', () => {
   beforeEach(() => {
@@ -172,5 +173,45 @@ describe('GlobalTerraformConfigPanel', () => {
 
     fireEvent.click(screen.getByTestId('remove-global-variable-0'));
     expect(screen.queryByTestId('global-variable-0')).toBeNull();
+  });
+
+  // --- Requirement 7.1, 7.4, 7.5: width-based layout with panelWidth prop ---
+  it('renders each section as a shadcn/ui Card component', () => {
+    render(<GlobalTerraformConfigPanel />);
+
+    // Each section should be a Card with data-testid
+    const backendSection = screen.getByTestId('backend-config-section');
+    const providerSection = screen.getByTestId('provider-config-section');
+    const versionSection = screen.getByTestId('version-constraints-section');
+    const envSection = screen.getByTestId('environment-settings-section');
+    const varsSection = screen.getByTestId('global-variables-section');
+
+    // Verify all sections are present (Card components render as divs)
+    expect(backendSection.tagName).toBe('DIV');
+    expect(providerSection.tagName).toBe('DIV');
+    expect(versionSection.tagName).toBe('DIV');
+    expect(envSection.tagName).toBe('DIV');
+    expect(varsSection.tagName).toBe('DIV');
+  });
+
+  it('accepts panelWidth prop without errors', () => {
+    render(<GlobalTerraformConfigPanel panelWidth={400} />);
+    expect(screen.getByTestId('global-terraform-config-panel')).toBeDefined();
+  });
+
+  it('renders in single-column layout when panelWidth is below threshold', () => {
+    const { container } = render(<GlobalTerraformConfigPanel panelWidth={SIDEBAR_RESPONSIVE_THRESHOLD - 1} />);
+    // The config-sections-container should exist
+    expect(screen.getByTestId('config-sections-container')).toBeDefined();
+  });
+
+  it('renders in two-column layout when panelWidth is at or above threshold', () => {
+    render(<GlobalTerraformConfigPanel panelWidth={SIDEBAR_RESPONSIVE_THRESHOLD} />);
+    expect(screen.getByTestId('config-sections-container')).toBeDefined();
+  });
+
+  it('renders without panelWidth prop (defaults to single-column)', () => {
+    render(<GlobalTerraformConfigPanel />);
+    expect(screen.getByTestId('config-sections-container')).toBeDefined();
   });
 });

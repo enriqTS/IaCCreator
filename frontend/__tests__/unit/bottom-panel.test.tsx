@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import BottomPanel, { getTabsForObject } from '@/components/config/BottomPanel';
+import BottomPanel from '@/components/config/BottomPanel';
+import { getTabsForObject } from '@/components/config/SidebarPanel';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock, LineObject, GeometricObject } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL } from '@/types/diagram';
@@ -42,7 +43,8 @@ function makeGeo(id = 'geo-1'): GeometricObject {
   };
 }
 
-describe('getTabsForObject', () => {
+// getTabsForObject is now exported from SidebarPanel (the replacement for BottomPanel)
+describe('getTabsForObject (from SidebarPanel)', () => {
   it('returns Variables and Visual tabs for architecture blocks', () => {
     expect(getTabsForObject(makeBlock())).toEqual(['Variables', 'Visual']);
   });
@@ -63,7 +65,11 @@ function selectWithObject(obj: ArchitectureBlock | LineObject | GeometricObject)
   useDiagramStore.getState().selectObject(obj.id);
 }
 
-describe('BottomPanel', () => {
+// SUPERSEDED: BottomPanel has been replaced by SidebarPanel in the page layout.
+// These tests are retained for backward compatibility since BottomPanel.tsx still exists,
+// but the primary UI now uses SidebarPanel. See SidebarPanel property tests in
+// frontend/__tests__/properties/sidebar-config-panel/ for the current component tests.
+describe('BottomPanel (superseded by SidebarPanel)', () => {
   beforeEach(() => {
     useDiagramStore.setState({ canvasObjects: new Map(), bottomPanelExpanded: true });
     useDiagramStore.getState().selectObject(null);

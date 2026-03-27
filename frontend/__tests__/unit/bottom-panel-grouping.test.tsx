@@ -32,7 +32,11 @@ function makeGeo(id: string, groupId?: string): GeometricObject {
   };
 }
 
-describe('BottomPanel group/ungroup controls', () => {
+// SUPERSEDED: BottomPanel has been replaced by SidebarPanel in the page layout.
+// These group/ungroup tests are retained for backward compatibility since BottomPanel.tsx still exists,
+// but the primary UI now uses SidebarPanel. See SidebarPanel property tests in
+// frontend/__tests__/properties/sidebar-config-panel/ for the current component tests.
+describe('BottomPanel group/ungroup controls (superseded by SidebarPanel)', () => {
   beforeEach(() => {
     useDiagramStore.setState({
       canvasObjects: new Map(),
