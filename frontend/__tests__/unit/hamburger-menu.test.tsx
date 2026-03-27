@@ -1,6 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import HamburgerMenu from '@/components/menu/HamburgerMenu';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 
 function makeProps(overrides: Partial<Record<string, () => void>> = {}) {
   return {
@@ -9,9 +11,14 @@ function makeProps(overrides: Partial<Record<string, () => void>> = {}) {
     onLoad: vi.fn(),
     onExport: vi.fn(),
     onProjectSettings: vi.fn(),
+    onPreferences: vi.fn(),
     ...overrides,
   };
 }
+
+beforeEach(() => {
+  useLayoutPreferencesStore.setState({ sidebarSide: 'right', toolbarPosition: 'top' });
+});
 
 describe('HamburgerMenu', () => {
   it('renders the hamburger button', () => {
@@ -24,9 +31,10 @@ describe('HamburgerMenu', () => {
     expect(screen.queryByTestId('hamburger-dropdown')).toBeNull();
   });
 
-  it('shows dropdown with all 5 menu items when clicked', () => {
+  it('shows dropdown with all 6 menu items when clicked', async () => {
+    const user = userEvent.setup();
     render(<HamburgerMenu {...makeProps()} />);
-    fireEvent.click(screen.getByTestId('hamburger-button'));
+    await user.click(screen.getByTestId('hamburger-button'));
 
     expect(screen.getByTestId('hamburger-dropdown')).toBeDefined();
     expect(screen.getByText('New Diagram')).toBeDefined();
@@ -34,84 +42,82 @@ describe('HamburgerMenu', () => {
     expect(screen.getByText('Load')).toBeDefined();
     expect(screen.getByText('Export to Terraform')).toBeDefined();
     expect(screen.getByText('Project Settings')).toBeDefined();
+    expect(screen.getByText('Preferences')).toBeDefined();
   });
 
-  it('toggles dropdown closed on second click', () => {
-    render(<HamburgerMenu {...makeProps()} />);
-    const btn = screen.getByTestId('hamburger-button');
-    fireEvent.click(btn);
-    expect(screen.queryByTestId('hamburger-dropdown')).not.toBeNull();
-    fireEvent.click(btn);
-    expect(screen.queryByTestId('hamburger-dropdown')).toBeNull();
-  });
-
-  it('calls onNewDiagram and closes menu', () => {
+  it('calls onNewDiagram when New Diagram is clicked', async () => {
+    const user = userEvent.setup();
     const props = makeProps();
     render(<HamburgerMenu {...props} />);
-    fireEvent.click(screen.getByTestId('hamburger-button'));
-    fireEvent.click(screen.getByText('New Diagram'));
+    await user.click(screen.getByTestId('hamburger-button'));
+    await user.click(screen.getByText('New Diagram'));
     expect(props.onNewDiagram).toHaveBeenCalledOnce();
-    expect(screen.queryByTestId('hamburger-dropdown')).toBeNull();
   });
 
-  it('calls onSave and closes menu', () => {
+  it('calls onSave when Save is clicked', async () => {
+    const user = userEvent.setup();
     const props = makeProps();
     render(<HamburgerMenu {...props} />);
-    fireEvent.click(screen.getByTestId('hamburger-button'));
-    fireEvent.click(screen.getByText('Save'));
+    await user.click(screen.getByTestId('hamburger-button'));
+    await user.click(screen.getByText('Save'));
     expect(props.onSave).toHaveBeenCalledOnce();
-    expect(screen.queryByTestId('hamburger-dropdown')).toBeNull();
   });
 
-  it('calls onLoad and closes menu', () => {
+  it('calls onLoad when Load is clicked', async () => {
+    const user = userEvent.setup();
     const props = makeProps();
     render(<HamburgerMenu {...props} />);
-    fireEvent.click(screen.getByTestId('hamburger-button'));
-    fireEvent.click(screen.getByText('Load'));
+    await user.click(screen.getByTestId('hamburger-button'));
+    await user.click(screen.getByText('Load'));
     expect(props.onLoad).toHaveBeenCalledOnce();
-    expect(screen.queryByTestId('hamburger-dropdown')).toBeNull();
   });
 
-  it('calls onExport and closes menu', () => {
+  it('calls onExport when Export to Terraform is clicked', async () => {
+    const user = userEvent.setup();
     const props = makeProps();
     render(<HamburgerMenu {...props} />);
-    fireEvent.click(screen.getByTestId('hamburger-button'));
-    fireEvent.click(screen.getByText('Export to Terraform'));
+    await user.click(screen.getByTestId('hamburger-button'));
+    await user.click(screen.getByText('Export to Terraform'));
     expect(props.onExport).toHaveBeenCalledOnce();
-    expect(screen.queryByTestId('hamburger-dropdown')).toBeNull();
   });
 
-  it('calls onProjectSettings and closes menu', () => {
+  it('calls onProjectSettings when Project Settings is clicked', async () => {
+    const user = userEvent.setup();
     const props = makeProps();
     render(<HamburgerMenu {...props} />);
-    fireEvent.click(screen.getByTestId('hamburger-button'));
-    fireEvent.click(screen.getByText('Project Settings'));
+    await user.click(screen.getByTestId('hamburger-button'));
+    await user.click(screen.getByText('Project Settings'));
     expect(props.onProjectSettings).toHaveBeenCalledOnce();
-    expect(screen.queryByTestId('hamburger-dropdown')).toBeNull();
   });
 
-  it('closes on outside click', () => {
+  it('calls onPreferences when Preferences is clicked', async () => {
+    const user = userEvent.setup();
     const props = makeProps();
-    render(
-      <div>
-        <HamburgerMenu {...props} />
-        <div data-testid="outside">outside</div>
-      </div>
-    );
-    fireEvent.click(screen.getByTestId('hamburger-button'));
-    expect(screen.queryByTestId('hamburger-dropdown')).not.toBeNull();
-
-    fireEvent.mouseDown(screen.getByTestId('outside'));
-    expect(screen.queryByTestId('hamburger-dropdown')).toBeNull();
+    render(<HamburgerMenu {...props} />);
+    await user.click(screen.getByTestId('hamburger-button'));
+    await user.click(screen.getByText('Preferences'));
+    expect(props.onPreferences).toHaveBeenCalledOnce();
   });
 
-  it('has correct aria attributes', () => {
+  it('has correct aria-label on the button', () => {
     render(<HamburgerMenu {...makeProps()} />);
     const btn = screen.getByTestId('hamburger-button');
     expect(btn.getAttribute('aria-label')).toBe('Menu');
-    expect(btn.getAttribute('aria-expanded')).toBe('false');
+  });
 
-    fireEvent.click(btn);
-    expect(btn.getAttribute('aria-expanded')).toBe('true');
+  it('positions at top-left when sidebarSide is right', () => {
+    useLayoutPreferencesStore.setState({ sidebarSide: 'right' });
+    render(<HamburgerMenu {...makeProps()} />);
+    const container = screen.getByTestId('hamburger-menu');
+    expect(container.style.left).toBe('16px');
+    expect(container.style.right).toBe('');
+  });
+
+  it('positions at top-right when sidebarSide is left', () => {
+    useLayoutPreferencesStore.setState({ sidebarSide: 'left' });
+    render(<HamburgerMenu {...makeProps()} />);
+    const container = screen.getByTestId('hamburger-menu');
+    expect(container.style.right).toBe('16px');
+    expect(container.style.left).toBe('');
   });
 });

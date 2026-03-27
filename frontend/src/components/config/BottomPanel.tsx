@@ -252,7 +252,7 @@ export default function BottomPanel() {
         </div>
         <div data-testid="tab-content" style={{ padding: '16px 24px', flex: 1, overflowY: 'auto' }}>
           <div data-testid="global-terraform-tab-content">
-            <GlobalTerraformConfigPanel panelHeight={bottomPanelHeight} />
+            <GlobalTerraformConfigPanel panelWidth={bottomPanelHeight} />
           </div>
         </div>
       </div>

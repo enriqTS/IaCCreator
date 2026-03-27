@@ -36,7 +36,7 @@ import { useToastStore } from '@/store/toast-store';
 import type { GlobalTerraformConfig } from '@/types/terraform-variables';
 import { getDefaultVariables, DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
 
-import { MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT_RATIO, DEFAULT_PANEL_HEIGHT } from '@/components/config/panel-constants';
+import { MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT_RATIO, DEFAULT_PANEL_HEIGHT, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH_RATIO, DEFAULT_SIDEBAR_WIDTH } from '@/components/config/panel-constants';
 
 interface HistoryEntry {
   elements: Map<string, DiagramElement>;
@@ -168,6 +168,13 @@ export interface DiagramStore {
   setBottomPanelExpanded: (expanded: boolean) => void;
   setBottomPanelHeight: (height: number) => void;
   toggleBottomPanel: () => void;
+
+  // Sidebar panel state
+  sidebarExpanded: boolean;
+  sidebarWidth: number;
+  setSidebarExpanded: (expanded: boolean) => void;
+  setSidebarWidth: (width: number) => void;
+  toggleSidebar: () => void;
 
   /** @internal — exposed for testing reset only */
   _undoStack: HistoryEntry[];
@@ -1273,6 +1280,24 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     toggleBottomPanel: (): void => {
       set((state) => ({ bottomPanelExpanded: !state.bottomPanelExpanded }));
+    },
+
+    // --- Sidebar panel state ---
+    sidebarExpanded: false,
+    sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
+
+    setSidebarExpanded: (expanded: boolean): void => {
+      set({ sidebarExpanded: expanded });
+    },
+
+    setSidebarWidth: (width: number): void => {
+      const maxWidth = MAX_SIDEBAR_WIDTH_RATIO * window.innerWidth;
+      const clamped = Math.min(Math.max(width, MIN_SIDEBAR_WIDTH), maxWidth);
+      set({ sidebarWidth: clamped });
+    },
+
+    toggleSidebar: (): void => {
+      set((state) => ({ sidebarExpanded: !state.sidebarExpanded }));
     },
   };
 });

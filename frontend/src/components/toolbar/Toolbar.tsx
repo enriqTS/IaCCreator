@@ -1,59 +1,9 @@
 'use client';
 
 import { useDiagramStore } from '@/store/diagram-store';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
+import { Button } from '@/components/ui/button';
 import AWSServicePicker from './AWSServicePicker';
-
-function ToolButton({
-  label,
-  title,
-  active,
-  disabled,
-  onClick,
-  'data-testid': dataTestId,
-}: {
-  label: string;
-  title: string;
-  active: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-  'data-testid'?: string;
-}) {
-  return (
-    <button
-      title={title}
-      disabled={disabled || false}
-      onClick={onClick}
-      data-testid={dataTestId}
-      style={{
-        width: 36,
-        height: 36,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 8,
-        border: 'none',
-        cursor: disabled ? 'default' : 'pointer',
-        fontSize: 18,
-        background: active ? 'rgba(59, 130, 246, 0.3)' : 'transparent',
-        color: disabled ? 'rgba(255, 255, 255, 0.3)' : '#e5e5e5',
-        opacity: disabled ? 0.5 : 1,
-        transition: 'background 0.15s',
-      }}
-      onMouseEnter={(e) => {
-        if (!active && !disabled) {
-          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = active
-          ? 'rgba(59, 130, 246, 0.3)'
-          : 'transparent';
-      }}
-    >
-      {label}
-    </button>
-  );
-}
 
 export default function Toolbar() {
   const activeTool = useDiagramStore((s) => s.activeTool);
@@ -62,6 +12,7 @@ export default function Toolbar() {
   const redo = useDiagramStore((s) => s.redo);
   const canUndo = useDiagramStore((s) => s.canUndo);
   const canRedo = useDiagramStore((s) => s.canRedo);
+  const toolbarPosition = useLayoutPreferencesStore((s) => s.toolbarPosition);
 
   const isPointer = activeTool === 'pointer';
   const isConnector = activeTool === 'connector';
@@ -75,14 +26,17 @@ export default function Toolbar() {
     activeTool.type === 'place-shape' &&
     activeTool.shape === 'ellipse';
 
+  const positionStyle: React.CSSProperties =
+    toolbarPosition === 'top'
+      ? { top: 16, left: '50%', transform: 'translateX(-50%)' }
+      : { bottom: 16, left: '50%', transform: 'translateX(-50%)' };
+
   return (
     <div
       data-testid="toolbar"
       style={{
         position: 'fixed',
-        top: 16,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        ...positionStyle,
         zIndex: 50,
         display: 'flex',
         alignItems: 'center',
@@ -94,39 +48,49 @@ export default function Toolbar() {
       }}
     >
       {/* Tool buttons */}
-      <ToolButton
-        label="↖"
+      <Button
+        variant={isPointer ? 'secondary' : 'ghost'}
+        size="icon"
         title="Pointer (V)"
-        active={isPointer}
         onClick={() => setActiveTool('pointer')}
-      />
-      <ToolButton
-        label="→"
+      >
+        ↖
+      </Button>
+      <Button
+        variant={isConnector ? 'secondary' : 'ghost'}
+        size="icon"
         title="Connector (C)"
-        active={isConnector}
         onClick={() => setActiveTool('connector')}
-      />
-      <ToolButton
-        label="╱"
+      >
+        →
+      </Button>
+      <Button
+        variant={isLine ? 'secondary' : 'ghost'}
+        size="icon"
         title="Line (L)"
-        active={isLine}
         onClick={() => setActiveTool('line')}
         data-testid="tool-line"
-      />
-      <ToolButton
-        label="□"
+      >
+        ╱
+      </Button>
+      <Button
+        variant={isRectangle ? 'secondary' : 'ghost'}
+        size="icon"
         title="Rectangle (R)"
-        active={isRectangle}
         onClick={() => setActiveTool({ type: 'place-shape', shape: 'rectangle' })}
         data-testid="tool-rectangle"
-      />
-      <ToolButton
-        label="○"
+      >
+        □
+      </Button>
+      <Button
+        variant={isEllipse ? 'secondary' : 'ghost'}
+        size="icon"
         title="Ellipse (E)"
-        active={isEllipse}
         onClick={() => setActiveTool({ type: 'place-shape', shape: 'ellipse' })}
         data-testid="tool-ellipse"
-      />
+      >
+        ○
+      </Button>
 
       {/* Separator */}
       <div
@@ -139,20 +103,24 @@ export default function Toolbar() {
       />
 
       {/* Undo / Redo */}
-      <ToolButton
-        label="↩"
+      <Button
+        variant="ghost"
+        size="icon"
         title="Undo (Ctrl+Z)"
-        active={false}
         disabled={!canUndo}
         onClick={undo}
-      />
-      <ToolButton
-        label="↪"
+      >
+        ↩
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
         title="Redo (Ctrl+Shift+Z)"
-        active={false}
         disabled={!canRedo}
         onClick={redo}
-      />
+      >
+        ↪
+      </Button>
 
       {/* Separator */}
       <div

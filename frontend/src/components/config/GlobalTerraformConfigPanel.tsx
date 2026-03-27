@@ -1,70 +1,19 @@
 'use client';
 
 import { useDiagramStore } from '@/store/diagram-store';
-import { COMPACT_LAYOUT_THRESHOLD } from '@/components/config/panel-constants';
+import { SIDEBAR_RESPONSIVE_THRESHOLD } from '@/components/config/panel-constants';
 import type { GlobalTerraformConfig, TerraformVariableType } from '@/types/terraform-variables';
-
-const inputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '4px 8px',
-  fontSize: '13px',
-  width: '180px',
-};
-
-const selectStyle: React.CSSProperties = {
-  ...inputStyle,
-  width: '140px',
-};
-
-const labelStyle: React.CSSProperties = {
-  color: 'rgba(255,255,255,0.6)',
-  fontSize: '13px',
-};
-
-const sectionHeadingStyle: React.CSSProperties = {
-  color: 'rgba(255,255,255,0.9)',
-  fontSize: '13px',
-  fontWeight: 600,
-  marginBottom: '8px',
-};
-
-const sectionStyle: React.CSSProperties = {
-  marginBottom: '16px',
-};
-
-const addButtonStyle: React.CSSProperties = {
-  padding: '4px 10px',
-  fontSize: '12px',
-  color: '#3b82f6',
-  backgroundColor: 'transparent',
-  border: '1px solid rgba(59,130,246,0.4)',
-  borderRadius: '4px',
-  cursor: 'pointer',
-};
-
-const removeButtonStyle: React.CSSProperties = {
-  padding: '2px 8px',
-  fontSize: '11px',
-  color: '#ef4444',
-  backgroundColor: 'transparent',
-  border: '1px solid rgba(239,68,68,0.4)',
-  borderRadius: '4px',
-  cursor: 'pointer',
-};
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface GlobalTerraformConfigPanelProps {
-  panelHeight?: number;
+  panelWidth?: number;
 }
 
-const cardStyle: React.CSSProperties = {
-  padding: '4px 0',
-};
-
 /** Renders project-level Terraform configuration: backend, provider, versions, environments, global variables. */
-export default function GlobalTerraformConfigPanel({ panelHeight }: GlobalTerraformConfigPanelProps) {
+export default function GlobalTerraformConfigPanel({ panelWidth }: GlobalTerraformConfigPanelProps) {
   const config = useDiagramStore((s) => s.globalTerraformConfig);
   const updateConfig = useDiagramStore((s) => s.updateGlobalTerraformConfig);
 
@@ -80,161 +29,156 @@ export default function GlobalTerraformConfigPanel({ panelHeight }: GlobalTerraf
     updateConfig({ versionConstraints: { ...config.versionConstraints, ...updates } });
   };
 
-  const isCompact = panelHeight !== undefined && panelHeight <= COMPACT_LAYOUT_THRESHOLD;
-
-  const containerStyle: React.CSSProperties = isCompact
-    ? {
-        display: 'flex',
-        flexDirection: 'row',
-        overflowX: 'auto',
-        gap: '24px',
-      }
-    : {
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '24px',
-      };
-
-  const sectionCardStyle: React.CSSProperties = isCompact
-    ? { ...cardStyle, minWidth: '200px', flexShrink: 0 }
-    : { ...cardStyle, flex: '1 1 auto', minWidth: '160px' };
+  const isTwoColumn = panelWidth !== undefined && panelWidth >= SIDEBAR_RESPONSIVE_THRESHOLD;
+  const fieldGrid = isTwoColumn ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3';
 
   return (
-    <div data-testid="global-terraform-config-panel">
-      <div style={containerStyle} data-testid="config-sections-container">
+    <div data-testid="global-terraform-config-panel" className="flex flex-col gap-4">
+      <div data-testid="config-sections-container" className="flex flex-col gap-4">
         {/* Backend Configuration */}
-        <div style={sectionCardStyle} data-testid="backend-config-section">
-          <div style={sectionHeadingStyle}>Backend Configuration</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-              <span style={labelStyle}>Backend Type</span>
-              <select
-                data-testid="backend-type"
-                value={config.backend.type}
-                onChange={(e) => {
-                  const newType = e.target.value;
-                  updateBackend({ type: newType, config: newType === 's3' ? { bucket: '', key: 'terraform.tfstate', region: 'us-east-1', dynamodb_table: '' } : {} });
-                }}
-                style={selectStyle}
-              >
-                <option value="local">local</option>
-                <option value="s3">s3</option>
-              </select>
-            </label>
-            {config.backend.type === 's3' && (
-              <>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                  <span style={labelStyle}>Bucket</span>
-                  <input
-                    data-testid="backend-bucket"
-                    type="text"
-                    value={config.backend.config.bucket ?? ''}
-                    onChange={(e) => updateBackend({ config: { ...config.backend.config, bucket: e.target.value } })}
-                    placeholder="my-tf-state"
-                    style={inputStyle}
-                  />
-                </label>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                  <span style={labelStyle}>Key</span>
-                  <input
-                    data-testid="backend-key"
-                    type="text"
-                    value={config.backend.config.key ?? ''}
-                    onChange={(e) => updateBackend({ config: { ...config.backend.config, key: e.target.value } })}
-                    placeholder="terraform.tfstate"
-                    style={inputStyle}
-                  />
-                </label>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                  <span style={labelStyle}>Region</span>
-                  <input
-                    data-testid="backend-region"
-                    type="text"
-                    value={config.backend.config.region ?? ''}
-                    onChange={(e) => updateBackend({ config: { ...config.backend.config, region: e.target.value } })}
-                    placeholder="us-east-1"
-                    style={inputStyle}
-                  />
-                </label>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                  <span style={labelStyle}>DynamoDB Table</span>
-                  <input
-                    data-testid="backend-dynamodb-table"
-                    type="text"
-                    value={config.backend.config.dynamodb_table ?? ''}
-                    onChange={(e) => updateBackend({ config: { ...config.backend.config, dynamodb_table: e.target.value } })}
-                    placeholder="tf-locks"
-                    style={inputStyle}
-                  />
-                </label>
-              </>
-            )}
-          </div>
-        </div>
+        <Card data-testid="backend-config-section" className="py-3 gap-2">
+          <CardHeader className="px-4 py-0">
+            <CardTitle className="text-sm">Backend Configuration</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4">
+            <div className={fieldGrid}>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Backend Type</Label>
+                <Select
+                  value={config.backend.type}
+                  onValueChange={(value) => {
+                    updateBackend({
+                      type: value,
+                      config: value === 's3'
+                        ? { bucket: '', key: 'terraform.tfstate', region: 'us-east-1', dynamodb_table: '' }
+                        : {},
+                    });
+                  }}
+                >
+                  <SelectTrigger data-testid="backend-type" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="local">local</SelectItem>
+                    <SelectItem value="s3">s3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {config.backend.type === 's3' && (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs text-muted-foreground">Bucket</Label>
+                    <Input
+                      data-testid="backend-bucket"
+                      type="text"
+                      value={config.backend.config.bucket ?? ''}
+                      onChange={(e) => updateBackend({ config: { ...config.backend.config, bucket: e.target.value } })}
+                      placeholder="my-tf-state"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs text-muted-foreground">Key</Label>
+                    <Input
+                      data-testid="backend-key"
+                      type="text"
+                      value={config.backend.config.key ?? ''}
+                      onChange={(e) => updateBackend({ config: { ...config.backend.config, key: e.target.value } })}
+                      placeholder="terraform.tfstate"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs text-muted-foreground">Region</Label>
+                    <Input
+                      data-testid="backend-region"
+                      type="text"
+                      value={config.backend.config.region ?? ''}
+                      onChange={(e) => updateBackend({ config: { ...config.backend.config, region: e.target.value } })}
+                      placeholder="us-east-1"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs text-muted-foreground">DynamoDB Table</Label>
+                    <Input
+                      data-testid="backend-dynamodb-table"
+                      type="text"
+                      value={config.backend.config.dynamodb_table ?? ''}
+                      onChange={(e) => updateBackend({ config: { ...config.backend.config, dynamodb_table: e.target.value } })}
+                      placeholder="tf-locks"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Provider Configuration */}
-        <div style={sectionCardStyle} data-testid="provider-config-section">
-          <div style={sectionHeadingStyle}>Provider Configuration</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-              <span style={labelStyle}>Region</span>
-              <input
-                data-testid="provider-region"
-                type="text"
-                value={config.provider.region}
-                onChange={(e) => updateProvider({ region: e.target.value })}
-                placeholder="us-east-1"
-                style={inputStyle}
-              />
-            </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-              <span style={labelStyle}>Profile (optional)</span>
-              <input
-                data-testid="provider-profile"
-                type="text"
-                value={config.provider.profile ?? ''}
-                onChange={(e) => updateProvider({ profile: e.target.value || undefined })}
-                placeholder="default"
-                style={inputStyle}
-              />
-            </label>
-          </div>
-        </div>
+        <Card data-testid="provider-config-section" className="py-3 gap-2">
+          <CardHeader className="px-4 py-0">
+            <CardTitle className="text-sm">Provider Configuration</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4">
+            <div className={fieldGrid}>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Region</Label>
+                <Input
+                  data-testid="provider-region"
+                  type="text"
+                  value={config.provider.region}
+                  onChange={(e) => updateProvider({ region: e.target.value })}
+                  placeholder="us-east-1"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Profile (optional)</Label>
+                <Input
+                  data-testid="provider-profile"
+                  type="text"
+                  value={config.provider.profile ?? ''}
+                  onChange={(e) => updateProvider({ profile: e.target.value || undefined })}
+                  placeholder="default"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Version Constraints */}
-        <div style={sectionCardStyle} data-testid="version-constraints-section">
-          <div style={sectionHeadingStyle}>Version Constraints</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-              <span style={labelStyle}>Terraform Version</span>
-              <input
-                data-testid="terraform-version"
-                type="text"
-                value={config.versionConstraints.terraformVersion ?? ''}
-                onChange={(e) => updateVersionConstraints({ terraformVersion: e.target.value || undefined })}
-                placeholder=">= 1.5.0"
-                style={inputStyle}
-              />
-            </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-              <span style={labelStyle}>AWS Provider Version</span>
-              <input
-                data-testid="aws-provider-version"
-                type="text"
-                value={config.versionConstraints.awsProviderVersion ?? ''}
-                onChange={(e) => updateVersionConstraints({ awsProviderVersion: e.target.value || undefined })}
-                placeholder="~> 5.0"
-                style={inputStyle}
-              />
-            </label>
-          </div>
-        </div>
+        <Card data-testid="version-constraints-section" className="py-3 gap-2">
+          <CardHeader className="px-4 py-0">
+            <CardTitle className="text-sm">Version Constraints</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4">
+            <div className={fieldGrid}>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Terraform Version</Label>
+                <Input
+                  data-testid="terraform-version"
+                  type="text"
+                  value={config.versionConstraints.terraformVersion ?? ''}
+                  onChange={(e) => updateVersionConstraints({ terraformVersion: e.target.value || undefined })}
+                  placeholder=">= 1.5.0"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">AWS Provider Version</Label>
+                <Input
+                  data-testid="aws-provider-version"
+                  type="text"
+                  value={config.versionConstraints.awsProviderVersion ?? ''}
+                  onChange={(e) => updateVersionConstraints({ awsProviderVersion: e.target.value || undefined })}
+                  placeholder="~> 5.0"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Environment Settings */}
-        <EnvironmentSettings config={config} updateConfig={updateConfig} sectionCardStyle={sectionCardStyle} />
+        <EnvironmentSettings config={config} updateConfig={updateConfig} isTwoColumn={isTwoColumn} />
 
         {/* Global Variables */}
-        <GlobalVariablesSection config={config} updateConfig={updateConfig} sectionCardStyle={sectionCardStyle} />
+        <GlobalVariablesSection config={config} updateConfig={updateConfig} isTwoColumn={isTwoColumn} />
       </div>
     </div>
   );
@@ -243,12 +187,14 @@ export default function GlobalTerraformConfigPanel({ panelHeight }: GlobalTerraf
 function EnvironmentSettings({
   config,
   updateConfig,
-  sectionCardStyle,
+  isTwoColumn,
 }: {
   config: GlobalTerraformConfig;
   updateConfig: (updates: Partial<GlobalTerraformConfig>) => void;
-  sectionCardStyle: React.CSSProperties;
+  isTwoColumn: boolean;
 }) {
+  const fieldGrid = isTwoColumn ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3';
+
   const addEnvironment = () => {
     updateConfig({
       environments: [...config.environments, { name: '', variableOverrides: {} }],
@@ -279,7 +225,6 @@ function EnvironmentSettings({
   const addOverride = (envIndex: number) => {
     const envs = [...config.environments];
     const overrides = { ...envs[envIndex].variableOverrides };
-    // Find a unique key name
     let keyName = 'variable';
     let counter = 1;
     while (overrides[keyName] !== undefined) {
@@ -299,98 +244,103 @@ function EnvironmentSettings({
   };
 
   return (
-    <div style={sectionCardStyle} data-testid="environment-settings-section">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-        <span style={sectionHeadingStyle}>Environment Settings</span>
-        <button data-testid="add-environment" onClick={addEnvironment} style={addButtonStyle}>
-          + Add Environment
-        </button>
-      </div>
-      {config.environments.map((env, envIndex) => (
-        <div
-          key={envIndex}
-          data-testid={`environment-${envIndex}`}
-          style={{
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '4px',
-            padding: '10px',
-            marginBottom: '8px',
-            backgroundColor: '#252525',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-              <span style={labelStyle}>Name</span>
-              <input
-                data-testid={`env-name-${envIndex}`}
-                type="text"
-                value={env.name}
-                onChange={(e) => updateEnvironmentName(envIndex, e.target.value)}
-                placeholder="e.g. dev, staging, prod"
-                style={inputStyle}
-              />
-            </label>
-            <button
-              data-testid={`remove-environment-${envIndex}`}
-              onClick={() => removeEnvironment(envIndex)}
-              style={{ ...removeButtonStyle, alignSelf: 'flex-end', marginBottom: '2px' }}
-            >
-              Remove
-            </button>
-          </div>
-          <div style={{ marginLeft: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <span style={{ ...labelStyle, fontSize: '12px' }}>Variable Overrides</span>
-              <button
-                data-testid={`add-override-${envIndex}`}
-                onClick={() => addOverride(envIndex)}
-                style={{ ...addButtonStyle, fontSize: '11px', padding: '2px 8px' }}
-              >
-                + Add
-              </button>
-            </div>
-            {Object.entries(env.variableOverrides).map(([key, value]) => (
-              <div key={key} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
-                <input
-                  data-testid={`override-key-${envIndex}-${key}`}
+    <Card data-testid="environment-settings-section" className="py-3 gap-2">
+      <CardHeader className="px-4 py-0">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm">Environment Settings</CardTitle>
+          <button
+            data-testid="add-environment"
+            onClick={addEnvironment}
+            className="text-xs text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
+          >
+            + Add Environment
+          </button>
+        </div>
+      </CardHeader>
+      <CardContent className="px-4">
+        {config.environments.map((env, envIndex) => (
+          <div
+            key={envIndex}
+            data-testid={`environment-${envIndex}`}
+            className="border border-border rounded-md p-3 mb-2 bg-muted/30"
+          >
+            <div className={`${fieldGrid} mb-2`}>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Name</Label>
+                <Input
+                  data-testid={`env-name-${envIndex}`}
                   type="text"
-                  value={key}
-                  readOnly
-                  style={{ ...inputStyle, width: '120px', opacity: 0.7 }}
+                  value={env.name}
+                  onChange={(e) => updateEnvironmentName(envIndex, e.target.value)}
+                  placeholder="e.g. dev, staging, prod"
                 />
-                <input
-                  data-testid={`override-value-${envIndex}-${key}`}
-                  type="text"
-                  value={value}
-                  onChange={(e) => updateOverride(envIndex, key, e.target.value)}
-                  placeholder="value"
-                  style={{ ...inputStyle, width: '140px' }}
-                />
+              </div>
+              <div className="flex items-end">
                 <button
-                  data-testid={`remove-override-${envIndex}-${key}`}
-                  onClick={() => removeOverride(envIndex, key)}
-                  style={removeButtonStyle}
+                  data-testid={`remove-environment-${envIndex}`}
+                  onClick={() => removeEnvironment(envIndex)}
+                  className="text-xs text-red-500 border border-red-500/40 rounded px-2 py-1 hover:bg-red-500/10"
                 >
-                  ×
+                  Remove
                 </button>
               </div>
-            ))}
+            </div>
+            <div className="ml-1">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-muted-foreground">Variable Overrides</span>
+                <button
+                  data-testid={`add-override-${envIndex}`}
+                  onClick={() => addOverride(envIndex)}
+                  className="text-[11px] text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
+                >
+                  + Add
+                </button>
+              </div>
+              {Object.entries(env.variableOverrides).map(([key, value]) => (
+                <div key={key} className="flex gap-2 items-center mb-1">
+                  <Input
+                    data-testid={`override-key-${envIndex}-${key}`}
+                    type="text"
+                    value={key}
+                    readOnly
+                    className="w-28 opacity-70"
+                  />
+                  <Input
+                    data-testid={`override-value-${envIndex}-${key}`}
+                    type="text"
+                    value={value}
+                    onChange={(e) => updateOverride(envIndex, key, e.target.value)}
+                    placeholder="value"
+                    className="w-32"
+                  />
+                  <button
+                    data-testid={`remove-override-${envIndex}-${key}`}
+                    onClick={() => removeOverride(envIndex, key)}
+                    className="text-xs text-red-500 border border-red-500/40 rounded px-1.5 py-0.5 hover:bg-red-500/10"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
 function GlobalVariablesSection({
   config,
   updateConfig,
-  sectionCardStyle,
+  isTwoColumn,
 }: {
   config: GlobalTerraformConfig;
   updateConfig: (updates: Partial<GlobalTerraformConfig>) => void;
-  sectionCardStyle: React.CSSProperties;
+  isTwoColumn: boolean;
 }) {
+  const fieldGrid = isTwoColumn ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3';
+
   const addVariable = () => {
     updateConfig({
       globalVariables: [
@@ -413,84 +363,86 @@ function GlobalVariablesSection({
   };
 
   return (
-    <div style={sectionCardStyle} data-testid="global-variables-section">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-        <span style={sectionHeadingStyle}>Global Variables</span>
-        <button data-testid="add-global-variable" onClick={addVariable} style={addButtonStyle}>
-          + Add Variable
-        </button>
-      </div>
-      {config.globalVariables.map((variable, index) => (
-        <div
-          key={index}
-          data-testid={`global-variable-${index}`}
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '8px',
-            alignItems: 'flex-end',
-            marginBottom: '8px',
-            padding: '8px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '4px',
-            backgroundColor: '#252525',
-          }}
-        >
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-            <span style={labelStyle}>Name</span>
-            <input
-              data-testid={`gvar-name-${index}`}
-              type="text"
-              value={variable.name}
-              onChange={(e) => updateVariable(index, { name: e.target.value })}
-              placeholder="variable_name"
-              style={{ ...inputStyle, width: '140px' }}
-            />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-            <span style={labelStyle}>Type</span>
-            <select
-              data-testid={`gvar-type-${index}`}
-              value={variable.type}
-              onChange={(e) => updateVariable(index, { type: e.target.value as TerraformVariableType })}
-              style={selectStyle}
-            >
-              <option value="string">string</option>
-              <option value="number">number</option>
-              <option value="bool">bool</option>
-            </select>
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-            <span style={labelStyle}>Description</span>
-            <input
-              data-testid={`gvar-description-${index}`}
-              type="text"
-              value={variable.description}
-              onChange={(e) => updateVariable(index, { description: e.target.value })}
-              placeholder="Description"
-              style={{ ...inputStyle, width: '180px' }}
-            />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-            <span style={labelStyle}>Default</span>
-            <input
-              data-testid={`gvar-default-${index}`}
-              type="text"
-              value={variable.default ?? ''}
-              onChange={(e) => updateVariable(index, { default: e.target.value })}
-              placeholder="default value"
-              style={{ ...inputStyle, width: '140px' }}
-            />
-          </label>
+    <Card data-testid="global-variables-section" className="py-3 gap-2">
+      <CardHeader className="px-4 py-0">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm">Global Variables</CardTitle>
           <button
-            data-testid={`remove-global-variable-${index}`}
-            onClick={() => removeVariable(index)}
-            style={{ ...removeButtonStyle, marginBottom: '2px' }}
+            data-testid="add-global-variable"
+            onClick={addVariable}
+            className="text-xs text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
           >
-            Remove
+            + Add Variable
           </button>
         </div>
-      ))}
-    </div>
+      </CardHeader>
+      <CardContent className="px-4">
+        {config.globalVariables.map((variable, index) => (
+          <div
+            key={index}
+            data-testid={`global-variable-${index}`}
+            className="border border-border rounded-md p-3 mb-2 bg-muted/30"
+          >
+            <div className={fieldGrid}>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Name</Label>
+                <Input
+                  data-testid={`gvar-name-${index}`}
+                  type="text"
+                  value={variable.name}
+                  onChange={(e) => updateVariable(index, { name: e.target.value })}
+                  placeholder="variable_name"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Type</Label>
+                <Select
+                  value={variable.type}
+                  onValueChange={(value) => updateVariable(index, { type: value as TerraformVariableType })}
+                >
+                  <SelectTrigger data-testid={`gvar-type-${index}`} className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="string">string</SelectItem>
+                    <SelectItem value="number">number</SelectItem>
+                    <SelectItem value="bool">bool</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Description</Label>
+                <Input
+                  data-testid={`gvar-description-${index}`}
+                  type="text"
+                  value={variable.description}
+                  onChange={(e) => updateVariable(index, { description: e.target.value })}
+                  placeholder="Description"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Default</Label>
+                <Input
+                  data-testid={`gvar-default-${index}`}
+                  type="text"
+                  value={variable.default ?? ''}
+                  onChange={(e) => updateVariable(index, { default: e.target.value })}
+                  placeholder="default value"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  data-testid={`remove-global-variable-${index}`}
+                  onClick={() => removeVariable(index)}
+                  className="text-xs text-red-500 border border-red-500/40 rounded px-2 py-1 hover:bg-red-500/10"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
