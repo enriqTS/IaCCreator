@@ -10,6 +10,7 @@ import ElementLayer from './ElementLayer';
 import PlacementPreview from './PlacementPreview';
 import DragSizingOverlay from './DragSizingOverlay';
 import MarqueeSelection from './MarqueeSelection';
+import CanvasObjectContextMenu, { type ContextMenuState } from './CanvasObjectContextMenu';
 
 export default function Canvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,6 +23,9 @@ export default function Canvas() {
   // Line placement state
   const [lineStart, setLineStart] = useState<Point | null>(null);
   const [linePreviewEnd, setLinePreviewEnd] = useState<Point | null>(null);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   // Store actions (stable references)
   const zoom = useDiagramStore((s) => s.zoom);
@@ -287,6 +291,31 @@ export default function Canvas() {
     if (e.button === 1) e.preventDefault();
   }, []);
 
+  // Right-click context menu for canvas objects
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      // Walk up from the target to find a canvas object element with data-object-id
+      let target = e.target as HTMLElement | null;
+      while (target && target !== e.currentTarget) {
+        const objectId = target.getAttribute('data-object-id');
+        if (objectId) {
+          e.preventDefault();
+          // Select the object if not already selected
+          const store = useDiagramStore.getState();
+          if (!store.selectedObjectIds.has(objectId)) {
+            store.selectObject(objectId);
+          }
+          setContextMenu({ objectId, x: e.clientX, y: e.clientY });
+          return;
+        }
+        target = target.parentElement;
+      }
+      // Right-click on empty canvas — close any open context menu
+      setContextMenu(null);
+    },
+    [],
+  );
+
   // Determine cursor based on state
   let cursor = 'default';
   if (isSpaceHeld.current || isPanning.current) {
@@ -314,6 +343,7 @@ export default function Canvas() {
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onAuxClick={handleAuxClick}
+      onContextMenu={handleContextMenu}
       style={{
         position: 'relative',
         width: '100%',
@@ -371,6 +401,14 @@ export default function Canvas() {
 
       {/* Marquee multi-selection rectangle */}
       <MarqueeSelection containerRef={containerRef} />
+
+      {/* Right-click context menu for canvas objects */}
+      {contextMenu && (
+        <CanvasObjectContextMenu
+          menu={contextMenu}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   );
 }

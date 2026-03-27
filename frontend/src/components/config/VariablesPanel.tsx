@@ -3,9 +3,19 @@
 import type { ArchitectureBlock } from '@/types/diagram';
 import { VARIABLE_SCHEMAS } from '@/types/terraform-variables';
 import { useDiagramStore } from '@/store/diagram-store';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface VariablesPanelProps {
   block: ArchitectureBlock;
+}
+
+/** Convert snake_case variable names to human-readable labels. */
+function humanizeLabel(name: string): string {
+  return name
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /** Renders editable Terraform variable fields for the selected architecture block. */
@@ -15,7 +25,7 @@ export default function VariablesPanel({ block }: VariablesPanelProps) {
 
   if (!schemas || schemas.length === 0) {
     return (
-      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
+      <p className="text-sm text-muted-foreground">
         No variables defined for this service type.
       </p>
     );
@@ -24,99 +34,77 @@ export default function VariablesPanel({ block }: VariablesPanelProps) {
   return (
     <div
       data-testid="variables-panel"
-      style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}
+      className="grid grid-cols-2 gap-3"
     >
       {schemas.map((schema) => {
         const currentValue = block.terraformVariables[schema.name];
         const hasDefault = schema.default !== undefined;
         const isRequired = !hasDefault && !schema.optional;
-        const isEmpty =
-          currentValue === undefined ||
-          currentValue === '' ||
-          (schema.tfType === 'number' && currentValue === 0 && !hasDefault);
-        const showValidation = isRequired && isEmpty;
+        const label = humanizeLabel(schema.name);
 
         if (schema.tfType === 'bool') {
           return (
             <label
               key={schema.name}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '13px',
-                paddingBottom: '2px',
-              }}
+              className="flex items-center gap-2 text-sm col-span-2"
               title={schema.description}
             >
-              <input
+              <Checkbox
                 data-testid={`var-${schema.name}`}
-                type="checkbox"
                 checked={typeof currentValue === 'boolean' ? currentValue : !!schema.default}
-                onChange={(e) =>
-                  setTerraformVariable(block.id, schema.name, e.target.checked)
+                onCheckedChange={(checked) =>
+                  setTerraformVariable(block.id, schema.name, !!checked)
                 }
               />
-              <span style={{ color: 'rgba(255,255,255,0.6)' }}>{schema.name}</span>
+              <span className="text-muted-foreground">{label}</span>
             </label>
           );
         }
 
         if (schema.tfType === 'number') {
           return (
-            <label
+            <div
               key={schema.name}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '4px',
-                fontSize: '13px',
-              }}
+              className="flex flex-col gap-1.5"
               title={schema.description}
             >
-              <span style={{ color: 'rgba(255,255,255,0.6)' }}>
-                {schema.name}
-                {showValidation && (
-                  <span data-testid={`validation-${schema.name}`} style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+              <Label className="text-xs text-muted-foreground">
+                {label}
+                {isRequired && (
+                  <span data-testid={`required-${schema.name}`} className="text-muted-foreground/50 ml-1">*</span>
                 )}
-              </span>
-              <input
+              </Label>
+              <Input
                 data-testid={`var-${schema.name}`}
-                type="number"
-                value={typeof currentValue === 'number' ? currentValue : ''}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={typeof currentValue === 'number' ? String(currentValue) : ''}
                 onChange={(e) => {
-                  const val = e.target.value === '' ? 0 : Number(e.target.value);
+                  const raw = e.target.value.replace(/[^0-9]/g, '');
+                  const val = raw === '' ? 0 : Number(raw);
                   setTerraformVariable(block.id, schema.name, val);
                 }}
                 placeholder={hasDefault ? String(schema.default) : undefined}
-                style={{
-                  ...inputStyle,
-                  ...(showValidation ? validationBorderStyle : {}),
-                }}
               />
-            </label>
+            </div>
           );
         }
 
         // Default: string type
         return (
-          <label
+          <div
             key={schema.name}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px',
-              fontSize: '13px',
-            }}
+            className="flex flex-col gap-1.5"
             title={schema.description}
           >
-            <span style={{ color: 'rgba(255,255,255,0.6)' }}>
-              {schema.name}
-              {showValidation && (
-                <span data-testid={`validation-${schema.name}`} style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+            <Label className="text-xs text-muted-foreground">
+              {label}
+              {isRequired && (
+                <span data-testid={`required-${schema.name}`} className="text-muted-foreground/50 ml-1">*</span>
               )}
-            </span>
-            <input
+            </Label>
+            <Input
               data-testid={`var-${schema.name}`}
               type="text"
               value={typeof currentValue === 'string' ? currentValue : ''}
@@ -124,28 +112,10 @@ export default function VariablesPanel({ block }: VariablesPanelProps) {
                 setTerraformVariable(block.id, schema.name, e.target.value)
               }
               placeholder={hasDefault ? String(schema.default) : undefined}
-              style={{
-                ...inputStyle,
-                ...(showValidation ? validationBorderStyle : {}),
-              }}
             />
-          </label>
+          </div>
         );
       })}
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '4px 8px',
-  fontSize: '13px',
-  width: '140px',
-};
-
-const validationBorderStyle: React.CSSProperties = {
-  borderColor: '#ef4444',
-};

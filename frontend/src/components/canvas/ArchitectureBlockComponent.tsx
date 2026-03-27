@@ -118,6 +118,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
   return (
     <div
       data-testid={`architecture-block-${block.id}`}
+      data-object-id={block.id}
       onMouseDown={handleMouseDown}
       style={{
         position: 'absolute',

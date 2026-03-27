@@ -11,11 +11,10 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { PanelLeftOpen, PanelRightOpen, PanelLeftClose, PanelRightClose, Trash2 } from 'lucide-react';
+import { PanelLeftOpen, PanelRightOpen, PanelLeftClose, PanelRightClose } from 'lucide-react';
 import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
 import VariablesPanel from './VariablesPanel';
 import VisualTab from './VisualTab';
-import ZOrderControls from './ZOrderControls';
 
 /** Determine available tabs for a given canvas object type. */
 export function getTabsForObject(obj: CanvasObject): string[] {
@@ -32,7 +31,6 @@ export default function SidebarPanel() {
   const setSidebarExpanded = useDiagramStore((s) => s.setSidebarExpanded);
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
-  const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
   const groupSelectedObjects = useDiagramStore((s) => s.groupSelectedObjects);
   const ungroupObjects = useDiagramStore((s) => s.ungroupObjects);
   const sidebarSide = useLayoutPreferencesStore((s) => s.sidebarSide);
@@ -256,7 +254,6 @@ export default function SidebarPanel() {
             tabs={tabs}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            removeCanvasObject={removeCanvasObject}
           />
         )}
       </div>
@@ -329,14 +326,12 @@ function SingleSelectionView({
   tabs,
   activeTab,
   setActiveTab,
-  removeCanvasObject,
 }: {
   selectedObject: CanvasObject;
   selectedObjectId: string;
   tabs: string[];
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  removeCanvasObject: (id: string) => void;
 }) {
   // Ensure activeTab is valid for current tabs
   const effectiveTab = tabs.includes(activeTab) ? activeTab : tabs[0] ?? '';
@@ -356,20 +351,6 @@ function SingleSelectionView({
               </TabsTrigger>
             ))}
           </TabsList>
-        </div>
-
-        {/* Z-order controls and Delete button */}
-        <div className="flex flex-wrap items-center gap-2 border-b pb-2 mb-2">
-          <ZOrderControls objectId={selectedObjectId} />
-          <Button
-            variant="destructive"
-            size="sm"
-            data-testid="delete-object-button"
-            onClick={() => removeCanvasObject(selectedObjectId)}
-          >
-            <Trash2 className="size-3.5 mr-1" />
-            Delete
-          </Button>
         </div>
 
         {/* Tab content */}

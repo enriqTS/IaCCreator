@@ -80,7 +80,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
   }, [line.id, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
 
   return (
-    <g data-testid={`line-object-${line.id}`} style={{ pointerEvents: 'auto', cursor: 'pointer' }}>
+    <g data-testid={`line-object-${line.id}`} data-object-id={line.id} style={{ pointerEvents: 'auto', cursor: 'pointer' }}>
       <defs>
         {startArrow && (
           <marker

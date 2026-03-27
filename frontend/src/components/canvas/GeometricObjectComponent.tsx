@@ -85,6 +85,7 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
     return (
       <div
         data-testid={`geometric-object-${object.id}`}
+        data-object-id={object.id}
         onMouseDown={handleMouseDown}
         style={{
           position: 'absolute',
@@ -112,6 +113,7 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
   return (
     <div
       data-testid={`geometric-object-${object.id}`}
+      data-object-id={object.id}
       style={{
         position: 'absolute',
         left: 0,
