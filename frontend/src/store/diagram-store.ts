@@ -36,6 +36,8 @@ import { useToastStore } from '@/store/toast-store';
 import type { GlobalTerraformConfig } from '@/types/terraform-variables';
 import { getDefaultVariables, DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
 
+import { MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT_RATIO, DEFAULT_PANEL_HEIGHT } from '@/components/config/panel-constants';
+
 interface HistoryEntry {
   elements: Map<string, DiagramElement>;
   connectors: Map<string, Connector>;
@@ -159,6 +161,13 @@ export interface DiagramStore {
   loadDiagramFromServer: (id: string) => Promise<void>;
   listDiagramsFromServer: () => Promise<DiagramSummary[]>;
   deleteDiagramFromServer: (id: string) => Promise<void>;
+
+  // Bottom panel state
+  bottomPanelExpanded: boolean;
+  bottomPanelHeight: number;
+  setBottomPanelExpanded: (expanded: boolean) => void;
+  setBottomPanelHeight: (height: number) => void;
+  toggleBottomPanel: () => void;
 
   /** @internal — exposed for testing reset only */
   _undoStack: HistoryEntry[];
@@ -1246,6 +1255,24 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       } catch {
         toast.addToast('Failed to delete diagram', 'error');
       }
+    },
+
+    // --- Bottom panel state ---
+    bottomPanelExpanded: false,
+    bottomPanelHeight: DEFAULT_PANEL_HEIGHT,
+
+    setBottomPanelExpanded: (expanded: boolean): void => {
+      set({ bottomPanelExpanded: expanded });
+    },
+
+    setBottomPanelHeight: (height: number): void => {
+      const maxHeight = MAX_PANEL_HEIGHT_RATIO * window.innerHeight;
+      const clamped = Math.min(Math.max(height, MIN_PANEL_HEIGHT), maxHeight);
+      set({ bottomPanelHeight: clamped });
+    },
+
+    toggleBottomPanel: (): void => {
+      set((state) => ({ bottomPanelExpanded: !state.bottomPanelExpanded }));
     },
   };
 });

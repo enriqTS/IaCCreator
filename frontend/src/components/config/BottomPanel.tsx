@@ -8,11 +8,13 @@ import VariablesPanel from './VariablesPanel';
 import VisualTab from './VisualTab';
 import ZOrderControls from './ZOrderControls';
 import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
+import PillIndicator from './PillIndicator';
+import ResizeHandle from './ResizeHandle';
 
 /** Determine available tabs for a given canvas object type. */
 export function getTabsForObject(obj: CanvasObject): string[] {
   if (obj.objectType === 'architecture-block') {
-    return ['Terraform', 'Variables', 'Visual'];
+    return ['Variables', 'Visual'];
   }
   return ['Visual'];
 }
@@ -23,6 +25,11 @@ export default function BottomPanel() {
   const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
   const groupSelectedObjects = useDiagramStore((s) => s.groupSelectedObjects);
   const ungroupObjects = useDiagramStore((s) => s.ungroupObjects);
+  const bottomPanelExpanded = useDiagramStore((s) => s.bottomPanelExpanded);
+  const bottomPanelHeight = useDiagramStore((s) => s.bottomPanelHeight);
+  const toggleBottomPanel = useDiagramStore((s) => s.toggleBottomPanel);
+  const setBottomPanelHeight = useDiagramStore((s) => s.setBottomPanelHeight);
+  const setBottomPanelExpanded = useDiagramStore((s) => s.setBottomPanelExpanded);
 
   // Get the single selected object (only when exactly one is selected)
   const selectedObjectId = selectedObjectIds.size === 1 ? Array.from(selectedObjectIds)[0] : null;
@@ -30,6 +37,15 @@ export default function BottomPanel() {
   const tabs = selectedObject ? getTabsForObject(selectedObject) : [];
 
   const [activeTab, setActiveTab] = useState<string>('');
+
+  // Auto-expand/collapse panel based on selection state
+  useEffect(() => {
+    if (selectedObjectIds.size > 0) {
+      setBottomPanelExpanded(true);
+    } else {
+      setBottomPanelExpanded(false);
+    }
+  }, [selectedObjectIds, setBottomPanelExpanded]);
 
   // Activate first available tab when selection changes
   useEffect(() => {
@@ -40,65 +56,32 @@ export default function BottomPanel() {
     }
   }, [selectedObjectIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // No selection — show global Terraform config panel
-  if (selectedObjectIds.size === 0) {
+  // --- Collapsed state: render only the pill indicator ---
+  if (!bottomPanelExpanded) {
     return (
       <div
         data-testid="bottom-panel"
         style={{
           position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: '#1e1e1e',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          bottom: 12,
+          left: '50%',
+          transform: 'translateX(-50%)',
           zIndex: 50,
-          color: 'rgba(255, 255, 255, 0.9)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '8px 16px',
         }}
       >
-        {/* Tab bar */}
-        <div
-          data-testid="tab-bar"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          }}
-        >
-          <button
-            data-testid="tab-terraform"
-            style={{
-              padding: '10px 20px',
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#fff',
-              backgroundColor: '#2a2a2a',
-              borderTop: 'none',
-              borderLeft: 'none',
-              borderRight: 'none',
-              borderBottomStyle: 'solid',
-              borderBottomWidth: '2px',
-              borderBottomColor: '#3b82f6',
-              cursor: 'pointer',
-            }}
-          >
-            Terraform
-          </button>
-        </div>
-        {/* Tab content */}
-        <div data-testid="tab-content" style={{ padding: '16px 24px' }}>
-          <div data-testid="global-terraform-tab-content">
-            <GlobalTerraformConfigPanel />
-          </div>
-        </div>
+        <PillIndicator expanded={false} onClick={toggleBottomPanel} />
       </div>
     );
   }
 
+  // --- Expanded state ---
+
   // Multi-selection summary
   if (selectedObjectIds.size > 1) {
-    // Determine if "Group" button should show:
-    // Show when not all selected objects share the same groupId
     const selectedObjects = Array.from(selectedObjectIds)
       .map((id) => canvasObjects.get(id))
       .filter(Boolean) as CanvasObject[];
@@ -108,9 +91,6 @@ export default function BottomPanel() {
       selectedObjects.every((obj) => obj.groupId === selectedObjects[0].groupId) &&
       selectedObjects[0].groupId !== undefined;
     const showGroupButton = !allInSameGroup;
-
-    // Determine if "Ungroup" button should show:
-    // Show when any selected object has a groupId
     const firstGroupId = selectedObjects.find((obj) => obj.groupId)?.groupId ?? null;
     const showUngroupButton = firstGroupId !== null;
 
@@ -122,12 +102,22 @@ export default function BottomPanel() {
           bottom: 0,
           left: 0,
           right: 0,
+          height: bottomPanelHeight,
           backgroundColor: '#1e1e1e',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
           zIndex: 50,
           color: 'rgba(255, 255, 255, 0.9)',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 4 }}>
+          <PillIndicator expanded={true} onClick={toggleBottomPanel} />
+        </div>
+        <ResizeHandle
+          onResize={setBottomPanelHeight}
+          onCollapseThreshold={() => setBottomPanelExpanded(false)}
+        />
         <div
           data-testid="multi-selection-summary"
           style={{
@@ -137,6 +127,8 @@ export default function BottomPanel() {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
+            flex: 1,
+            overflowY: 'auto',
           }}
         >
           <span>{selectedObjectIds.size} objects selected</span>
@@ -179,6 +171,71 @@ export default function BottomPanel() {
     );
   }
 
+  // No selection — show global Terraform config panel
+  if (selectedObjectIds.size === 0) {
+    return (
+      <div
+        data-testid="bottom-panel"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: bottomPanelHeight,
+          backgroundColor: '#1e1e1e',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          zIndex: 50,
+          color: 'rgba(255, 255, 255, 0.9)',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 4 }}>
+          <PillIndicator expanded={true} onClick={toggleBottomPanel} />
+        </div>
+        <ResizeHandle
+          onResize={setBottomPanelHeight}
+          onCollapseThreshold={() => setBottomPanelExpanded(false)}
+        />
+        {/* Tab bar */}
+        <div
+          data-testid="tab-bar"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          }}
+        >
+          <button
+            data-testid="tab-terraform"
+            style={{
+              padding: '10px 20px',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#fff',
+              backgroundColor: '#2a2a2a',
+              borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
+              borderBottomStyle: 'solid',
+              borderBottomWidth: '2px',
+              borderBottomColor: '#3b82f6',
+              cursor: 'pointer',
+            }}
+          >
+            Terraform
+          </button>
+        </div>
+        {/* Tab content */}
+        <div data-testid="tab-content" style={{ padding: '16px 24px', flex: 1, overflowY: 'auto' }}>
+          <div data-testid="global-terraform-tab-content">
+            <GlobalTerraformConfigPanel panelHeight={bottomPanelHeight} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Single selection — show config tabs
   if (!selectedObject) return null;
 
@@ -190,12 +247,22 @@ export default function BottomPanel() {
         bottom: 0,
         left: 0,
         right: 0,
+        height: bottomPanelHeight,
         backgroundColor: '#1e1e1e',
         borderTop: '1px solid rgba(255, 255, 255, 0.1)',
         zIndex: 50,
         color: 'rgba(255, 255, 255, 0.9)',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 4 }}>
+        <PillIndicator expanded={true} onClick={toggleBottomPanel} />
+      </div>
+      <ResizeHandle
+        onResize={setBottomPanelHeight}
+        onCollapseThreshold={() => setBottomPanelExpanded(false)}
+      />
       {/* Tab bar */}
       <div
         data-testid="tab-bar"
@@ -256,7 +323,7 @@ export default function BottomPanel() {
       </div>
 
       {/* Tab content */}
-      <div data-testid="tab-content" style={{ padding: '16px 24px' }}>
+      <div data-testid="tab-content" style={{ padding: '16px 24px', flex: 1, overflowY: 'auto' }}>
         {activeTab === 'Terraform' && selectedObject?.objectType === 'architecture-block' && (
           <div data-testid="terraform-tab-content">
             <TerraformTab block={selectedObject} />

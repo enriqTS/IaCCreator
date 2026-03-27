@@ -13,6 +13,7 @@ function makeBlock(id: string, groupId?: string): ArchitectureBlock {
     name: `block-${id}`,
     position: { x: 0, y: 0 },
     config: {},
+    terraformVariables: { function_name: '', handler: '', runtime: '', memory_size: 128, timeout: 3 },
     visualConfig: { ...DEFAULT_BLOCK_VISUAL },
     zIndex: 0,
     ...(groupId !== undefined && { groupId }),
@@ -37,6 +38,7 @@ describe('BottomPanel group/ungroup controls', () => {
       canvasObjects: new Map(),
       selectedObjectIds: new Set(),
       objectGroups: new Map(),
+      bottomPanelExpanded: true,
     });
   });
 

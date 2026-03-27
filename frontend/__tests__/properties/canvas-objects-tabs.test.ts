@@ -18,7 +18,7 @@ function withId(obj: CanvasObjectCreationPayload): CanvasObject {
 // Feature: canvas-objects-editor, Property 7: Tab configuration matches object type
 // **Validates: Requirements 5.1, 5.2**
 describe('Property 7: Tab configuration matches object type', () => {
-  test('architecture blocks get Terraform, Variables, and Visual tabs', () => {
+  test('architecture blocks get Variables and Visual tabs (Terraform tab removed)', () => {
     fc.assert(
       fc.property(
         architectureBlockWithoutIdArbitrary(),
@@ -26,7 +26,8 @@ describe('Property 7: Tab configuration matches object type', () => {
           const obj = withId(objWithoutId);
           const tabs = getTabsForObject(obj);
 
-          expect(tabs).toEqual(['Terraform', 'Variables', 'Visual']);
+          expect(tabs).toEqual(['Variables', 'Visual']);
+          expect(tabs).not.toContain('Terraform');
         }
       ),
       { numRuns: 100 }
@@ -63,7 +64,7 @@ describe('Property 7: Tab configuration matches object type', () => {
     );
   });
 
-  test('for any canvas object: architecture blocks get 3 tabs, others get 1', () => {
+  test('for any canvas object: architecture blocks get 2 tabs, others get 1', () => {
     fc.assert(
       fc.property(
         canvasObjectWithoutIdArbitrary(),
@@ -72,10 +73,10 @@ describe('Property 7: Tab configuration matches object type', () => {
           const tabs = getTabsForObject(obj);
 
           if (obj.objectType === 'architecture-block') {
-            expect(tabs).toHaveLength(3);
-            expect(tabs).toContain('Terraform');
+            expect(tabs).toHaveLength(2);
             expect(tabs).toContain('Variables');
             expect(tabs).toContain('Visual');
+            expect(tabs).not.toContain('Terraform');
           } else {
             expect(tabs).toHaveLength(1);
             expect(tabs).toEqual(['Visual']);

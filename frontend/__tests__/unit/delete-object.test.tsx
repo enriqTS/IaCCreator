@@ -13,6 +13,7 @@ function makeBlock(id = 'block-1'): ArchitectureBlock {
     name: 'lambda-1',
     position: { x: 0, y: 0 },
     config: {},
+    terraformVariables: { function_name: '', handler: '', runtime: '', memory_size: 128, timeout: 3 },
     visualConfig: { ...DEFAULT_BLOCK_VISUAL },
     zIndex: 0,
   };
@@ -47,6 +48,7 @@ describe('Delete button in BottomPanel', () => {
       canvasObjects: new Map(),
       selectedObjectIds: new Set(),
       connectors: new Map(),
+      bottomPanelExpanded: true,
     });
   });
 

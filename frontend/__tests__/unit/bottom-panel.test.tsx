@@ -13,6 +13,7 @@ function makeBlock(id = 'block-1'): ArchitectureBlock {
     name: 'lambda-1',
     position: { x: 0, y: 0 },
     config: {},
+    terraformVariables: {},
     visualConfig: { ...DEFAULT_BLOCK_VISUAL },
     zIndex: 0,
   };
@@ -42,8 +43,8 @@ function makeGeo(id = 'geo-1'): GeometricObject {
 }
 
 describe('getTabsForObject', () => {
-  it('returns Terraform, Variables, and Visual tabs for architecture blocks', () => {
-    expect(getTabsForObject(makeBlock())).toEqual(['Terraform', 'Variables', 'Visual']);
+  it('returns Variables and Visual tabs for architecture blocks', () => {
+    expect(getTabsForObject(makeBlock())).toEqual(['Variables', 'Visual']);
   });
 
   it('returns only Visual tab for line objects', () => {
@@ -64,13 +65,15 @@ function selectWithObject(obj: ArchitectureBlock | LineObject | GeometricObject)
 
 describe('BottomPanel', () => {
   beforeEach(() => {
-    useDiagramStore.setState({ canvasObjects: new Map() });
+    useDiagramStore.setState({ canvasObjects: new Map(), bottomPanelExpanded: true });
     useDiagramStore.getState().selectObject(null);
   });
 
-  it('shows global terraform config when no object is selected', () => {
+  it('auto-collapses and shows pill indicator when no object is selected', () => {
     render(<BottomPanel />);
-    expect(screen.getByTestId('global-terraform-tab-content')).toBeDefined();
+    // With auto-collapse, panel collapses when nothing is selected
+    expect(screen.getByTestId('pill-indicator')).toBeDefined();
+    expect(screen.queryByTestId('global-terraform-tab-content')).toBeNull();
   });
 
   it('renders panel when an architecture block is selected', () => {
@@ -79,11 +82,12 @@ describe('BottomPanel', () => {
     expect(screen.getByTestId('bottom-panel')).toBeDefined();
   });
 
-  it('shows Terraform and Visual tabs for architecture block', () => {
+  it('shows Variables and Visual tabs for architecture block', () => {
     selectWithObject(makeBlock());
     render(<BottomPanel />);
-    expect(screen.getByTestId('tab-terraform')).toBeDefined();
+    expect(screen.getByTestId('tab-variables')).toBeDefined();
     expect(screen.getByTestId('tab-visual')).toBeDefined();
+    expect(screen.queryByTestId('tab-terraform')).toBeNull();
   });
 
   it('shows only Visual tab for line objects', () => {
@@ -103,7 +107,7 @@ describe('BottomPanel', () => {
   it('activates first tab by default for architecture block', () => {
     selectWithObject(makeBlock());
     render(<BottomPanel />);
-    expect(screen.getByTestId('terraform-tab-content')).toBeDefined();
+    expect(screen.getByTestId('variables-tab-content')).toBeDefined();
   });
 
   it('activates Visual tab by default for line objects', () => {
@@ -116,36 +120,38 @@ describe('BottomPanel', () => {
     selectWithObject(makeBlock());
     render(<BottomPanel />);
 
-    expect(screen.getByTestId('terraform-tab-content')).toBeDefined();
+    expect(screen.getByTestId('variables-tab-content')).toBeDefined();
 
     fireEvent.click(screen.getByTestId('tab-visual'));
     expect(screen.getByTestId('visual-tab-content')).toBeDefined();
-    expect(screen.queryByTestId('terraform-tab-content')).toBeNull();
+    expect(screen.queryByTestId('variables-tab-content')).toBeNull();
 
-    fireEvent.click(screen.getByTestId('tab-terraform'));
-    expect(screen.getByTestId('terraform-tab-content')).toBeDefined();
+    fireEvent.click(screen.getByTestId('tab-variables'));
+    expect(screen.getByTestId('variables-tab-content')).toBeDefined();
   });
 
   it('active tab has highlighted style', () => {
     selectWithObject(makeBlock());
     render(<BottomPanel />);
 
-    const terraformTab = screen.getByTestId('tab-terraform');
+    const variablesTab = screen.getByTestId('tab-variables');
     const visualTab = screen.getByTestId('tab-visual');
 
-    expect(terraformTab.style.borderBottomColor).toBe('rgb(59, 130, 246)');
-    expect(terraformTab.style.fontWeight).toBe('600');
+    expect(variablesTab.style.borderBottomColor).toBe('rgb(59, 130, 246)');
+    expect(variablesTab.style.fontWeight).toBe('600');
     expect(visualTab.style.borderBottomColor).toBe('transparent');
   });
 
-  it('shows global config when selection is cleared', () => {
+  it('auto-collapses when selection is cleared', () => {
     selectWithObject(makeBlock());
     const { rerender } = render(<BottomPanel />);
     expect(screen.getByTestId('bottom-panel')).toBeDefined();
 
     useDiagramStore.getState().selectObject(null);
     rerender(<BottomPanel />);
-    expect(screen.getByTestId('global-terraform-tab-content')).toBeDefined();
+    // With auto-collapse, panel collapses when selection is cleared
+    expect(screen.getByTestId('pill-indicator')).toBeDefined();
+    expect(screen.queryByTestId('global-terraform-tab-content')).toBeNull();
   });
 
   it('shows multi-selection summary when multiple objects are selected', () => {
@@ -157,6 +163,7 @@ describe('BottomPanel', () => {
         [geo.id, geo],
       ]),
       selectedObjectIds: new Set([block.id, geo.id]),
+      bottomPanelExpanded: true,
     });
     render(<BottomPanel />);
     expect(screen.getByTestId('multi-selection-summary')).toBeDefined();
@@ -172,6 +179,7 @@ describe('BottomPanel', () => {
         [line.id, line],
       ]),
       selectedObjectIds: new Set([block.id, line.id]),
+      bottomPanelExpanded: true,
     });
     render(<BottomPanel />);
     expect(screen.queryByTestId('tab-bar')).toBeNull();
@@ -188,6 +196,7 @@ describe('BottomPanel', () => {
         [geo.id, geo],
       ]),
       selectedObjectIds: new Set([block.id, geo.id]),
+      bottomPanelExpanded: true,
     });
     const { rerender } = render(<BottomPanel />);
     expect(screen.getByTestId('multi-selection-summary')).toBeDefined();

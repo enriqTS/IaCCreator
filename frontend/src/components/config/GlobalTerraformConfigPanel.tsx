@@ -1,6 +1,7 @@
 'use client';
 
 import { useDiagramStore } from '@/store/diagram-store';
+import { COMPACT_LAYOUT_THRESHOLD } from '@/components/config/panel-constants';
 import type { GlobalTerraformConfig, TerraformVariableType } from '@/types/terraform-variables';
 
 const inputStyle: React.CSSProperties = {
@@ -54,8 +55,19 @@ const removeButtonStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
+interface GlobalTerraformConfigPanelProps {
+  panelHeight?: number;
+}
+
+const cardStyle: React.CSSProperties = {
+  backgroundColor: '#252525',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '6px',
+  padding: '12px',
+};
+
 /** Renders project-level Terraform configuration: backend, provider, versions, environments, global variables. */
-export default function GlobalTerraformConfigPanel() {
+export default function GlobalTerraformConfigPanel({ panelHeight }: GlobalTerraformConfigPanelProps) {
   const config = useDiagramStore((s) => s.globalTerraformConfig);
   const updateConfig = useDiagramStore((s) => s.updateGlobalTerraformConfig);
 
@@ -71,141 +83,162 @@ export default function GlobalTerraformConfigPanel() {
     updateConfig({ versionConstraints: { ...config.versionConstraints, ...updates } });
   };
 
+  const isCompact = panelHeight !== undefined && panelHeight <= COMPACT_LAYOUT_THRESHOLD;
+
+  const containerStyle: React.CSSProperties = isCompact
+    ? {
+        display: 'flex',
+        flexDirection: 'row',
+        overflowX: 'auto',
+        gap: '16px',
+      }
+    : {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: '16px',
+      };
+
+  const sectionCardStyle: React.CSSProperties = isCompact
+    ? { ...cardStyle, minWidth: '280px', flexShrink: 0 }
+    : { ...cardStyle };
+
   return (
     <div data-testid="global-terraform-config-panel">
-      {/* Backend Configuration */}
-      <div style={sectionStyle} data-testid="backend-config-section">
-        <div style={sectionHeadingStyle}>Backend Configuration</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-            <span style={labelStyle}>Backend Type</span>
-            <select
-              data-testid="backend-type"
-              value={config.backend.type}
-              onChange={(e) => {
-                const newType = e.target.value;
-                updateBackend({ type: newType, config: newType === 's3' ? { bucket: '', key: 'terraform.tfstate', region: 'us-east-1', dynamodb_table: '' } : {} });
-              }}
-              style={selectStyle}
-            >
-              <option value="local">local</option>
-              <option value="s3">s3</option>
-            </select>
-          </label>
-          {config.backend.type === 's3' && (
-            <>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                <span style={labelStyle}>Bucket</span>
-                <input
-                  data-testid="backend-bucket"
-                  type="text"
-                  value={config.backend.config.bucket ?? ''}
-                  onChange={(e) => updateBackend({ config: { ...config.backend.config, bucket: e.target.value } })}
-                  placeholder="my-tf-state"
-                  style={inputStyle}
-                />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                <span style={labelStyle}>Key</span>
-                <input
-                  data-testid="backend-key"
-                  type="text"
-                  value={config.backend.config.key ?? ''}
-                  onChange={(e) => updateBackend({ config: { ...config.backend.config, key: e.target.value } })}
-                  placeholder="terraform.tfstate"
-                  style={inputStyle}
-                />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                <span style={labelStyle}>Region</span>
-                <input
-                  data-testid="backend-region"
-                  type="text"
-                  value={config.backend.config.region ?? ''}
-                  onChange={(e) => updateBackend({ config: { ...config.backend.config, region: e.target.value } })}
-                  placeholder="us-east-1"
-                  style={inputStyle}
-                />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                <span style={labelStyle}>DynamoDB Table</span>
-                <input
-                  data-testid="backend-dynamodb-table"
-                  type="text"
-                  value={config.backend.config.dynamodb_table ?? ''}
-                  onChange={(e) => updateBackend({ config: { ...config.backend.config, dynamodb_table: e.target.value } })}
-                  placeholder="tf-locks"
-                  style={inputStyle}
-                />
-              </label>
-            </>
-          )}
+      <div style={containerStyle} data-testid="config-sections-container">
+        {/* Backend Configuration */}
+        <div style={sectionCardStyle} data-testid="backend-config-section">
+          <div style={sectionHeadingStyle}>Backend Configuration</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+              <span style={labelStyle}>Backend Type</span>
+              <select
+                data-testid="backend-type"
+                value={config.backend.type}
+                onChange={(e) => {
+                  const newType = e.target.value;
+                  updateBackend({ type: newType, config: newType === 's3' ? { bucket: '', key: 'terraform.tfstate', region: 'us-east-1', dynamodb_table: '' } : {} });
+                }}
+                style={selectStyle}
+              >
+                <option value="local">local</option>
+                <option value="s3">s3</option>
+              </select>
+            </label>
+            {config.backend.type === 's3' && (
+              <>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+                  <span style={labelStyle}>Bucket</span>
+                  <input
+                    data-testid="backend-bucket"
+                    type="text"
+                    value={config.backend.config.bucket ?? ''}
+                    onChange={(e) => updateBackend({ config: { ...config.backend.config, bucket: e.target.value } })}
+                    placeholder="my-tf-state"
+                    style={inputStyle}
+                  />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+                  <span style={labelStyle}>Key</span>
+                  <input
+                    data-testid="backend-key"
+                    type="text"
+                    value={config.backend.config.key ?? ''}
+                    onChange={(e) => updateBackend({ config: { ...config.backend.config, key: e.target.value } })}
+                    placeholder="terraform.tfstate"
+                    style={inputStyle}
+                  />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+                  <span style={labelStyle}>Region</span>
+                  <input
+                    data-testid="backend-region"
+                    type="text"
+                    value={config.backend.config.region ?? ''}
+                    onChange={(e) => updateBackend({ config: { ...config.backend.config, region: e.target.value } })}
+                    placeholder="us-east-1"
+                    style={inputStyle}
+                  />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+                  <span style={labelStyle}>DynamoDB Table</span>
+                  <input
+                    data-testid="backend-dynamodb-table"
+                    type="text"
+                    value={config.backend.config.dynamodb_table ?? ''}
+                    onChange={(e) => updateBackend({ config: { ...config.backend.config, dynamodb_table: e.target.value } })}
+                    placeholder="tf-locks"
+                    style={inputStyle}
+                  />
+                </label>
+              </>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Provider Configuration */}
-      <div style={sectionStyle} data-testid="provider-config-section">
-        <div style={sectionHeadingStyle}>Provider Configuration</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-            <span style={labelStyle}>Region</span>
-            <input
-              data-testid="provider-region"
-              type="text"
-              value={config.provider.region}
-              onChange={(e) => updateProvider({ region: e.target.value })}
-              placeholder="us-east-1"
-              style={inputStyle}
-            />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-            <span style={labelStyle}>Profile (optional)</span>
-            <input
-              data-testid="provider-profile"
-              type="text"
-              value={config.provider.profile ?? ''}
-              onChange={(e) => updateProvider({ profile: e.target.value || undefined })}
-              placeholder="default"
-              style={inputStyle}
-            />
-          </label>
+        {/* Provider Configuration */}
+        <div style={sectionCardStyle} data-testid="provider-config-section">
+          <div style={sectionHeadingStyle}>Provider Configuration</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+              <span style={labelStyle}>Region</span>
+              <input
+                data-testid="provider-region"
+                type="text"
+                value={config.provider.region}
+                onChange={(e) => updateProvider({ region: e.target.value })}
+                placeholder="us-east-1"
+                style={inputStyle}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+              <span style={labelStyle}>Profile (optional)</span>
+              <input
+                data-testid="provider-profile"
+                type="text"
+                value={config.provider.profile ?? ''}
+                onChange={(e) => updateProvider({ profile: e.target.value || undefined })}
+                placeholder="default"
+                style={inputStyle}
+              />
+            </label>
+          </div>
         </div>
-      </div>
 
-      {/* Version Constraints */}
-      <div style={sectionStyle} data-testid="version-constraints-section">
-        <div style={sectionHeadingStyle}>Version Constraints</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-            <span style={labelStyle}>Terraform Version</span>
-            <input
-              data-testid="terraform-version"
-              type="text"
-              value={config.versionConstraints.terraformVersion ?? ''}
-              onChange={(e) => updateVersionConstraints({ terraformVersion: e.target.value || undefined })}
-              placeholder=">= 1.5.0"
-              style={inputStyle}
-            />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-            <span style={labelStyle}>AWS Provider Version</span>
-            <input
-              data-testid="aws-provider-version"
-              type="text"
-              value={config.versionConstraints.awsProviderVersion ?? ''}
-              onChange={(e) => updateVersionConstraints({ awsProviderVersion: e.target.value || undefined })}
-              placeholder="~> 5.0"
-              style={inputStyle}
-            />
-          </label>
+        {/* Version Constraints */}
+        <div style={sectionCardStyle} data-testid="version-constraints-section">
+          <div style={sectionHeadingStyle}>Version Constraints</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+              <span style={labelStyle}>Terraform Version</span>
+              <input
+                data-testid="terraform-version"
+                type="text"
+                value={config.versionConstraints.terraformVersion ?? ''}
+                onChange={(e) => updateVersionConstraints({ terraformVersion: e.target.value || undefined })}
+                placeholder=">= 1.5.0"
+                style={inputStyle}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+              <span style={labelStyle}>AWS Provider Version</span>
+              <input
+                data-testid="aws-provider-version"
+                type="text"
+                value={config.versionConstraints.awsProviderVersion ?? ''}
+                onChange={(e) => updateVersionConstraints({ awsProviderVersion: e.target.value || undefined })}
+                placeholder="~> 5.0"
+                style={inputStyle}
+              />
+            </label>
+          </div>
         </div>
+
+        {/* Environment Settings */}
+        <EnvironmentSettings config={config} updateConfig={updateConfig} sectionCardStyle={sectionCardStyle} />
+
+        {/* Global Variables */}
+        <GlobalVariablesSection config={config} updateConfig={updateConfig} sectionCardStyle={sectionCardStyle} />
       </div>
-
-      {/* Environment Settings */}
-      <EnvironmentSettings config={config} updateConfig={updateConfig} />
-
-      {/* Global Variables */}
-      <GlobalVariablesSection config={config} updateConfig={updateConfig} />
     </div>
   );
 }
@@ -213,9 +246,11 @@ export default function GlobalTerraformConfigPanel() {
 function EnvironmentSettings({
   config,
   updateConfig,
+  sectionCardStyle,
 }: {
   config: GlobalTerraformConfig;
   updateConfig: (updates: Partial<GlobalTerraformConfig>) => void;
+  sectionCardStyle: React.CSSProperties;
 }) {
   const addEnvironment = () => {
     updateConfig({
@@ -267,7 +302,7 @@ function EnvironmentSettings({
   };
 
   return (
-    <div style={sectionStyle} data-testid="environment-settings-section">
+    <div style={sectionCardStyle} data-testid="environment-settings-section">
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
         <span style={sectionHeadingStyle}>Environment Settings</span>
         <button data-testid="add-environment" onClick={addEnvironment} style={addButtonStyle}>
@@ -353,9 +388,11 @@ function EnvironmentSettings({
 function GlobalVariablesSection({
   config,
   updateConfig,
+  sectionCardStyle,
 }: {
   config: GlobalTerraformConfig;
   updateConfig: (updates: Partial<GlobalTerraformConfig>) => void;
+  sectionCardStyle: React.CSSProperties;
 }) {
   const addVariable = () => {
     updateConfig({
@@ -379,7 +416,7 @@ function GlobalVariablesSection({
   };
 
   return (
-    <div style={sectionStyle} data-testid="global-variables-section">
+    <div style={sectionCardStyle} data-testid="global-variables-section">
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
         <span style={sectionHeadingStyle}>Global Variables</span>
         <button data-testid="add-global-variable" onClick={addVariable} style={addButtonStyle}>

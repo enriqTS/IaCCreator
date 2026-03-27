@@ -1,0 +1,4 @@
+export const MIN_PANEL_HEIGHT = 150;
+export const MAX_PANEL_HEIGHT_RATIO = 0.6;
+export const DEFAULT_PANEL_HEIGHT = 250;
+export const COMPACT_LAYOUT_THRESHOLD = 300;
