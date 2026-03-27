@@ -3,7 +3,6 @@
 import { useDiagramStore } from '@/store/diagram-store';
 import { SIDEBAR_RESPONSIVE_THRESHOLD } from '@/components/config/panel-constants';
 import type { GlobalTerraformConfig, TerraformVariableType } from '@/types/terraform-variables';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -34,14 +33,11 @@ export default function GlobalTerraformConfigPanel({ panelWidth }: GlobalTerrafo
 
   return (
     <div data-testid="global-terraform-config-panel" className="flex flex-col gap-4">
-      <div data-testid="config-sections-container" className="flex flex-col gap-4">
+      <div data-testid="config-sections-container" className="flex flex-col gap-6">
         {/* Backend Configuration */}
-        <Card data-testid="backend-config-section" className="py-3 gap-2">
-          <CardHeader className="px-4 py-0">
-            <CardTitle className="text-sm">Backend Configuration</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4">
-            <div className={fieldGrid}>
+        <div data-testid="backend-config-section" className="flex flex-col gap-2">
+          <div className="text-sm font-semibold">Backend Configuration</div>
+          <div className={fieldGrid}>
               <div className="flex flex-col gap-1.5">
                 <Label className="text-xs text-muted-foreground">Backend Type</Label>
                 <Select
@@ -108,17 +104,13 @@ export default function GlobalTerraformConfigPanel({ panelWidth }: GlobalTerrafo
                   </div>
                 </>
               )}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Provider Configuration */}
-        <Card data-testid="provider-config-section" className="py-3 gap-2">
-          <CardHeader className="px-4 py-0">
-            <CardTitle className="text-sm">Provider Configuration</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4">
-            <div className={fieldGrid}>
+        <div data-testid="provider-config-section" className="flex flex-col gap-2">
+          <div className="text-sm font-semibold">Provider Configuration</div>
+          <div className={fieldGrid}>
               <div className="flex flex-col gap-1.5">
                 <Label className="text-xs text-muted-foreground">Region</Label>
                 <Input
@@ -139,17 +131,13 @@ export default function GlobalTerraformConfigPanel({ panelWidth }: GlobalTerrafo
                   placeholder="default"
                 />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Version Constraints */}
-        <Card data-testid="version-constraints-section" className="py-3 gap-2">
-          <CardHeader className="px-4 py-0">
-            <CardTitle className="text-sm">Version Constraints</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4">
-            <div className={fieldGrid}>
+        <div data-testid="version-constraints-section" className="flex flex-col gap-2">
+          <div className="text-sm font-semibold">Version Constraints</div>
+          <div className={fieldGrid}>
               <div className="flex flex-col gap-1.5">
                 <Label className="text-xs text-muted-foreground">Terraform Version</Label>
                 <Input
@@ -170,9 +158,8 @@ export default function GlobalTerraformConfigPanel({ panelWidth }: GlobalTerrafo
                   placeholder="~> 5.0"
                 />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Environment Settings */}
         <EnvironmentSettings config={config} updateConfig={updateConfig} isTwoColumn={isTwoColumn} />
@@ -244,20 +231,18 @@ function EnvironmentSettings({
   };
 
   return (
-    <Card data-testid="environment-settings-section" className="py-3 gap-2">
-      <CardHeader className="px-4 py-0">
-        <div className="flex items-center gap-2">
-          <CardTitle className="text-sm">Environment Settings</CardTitle>
-          <button
-            data-testid="add-environment"
-            onClick={addEnvironment}
-            className="text-xs text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
-          >
-            + Add Environment
-          </button>
-        </div>
-      </CardHeader>
-      <CardContent className="px-4">
+    <div data-testid="environment-settings-section" className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <div className="text-sm font-semibold">Environment Settings</div>
+        <button
+          data-testid="add-environment"
+          onClick={addEnvironment}
+          className="text-xs text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
+        >
+          + Add Environment
+        </button>
+      </div>
+      <div>
         {config.environments.map((env, envIndex) => (
           <div
             key={envIndex}
@@ -325,8 +310,8 @@ function EnvironmentSettings({
             </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -363,20 +348,18 @@ function GlobalVariablesSection({
   };
 
   return (
-    <Card data-testid="global-variables-section" className="py-3 gap-2">
-      <CardHeader className="px-4 py-0">
-        <div className="flex items-center gap-2">
-          <CardTitle className="text-sm">Global Variables</CardTitle>
-          <button
-            data-testid="add-global-variable"
-            onClick={addVariable}
-            className="text-xs text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
-          >
-            + Add Variable
-          </button>
-        </div>
-      </CardHeader>
-      <CardContent className="px-4">
+    <div data-testid="global-variables-section" className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <div className="text-sm font-semibold">Global Variables</div>
+        <button
+          data-testid="add-global-variable"
+          onClick={addVariable}
+          className="text-xs text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
+        >
+          + Add Variable
+        </button>
+      </div>
+      <div>
         {config.globalVariables.map((variable, index) => (
           <div
             key={index}
@@ -442,7 +425,7 @@ function GlobalVariablesSection({
             </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
