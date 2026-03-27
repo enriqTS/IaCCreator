@@ -260,6 +260,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     objectGroups: new Map<string, ObjectGroup>(),
 
     addCanvasObject: (obj: CanvasObjectCreationPayload): string => {
+      pushHistory();
       const id = uuidv4();
       // Assign zIndex as maxZIndex + 1
       const { canvasObjects } = get();
