@@ -18,15 +18,19 @@ export default function PillIndicator({ expanded, onClick }: PillIndicatorProps)
       onMouseLeave={() => setHovered(false)}
       aria-label={expanded ? 'Collapse panel' : 'Expand panel'}
       style={{
-        width: hovered ? 64 : 40,
-        height: hovered ? 6 : 4,
-        borderRadius: 3,
-        backgroundColor: hovered ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.4)',
+        // The visible pill is small, but the clickable area is always generous
+        width: hovered ? 80 : 40,
+        height: hovered ? 8 : 4,
+        borderRadius: 4,
+        backgroundColor: hovered ? 'rgba(255, 255, 255, 0.65)' : 'rgba(255, 255, 255, 0.4)',
         border: 'none',
-        padding: 0,
+        // Large padding creates a big invisible hit area around the pill
+        padding: '12px 20px',
+        backgroundClip: 'content-box',
         cursor: 'pointer',
         display: 'block',
         transition: 'width 0.15s ease, height 0.15s ease, background-color 0.15s ease',
+        boxSizing: 'content-box',
       }}
     />
   );
