@@ -117,6 +117,7 @@ export default function BottomPanel() {
         <ResizeHandle
           onResize={setBottomPanelHeight}
           onCollapseThreshold={() => setBottomPanelExpanded(false)}
+          onExpandFromDrag={(h) => { setBottomPanelHeight(h); setBottomPanelExpanded(true); }}
         />
         <div
           data-testid="multi-selection-summary"
@@ -196,6 +197,7 @@ export default function BottomPanel() {
         <ResizeHandle
           onResize={setBottomPanelHeight}
           onCollapseThreshold={() => setBottomPanelExpanded(false)}
+          onExpandFromDrag={(h) => { setBottomPanelHeight(h); setBottomPanelExpanded(true); }}
         />
         {/* Tab bar */}
         <div
@@ -262,6 +264,7 @@ export default function BottomPanel() {
       <ResizeHandle
         onResize={setBottomPanelHeight}
         onCollapseThreshold={() => setBottomPanelExpanded(false)}
+        onExpandFromDrag={(h) => { setBottomPanelHeight(h); setBottomPanelExpanded(true); }}
       />
       {/* Tab bar */}
       <div

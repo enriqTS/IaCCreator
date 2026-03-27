@@ -60,10 +60,7 @@ interface GlobalTerraformConfigPanelProps {
 }
 
 const cardStyle: React.CSSProperties = {
-  backgroundColor: '#252525',
-  border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '6px',
-  padding: '12px',
+  padding: '4px 0',
 };
 
 /** Renders project-level Terraform configuration: backend, provider, versions, environments, global variables. */
@@ -90,17 +87,17 @@ export default function GlobalTerraformConfigPanel({ panelHeight }: GlobalTerraf
         display: 'flex',
         flexDirection: 'row',
         overflowX: 'auto',
-        gap: '16px',
+        gap: '24px',
       }
     : {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: '16px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '24px',
       };
 
   const sectionCardStyle: React.CSSProperties = isCompact
-    ? { ...cardStyle, minWidth: '280px', flexShrink: 0 }
-    : { ...cardStyle };
+    ? { ...cardStyle, minWidth: '200px', flexShrink: 0 }
+    : { ...cardStyle, flex: '1 1 auto', minWidth: '160px' };
 
   return (
     <div data-testid="global-terraform-config-panel">
