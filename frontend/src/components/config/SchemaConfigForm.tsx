@@ -5,6 +5,16 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { getSchemas } from '@/store/schema-store';
 import type { TerraformVariableSchema, ValidationRule } from '@/types/terraform-variables';
 import type { ResourceConfig } from '@/types/diagram';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import KeyValueEditor from './KeyValueEditor';
 import ListEditor from './ListEditor';
 
@@ -69,9 +79,7 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
   const canvasObject = useDiagramStore((s) => s.canvasObjects.get(elementId));
   const updateCanvasObject = useDiagramStore((s) => s.updateCanvasObject);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  // Track which non-General groups the user has explicitly expanded
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  // Track if General has been explicitly collapsed
   const [generalCollapsed, setGeneralCollapsed] = useState(false);
 
   const schemas = getSchemas();
@@ -80,7 +88,6 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
   const block = canvasObject?.objectType === 'architecture-block' ? canvasObject : null;
   const config = block?.config ?? ({} as ResourceConfig);
 
-  // Group entries by group field
   const groups = useMemo(() => {
     const map = new Map<string, TerraformVariableSchema[]>();
     for (const entry of entries) {
@@ -91,7 +98,6 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
     return map;
   }, [entries]);
 
-  // Compute which groups have at least one visible entry
   const visibleGroups = useMemo(() => {
     const result: [string, TerraformVariableSchema[]][] = [];
     for (const [group, groupEntries] of groups) {
@@ -105,7 +111,6 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
 
   const hasErrors = Object.keys(errors).length > 0;
 
-  // Notify parent of validation state changes via effect (not during render)
   const onValidationChangeRef = useRef(onValidationChange);
   onValidationChangeRef.current = onValidationChange;
   useEffect(() => {
@@ -116,7 +121,6 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
     (entry: TerraformVariableSchema, rawValue: unknown) => {
       let value = rawValue;
 
-      // Coerce types
       if (entry.type === 'number' && typeof rawValue === 'string') {
         value = rawValue === '' ? undefined : Number(rawValue);
       }
@@ -124,7 +128,6 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
         value = Boolean(rawValue);
       }
 
-      // Validate
       const error = validateValue(value, entry.validation, entry);
       setErrors((prev) => {
         const next = { ...prev };
@@ -136,17 +139,12 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
         return next;
       });
 
-      // Build the partial update starting with the changed field
       const configUpdate: Record<string, unknown> = { [entry.name]: value };
 
-      // visible_when clearing: when a discriminating field changes, clear dependent
-      // fields that become hidden so stale values don't persist in the config.
       for (const dep of entries) {
         if (dep.visible_when && dep.visible_when.field === entry.name) {
-          // Evaluate visibility with the NEW value of the discriminating field
           if (value !== dep.visible_when.equals) {
             configUpdate[dep.name] = undefined;
-            // Also clear any validation errors for the now-hidden field
             setErrors((prev) => {
               if (!(dep.name in prev)) return prev;
               const next = { ...prev };
@@ -183,28 +181,27 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
   };
 
   return (
-    <div data-testid="schema-config-form" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div data-testid="schema-config-form" className="flex flex-col gap-2">
       {hasErrors && (
-        <div data-testid="validation-error-summary" style={{ color: '#f87171', fontSize: '12px', padding: '4px 0' }}>
+        <div data-testid="validation-error-summary" className="text-destructive text-xs py-1">
           ⚠ {Object.keys(errors).length} validation error{Object.keys(errors).length > 1 ? 's' : ''}
         </div>
       )}
 
       {visibleGroups.map(([group, groupEntries]) => {
         const expanded = isGroupExpanded(group);
-
         return (
           <div key={group} data-testid={`config-group-${group}`}>
             <button
               data-testid={`group-toggle-${group}`}
               onClick={() => toggleGroup(group)}
-              style={groupHeaderStyle}
+              className="w-full text-left text-sm font-semibold text-muted-foreground hover:text-foreground py-1 bg-transparent border-none cursor-pointer"
             >
-              <span>{expanded ? '▾' : '▸'} {group}</span>
+              {expanded ? '▾' : '▸'} {group}
             </button>
 
             {expanded && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '8px 0' }}>
+              <div className="flex flex-col gap-3 py-2">
                 {groupEntries.map((entry) => (
                   <FieldRenderer
                     key={entry.name}
@@ -244,50 +241,50 @@ function FieldRenderer({
   // Select dropdown when options are defined
   if (entry.options && entry.options.length > 0) {
     return (
-      <label style={fieldLabelStyle}>
-        <span style={labelTextStyle}>{entry.description}</span>
-        <select
-          data-testid={`field-${entry.name}`}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+        <Select
           value={currentValue !== undefined && currentValue !== null ? String(currentValue) : ''}
-          onChange={(e) => {
-            // Try to preserve the original type from options
-            const opt = entry.options!.find((o) => String(o.value) === e.target.value);
-            onChange(entry, opt ? opt.value : e.target.value);
+          onValueChange={(val) => {
+            const opt = entry.options!.find((o) => String(o.value) === val);
+            onChange(entry, opt ? opt.value : val);
           }}
-          style={inputStyle}
         >
-          <option value="">Select...</option>
-          {entry.options.map((opt) => (
-            <option key={String(opt.value)} value={String(opt.value)}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {error && <span data-testid={`error-${entry.name}`} style={errorStyle}>{error}</span>}
-      </label>
+          <SelectTrigger data-testid={`field-${entry.name}`} className="w-full">
+            <SelectValue placeholder="Select..." />
+          </SelectTrigger>
+          <SelectContent>
+            {entry.options.map((opt) => (
+              <SelectItem key={String(opt.value)} value={String(opt.value)}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {error && <span data-testid={`error-${entry.name}`} className="text-destructive text-xs">{error}</span>}
+      </div>
     );
   }
 
   // Bool → checkbox
   if (entry.type === 'bool') {
     return (
-      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', paddingBottom: '2px' }}>
-        <input
+      <div className="flex items-center gap-2">
+        <Checkbox
           data-testid={`field-${entry.name}`}
-          type="checkbox"
           checked={currentValue === true}
-          onChange={(e) => onChange(entry, e.target.checked)}
+          onCheckedChange={(checked) => onChange(entry, checked === true)}
         />
-        <span style={labelTextStyle}>{entry.description}</span>
-      </label>
+        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+      </div>
     );
   }
 
   // Map → KeyValueEditor
   if (entry.type === 'map') {
     return (
-      <div style={fieldLabelStyle}>
-        <span style={labelTextStyle}>{entry.description}</span>
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
         <KeyValueEditor
           value={currentValue as Record<string, string> | undefined}
           onChange={(val) => onChange(entry, val)}
@@ -299,8 +296,8 @@ function FieldRenderer({
   // List → ListEditor
   if (entry.type === 'list') {
     return (
-      <div style={fieldLabelStyle}>
-        <span style={labelTextStyle}>{entry.description}</span>
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
         <ListEditor
           value={currentValue as string[] | undefined}
           onChange={(val) => onChange(entry, val)}
@@ -309,87 +306,38 @@ function FieldRenderer({
     );
   }
 
-  // Number input
+  // Number input — use type="text" with inputMode="numeric" to avoid browser spinner arrows
   if (entry.type === 'number') {
     return (
-      <label style={fieldLabelStyle}>
-        <span style={labelTextStyle}>{entry.description}</span>
-        <input
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+        <Input
           data-testid={`field-${entry.name}`}
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={currentValue !== undefined && currentValue !== null ? String(currentValue) : ''}
           onChange={(e) => onChange(entry, e.target.value)}
           placeholder={entry.default !== undefined && entry.default !== null ? String(entry.default) : ''}
-          min={entry.validation?.min ?? undefined}
-          max={entry.validation?.max ?? undefined}
-          style={{
-            ...inputStyle,
-            borderColor: error ? '#dc2626' : 'rgba(255,255,255,0.2)',
-          }}
+          aria-invalid={error ? true : undefined}
         />
-        {error && <span data-testid={`error-${entry.name}`} style={errorStyle}>{error}</span>}
-      </label>
+        {error && <span data-testid={`error-${entry.name}`} className="text-destructive text-xs">{error}</span>}
+      </div>
     );
   }
 
   // Default: text input
   return (
-    <label style={fieldLabelStyle}>
-      <span style={labelTextStyle}>{entry.description}</span>
-      <input
+    <div className="flex flex-col gap-1.5">
+      <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+      <Input
         data-testid={`field-${entry.name}`}
         type="text"
         value={currentValue !== undefined && currentValue !== null ? String(currentValue) : ''}
         onChange={(e) => onChange(entry, e.target.value)}
         placeholder={entry.default !== undefined && entry.default !== null ? String(entry.default) : ''}
-        style={{
-          ...inputStyle,
-          borderColor: error ? '#dc2626' : 'rgba(255,255,255,0.2)',
-        }}
+        aria-invalid={error ? true : undefined}
       />
-      {error && <span data-testid={`error-${entry.name}`} style={errorStyle}>{error}</span>}
-    </label>
+      {error && <span data-testid={`error-${entry.name}`} className="text-destructive text-xs">{error}</span>}
+    </div>
   );
 }
-
-// --- Styles ---
-
-const groupHeaderStyle: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: 'rgba(255,255,255,0.8)',
-  fontSize: '13px',
-  fontWeight: 600,
-  cursor: 'pointer',
-  padding: '4px 0',
-  textAlign: 'left',
-  width: '100%',
-};
-
-const fieldLabelStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
-  fontSize: '13px',
-};
-
-const labelTextStyle: React.CSSProperties = {
-  color: 'rgba(255,255,255,0.6)',
-  fontSize: '12px',
-};
-
-const inputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '4px 8px',
-  fontSize: '13px',
-  width: '100%',
-  boxSizing: 'border-box',
-};
-
-const errorStyle: React.CSSProperties = {
-  color: '#f87171',
-  fontSize: '11px',
-};
