@@ -169,7 +169,7 @@ export default function SidebarPanel() {
       >
         <Button
           variant="outline"
-          size="icon-sm"
+          size="icon"
           data-testid="sidebar-expand-button"
           onClick={() => setSidebarExpanded(true)}
           className={cn(
@@ -178,7 +178,7 @@ export default function SidebarPanel() {
           )}
           aria-label="Expand sidebar"
         >
-          {isLeft ? <PanelLeftOpen className="size-4" /> : <PanelRightOpen className="size-4" />}
+          {isLeft ? <PanelLeftOpen className="size-5" /> : <PanelRightOpen className="size-5" />}
         </Button>
       </div>
     );
