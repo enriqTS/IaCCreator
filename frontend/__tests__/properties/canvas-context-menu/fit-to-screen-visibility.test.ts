@@ -66,6 +66,8 @@ function constrainedCanvasObjectArbitrary(): fc.Arbitrary<CanvasObjectCreationPa
       name: fc.string({ minLength: 1, maxLength: 10 }),
       start: constrainedPointArbitrary(),
       end: constrainedPointArbitrary(),
+      sourceAnchor: fc.constant(null),
+      targetAnchor: fc.constant(null),
       visualConfig: fc.constant({ ...DEFAULT_LINE_VISUAL }),
     }),
     // geometric

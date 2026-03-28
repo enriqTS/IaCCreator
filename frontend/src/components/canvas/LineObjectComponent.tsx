@@ -2,6 +2,8 @@
 
 import { useRef, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
+import { rayRectIntersection } from '@/utils/anchor';
+import { getObjectBounds } from '@/types/diagram';
 import type { LineObject } from '@/types/diagram';
 
 interface LineObjectComponentProps {
@@ -13,16 +15,35 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
   const selectObject = useDiagramStore((s) => s.selectObject);
   const toggleObjectSelection = useDiagramStore((s) => s.toggleObjectSelection);
   const moveSelectedObjects = useDiagramStore((s) => s.moveSelectedObjects);
+  const canvasObjects = useDiagramStore((s) => s.canvasObjects);
 
   const { color, borderWidth, strokeStyle, startArrow, endArrow } = line.visualConfig;
+
+  // Compute actual endpoints, resolving anchors when present
+  let startPt = line.start;
+  let endPt = line.end;
+
+  if (line.sourceAnchor) {
+    const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
+    if (sourceObj) {
+      const bounds = getObjectBounds(sourceObj);
+      startPt = rayRectIntersection(bounds, endPt);
+    }
+  }
+
+  if (line.targetAnchor) {
+    const targetObj = canvasObjects.get(line.targetAnchor.objectId);
+    if (targetObj) {
+      const bounds = getObjectBounds(targetObj);
+      endPt = rayRectIntersection(bounds, startPt);
+    }
+  }
 
   const markerId = `line-${line.id}`;
   const startMarkerId = `${markerId}-start`;
   const endMarkerId = `${markerId}-end`;
 
   const dashArray = strokeStyle === 'dashed' ? `${borderWidth * 3} ${borderWidth * 2}` : undefined;
-
-  // Arrowhead size scales with stroke width
   const arrowSize = Math.max(borderWidth * 3, 6);
 
   const isDragging = useRef(false);
@@ -32,11 +53,9 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
   const handleMouseDown = useCallback((e: React.MouseEvent<SVGLineElement>) => {
     if (e.button !== 0) return;
 
-    // In placement mode, let the DragSizingOverlay handle the mousedown instead
     const tool = useDiagramStore.getState().activeTool;
     if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
 
-    // Locked: allow selection but prevent drag
     if (line.locked) {
       e.stopPropagation();
       if (e.shiftKey) {
@@ -90,9 +109,8 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
     window.addEventListener('mouseup', handleMouseUp);
   }, [line.id, line.locked, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
 
-  // Compute midpoint for lock indicator
-  const midX = (line.start.x + line.end.x) / 2;
-  const midY = (line.start.y + line.end.y) / 2;
+  const midX = (startPt.x + endPt.x) / 2;
+  const midY = (startPt.y + endPt.y) / 2;
 
   return (
     <g data-testid={`line-object-${line.id}`} data-object-id={line.id} style={{ pointerEvents: 'auto', cursor: line.locked ? 'not-allowed' : 'pointer' }}>
@@ -137,10 +155,10 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
 
       {/* Invisible wider hit area for easier clicking */}
       <line
-        x1={line.start.x}
-        y1={line.start.y}
-        x2={line.end.x}
-        y2={line.end.y}
+        x1={startPt.x}
+        y1={startPt.y}
+        x2={endPt.x}
+        y2={endPt.y}
         stroke="transparent"
         strokeWidth={Math.max(borderWidth + 10, 12)}
         onMouseDown={handleMouseDown}
@@ -149,10 +167,10 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
       {/* Selection highlight glow */}
       {isSelected && (
         <line
-          x1={line.start.x}
-          y1={line.start.y}
-          x2={line.end.x}
-          y2={line.end.y}
+          x1={startPt.x}
+          y1={startPt.y}
+          x2={endPt.x}
+          y2={endPt.y}
           stroke="rgba(59, 130, 246, 0.5)"
           strokeWidth={borderWidth + 6}
           strokeLinecap="round"
@@ -161,10 +179,10 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
 
       {/* Main visible line */}
       <line
-        x1={line.start.x}
-        y1={line.start.y}
-        x2={line.end.x}
-        y2={line.end.y}
+        x1={startPt.x}
+        y1={startPt.y}
+        x2={endPt.x}
+        y2={endPt.y}
         stroke={color}
         strokeWidth={borderWidth}
         strokeDasharray={dashArray}

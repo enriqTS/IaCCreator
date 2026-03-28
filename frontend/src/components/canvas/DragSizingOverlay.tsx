@@ -26,7 +26,8 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
 
   const isPlacement =
     (typeof activeTool === 'object' && activeTool.type === 'place-service') ||
-    (typeof activeTool === 'object' && activeTool.type === 'place-shape');
+    (typeof activeTool === 'object' && activeTool.type === 'place-shape') ||
+    (typeof activeTool === 'object' && activeTool.type === 'place-uml');
 
   // Drag state stored in refs for performance (avoid re-renders on every mousemove)
   const isDragging = useRef(false);

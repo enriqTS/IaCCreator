@@ -15,6 +15,14 @@ function getIconPath(serviceType: ServiceType): string {
   return '';
 }
 
+/** Padding in pixels on each side of the icon within the block */
+export const ICON_PADDING = 12;
+
+/** Determine whether a label should be shown for the given name */
+export function shouldShowLabel(name: string): boolean {
+  return name.trim() !== '' && name.trim() !== 'Service';
+}
+
 interface ArchitectureBlockComponentProps {
   block: ArchitectureBlock;
   isSelected: boolean;
@@ -28,9 +36,13 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
 
   const { width, height } = block.visualConfig;
 
+  const showLabel = shouldShowLabel(block.name);
+  const labelSpace = showLabel ? 20 : 0;
+  const iconSize = Math.max(0, Math.min(width - 2 * ICON_PADDING, height - 2 * ICON_PADDING - labelSpace));
+
   const borderColor = isSelected
     ? 'rgba(59, 130, 246, 0.8)'
-    : 'rgba(255, 255, 255, 0.1)';
+    : 'transparent';
 
   const isDragging = useRef(false);
   const didDrag = useRef(false);
@@ -146,9 +158,8 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
         alignItems: 'center',
         justifyContent: 'center',
         gap: '4px',
-        borderRadius: '8px',
         border: `2px solid ${borderColor}`,
-        backgroundColor: 'rgba(30, 30, 30, 0.9)',
+        borderRadius: '4px',
         transition: 'border-color 0.15s',
         overflow: 'hidden',
       }}
@@ -172,25 +183,27 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
         <img
           src={iconPath}
           alt={block.serviceType}
-          width={Math.min(40, width * 0.5)}
-          height={Math.min(40, height * 0.5)}
+          width={iconSize}
+          height={iconSize}
           draggable={false}
           style={{ pointerEvents: 'none', flexShrink: 0 }}
         />
       )}
-      <span
-        style={{
-          fontSize: '11px',
-          color: 'rgba(255, 255, 255, 0.8)',
-          whiteSpace: 'nowrap',
-          maxWidth: `${width - 8}px`,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          textAlign: 'center',
-        }}
-      >
-        {block.name}
-      </span>
+      {showLabel && (
+        <span
+          style={{
+            fontSize: '11px',
+            color: 'rgba(255, 255, 255, 0.8)',
+            whiteSpace: 'nowrap',
+            maxWidth: `${width - 8}px`,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            textAlign: 'center',
+          }}
+        >
+          {block.name}
+        </span>
+      )}
     </div>
   );
 }

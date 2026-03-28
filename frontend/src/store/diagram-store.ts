@@ -14,11 +14,18 @@ import type {
   ArchitectureBlock,
   LineObject,
   GeometricObject,
+  TextObject,
+  UMLObject,
+  GeometricShape,
+  UMLKind,
   ArchitectureBlockVisualConfig,
   LineVisualConfig,
   GeometricVisualConfig,
+  TextVisualConfig,
+  UMLVisualConfig,
   Rect,
   ObjectGroup,
+  AnchorRef,
 } from '@/types/diagram';
 import {
   MIN_OBJECT_WIDTH,
@@ -26,11 +33,16 @@ import {
   DEFAULT_BLOCK_VISUAL,
   DEFAULT_LINE_VISUAL,
   DEFAULT_GEO_VISUAL,
+  DEFAULT_TEXT_VISUAL,
+  DEFAULT_UML_VISUAL,
+  DEFAULT_UML_CLASS_DATA,
   getObjectBounds,
 } from '@/types/diagram';
 import type { DiagramState, ArchitectureDescription, SerializedCanvasObject } from '@/types/serialization';
+import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 import type { DiagramSummary } from '@/types/api';
 import { zoomAtPoint } from '@/utils/viewport';
+import { rayRectIntersection } from '@/utils/anchor';
 import { apiClient } from '@/utils/api-client';
 import { useToastStore } from '@/store/toast-store';
 import type { GlobalTerraformConfig } from '@/types/terraform-variables';
@@ -89,7 +101,7 @@ export interface DiagramStore {
   toggleObjectSelection: (id: string) => void;
   selectObjectsByRect: (rect: Rect) => void;
   clearSelection: () => void;
-  updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig>) => void;
+  updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig | TextVisualConfig | UMLVisualConfig>) => void;
   updateObjectBounds: (id: string, bounds: { width?: number; height?: number }) => void;
   updateLineEndpoint: (id: string, endpoint: 'start' | 'end', position: Point) => void;
 
@@ -123,6 +135,19 @@ export interface DiagramStore {
 
   // Multi-object move
   moveSelectedObjects: (dx: number, dy: number) => void;
+
+  // Text editing
+  editingTextId: string | null;
+  setEditingTextId: (id: string | null) => void;
+  updateTextContent: (id: string, content: string) => void;
+
+  // Anchor management
+  updateLineAnchors: (lineId: string, anchors: { sourceAnchor?: AnchorRef | null; targetAnchor?: AnchorRef | null }) => void;
+  recomputeAnchoredEndpoints: (movedObjectId: string) => void;
+
+  // Pull-to-connect state
+  pullConnectState: { sourceObjectId: string; sourceAnchorPoint: Point } | null;
+  setPullConnectState: (state: { sourceObjectId: string; sourceAnchorPoint: Point } | null) => void;
 
   // Connector state
   connectors: Map<string, Connector>;
@@ -405,6 +430,27 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           }
         }
 
+        // Detach anchors on lines referencing the deleted object (nullify, don't delete lines)
+        for (const [lineId, lineObj] of next) {
+          if (lineObj.objectType !== 'line') continue;
+          const line = lineObj as LineObject;
+          let needsUpdate = false;
+          let newSourceAnchor = line.sourceAnchor;
+          let newTargetAnchor = line.targetAnchor;
+
+          if (line.sourceAnchor?.objectId === id) {
+            newSourceAnchor = null;
+            needsUpdate = true;
+          }
+          if (line.targetAnchor?.objectId === id) {
+            newTargetAnchor = null;
+            needsUpdate = true;
+          }
+          if (needsUpdate) {
+            next.set(lineId, { ...line, sourceAnchor: newSourceAnchor, targetAnchor: newTargetAnchor });
+          }
+        }
+
         return { canvasObjects: next, connectors: nextConnectors, selectedObjectIds: nextSelectedObjectIds, objectGroups: nextGroups };
       });
     },
@@ -460,7 +506,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       set({ selectedObjectIds: new Set() });
     },
 
-    updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig>): void => {
+    updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig | TextVisualConfig | UMLVisualConfig>): void => {
       const existing = get().canvasObjects.get(id);
       if (!existing) return;
       pushHistory();
@@ -468,7 +514,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       const mergedConfig = { ...existing.visualConfig, ...config };
 
       // Enforce minimum dimensions for object types with width/height
-      if (existing.objectType === 'architecture-block' || existing.objectType === 'geometric') {
+      if (existing.objectType === 'architecture-block' || existing.objectType === 'geometric' || existing.objectType === 'text' || existing.objectType === 'uml') {
         const withDims = mergedConfig as { width: number; height: number };
         withDims.width = Math.max(withDims.width, MIN_OBJECT_WIDTH);
         withDims.height = Math.max(withDims.height, MIN_OBJECT_HEIGHT);
@@ -976,7 +1022,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
               end: { x: obj.end.x + dx, y: obj.end.y + dy },
             });
           } else {
-            // architecture-block and geometric
+            // architecture-block, geometric, text, uml
             next.set(id, {
               ...obj,
               position: { x: obj.position.x + dx, y: obj.position.y + dy },
@@ -985,6 +1031,116 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         }
         return { canvasObjects: next };
       });
+
+      // Recompute anchored endpoints for each moved non-line object
+      for (const id of idsToMove) {
+        const obj = get().canvasObjects.get(id);
+        if (obj && obj.objectType !== 'line') {
+          get().recomputeAnchoredEndpoints(id);
+        }
+      }
+    },
+
+    // --- Text editing ---
+    editingTextId: null as string | null,
+
+    setEditingTextId: (id: string | null): void => {
+      set({ editingTextId: id });
+    },
+
+    updateTextContent: (id: string, content: string): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing || existing.objectType !== 'text') return;
+
+      // If content is empty or whitespace-only, auto-remove the text object
+      if (!content || content.trim() === '') {
+        get().removeCanvasObject(id);
+        return;
+      }
+
+      pushHistory();
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...existing, content } as import('@/types/diagram').TextObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    // --- Anchor management ---
+
+    updateLineAnchors: (lineId: string, anchors: { sourceAnchor?: AnchorRef | null; targetAnchor?: AnchorRef | null }): void => {
+      const existing = get().canvasObjects.get(lineId);
+      if (!existing || existing.objectType !== 'line') return;
+      pushHistory();
+
+      const updated: LineObject = { ...existing };
+      if ('sourceAnchor' in anchors) {
+        updated.sourceAnchor = anchors.sourceAnchor ?? null;
+      }
+      if ('targetAnchor' in anchors) {
+        updated.targetAnchor = anchors.targetAnchor ?? null;
+      }
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(lineId, updated);
+        return { canvasObjects: next };
+      });
+    },
+
+    recomputeAnchoredEndpoints: (movedObjectId: string): void => {
+      const { canvasObjects } = get();
+      const movedObj = canvasObjects.get(movedObjectId);
+      if (!movedObj) return;
+
+      const movedBounds = getObjectBounds(movedObj);
+      const updates = new Map<string, LineObject>();
+
+      for (const obj of canvasObjects.values()) {
+        if (obj.objectType !== 'line') continue;
+        const line = obj as LineObject;
+        let updated = false;
+        let newStart = line.start;
+        let newEnd = line.end;
+
+        if (line.sourceAnchor?.objectId === movedObjectId) {
+          newStart = rayRectIntersection(movedBounds, line.end);
+          updated = true;
+        }
+        if (line.targetAnchor?.objectId === movedObjectId) {
+          newEnd = rayRectIntersection(movedBounds, line.start);
+          updated = true;
+        }
+
+        if (updated) {
+          // If both anchors reference the moved object, recompute with updated counterparts
+          if (line.sourceAnchor?.objectId === movedObjectId && line.targetAnchor?.objectId === movedObjectId) {
+            const midStart = rayRectIntersection(movedBounds, newEnd);
+            const midEnd = rayRectIntersection(movedBounds, newStart);
+            newStart = midStart;
+            newEnd = midEnd;
+          }
+          updates.set(line.id, { ...line, start: newStart, end: newEnd });
+        }
+      }
+
+      if (updates.size === 0) return;
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        for (const [id, updated] of updates) {
+          next.set(id, updated);
+        }
+        return { canvasObjects: next };
+      });
+    },
+
+    // --- Pull-to-connect state ---
+
+    pullConnectState: null as { sourceObjectId: string; sourceAnchorPoint: Point } | null,
+
+    setPullConnectState: (state: { sourceObjectId: string; sourceAnchorPoint: Point } | null): void => {
+      set({ pullConnectState: state });
     },
 
     // --- Connector state ---
@@ -1208,9 +1364,22 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           base.startY = obj.start.y;
           base.endX = obj.end.x;
           base.endY = obj.end.y;
+          base.sourceAnchorObjectId = obj.sourceAnchor ? obj.sourceAnchor.objectId : null;
+          base.targetAnchorObjectId = obj.targetAnchor ? obj.targetAnchor.objectId : null;
         } else if (obj.objectType === 'geometric') {
           base.x = obj.position.x;
           base.y = obj.position.y;
+        } else if (obj.objectType === 'text') {
+          base.x = obj.position.x;
+          base.y = obj.position.y;
+          base.content = obj.content;
+        } else if (obj.objectType === 'uml') {
+          base.x = obj.position.x;
+          base.y = obj.position.y;
+          base.umlKind = obj.umlKind;
+          if (obj.classData) {
+            base.classData = { ...obj.classData, attributes: [...obj.classData.attributes], methods: [...obj.classData.methods] };
+          }
         }
 
         return base;
@@ -1223,7 +1392,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       }));
 
       return {
-        version: 2,
+        version: CURRENT_DIAGRAM_VERSION,
         projectName,
         environments: environments.map((e) => ({ ...e, variables: { ...e.variables } })),
         elements: Array.from(elements.values()).map((el) => ({
@@ -1270,9 +1439,23 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
       // Deserialize canvasObjects
       const canvasObjectsMap = new Map<string, CanvasObject>();
+      const isV2 = state.version === 2;
+
+      // Valid geometric shapes for fallback
+      const VALID_GEOMETRIC_SHAPES: Set<string> = new Set([
+        'rectangle', 'rounded-rectangle', 'ellipse', 'circle',
+        'triangle', 'diamond', 'parallelogram', 'trapezoid',
+        'hexagon', 'octagon', 'pentagon', 'star', 'cross',
+        'arrow-right', 'arrow-left', 'arrow-up', 'arrow-down',
+        'chevron', 'cylinder', 'cloud', 'callout',
+        'document', 'process', 'decision', 'data', 'predefined-process',
+      ]);
+
+      const VALID_UML_KINDS: Set<string> = new Set([
+        'class', 'interface', 'actor', 'use-case', 'component', 'package', 'node',
+      ]);
 
       if (state.canvasObjects && state.canvasObjects.length > 0) {
-        // v2 format: deserialize canvasObjects from the serialized array
         for (let i = 0; i < state.canvasObjects.length; i++) {
           const sObj = state.canvasObjects[i];
           const zIndex = (sObj as unknown as Record<string, unknown>).zIndex as number ?? i;
@@ -1297,12 +1480,21 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             };
             canvasObjectsMap.set(obj.id, obj);
           } else if (sObj.objectType === 'line') {
+            // v2→v3 migration: lines without anchor fields get null anchors
+            const sourceAnchor: AnchorRef | null = sObj.sourceAnchorObjectId
+              ? { objectId: sObj.sourceAnchorObjectId }
+              : null;
+            const targetAnchor: AnchorRef | null = sObj.targetAnchorObjectId
+              ? { objectId: sObj.targetAnchorObjectId }
+              : null;
             const obj: LineObject = {
               id: sObj.id,
               objectType: 'line',
               name: sObj.name,
               start: { x: sObj.startX ?? 0, y: sObj.startY ?? 0 },
               end: { x: sObj.endX ?? 0, y: sObj.endY ?? 0 },
+              sourceAnchor,
+              targetAnchor,
               visualConfig: {
                 color: (sObj.visualConfig.color as string) ?? DEFAULT_LINE_VISUAL.color,
                 borderWidth: (sObj.visualConfig.borderWidth as number) ?? DEFAULT_LINE_VISUAL.borderWidth,
@@ -1315,6 +1507,9 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             };
             canvasObjectsMap.set(obj.id, obj);
           } else if (sObj.objectType === 'geometric') {
+            // Validate shape, fall back to rectangle for unknown shapes
+            const rawShape = (sObj.visualConfig.shape as string) ?? DEFAULT_GEO_VISUAL.shape;
+            const shape = VALID_GEOMETRIC_SHAPES.has(rawShape) ? rawShape as GeometricShape : 'rectangle';
             const obj: GeometricObject = {
               id: sObj.id,
               objectType: 'geometric',
@@ -1327,12 +1522,58 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
                 fillColor: (sObj.visualConfig.fillColor as string) ?? DEFAULT_GEO_VISUAL.fillColor,
                 borderColor: (sObj.visualConfig.borderColor as string) ?? DEFAULT_GEO_VISUAL.borderColor,
                 borderWidth: (sObj.visualConfig.borderWidth as number) ?? DEFAULT_GEO_VISUAL.borderWidth,
-                shape: (sObj.visualConfig.shape as 'rectangle' | 'ellipse') ?? DEFAULT_GEO_VISUAL.shape,
+                shape,
               },
               zIndex,
               ...(groupId !== undefined && { groupId }),
             };
             canvasObjectsMap.set(obj.id, obj);
+          } else if (sObj.objectType === 'text') {
+            const obj: TextObject = {
+              id: sObj.id,
+              objectType: 'text',
+              name: sObj.name,
+              position: { x: sObj.x ?? 0, y: sObj.y ?? 0 },
+              content: sObj.content ?? '',
+              visualConfig: {
+                width: (sObj.visualConfig.width as number) ?? DEFAULT_TEXT_VISUAL.width,
+                height: (sObj.visualConfig.height as number) ?? DEFAULT_TEXT_VISUAL.height,
+                fontSize: (sObj.visualConfig.fontSize as number) ?? DEFAULT_TEXT_VISUAL.fontSize,
+                fontColor: (sObj.visualConfig.fontColor as string) ?? DEFAULT_TEXT_VISUAL.fontColor,
+                textAlign: (sObj.visualConfig.textAlign as 'left' | 'center' | 'right') ?? DEFAULT_TEXT_VISUAL.textAlign,
+                bold: (sObj.visualConfig.bold as boolean) ?? DEFAULT_TEXT_VISUAL.bold,
+                italic: (sObj.visualConfig.italic as boolean) ?? DEFAULT_TEXT_VISUAL.italic,
+              },
+              zIndex,
+              ...(groupId !== undefined && { groupId }),
+            };
+            canvasObjectsMap.set(obj.id, obj);
+          } else if (sObj.objectType === 'uml') {
+            // Validate umlKind, fall back to 'class' for unknown kinds (renders as generic rectangle)
+            const rawKind = sObj.umlKind as string | undefined;
+            const umlKind: UMLKind = (rawKind && VALID_UML_KINDS.has(rawKind)) ? rawKind as UMLKind : 'class';
+            const obj: UMLObject = {
+              id: sObj.id,
+              objectType: 'uml',
+              name: sObj.name,
+              position: { x: sObj.x ?? 0, y: sObj.y ?? 0 },
+              umlKind,
+              classData: sObj.classData ? { ...sObj.classData, attributes: [...sObj.classData.attributes], methods: [...sObj.classData.methods] } : undefined,
+              visualConfig: {
+                width: (sObj.visualConfig.width as number) ?? DEFAULT_UML_VISUAL.width,
+                height: (sObj.visualConfig.height as number) ?? DEFAULT_UML_VISUAL.height,
+                fillColor: (sObj.visualConfig.fillColor as string) ?? DEFAULT_UML_VISUAL.fillColor,
+                borderColor: (sObj.visualConfig.borderColor as string) ?? DEFAULT_UML_VISUAL.borderColor,
+                borderWidth: (sObj.visualConfig.borderWidth as number) ?? DEFAULT_UML_VISUAL.borderWidth,
+                headerColor: (sObj.visualConfig.headerColor as string) ?? DEFAULT_UML_VISUAL.headerColor,
+              },
+              zIndex,
+              ...(groupId !== undefined && { groupId }),
+            };
+            canvasObjectsMap.set(obj.id, obj);
+          } else {
+            // Unknown objectType: skip with warning
+            console.warn(`Unknown objectType "${sObj.objectType}" for object "${sObj.id}", skipping.`);
           }
         }
       } else if (!state.version || state.version === 1) {

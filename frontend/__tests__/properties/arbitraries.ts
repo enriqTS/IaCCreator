@@ -11,13 +11,21 @@ import type {
   ArchitectureBlock,
   LineObject,
   GeometricObject,
+  TextObject,
+  UMLObject,
   GeometricShape,
+  UMLKind,
   StrokeStyle,
+  AnchorRef,
+  UMLClassData,
 } from '@/types/diagram';
 import {
   DEFAULT_BLOCK_VISUAL,
   DEFAULT_LINE_VISUAL,
   DEFAULT_GEO_VISUAL,
+  DEFAULT_TEXT_VISUAL,
+  DEFAULT_UML_VISUAL,
+  DEFAULT_UML_CLASS_DATA,
 } from '@/types/diagram';
 import { getDefaultVariables } from '@/types/terraform-variables';
 
@@ -238,10 +246,17 @@ export function operationArbitrary(elementIds: string[], connectorIds: string[])
 // --- Canvas Object Arbitraries ---
 
 /**
- * Generates a random GeometricShape.
+ * Generates a random GeometricShape from all 26 variants.
  */
 export function geometricShapeArbitrary(): fc.Arbitrary<GeometricShape> {
-  return fc.constantFrom('rectangle', 'ellipse');
+  return fc.constantFrom(
+    'rectangle', 'rounded-rectangle', 'ellipse', 'circle',
+    'triangle', 'diamond', 'parallelogram', 'trapezoid',
+    'hexagon', 'octagon', 'pentagon', 'star', 'cross',
+    'arrow-right', 'arrow-left', 'arrow-up', 'arrow-down',
+    'chevron', 'cylinder', 'cloud', 'callout',
+    'document', 'process', 'decision', 'data', 'predefined-process',
+  );
 }
 
 /**
@@ -252,14 +267,16 @@ export function strokeStyleArbitrary(): fc.Arbitrary<StrokeStyle> {
 }
 
 /**
- * Generates a random canvas object creation payload (without id) for any of the three types.
- * Uses fc.oneof to randomly pick between architecture-block, line, and geometric.
+ * Generates a random canvas object creation payload (without id) for any of the five types.
+ * Uses fc.oneof to randomly pick between architecture-block, line, geometric, text, and uml.
  */
 export function canvasObjectWithoutIdArbitrary(): fc.Arbitrary<CanvasObjectCreationPayload> {
   return fc.oneof(
     architectureBlockWithoutIdArbitrary(),
     lineObjectWithoutIdArbitrary(),
     geometricObjectWithoutIdArbitrary(),
+    textObjectWithoutIdArbitrary(),
+    umlObjectWithoutIdArbitrary(),
   );
 }
 
@@ -282,6 +299,7 @@ export function architectureBlockWithoutIdArbitrary(): fc.Arbitrary<Omit<Archite
 
 /**
  * Generates a random LineObject creation payload (without id).
+ * Includes sourceAnchor and targetAnchor fields (null by default).
  */
 export function lineObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<LineObject, 'id' | 'zIndex'>> {
   return fc.record({
@@ -289,18 +307,85 @@ export function lineObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<LineObject, 'i
     name: fc.string({ minLength: 1, maxLength: 30 }),
     start: pointArbitrary(),
     end: pointArbitrary(),
+    sourceAnchor: fc.constant(null as AnchorRef | null),
+    targetAnchor: fc.constant(null as AnchorRef | null),
     visualConfig: fc.constant({ ...DEFAULT_LINE_VISUAL }),
   });
 }
 
 /**
  * Generates a random GeometricObject creation payload (without id).
+ * Uses all 26 shape variants.
  */
 export function geometricObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<GeometricObject, 'id' | 'zIndex'>> {
+  return geometricShapeArbitrary().chain((shape) =>
+    fc.record({
+      objectType: fc.constant('geometric' as const),
+      name: fc.string({ minLength: 1, maxLength: 30 }),
+      position: pointArbitrary(),
+      visualConfig: fc.constant({ ...DEFAULT_GEO_VISUAL, shape }),
+    })
+  );
+}
+
+/**
+ * Generates a random AnchorRef (reference to another object by ID).
+ */
+export function anchorRefArbitrary(): fc.Arbitrary<AnchorRef> {
   return fc.record({
-    objectType: fc.constant('geometric' as const),
+    objectId: fc.uuid(),
+  });
+}
+
+/**
+ * Generates a random TextObject creation payload (without id).
+ */
+export function textObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<TextObject, 'id' | 'zIndex'>> {
+  return fc.record({
+    objectType: fc.constant('text' as const),
     name: fc.string({ minLength: 1, maxLength: 30 }),
     position: pointArbitrary(),
-    visualConfig: fc.constant({ ...DEFAULT_GEO_VISUAL }),
+    content: fc.string({ minLength: 0, maxLength: 200 }),
+    visualConfig: fc.constant({ ...DEFAULT_TEXT_VISUAL }),
+  });
+}
+
+/**
+ * Generates a random UMLKind.
+ */
+export function umlKindArbitrary(): fc.Arbitrary<UMLKind> {
+  return fc.constantFrom('class', 'interface', 'actor', 'use-case', 'component', 'package', 'node');
+}
+
+/**
+ * Generates random UMLClassData.
+ */
+export function umlClassDataArbitrary(): fc.Arbitrary<UMLClassData> {
+  return fc.record({
+    stereotype: fc.option(fc.string({ minLength: 1, maxLength: 30 }), { nil: undefined }),
+    attributes: fc.array(fc.string({ minLength: 1, maxLength: 50 }), { minLength: 0, maxLength: 5 }),
+    methods: fc.array(fc.string({ minLength: 1, maxLength: 50 }), { minLength: 0, maxLength: 5 }),
+  });
+}
+
+/**
+ * Generates a random UMLObject creation payload (without id).
+ */
+export function umlObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<UMLObject, 'id' | 'zIndex'>> {
+  return umlKindArbitrary().chain((umlKind) => {
+    const classDataArb = (umlKind === 'class' || umlKind === 'interface')
+      ? umlClassDataArbitrary().map((cd) => cd as UMLClassData | undefined)
+      : fc.constant(undefined as UMLClassData | undefined);
+
+    return classDataArb.chain((classData) =>
+      fc.record({
+        objectType: fc.constant('uml' as const),
+        name: fc.string({ minLength: 1, maxLength: 30 }),
+        position: pointArbitrary(),
+        umlKind: fc.constant(umlKind),
+        classData: fc.constant(classData),
+        visualConfig: fc.constant({ ...DEFAULT_UML_VISUAL }),
+      })
+    );
   });
 }

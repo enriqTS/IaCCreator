@@ -4,6 +4,8 @@ import {
   DEFAULT_BLOCK_VISUAL,
   DEFAULT_LINE_VISUAL,
   DEFAULT_GEO_VISUAL,
+  DEFAULT_TEXT_VISUAL,
+  DEFAULT_UML_VISUAL,
 } from '@/types/diagram';
 import {
   architectureBlockWithoutIdArbitrary,
@@ -94,7 +96,8 @@ describe('Property 3: New objects receive default visual config', () => {
           expect(stored).toBeDefined();
           expect(stored!.objectType).toBe('geometric');
           if (stored!.objectType === 'geometric') {
-            expect(stored!.visualConfig).toEqual(DEFAULT_GEO_VISUAL);
+            // The shape may vary based on the arbitrary, so compare with the payload's shape
+            expect(stored!.visualConfig).toEqual({ ...DEFAULT_GEO_VISUAL, shape: geoWithoutId.visualConfig.shape });
           }
         }
       ),
@@ -122,7 +125,12 @@ describe('Property 3: New objects receive default visual config', () => {
           } else if (stored!.objectType === 'line') {
             expect(stored!.visualConfig).toEqual(DEFAULT_LINE_VISUAL);
           } else if (stored!.objectType === 'geometric') {
-            expect(stored!.visualConfig).toEqual(DEFAULT_GEO_VISUAL);
+            // Shape may vary based on the arbitrary
+            expect(stored!.visualConfig).toEqual({ ...DEFAULT_GEO_VISUAL, shape: (objWithoutId as { visualConfig: { shape: string } }).visualConfig.shape });
+          } else if (stored!.objectType === 'text') {
+            expect(stored!.visualConfig).toEqual(DEFAULT_TEXT_VISUAL);
+          } else if (stored!.objectType === 'uml') {
+            expect(stored!.visualConfig).toEqual(DEFAULT_UML_VISUAL);
           }
         }
       ),

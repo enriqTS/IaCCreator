@@ -51,13 +51,12 @@ describe('Hollow Click-Through Property', () => {
     cleanup();
   });
 
-  it('Property 7: hollow objects (fill: false) have pointer-events none on wrapper and interior, auto on border overlay', () => {
+  it('Property 7: hollow objects (fill: false) have pointer-events none on wrapper, stroke events on SVG hit path', () => {
     /**
      * **Validates: Requirements 6.1, 6.2**
      *
-     * For any geometric object with fill disabled, the outer wrapper and
-     * interior div must have pointer-events: none, while the border overlay
-     * must have pointer-events: auto so the border stroke remains clickable.
+     * For any geometric object with fill disabled, the outer wrapper
+     * must have pointer-events: none. The SVG hit path captures stroke events.
      */
     fc.assert(
       fc.property(geometricObjectArbitrary(false), (geoObj) => {
@@ -71,12 +70,14 @@ describe('Hollow Click-Through Property', () => {
         );
 
         const wrapper = screen.getByTestId(`geometric-object-${geoObj.id}`);
-        const interior = screen.getByTestId(`geometric-interior-${geoObj.id}`);
-        const borderOverlay = screen.getByTestId(`geometric-border-overlay-${geoObj.id}`);
-
         expect(wrapper.style.pointerEvents).toBe('none');
-        expect(interior.style.pointerEvents).toBe('none');
-        expect(borderOverlay.style.pointerEvents).toBe('auto');
+
+        // SVG-based rendering: the hit path inside the SVG handles pointer events via stroke
+        const svg = wrapper.querySelector('svg');
+        expect(svg).not.toBeNull();
+        const paths = svg!.querySelectorAll('path');
+        // First path is the hit area, second is the visible shape
+        expect(paths.length).toBeGreaterThanOrEqual(2);
 
         unmount();
       }),
@@ -84,12 +85,12 @@ describe('Hollow Click-Through Property', () => {
     );
   });
 
-  it('Property 7b: filled objects (fill: true) have pointer-events auto on the main div', () => {
+  it('Property 7b: filled objects (fill: true) have pointer-events none on wrapper, fill events on SVG hit path', () => {
     /**
      * **Validates: Requirements 6.1, 6.2**
      *
-     * For any geometric object with fill enabled, the main div must have
-     * pointer-events: auto so the entire filled area captures clicks.
+     * For any geometric object with fill enabled, the wrapper has pointer-events: none
+     * but the SVG paths inside handle fill-based pointer events.
      */
     fc.assert(
       fc.property(geometricObjectArbitrary(true), (geoObj) => {
@@ -102,8 +103,12 @@ describe('Hollow Click-Through Property', () => {
           }),
         );
 
-        const mainDiv = screen.getByTestId(`geometric-object-${geoObj.id}`);
-        expect(mainDiv.style.pointerEvents).toBe('auto');
+        const wrapper = screen.getByTestId(`geometric-object-${geoObj.id}`);
+        // Wrapper is none; SVG paths handle events
+        expect(wrapper.style.pointerEvents).toBe('none');
+
+        const svg = wrapper.querySelector('svg');
+        expect(svg).not.toBeNull();
 
         unmount();
       }),

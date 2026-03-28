@@ -8,9 +8,14 @@ import type {
   Point,
   ResourceConfig,
   ServiceType,
+  UMLClassData,
+  UMLKind,
   Viewport,
 } from './diagram';
 import type { GlobalTerraformConfig } from './terraform-variables';
+
+/** Current serialization format version. */
+export const CURRENT_DIAGRAM_VERSION = 3;
 
 /** Full diagram state for save/load to localStorage. */
 export interface DiagramState {
@@ -43,10 +48,20 @@ export interface SerializedCanvasObject {
   startY?: number;
   endX?: number;
   endY?: number;
+  // Line anchors (v3)
+  sourceAnchorObjectId?: string | null;
+  targetAnchorObjectId?: string | null;
+  // Architecture block
   serviceType?: ServiceType;
   config?: ResourceConfig;
-  visualConfig: Record<string, unknown>;
   terraformVariables?: Record<string, string | number | boolean>;
+  // Text (v3)
+  content?: string;
+  // UML (v3)
+  umlKind?: UMLKind;
+  classData?: UMLClassData;
+  // Visual
+  visualConfig: Record<string, unknown>;
   zIndex?: number;
   groupId?: string;
 }

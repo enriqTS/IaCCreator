@@ -1,18 +1,60 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import DiagramElementComponent from './DiagramElement';
 import ArchitectureBlockComponent from './ArchitectureBlockComponent';
 import LineObjectComponent from './LineObjectComponent';
 import GeometricObjectComponent from './GeometricObjectComponent';
+import TextObjectComponent from './TextObjectComponent';
+import UMLObjectComponent from './UMLObjectComponent';
 import ResizeHandles from './ResizeHandles';
 import GroupBoundingBox from './GroupBoundingBox';
+import AnchorIndicators from './AnchorIndicators';
+import { getObjectBounds } from '@/types/diagram';
 
 export default function ElementLayer() {
   const elements = useDiagramStore((s) => s.elements);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const objectGroups = useDiagramStore((s) => s.objectGroups);
+  const activeTool = useDiagramStore((s) => s.activeTool);
+
+  const [hoveredObjectId, setHoveredObjectId] = useState<string | null>(null);
+
+  // Track hover via event delegation on the container
+  const handleMouseOver = useCallback((e: React.MouseEvent) => {
+    let target = e.target as HTMLElement | null;
+    while (target && target !== e.currentTarget) {
+      const objectId = target.getAttribute('data-object-id');
+      if (objectId) {
+        setHoveredObjectId(objectId);
+        return;
+      }
+      target = target.parentElement;
+    }
+  }, []);
+
+  const handleMouseOut = useCallback((e: React.MouseEvent) => {
+    // Check if we're leaving a data-object-id element
+    let target = e.target as HTMLElement | null;
+    while (target && target !== e.currentTarget) {
+      const objectId = target.getAttribute('data-object-id');
+      if (objectId) {
+        // Only clear if the relatedTarget is not within the same object
+        let related = e.relatedTarget as HTMLElement | null;
+        while (related && related !== e.currentTarget) {
+          if (related.getAttribute('data-object-id') === objectId) {
+            return; // Still within the same object
+          }
+          related = related.parentElement;
+        }
+        setHoveredObjectId((prev) => (prev === objectId ? null : prev));
+        return;
+      }
+      target = target.parentElement;
+    }
+  }, []);
 
   const canvasObjectsArray = Array.from(canvasObjects.values()).sort((a, b) => a.zIndex - b.zIndex);
   const lineObjects = canvasObjectsArray.filter((obj) => obj.objectType === 'line');
@@ -25,6 +67,8 @@ export default function ElementLayer() {
 
   return (
     <div
+      onMouseOver={handleMouseOver}
+      onMouseOut={handleMouseOut}
       style={{
         position: 'absolute',
         inset: 0,
@@ -57,8 +101,41 @@ export default function ElementLayer() {
             />
           );
         }
+        if (obj.objectType === 'text') {
+          return (
+            <TextObjectComponent
+              key={obj.id}
+              object={obj}
+              isSelected={isSelected}
+            />
+          );
+        }
+        if (obj.objectType === 'uml') {
+          return (
+            <UMLObjectComponent
+              key={obj.id}
+              object={obj}
+              isSelected={isSelected}
+            />
+          );
+        }
         return null;
       })}
+
+      {/* Anchor indicators on hovered non-line objects (pointer tool only, not locked) */}
+      {activeTool === 'pointer' && hoveredObjectId && (() => {
+        const hoveredObj = canvasObjects.get(hoveredObjectId);
+        if (hoveredObj && hoveredObj.objectType !== 'line' && !hoveredObj.locked) {
+          return (
+            <AnchorIndicators
+              objectId={hoveredObj.id}
+              bounds={getObjectBounds(hoveredObj)}
+              locked={hoveredObj.locked}
+            />
+          );
+        }
+        return null;
+      })()}
 
       {/* SVG overlay layer for line objects */}
       {lineObjects.length > 0 && (

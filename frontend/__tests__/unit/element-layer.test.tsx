@@ -39,6 +39,8 @@ function makeLine(id: string, zIndex: number): LineObject {
     name: `line-${id}`,
     start: { x: 0, y: 0 },
     end: { x: 100, y: 100 },
+    sourceAnchor: null,
+    targetAnchor: null,
     visualConfig: {
       color: '#ffffff', borderWidth: 2,
       strokeStyle: 'solid', startArrow: false, endArrow: false,
@@ -108,13 +110,16 @@ describe('ElementLayer', () => {
     // b1 and g1 are selected — they should have the selection border
     const blockEl1 = screen.getByTestId('architecture-block-b1');
     expect(blockEl1.style.border).toContain('rgba(59, 130, 246, 0.8)');
-    // For hollow geometric objects, the selection border is on the interior child div
-    const geoInterior = screen.getByTestId('geometric-interior-g1');
-    expect(geoInterior.style.border).toContain('rgba(59, 130, 246, 0.8)');
+    // For geometric objects using SVG path rendering, the selection stroke is on the visible path
+    const geoEl = screen.getByTestId('geometric-object-g1');
+    const svgPaths = geoEl.querySelectorAll('svg path');
+    // The second path is the visible shape — its stroke should be the selection color
+    expect(svgPaths.length).toBeGreaterThanOrEqual(2);
+    expect(svgPaths[1].getAttribute('stroke')).toBe('rgba(59, 130, 246, 0.8)');
 
     // b2 is not selected
     const blockEl2 = screen.getByTestId('architecture-block-b2');
-    expect(blockEl2.style.border).toContain('rgba(255, 255, 255, 0.1)');
+    expect(blockEl2.style.border).toContain('transparent');
   });
 
   it('renders with no objects without errors', () => {

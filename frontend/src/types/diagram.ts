@@ -41,8 +41,10 @@ export type Tool =
   | 'pointer'
   | 'connector'
   | 'line'
+  | 'text'
   | { type: 'place-service'; serviceType: ServiceType }
-  | { type: 'place-shape'; shape: GeometricShape };
+  | { type: 'place-shape'; shape: GeometricShape }
+  | { type: 'place-uml'; umlKind: UMLKind };
 
 /** Service-specific configuration for a resource instance. Mirrors the backend ResourceConfig Pydantic schema. */
 export interface ResourceConfig {
@@ -73,9 +75,52 @@ export interface EnvironmentConfig {
 
 // --- Canvas Object Type System ---
 
-export type CanvasObjectType = 'architecture-block' | 'line' | 'geometric';
-export type GeometricShape = 'rectangle' | 'ellipse';
+export type CanvasObjectType = 'architecture-block' | 'line' | 'geometric' | 'text' | 'uml';
+
+export type GeometricShape =
+  | 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'circle'
+  | 'triangle' | 'diamond' | 'parallelogram' | 'trapezoid'
+  | 'hexagon' | 'octagon' | 'pentagon' | 'star' | 'cross'
+  | 'arrow-right' | 'arrow-left' | 'arrow-up' | 'arrow-down'
+  | 'chevron' | 'cylinder' | 'cloud' | 'callout'
+  | 'document' | 'process' | 'decision' | 'data' | 'predefined-process';
+
+export type UMLKind = 'class' | 'interface' | 'actor' | 'use-case' | 'component' | 'package' | 'node';
+
 export type StrokeStyle = 'solid' | 'dashed';
+
+// Connection anchor reference
+export interface AnchorRef {
+  objectId: string;
+}
+
+// Text visual config
+export interface TextVisualConfig {
+  width: number;
+  height: number;
+  fontSize: number;
+  fontColor: string;
+  textAlign: 'left' | 'center' | 'right';
+  bold: boolean;
+  italic: boolean;
+}
+
+// UML visual config
+export interface UMLVisualConfig {
+  width: number;
+  height: number;
+  fillColor: string;
+  borderColor: string;
+  borderWidth: number;
+  headerColor: string;
+}
+
+// UML compartment data
+export interface UMLClassData {
+  stereotype?: string;
+  attributes: string[];
+  methods: string[];
+}
 
 // Visual config per object type
 export interface ArchitectureBlockVisualConfig {
@@ -122,6 +167,8 @@ export interface LineObject {
   name: string;
   start: Point;
   end: Point;
+  sourceAnchor: AnchorRef | null;
+  targetAnchor: AnchorRef | null;
   visualConfig: LineVisualConfig;
   zIndex: number;
   groupId?: string;
@@ -134,6 +181,31 @@ export interface GeometricObject {
   name: string;
   position: Point;
   visualConfig: GeometricVisualConfig;
+  zIndex: number;
+  groupId?: string;
+  locked?: boolean;
+}
+
+export interface TextObject {
+  id: string;
+  objectType: 'text';
+  name: string;
+  position: Point;
+  content: string;
+  visualConfig: TextVisualConfig;
+  zIndex: number;
+  groupId?: string;
+  locked?: boolean;
+}
+
+export interface UMLObject {
+  id: string;
+  objectType: 'uml';
+  name: string;
+  position: Point;
+  umlKind: UMLKind;
+  classData?: UMLClassData;
+  visualConfig: UMLVisualConfig;
   zIndex: number;
   groupId?: string;
   locked?: boolean;
@@ -154,13 +226,15 @@ export interface Rect {
   height: number;
 }
 
-export type CanvasObject = ArchitectureBlock | LineObject | GeometricObject;
+export type CanvasObject = ArchitectureBlock | LineObject | GeometricObject | TextObject | UMLObject;
 
 /** Distributive Omit that works correctly with discriminated unions */
 export type CanvasObjectCreationPayload =
   | Omit<ArchitectureBlock, 'id' | 'zIndex'>
   | Omit<LineObject, 'id' | 'zIndex'>
-  | Omit<GeometricObject, 'id' | 'zIndex'>;
+  | Omit<GeometricObject, 'id' | 'zIndex'>
+  | Omit<TextObject, 'id' | 'zIndex'>
+  | Omit<UMLObject, 'id' | 'zIndex'>;
 
 // Dimension constraints
 export const MIN_OBJECT_WIDTH = 40;
@@ -190,6 +264,30 @@ export const DEFAULT_GEO_VISUAL: GeometricVisualConfig = {
   shape: 'rectangle',
 };
 
+export const DEFAULT_TEXT_VISUAL: TextVisualConfig = {
+  width: 200,
+  height: 40,
+  fontSize: 14,
+  fontColor: '#ffffff',
+  textAlign: 'left',
+  bold: false,
+  italic: false,
+};
+
+export const DEFAULT_UML_VISUAL: UMLVisualConfig = {
+  width: 180,
+  height: 120,
+  fillColor: '#2a2a2a',
+  borderColor: '#ffffff',
+  borderWidth: 2,
+  headerColor: '#3b82f6',
+};
+
+export const DEFAULT_UML_CLASS_DATA: UMLClassData = {
+  attributes: [],
+  methods: [],
+};
+
 /** Compute the axis-aligned bounding box for any CanvasObject. */
 export function getObjectBounds(obj: CanvasObject): Rect {
   if (obj.objectType === 'line') {
@@ -202,7 +300,7 @@ export function getObjectBounds(obj: CanvasObject): Rect {
       height: Math.abs(obj.end.y - obj.start.y),
     };
   }
-  // architecture-block and geometric: position is center
+  // architecture-block, geometric, text, and uml: position is center
   const vc = obj.visualConfig as { width: number; height: number };
   return {
     x: obj.position.x - vc.width / 2,

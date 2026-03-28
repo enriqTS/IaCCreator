@@ -422,9 +422,9 @@ describe('DiagramStore - serializeDiagramState', () => {
     });
   });
 
-  it('returns DiagramState with version 2', () => {
+  it('returns DiagramState with version 3', () => {
     const state = useDiagramStore.getState().serializeDiagramState();
-    expect(state.version).toBe(2);
+    expect(state.version).toBe(3);
   });
 
   it('serializes empty diagram correctly', () => {
@@ -1033,6 +1033,8 @@ describe('DiagramStore - moveSelectedObjects', () => {
       name: 'line-1',
       start: { x: 10, y: 20 },
       end: { x: 100, y: 200 },
+      sourceAnchor: null,
+      targetAnchor: null,
       visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
     });
     useDiagramStore.getState().selectObject(id);

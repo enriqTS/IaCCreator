@@ -4,6 +4,8 @@ import type { CanvasObject } from '@/types/diagram';
 import BlockVisualConfig from './BlockVisualConfig';
 import LineVisualConfig from './LineVisualConfig';
 import GeoVisualConfig from './GeoVisualConfig';
+import TextVisualConfigPanel from './TextVisualConfigPanel';
+import UMLConfigPanel from './UMLConfigPanel';
 
 interface VisualTabProps {
   object: CanvasObject;
@@ -18,6 +20,10 @@ export default function VisualTab({ object }: VisualTabProps) {
       return <LineVisualConfig object={object} />;
     case 'geometric':
       return <GeoVisualConfig object={object} />;
+    case 'text':
+      return <TextVisualConfigPanel object={object} />;
+    case 'uml':
+      return <UMLConfigPanel object={object} />;
     default:
       return null;
   }

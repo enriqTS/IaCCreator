@@ -3,7 +3,7 @@
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { Button } from '@/components/ui/button';
-import AWSServicePicker from './AWSServicePicker';
+import ObjectPickerMenu from './ObjectPickerMenu';
 
 export default function Toolbar() {
   const activeTool = useDiagramStore((s) => s.activeTool);
@@ -25,6 +25,7 @@ export default function Toolbar() {
     typeof activeTool === 'object' &&
     activeTool.type === 'place-shape' &&
     activeTool.shape === 'ellipse';
+  const isText = activeTool === 'text';
 
   const positionStyle: React.CSSProperties =
     toolbarPosition === 'top'
@@ -92,6 +93,17 @@ export default function Toolbar() {
         ○
       </Button>
 
+      {/* Text tool */}
+      <Button
+        variant={isText ? 'secondary' : 'ghost'}
+        size="icon"
+        title="Text (T)"
+        onClick={() => setActiveTool('text')}
+        data-testid="tool-text"
+      >
+        T
+      </Button>
+
       {/* Separator */}
       <div
         style={{
@@ -132,8 +144,8 @@ export default function Toolbar() {
         }}
       />
 
-      {/* AWS Service Picker */}
-      <AWSServicePicker />
+      {/* Object Picker */}
+      <ObjectPickerMenu />
     </div>
   );
 }

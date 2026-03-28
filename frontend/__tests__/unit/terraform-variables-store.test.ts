@@ -98,6 +98,8 @@ describe('DiagramStore - setTerraformVariable', () => {
       name: 'line-1',
       start: { x: 0, y: 0 },
       end: { x: 100, y: 100 },
+      sourceAnchor: null,
+      targetAnchor: null,
       visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
     });
     // Should not throw

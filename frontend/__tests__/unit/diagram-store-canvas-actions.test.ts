@@ -34,6 +34,8 @@ function addLine(): string {
     name: 'line-1',
     start: { x: 0, y: 0 },
     end: { x: 100, y: 100 },
+    sourceAnchor: null,
+    targetAnchor: null,
     visualConfig: { ...DEFAULT_LINE_VISUAL },
   } as Omit<LineObject, 'id'>);
 }

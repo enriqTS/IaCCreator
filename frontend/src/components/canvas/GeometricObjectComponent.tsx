@@ -2,6 +2,7 @@
 
 import { useRef, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
+import { SHAPE_PATH_REGISTRY } from '@/utils/shape-paths';
 import type { GeometricObject } from '@/types/diagram';
 
 interface GeometricObjectComponentProps {
@@ -18,13 +19,6 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
   const moveSelectedObjects = useDiagramStore((s) => s.moveSelectedObjects);
 
   const { width, height, fill, fillColor, borderColor, borderWidth, shape } = object.visualConfig;
-
-  const backgroundColor = fill ? fillColor : 'transparent';
-  const borderRadius = shape === 'ellipse' ? '50%' : '0px';
-
-  const borderStyle = isSelected
-    ? `${borderWidth}px solid rgba(59, 130, 246, 0.8)`
-    : `${borderWidth}px solid ${borderColor}`;
 
   const isDragging = useRef(false);
   const didDrag = useRef(false);
@@ -91,50 +85,12 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
     window.addEventListener('mouseup', handleMouseUp);
   }, [object.id, object.locked, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
 
-  // When filled, the entire area captures pointer events — single div is sufficient
-  if (fill) {
-    return (
-      <div
-        data-testid={`geometric-object-${object.id}`}
-        data-object-id={object.id}
-        onMouseDown={handleMouseDown}
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          transform: `translate(${object.position.x - width / 2}px, ${object.position.y - height / 2}px)`,
-          width: `${width}px`,
-          height: `${height}px`,
-          backgroundColor,
-          border: borderStyle,
-          borderRadius,
-          boxSizing: 'border-box',
-          pointerEvents: 'auto',
-          cursor: object.locked ? 'not-allowed' : 'grab',
-          userSelect: 'none',
-        }}
-      >
-        {object.locked && (
-          <span
-            data-testid={`lock-badge-${object.id}`}
-            style={{
-              position: 'absolute',
-              top: 2,
-              right: 2,
-              fontSize: '10px',
-              lineHeight: 1,
-              pointerEvents: 'none',
-            }}
-          >
-            🔒
-          </span>
-        )}
-      </div>
-    );
-  }
+  // Get SVG path from registry, fall back to rectangle
+  const pathFn = SHAPE_PATH_REGISTRY[shape] ?? SHAPE_PATH_REGISTRY['rectangle'];
+  const pathD = pathFn(width, height);
 
-  // Hollow (fill: false) — interior is transparent to pointer events,
-  // border-only overlay captures clicks with a minimum 8px hit area.
+  const strokeColor = isSelected ? 'rgba(59, 130, 246, 0.8)' : borderColor;
+  const fillValue = fill ? fillColor : 'transparent';
   const strokeHitWidth = Math.max(borderWidth, MIN_STROKE_HIT_WIDTH);
 
   return (
@@ -168,33 +124,31 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
           🔒
         </span>
       )}
-      {/* Visual interior — renders the visible border but does not capture events */}
-      <div
-        data-testid={`geometric-interior-${object.id}`}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: 'transparent',
-          border: borderStyle,
-          borderRadius,
-          boxSizing: 'border-box',
-          pointerEvents: 'none',
-        }}
-      />
-      {/* Border-only hit overlay — captures pointer events on the stroke area */}
-      <div
-        data-testid={`geometric-border-overlay-${object.id}`}
-        onMouseDown={handleMouseDown}
-        style={{
-          position: 'absolute',
-          inset: `-${strokeHitWidth / 2}px`,
-          borderRadius,
-          border: `${strokeHitWidth}px solid transparent`,
-          boxSizing: 'border-box',
-          pointerEvents: 'auto',
-          cursor: object.locked ? 'not-allowed' : 'grab',
-        }}
-      />
+      <svg
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        style={{ position: 'absolute', inset: 0, overflow: 'visible' }}
+      >
+        {/* Invisible wider hit area for easier clicking */}
+        <path
+          d={pathD}
+          fill={fill ? 'transparent' : 'none'}
+          stroke="transparent"
+          strokeWidth={strokeHitWidth}
+          onMouseDown={handleMouseDown}
+          style={{ pointerEvents: fill ? 'fill' : 'stroke', cursor: object.locked ? 'not-allowed' : 'grab' }}
+        />
+        {/* Visible shape */}
+        <path
+          d={pathD}
+          fill={fillValue}
+          stroke={strokeColor}
+          strokeWidth={borderWidth}
+          style={{ pointerEvents: fill ? 'auto' : 'none' }}
+          onMouseDown={fill ? handleMouseDown : undefined}
+        />
+      </svg>
     </div>
   );
 }

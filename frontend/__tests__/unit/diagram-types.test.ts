@@ -39,6 +39,8 @@ describe('getObjectBounds', () => {
       name: 'line-1',
       start: { x: 10, y: 20 },
       end: { x: 110, y: 80 },
+      sourceAnchor: null,
+      targetAnchor: null,
       visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
       zIndex: 2,
     };
@@ -53,6 +55,8 @@ describe('getObjectBounds', () => {
       name: 'line-2',
       start: { x: 200, y: 300 },
       end: { x: 50, y: 100 },
+      sourceAnchor: null,
+      targetAnchor: null,
       visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
       zIndex: 0,
     };
@@ -67,6 +71,8 @@ describe('getObjectBounds', () => {
       name: 'line-3',
       start: { x: 50, y: 50 },
       end: { x: 50, y: 50 },
+      sourceAnchor: null,
+      targetAnchor: null,
       visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
       zIndex: 0,
     };
@@ -117,6 +123,8 @@ describe('Type structure validation', () => {
       name: 'test',
       start: { x: 0, y: 0 },
       end: { x: 10, y: 10 },
+      sourceAnchor: null,
+      targetAnchor: null,
       visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
       zIndex: 3,
     };

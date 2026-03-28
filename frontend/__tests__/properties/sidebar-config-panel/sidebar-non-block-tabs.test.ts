@@ -11,6 +11,8 @@ describe('Property 12: Non-architecture-block tab set', () => {
     name: fc.string({ minLength: 0, maxLength: 30 }),
     start: fc.record({ x: fc.integer(), y: fc.integer() }),
     end: fc.record({ x: fc.integer(), y: fc.integer() }),
+    sourceAnchor: fc.constant(null),
+    targetAnchor: fc.constant(null),
     visualConfig: fc.record({
       color: fc.constant('#ffffff'),
       borderWidth: fc.integer({ min: 1, max: 10 }),

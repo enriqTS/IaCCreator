@@ -76,7 +76,7 @@ describe('ArchitectureBlockComponent', () => {
     render(<ArchitectureBlockComponent block={block} isSelected={false} />);
 
     const el = screen.getByTestId('architecture-block-block-1');
-    expect(el.style.border).toContain('rgba(255, 255, 255, 0.1)');
+    expect(el.style.border).toContain('transparent');
   });
 
   it('centers icon and label within the block', () => {

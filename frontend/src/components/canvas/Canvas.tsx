@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas, canvasToScreen } from '@/utils/viewport';
-import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
+import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL, DEFAULT_TEXT_VISUAL, DEFAULT_UML_VISUAL, DEFAULT_UML_CLASS_DATA } from '@/types/diagram';
 import type { Point } from '@/types/diagram';
 import CanvasBackground from './CanvasBackground';
 import ElementLayer from './ElementLayer';
@@ -13,6 +13,7 @@ import MarqueeSelection from './MarqueeSelection';
 import CanvasObjectContextMenu from './CanvasObjectContextMenu';
 import CanvasContextMenu from './CanvasContextMenu';
 import InlineRenameOverlay from './InlineRenameOverlay';
+import PullToConnectOverlay from './PullToConnectOverlay';
 
 type ContextMenuState =
   | { type: 'object'; objectId: string; x: number; y: number }
@@ -48,6 +49,7 @@ export default function Canvas() {
   const setActiveTool = useDiagramStore((s) => s.setActiveTool);
   const activeTool = useDiagramStore((s) => s.activeTool);
   const viewport = useDiagramStore((s) => s.viewport);
+  const setEditingTextId = useDiagramStore((s) => s.setEditingTextId);
 
   // Reset line placement state when tool changes away from 'line'
   useEffect(() => {
@@ -105,6 +107,26 @@ export default function Canvas() {
             visualConfig: { ...DEFAULT_GEO_VISUAL, shape: tool.shape },
           });
         }
+        setActiveTool('pointer');
+        return;
+      }
+
+      if (typeof tool === 'object' && tool.type === 'place-uml') {
+        const umlPayload: Parameters<typeof addCanvasObject>[0] = {
+          objectType: 'uml',
+          name: tool.umlKind.charAt(0).toUpperCase() + tool.umlKind.slice(1),
+          position: payload.canvasPosition,
+          umlKind: tool.umlKind,
+          visualConfig: { ...DEFAULT_UML_VISUAL },
+        };
+        if (tool.umlKind === 'class' || tool.umlKind === 'interface') {
+          (umlPayload as Record<string, unknown>).classData = { ...DEFAULT_UML_CLASS_DATA };
+        }
+        if (payload.width > 0 && payload.height > 0) {
+          (umlPayload.visualConfig as Record<string, unknown>).width = payload.width;
+          (umlPayload.visualConfig as Record<string, unknown>).height = payload.height;
+        }
+        addCanvasObject(umlPayload);
         setActiveTool('pointer');
         return;
       }
@@ -170,6 +192,8 @@ export default function Canvas() {
               name: 'Line',
               start: lineStart,
               end: canvasPoint,
+              sourceAnchor: null,
+              targetAnchor: null,
               visualConfig: { ...DEFAULT_LINE_VISUAL },
             });
             setLineStart(null);
@@ -179,7 +203,7 @@ export default function Canvas() {
         }
 
         // Place-service and place-shape modes are now handled by DragSizingOverlay
-        if (typeof activeTool === 'object' && (activeTool.type === 'place-service' || activeTool.type === 'place-shape')) {
+        if (typeof activeTool === 'object' && (activeTool.type === 'place-service' || activeTool.type === 'place-shape' || activeTool.type === 'place-uml')) {
           return;
         }
 
@@ -300,6 +324,55 @@ export default function Canvas() {
     if (e.button === 1) e.preventDefault();
   }, []);
 
+  // Double-click handler for text creation (Task 11.1)
+  const handleDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      // Only handle double-click with pointer tool
+      const tool = useDiagramStore.getState().activeTool;
+      if (tool !== 'pointer') return;
+
+      // Check if double-click is on empty canvas (not on an existing object)
+      // Walk up from target to see if we hit a canvas object
+      let target = e.target as HTMLElement | null;
+      while (target && target !== e.currentTarget) {
+        if (target.getAttribute('data-object-id')) {
+          // Double-click on existing object — TextObjectComponent handles its own double-click for editing
+          return;
+        }
+        target = target.parentElement;
+      }
+
+      // Double-click on empty canvas: create a text object and enter editing mode
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      const vp = useDiagramStore.getState().viewport;
+      const canvasPoint = screenToCanvas(screenPoint, vp);
+
+      const store = useDiagramStore.getState();
+      store.addCanvasObject({
+        objectType: 'text',
+        name: 'Text',
+        position: canvasPoint,
+        content: '',
+        visualConfig: { ...DEFAULT_TEXT_VISUAL },
+      });
+
+      // Find the newly created text object (it will be the last one added)
+      const updatedObjects = useDiagramStore.getState().canvasObjects;
+      let newTextId: string | null = null;
+      for (const [id, obj] of updatedObjects) {
+        if (obj.objectType === 'text' && obj.position.x === canvasPoint.x && obj.position.y === canvasPoint.y) {
+          newTextId = id;
+        }
+      }
+      if (newTextId) {
+        useDiagramStore.getState().setEditingTextId(newTextId);
+      }
+    },
+    [],
+  );
+
   // Right-click context menu for canvas objects
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
@@ -341,6 +414,8 @@ export default function Canvas() {
     cursor = 'crosshair';
   } else if (typeof activeTool === 'object' && activeTool.type === 'place-shape') {
     cursor = 'crosshair';
+  } else if (typeof activeTool === 'object' && activeTool.type === 'place-uml') {
+    cursor = 'crosshair';
   }
 
   // Compute preview line screen coordinates
@@ -359,6 +434,7 @@ export default function Canvas() {
       onMouseMove={handleMouseMove}
       onAuxClick={handleAuxClick}
       onContextMenu={handleContextMenu}
+      onDoubleClick={handleDoubleClick}
       style={{
         position: 'relative',
         width: '100%',
@@ -380,6 +456,7 @@ export default function Canvas() {
         }}
       >
         <ElementLayer />
+        <PullToConnectOverlay />
       </div>
 
       {/* Preview line while placing a line object */}
