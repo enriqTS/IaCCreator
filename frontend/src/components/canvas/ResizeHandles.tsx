@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
-import { findSnapAnchor } from '@/utils/anchor';
+import { findSnapAnchor, rayRectIntersection } from '@/utils/anchor';
 import { getObjectBounds } from '@/types/diagram';
 import type { CanvasObject, Point } from '@/types/diagram';
 
@@ -192,14 +192,31 @@ interface LineEndpointHandlesProps {
 }
 
 function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpointHandlesProps) {
+  const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const draggingRef = useRef<{
     endpoint: 'start' | 'end';
     origPoint: Point;
   } | null>(null);
 
-  // Use canvas coordinates directly (parent transform container handles viewport)
-  const canvasStart = object.start;
-  const canvasEnd = object.end;
+  // Resolve anchored endpoints so handles match the rendered line position
+  let canvasStart = object.start;
+  let canvasEnd = object.end;
+
+  if (object.sourceAnchor) {
+    const sourceObj = canvasObjects.get(object.sourceAnchor.objectId);
+    if (sourceObj) {
+      const bounds = getObjectBounds(sourceObj);
+      canvasStart = rayRectIntersection(bounds, canvasEnd);
+    }
+  }
+
+  if (object.targetAnchor) {
+    const targetObj = canvasObjects.get(object.targetAnchor.objectId);
+    if (targetObj) {
+      const bounds = getObjectBounds(targetObj);
+      canvasEnd = rayRectIntersection(bounds, canvasStart);
+    }
+  }
 
   // Inverse scale so handles remain a constant screen-pixel size
   const inverseScale = 1 / viewport.scale;
