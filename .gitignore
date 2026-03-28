@@ -1,4 +1,5 @@
-# Kiro
+# IDE / workspace
+.vscode/
 .kiro/
 
 # Python caches

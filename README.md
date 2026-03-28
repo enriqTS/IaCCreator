@@ -121,27 +121,44 @@ The diagram editor is a Next.js 16 (App Router) + Tailwind CSS single-page appli
 
 - Next.js 16 with React 19 and TypeScript
 - Zustand for state management
-- HTML5 Canvas for grid/connectors, DOM overlay for interactive service nodes
+- HTML5 Canvas for grid/connectors, DOM overlay for interactive service nodes and canvas objects
 - Vitest + fast-check for unit and property-based testing
 
 ### Features
 
 - Infinite pan/zoom canvas with dot grid background
 - Place AWS service nodes from a categorized picker (200+ services, 26 categories)
+- Place geometric shapes (26 types: rectangle, ellipse, diamond, hexagon, cylinder, cloud, flowchart shapes, etc.)
+- Place UML elements (class, interface, actor, use case, component, package, node)
+- Place text labels and freeform line/connector objects with anchor snapping
 - Draw directional connectors between services with arrowheads
+- Right-click context menus on canvas and objects (copy, paste, duplicate, rename, lock/unlock, group/ungroup, z-order, delete)
+- Marquee (box) selection for multi-object operations
+- Object resize handles with drag sizing
+- Inline rename overlay for quick object renaming
+- Object grouping and ungrouping
+- Object locking to prevent accidental edits
+- Z-order controls (bring to front/back, bring forward/backward)
 - Service-specific config panels (Lambda runtime/memory, DynamoDB keys, API Gateway protocol, etc.)
+- Visual config panels per object type (fill, border, stroke style, font, dimensions)
+- Global Terraform config panel (backend type, provider region/profile, version constraints)
+- Per-resource Terraform variables panel
+- Configurable layout: sidebar position (left/right), toolbar position (top/bottom) via Preferences dialog
+- Sidebar and bottom panel modes for the config/properties panel
 - Undo/redo with snapshot-based history (50 levels)
 - Save/load diagrams to server (persisted via anonymous session) with localStorage fallback
 - Export to Terraform via the backend API (downloads ZIP)
 - Project settings with multi-environment support
 - Keyboard shortcuts: Ctrl+Z/Ctrl+Shift+Z (undo/redo), Delete (remove selected), Escape (deselect)
+- Toast notifications for user feedback
 - Dark theme throughout
 
 ### Testing
 
-156 tests across 14 files covering:
-- 13 property-based tests (fast-check, 100+ iterations each) validating viewport math, element/connector operations, state consistency, undo/redo round-trips, and serialization
-- Unit tests for the Zustand store, viewport utilities, icon registry, storage, export, config forms, tool state, hamburger menu, and dialogs
+106 test files covering:
+- 79 property-based test files (fast-check) validating viewport math, element/connector operations, state consistency, undo/redo round-trips, serialization, canvas object CRUD, context menu actions, z-order, grouping, locking, marquee selection, drag sizing, anchor snapping, sidebar/bottom panel behavior, and layout preferences
+- 26 unit test files for the Zustand store, viewport utilities, icon registry, storage, export, config forms, tool state, hamburger menu, dialogs, bottom panel, element layer, placement preview, visual config, z-order controls, Terraform variables, and more
+- 1 integration test for Next.js config
 
 ## Backend
 
@@ -150,7 +167,7 @@ The diagram editor is a Next.js 16 (App Router) + Tailwind CSS single-page appli
 The backend is organized into layers:
 
 - **Routers** — FastAPI route handlers for diagram CRUD (`/api/diagrams`) and Terraform generation (`/generate/*`)
-- **Services** — Business logic including the session manager and IaC code generator
+- **Services** — Business logic including the session manager, IR builder, connection processor, file tree assembler, and IaC code generator
 - **Middleware** — Session middleware that manages anonymous cookie-based sessions on every request
 - **Persistence** — Repository pattern abstraction with TinyDB (local) and DynamoDB (production) implementations
 - **Generators** — HCL/Terraform code generators for each AWS service type
@@ -201,12 +218,14 @@ Returns the generated Terraform file tree as a downloadable ZIP archive.
       "config": {
         "handler": "index.handler",
         "runtime": "python3.12"
-      }
+      },
+      "terraform_variables": {}
     },
     {
       "name": "my-bucket",
       "service_type": "s3",
-      "config": { "versioning": true }
+      "config": { "versioning": true },
+      "terraform_variables": {}
     },
     {
       "name": "my-table",
@@ -215,7 +234,8 @@ Returns the generated Terraform file tree as a downloadable ZIP archive.
         "hash_key": "id",
         "hash_key_type": "S",
         "billing_mode": "PAY_PER_REQUEST"
-      }
+      },
+      "terraform_variables": {}
     }
   ],
   "connections": [
@@ -229,7 +249,15 @@ Returns the generated Terraform file tree as a downloadable ZIP archive.
       "target": "my-bucket",
       "connection_type": "writes_to"
     }
-  ]
+  ],
+  "global_terraform_config": {
+    "backend_type": "local",
+    "backend_config": {},
+    "provider_region": "us-east-1",
+    "provider_profile": null,
+    "terraform_version": null,
+    "aws_provider_version": null
+  }
 }
 ```
 
@@ -251,6 +279,20 @@ Returns the generated Terraform file tree as a downloadable ZIP archive.
   }
 }
 ```
+
+## Documentation
+
+Detailed documentation is available in the `docs/` folder:
+
+- `backend-api.md` — API endpoint reference
+- `backend-generators.md` — Terraform generator internals
+- `backend-models.md` — Pydantic input/output models
+- `backend-services.md` — Service layer architecture
+- `database.md` — Database schema and storage
+- `frontend-components.md` — React component reference
+- `frontend-state-and-utils.md` — Zustand stores and utilities
+- `persistence.md` — Repository pattern and backends
+- `testing.md` — Test strategy and configuration
 
 ## Key Features
 
