@@ -18,6 +18,7 @@ export interface ValidationRule {
 export interface OptionEntry {
   value: string | number | boolean;
   label: string;
+  group?: string | null;
 }
 
 export interface VisibleWhen {

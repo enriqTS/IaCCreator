@@ -11,7 +11,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -242,6 +244,18 @@ function FieldRenderer({
 
   // Select dropdown when options are defined
   if (entry.options && entry.options.length > 0) {
+    const hasGroups = entry.options.some((o) => o.group);
+
+    // Group options by their group field for sectioned rendering
+    const groupedOptions = hasGroups
+      ? entry.options.reduce<Map<string, typeof entry.options>>((map, opt) => {
+          const g = opt.group ?? 'Other';
+          if (!map.has(g)) map.set(g, []);
+          map.get(g)!.push(opt);
+          return map;
+        }, new Map())
+      : null;
+
     return (
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">{entry.description}</Label>
@@ -256,11 +270,22 @@ function FieldRenderer({
             <SelectValue placeholder="Select..." />
           </SelectTrigger>
           <SelectContent>
-            {entry.options.map((opt) => (
-              <SelectItem key={String(opt.value)} value={String(opt.value)}>
-                {opt.label}
-              </SelectItem>
-            ))}
+            {groupedOptions
+              ? Array.from(groupedOptions.entries()).map(([groupName, opts]) => (
+                  <SelectGroup key={groupName}>
+                    <SelectLabel>{groupName}</SelectLabel>
+                    {opts.map((opt) => (
+                      <SelectItem key={String(opt.value)} value={String(opt.value)}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))
+              : entry.options.map((opt) => (
+                  <SelectItem key={String(opt.value)} value={String(opt.value)}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
           </SelectContent>
         </Select>
         {error && <span data-testid={`error-${entry.name}`} className="text-destructive text-xs">{error}</span>}

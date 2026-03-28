@@ -20,6 +20,7 @@ class OptionEntry(BaseModel):
 
     value: str | int | float | bool
     label: str
+    group: str | None = None
 
 
 class VisibleWhen(BaseModel):
@@ -65,21 +66,21 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             default="python3.12",
             group="General",
             options=[
-                OptionEntry(value="python3.12", label="Python 3.12"),
-                OptionEntry(value="python3.11", label="Python 3.11"),
-                OptionEntry(value="python3.10", label="Python 3.10"),
-                OptionEntry(value="python3.9", label="Python 3.9"),
-                OptionEntry(value="nodejs20.x", label="Node.js 20.x"),
-                OptionEntry(value="nodejs18.x", label="Node.js 18.x"),
-                OptionEntry(value="java21", label="Java 21"),
-                OptionEntry(value="java17", label="Java 17"),
-                OptionEntry(value="java11", label="Java 11"),
-                OptionEntry(value="dotnet8", label=".NET 8"),
-                OptionEntry(value="dotnet6", label=".NET 6"),
-                OptionEntry(value="ruby3.3", label="Ruby 3.3"),
-                OptionEntry(value="ruby3.2", label="Ruby 3.2"),
-                OptionEntry(value="provided.al2023", label="Custom Runtime (AL2023)"),
-                OptionEntry(value="provided.al2", label="Custom Runtime (AL2)"),
+                OptionEntry(value="python3.12", label="Python 3.12", group="Python"),
+                OptionEntry(value="python3.11", label="Python 3.11", group="Python"),
+                OptionEntry(value="python3.10", label="Python 3.10", group="Python"),
+                OptionEntry(value="python3.9", label="Python 3.9", group="Python"),
+                OptionEntry(value="nodejs20.x", label="Node.js 20.x", group="Node.js"),
+                OptionEntry(value="nodejs18.x", label="Node.js 18.x", group="Node.js"),
+                OptionEntry(value="java21", label="Java 21", group="Java"),
+                OptionEntry(value="java17", label="Java 17", group="Java"),
+                OptionEntry(value="java11", label="Java 11", group="Java"),
+                OptionEntry(value="dotnet8", label=".NET 8", group=".NET"),
+                OptionEntry(value="dotnet6", label=".NET 6", group=".NET"),
+                OptionEntry(value="ruby3.3", label="Ruby 3.3", group="Ruby"),
+                OptionEntry(value="ruby3.2", label="Ruby 3.2", group="Ruby"),
+                OptionEntry(value="provided.al2023", label="Custom Runtime (AL2023)", group="Custom"),
+                OptionEntry(value="provided.al2", label="Custom Runtime (AL2)", group="Custom"),
             ],
         ),
         VariableSchemaEntry(
