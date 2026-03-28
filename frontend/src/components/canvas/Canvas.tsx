@@ -361,7 +361,7 @@ export default function Canvas() {
         objectType: 'text',
         name: 'Text',
         position: textPosition,
-        content: '',
+        content: 'Text',
         visualConfig: { ...DEFAULT_TEXT_VISUAL },
       });
 

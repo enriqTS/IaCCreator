@@ -265,11 +265,11 @@ export const DEFAULT_GEO_VISUAL: GeometricVisualConfig = {
 };
 
 export const DEFAULT_TEXT_VISUAL: TextVisualConfig = {
-  width: 200,
-  height: 40,
+  width: 50,
+  height: 28,
   fontSize: 14,
   fontColor: '#ffffff',
-  textAlign: 'left',
+  textAlign: 'center',
   bold: false,
   italic: false,
 };
