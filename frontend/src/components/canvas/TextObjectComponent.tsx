@@ -60,10 +60,12 @@ export default function TextObjectComponent({ object, isSelected }: TextObjectCo
   useEffect(() => {
     const text = isEditing ? editValue : object.content;
     if (!text) return;
-    const { fontSize, bold, italic } = object.visualConfig;
+    const { fontSize, bold, italic, width: currentW, height: currentH } = object.visualConfig;
     const measured = measureText(text, fontSize, bold, italic);
-    const updateObjectBounds = useDiagramStore.getState().updateObjectBounds;
-    updateObjectBounds(object.id, { width: measured.width, height: measured.height });
+    // Only update if the size actually changed to avoid infinite re-render loops
+    if (Math.abs(measured.width - currentW) > 1 || Math.abs(measured.height - currentH) > 1) {
+      useDiagramStore.getState().updateObjectBounds(object.id, { width: measured.width, height: measured.height });
+    }
   }, [object.content, object.id, object.visualConfig, isEditing, editValue]);
 
   // Focus textarea when entering edit mode
