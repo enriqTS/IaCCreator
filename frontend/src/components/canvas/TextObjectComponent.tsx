@@ -131,7 +131,7 @@ export default function TextObjectComponent({ object, isSelected }: TextObjectCo
         position: 'absolute',
         left: 0,
         top: 0,
-        transform: `translate(${object.position.x}px, ${object.position.y - height / 2}px)`,
+        transform: `translate(${object.position.x - width / 2}px, ${object.position.y - height / 2}px)`,
         width: `${width}px`,
         height: `${height}px`,
         pointerEvents: 'auto',
