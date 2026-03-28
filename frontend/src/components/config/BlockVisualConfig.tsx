@@ -49,7 +49,7 @@ export default function BlockVisualConfig({ object }: BlockVisualConfigProps) {
   };
 
   return (
-    <div data-testid="block-visual-config" className="flex flex-wrap gap-3 items-end">
+    <div data-testid="block-visual-config" className="grid grid-cols-2 gap-3">
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Width (px)</Label>
         <Input
@@ -59,7 +59,6 @@ export default function BlockVisualConfig({ object }: BlockVisualConfigProps) {
           value={localWidth}
           onChange={handleWidthChange}
           onBlur={handleWidthBlur}
-          className="w-[140px]"
         />
       </div>
 
@@ -72,7 +71,6 @@ export default function BlockVisualConfig({ object }: BlockVisualConfigProps) {
           value={localHeight}
           onChange={handleHeightChange}
           onBlur={handleHeightBlur}
-          className="w-[140px]"
         />
       </div>
     </div>
