@@ -66,8 +66,8 @@ function validateValue(
 }
 
 export default function SchemaConfigForm({ elementId, serviceType, onValidationChange }: SchemaConfigFormProps) {
-  const element = useDiagramStore((s) => s.elements.get(elementId));
-  const updateElementConfig = useDiagramStore((s) => s.updateElementConfig);
+  const canvasObject = useDiagramStore((s) => s.canvasObjects.get(elementId));
+  const updateCanvasObject = useDiagramStore((s) => s.updateCanvasObject);
   const [errors, setErrors] = useState<Record<string, string>>({});
   // Track which non-General groups the user has explicitly expanded
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -77,7 +77,8 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
   const schemas = getSchemas();
   const entries = schemas[serviceType] ?? [];
 
-  const config = element?.config ?? ({} as ResourceConfig);
+  const block = canvasObject?.objectType === 'architecture-block' ? canvasObject : null;
+  const config = block?.config ?? ({} as ResourceConfig);
 
   // Group entries by group field
   const groups = useMemo(() => {
@@ -156,12 +157,12 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
         }
       }
 
-      updateElementConfig(elementId, configUpdate as Partial<ResourceConfig>);
+      updateCanvasObject(elementId, { config: { ...config, ...configUpdate } } as Partial<import('@/types/diagram').CanvasObject>);
     },
-    [elementId, updateElementConfig, entries],
+    [elementId, updateCanvasObject, entries, config],
   );
 
-  if (!element) return null;
+  if (!block) return null;
 
   const isGroupExpanded = (group: string): boolean => {
     if (group === 'General') return !generalCollapsed;
