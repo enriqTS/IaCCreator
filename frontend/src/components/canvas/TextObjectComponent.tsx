@@ -179,7 +179,6 @@ export default function TextObjectComponent({ object, isSelected }: TextObjectCo
         border: borderStyle,
         borderRadius: '2px',
         boxSizing: 'border-box',
-        overflow: 'hidden',
       }}
     >
       {object.locked && (
@@ -236,7 +235,7 @@ export default function TextObjectComponent({ object, isSelected }: TextObjectCo
             boxSizing: 'border-box',
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            overflow: 'hidden',
+            fontFamily: 'sans-serif',
           }}
         >
           {object.content}
