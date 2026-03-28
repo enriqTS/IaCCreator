@@ -355,10 +355,12 @@ export default function Canvas() {
       const canvasPoint = screenToCanvas(screenPoint, vp);
 
       const store = useDiagramStore.getState();
+      // Offset position so the left edge of the text box is at the click point
+      const textPosition = { x: canvasPoint.x + DEFAULT_TEXT_VISUAL.width / 2, y: canvasPoint.y };
       store.addCanvasObject({
         objectType: 'text',
         name: 'Text',
-        position: canvasPoint,
+        position: textPosition,
         content: '',
         visualConfig: { ...DEFAULT_TEXT_VISUAL },
       });
@@ -367,7 +369,7 @@ export default function Canvas() {
       const updatedObjects = useDiagramStore.getState().canvasObjects;
       let newTextId: string | null = null;
       for (const [id, obj] of updatedObjects) {
-        if (obj.objectType === 'text' && obj.position.x === canvasPoint.x && obj.position.y === canvasPoint.y) {
+        if (obj.objectType === 'text' && obj.position.x === textPosition.x && obj.position.y === textPosition.y) {
           newTextId = id;
         }
       }
