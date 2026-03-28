@@ -57,16 +57,22 @@ export default function TextObjectComponent({ object, isSelected }: TextObjectCo
   const lastMouse = useRef<{ x: number; y: number } | null>(null);
 
   // Auto-size the box to fit the text content
+  const prevSizeRef = useRef<{ w: number; h: number } | null>(null);
   useEffect(() => {
     const text = isEditing ? editValue : object.content;
     if (!text) return;
-    const { fontSize, bold, italic, width: currentW, height: currentH } = object.visualConfig;
-    const measured = measureText(text, fontSize, bold, italic);
-    // Only update if the size actually changed to avoid infinite re-render loops
-    if (Math.abs(measured.width - currentW) > 1 || Math.abs(measured.height - currentH) > 1) {
-      useDiagramStore.getState().updateObjectBounds(object.id, { width: measured.width, height: measured.height });
+    const { fontSize: fs, bold: b, italic: it } = object.visualConfig;
+    const measured = measureText(text, fs, b, it);
+    // Clamp to the same minimums the store uses (40x40)
+    const targetW = Math.max(measured.width, 40);
+    const targetH = Math.max(measured.height, 40);
+    const prev = prevSizeRef.current;
+    if (!prev || Math.abs(targetW - prev.w) > 0.5 || Math.abs(targetH - prev.h) > 0.5) {
+      prevSizeRef.current = { w: targetW, h: targetH };
+      useDiagramStore.getState().updateObjectBounds(object.id, { width: targetW, height: targetH });
     }
-  }, [object.content, object.id, object.visualConfig, isEditing, editValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [object.content, object.id, isEditing, editValue, fontSize, bold, italic]);
 
   // Focus textarea when entering edit mode
   useEffect(() => {
