@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface KeyValueEditorProps {
   value: Record<string, string> | undefined;
@@ -41,99 +43,71 @@ export default function KeyValueEditor({ value, onChange, description }: KeyValu
   };
 
   return (
-    <div data-testid="key-value-editor" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <div data-testid="key-value-editor" className="flex flex-col gap-1.5">
       {description && (
-        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>{description}</span>
+        <span className="text-xs text-muted-foreground">{description}</span>
       )}
 
       {entries.map(([k, v]) => (
-        <div key={k} style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-          <input
+        <div key={k} className="flex gap-1 items-center">
+          <Input
             data-testid={`kv-key-${k}`}
             type="text"
             value={k}
             readOnly
-            style={{ ...kvInputStyle, width: '100px', opacity: 0.7 }}
+            className="w-24 opacity-70"
           />
-          <input
+          <Input
             data-testid={`kv-value-${k}`}
             type="text"
             value={v}
             onChange={(e) => handleValueChange(k, e.target.value)}
-            style={{ ...kvInputStyle, flex: 1 }}
+            className="flex-1"
           />
-          <button
+          <Button
             data-testid={`kv-remove-${k}`}
+            variant="ghost"
+            size="icon"
             onClick={() => handleRemove(k)}
-            style={removeButtonStyle}
             title="Remove"
+            className="text-destructive shrink-0 h-8 w-8"
           >
             ×
-          </button>
+          </Button>
         </div>
       ))}
 
-      {/* Add new entry row */}
-      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-        <input
+      <div className="flex gap-1 items-center">
+        <Input
           data-testid="kv-new-key"
           type="text"
           value={newKey}
           onChange={(e) => { setNewKey(e.target.value); setKeyError(''); }}
           placeholder="Key"
-          style={{ ...kvInputStyle, width: '100px' }}
+          className="w-24"
         />
-        <input
+        <Input
           data-testid="kv-new-value"
           type="text"
           value={newValue}
           onChange={(e) => setNewValue(e.target.value)}
           placeholder="Value"
-          style={{ ...kvInputStyle, flex: 1 }}
+          className="flex-1"
         />
-        <button
+        <Button
           data-testid="kv-add-btn"
+          variant="ghost"
+          size="icon"
           onClick={handleAdd}
-          style={addButtonStyle}
           title="Add"
+          className="text-primary shrink-0 h-8 w-8"
         >
           +
-        </button>
+        </Button>
       </div>
       {keyError && (
-        <span data-testid="kv-key-error" style={{ color: '#f87171', fontSize: '11px' }}>{keyError}</span>
+        <span data-testid="kv-key-error" className="text-destructive text-xs">{keyError}</span>
       )}
     </div>
   );
 }
-
-const kvInputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '3px 6px',
-  fontSize: '12px',
-};
-
-const removeButtonStyle: React.CSSProperties = {
-  backgroundColor: 'transparent',
-  color: '#f87171',
-  border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: '4px',
-  padding: '2px 6px',
-  fontSize: '14px',
-  cursor: 'pointer',
-  lineHeight: 1,
-};
-
-const addButtonStyle: React.CSSProperties = {
-  backgroundColor: 'transparent',
-  color: '#60a5fa',
-  border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: '4px',
-  padding: '2px 6px',
-  fontSize: '14px',
-  cursor: 'pointer',
-  lineHeight: 1,
-};

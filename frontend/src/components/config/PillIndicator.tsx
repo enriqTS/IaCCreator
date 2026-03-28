@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface PillIndicatorProps {
   expanded: boolean;
@@ -11,35 +13,24 @@ export default function PillIndicator({ expanded, onClick }: PillIndicatorProps)
   const [hovered, setHovered] = useState(false);
 
   return (
-    <button
+    <Button
       data-testid="pill-indicator"
+      variant="ghost"
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       aria-label={expanded ? 'Collapse panel' : 'Expand panel'}
-      style={{
-        // Large invisible hit area
-        padding: '12px 20px',
-        border: 'none',
-        background: 'transparent',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
+      className="px-5 py-3 border-none bg-transparent"
     >
       {/* Visible pill */}
       <span
-        style={{
-          display: 'block',
-          width: hovered ? 80 : 40,
-          height: hovered ? 8 : 4,
-          borderRadius: 4,
-          backgroundColor: hovered ? 'rgba(255, 255, 255, 0.65)' : 'rgba(255, 255, 255, 0.4)',
-          transition: 'width 0.15s ease, height 0.15s ease, background-color 0.15s ease',
-          pointerEvents: 'none',
-        }}
+        className={cn(
+          'block rounded transition-all duration-150 ease-in-out pointer-events-none',
+          hovered
+            ? 'w-20 h-2 bg-white/65'
+            : 'w-10 h-1 bg-white/40'
+        )}
       />
-    </button>
+    </Button>
   );
 }

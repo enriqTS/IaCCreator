@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import KeyValueEditor from './KeyValueEditor';
 import ListEditor from './ListEditor';
 
@@ -192,13 +193,14 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
         const expanded = isGroupExpanded(group);
         return (
           <div key={group} data-testid={`config-group-${group}`}>
-            <button
+            <Button
               data-testid={`group-toggle-${group}`}
+              variant="ghost"
               onClick={() => toggleGroup(group)}
-              className="w-full text-left text-sm font-semibold text-muted-foreground hover:text-foreground py-1 bg-transparent border-none cursor-pointer"
+              className="w-full justify-start text-sm font-semibold text-muted-foreground hover:text-foreground py-1"
             >
               {expanded ? '▾' : '▸'} {group}
-            </button>
+            </Button>
 
             {expanded && (
               <div className="flex flex-col gap-3 py-2">

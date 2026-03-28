@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface ListEditorProps {
   value: string[] | undefined;
@@ -30,82 +32,54 @@ export default function ListEditor({ value, onChange, description }: ListEditorP
   };
 
   return (
-    <div data-testid="list-editor" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <div data-testid="list-editor" className="flex flex-col gap-1.5">
       {description && (
-        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>{description}</span>
+        <span className="text-xs text-muted-foreground">{description}</span>
       )}
 
       {items.map((item, i) => (
-        <div key={i} style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-          <input
+        <div key={i} className="flex gap-1 items-center">
+          <Input
             data-testid={`list-item-${i}`}
             type="text"
             value={item}
             onChange={(e) => handleChange(i, e.target.value)}
-            style={{ ...listInputStyle, flex: 1 }}
+            className="flex-1"
           />
-          <button
+          <Button
             data-testid={`list-remove-${i}`}
+            variant="ghost"
+            size="icon"
             onClick={() => handleRemove(i)}
-            style={removeButtonStyle}
             title="Remove"
+            className="text-destructive shrink-0 h-8 w-8"
           >
             ×
-          </button>
+          </Button>
         </div>
       ))}
 
-      {/* Add new item row */}
-      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-        <input
+      <div className="flex gap-1 items-center">
+        <Input
           data-testid="list-new-item"
           type="text"
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
           placeholder="Add item..."
-          style={{ ...listInputStyle, flex: 1 }}
+          className="flex-1"
           onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
         />
-        <button
+        <Button
           data-testid="list-add-btn"
+          variant="ghost"
+          size="icon"
           onClick={handleAdd}
-          style={addButtonStyle}
           title="Add"
+          className="text-primary shrink-0 h-8 w-8"
         >
           +
-        </button>
+        </Button>
       </div>
     </div>
   );
 }
-
-const listInputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '3px 6px',
-  fontSize: '12px',
-};
-
-const removeButtonStyle: React.CSSProperties = {
-  backgroundColor: 'transparent',
-  color: '#f87171',
-  border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: '4px',
-  padding: '2px 6px',
-  fontSize: '14px',
-  cursor: 'pointer',
-  lineHeight: 1,
-};
-
-const addButtonStyle: React.CSSProperties = {
-  backgroundColor: 'transparent',
-  color: '#60a5fa',
-  border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: '4px',
-  padding: '2px 6px',
-  fontSize: '14px',
-  cursor: 'pointer',
-  lineHeight: 1,
-};

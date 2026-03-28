@@ -4,6 +4,10 @@ import { useState } from 'react';
 import type { TextObject } from '@/types/diagram';
 import { MIN_OBJECT_WIDTH, MIN_OBJECT_HEIGHT } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface TextVisualConfigPanelProps {
   object: TextObject;
@@ -79,137 +83,107 @@ export default function TextVisualConfigPanel({ object }: TextVisualConfigPanelP
   };
 
   return (
-    <div data-testid="text-visual-config" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Width (px)</span>
-        <input
+    <div data-testid="text-visual-config" className="flex flex-wrap gap-3 items-end">
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Width (px)</Label>
+        <Input
           data-testid="text-width"
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={localWidth}
           onChange={handleWidthChange}
           onBlur={handleWidthBlur}
-          min={MIN_OBJECT_WIDTH}
-          style={inputStyle}
+          className="w-[140px]"
         />
-      </label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Height (px)</span>
-        <input
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Height (px)</Label>
+        <Input
           data-testid="text-height"
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={localHeight}
           onChange={handleHeightChange}
           onBlur={handleHeightBlur}
-          min={MIN_OBJECT_HEIGHT}
-          style={inputStyle}
+          className="w-[140px]"
         />
-      </label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Font Size</span>
-        <input
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Font Size</Label>
+        <Input
           data-testid="text-font-size"
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={localFontSize}
           onChange={handleFontSizeChange}
           onBlur={handleFontSizeBlur}
-          min={8}
-          style={inputStyle}
+          className="w-[140px]"
         />
-      </label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Font Color</span>
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Font Color</Label>
         <input
           data-testid="text-font-color"
           type="color"
           value={object.visualConfig.fontColor}
           onChange={handleFontColorChange}
-          style={{ ...inputStyle, width: '48px', padding: '2px', cursor: 'pointer' }}
+          className="w-12 h-9 p-0.5 cursor-pointer rounded-md border border-input bg-transparent"
         />
-      </label>
+      </div>
 
-      <div style={labelStyle}>
-        <span style={labelTextStyle}>Alignment</span>
-        <div style={{ display: 'flex', gap: '4px' }}>
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Alignment</Label>
+        <div className="flex gap-1">
           {(['left', 'center', 'right'] as const).map((align) => (
-            <button
+            <Button
               key={align}
               data-testid={`text-align-${align}`}
+              variant="outline"
+              size="icon"
               onClick={() => handleTextAlignChange(align)}
-              style={{
-                ...buttonStyle,
-                background: object.visualConfig.textAlign === align ? 'rgba(59, 130, 246, 0.3)' : '#2a2a2a',
-              }}
+              className={cn(
+                'size-8 text-[13px]',
+                object.visualConfig.textAlign === align && 'bg-blue-500/30'
+              )}
             >
               {align === 'left' ? '⫷' : align === 'center' ? '☰' : '⫸'}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
-      <div style={labelStyle}>
-        <span style={labelTextStyle}>Style</span>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          <button
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Style</Label>
+        <div className="flex gap-1">
+          <Button
             data-testid="text-bold"
+            variant="outline"
+            size="icon"
             onClick={handleBoldToggle}
-            style={{
-              ...buttonStyle,
-              fontWeight: 'bold',
-              background: object.visualConfig.bold ? 'rgba(59, 130, 246, 0.3)' : '#2a2a2a',
-            }}
+            className={cn(
+              'size-8 text-[13px] font-bold',
+              object.visualConfig.bold && 'bg-blue-500/30'
+            )}
           >
             B
-          </button>
-          <button
+          </Button>
+          <Button
             data-testid="text-italic"
+            variant="outline"
+            size="icon"
             onClick={handleItalicToggle}
-            style={{
-              ...buttonStyle,
-              fontStyle: 'italic',
-              background: object.visualConfig.italic ? 'rgba(59, 130, 246, 0.3)' : '#2a2a2a',
-            }}
+            className={cn(
+              'size-8 text-[13px] italic',
+              object.visualConfig.italic && 'bg-blue-500/30'
+            )}
           >
             I
-          </button>
+          </Button>
         </div>
       </div>
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
-  fontSize: '13px',
-};
-
-const labelTextStyle: React.CSSProperties = {
-  color: 'rgba(255,255,255,0.6)',
-};
-
-const inputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '4px 8px',
-  fontSize: '13px',
-  width: '140px',
-};
-
-const buttonStyle: React.CSSProperties = {
-  width: '32px',
-  height: '32px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  color: '#fff',
-  fontSize: '13px',
-  cursor: 'pointer',
-};

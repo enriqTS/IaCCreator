@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
+import { Button } from '@/components/ui/button';
 
 export interface NewDiagramDialogProps {
   open: boolean;
@@ -48,63 +49,32 @@ export default function NewDiagramDialog({ open, onClose }: NewDiagramDialogProp
     <div
       data-testid="new-diagram-overlay"
       onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 100,
-      }}
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100]"
     >
       <div
         data-testid="new-diagram-dialog"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: '#1e1e1e',
-          borderRadius: 12,
-          padding: 24,
-          minWidth: 360,
-          color: '#e5e5e5',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-        }}
+        className="bg-[#1e1e1e] rounded-xl p-6 min-w-[360px] text-[#e5e5e5] shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
       >
-        <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 600 }}>New Diagram</h2>
-        <p style={{ margin: '0 0 24px', fontSize: 14, color: '#a3a3a3' }}>
+        <h2 className="m-0 mb-3 text-lg font-semibold">New Diagram</h2>
+        <p className="m-0 mb-6 text-sm text-muted-foreground">
           Create a new diagram? This will clear the current diagram.
         </p>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button
+        <div className="flex justify-end gap-2">
+          <Button
             data-testid="new-diagram-cancel"
+            variant="outline"
             onClick={onClose}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 6,
-              border: '1px solid #404040',
-              background: 'transparent',
-              color: '#e5e5e5',
-              fontSize: 14,
-              cursor: 'pointer',
-            }}
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             data-testid="new-diagram-confirm"
+            variant="destructive"
             onClick={handleConfirm}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 6,
-              border: 'none',
-              background: '#ef4444',
-              color: '#fff',
-              fontSize: 14,
-              cursor: 'pointer',
-            }}
           >
             Confirm
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -3,6 +3,16 @@
 import { useDiagramStore } from '@/store/diagram-store';
 import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
 import type { ServiceType } from '@/types/diagram';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import SchemaConfigForm from './SchemaConfigForm';
 
 /** Look up the icon path for a given service type from the registry. */
@@ -43,70 +53,49 @@ export default function ConfigPanel() {
     return (
       <div
         data-testid="config-panel"
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: '#1e1e1e',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '16px 24px',
-          zIndex: 50,
-          color: 'rgba(255, 255, 255, 0.9)',
-        }}
+        className="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-white/10 px-6 py-4 z-50 text-white/90"
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="flex items-center gap-4">
           {/* Source → Target label */}
-          <span style={{ fontSize: '14px', fontWeight: 600 }}>
+          <span className="text-sm font-semibold">
             {sourceEl?.name ?? 'Unknown'} → {targetEl?.name ?? 'Unknown'}
           </span>
 
           {/* Connection type dropdown */}
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-            <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>Type:</span>
-            <select
-              data-testid="connection-type-select"
+          <div className="flex items-center gap-2 text-[13px]">
+            <Label className="text-muted-foreground">Type:</Label>
+            <Select
               value={connector.connectionType}
-              onChange={(e) => updateConnectorType(connector.id, e.target.value)}
-              style={{
-                backgroundColor: '#2a2a2a',
-                color: '#fff',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '4px',
-                padding: '4px 8px',
-                fontSize: '13px',
-              }}
+              onValueChange={(value) => updateConnectorType(connector.id, value)}
             >
-              {CONNECTION_TYPE_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </label>
+              <SelectTrigger data-testid="connection-type-select" className="w-auto">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CONNECTION_TYPE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt} value={opt}>
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Spacer */}
-          <div style={{ flex: 1 }} />
+          <div className="flex-1" />
 
           {/* Delete button */}
-          <button
+          <Button
             data-testid="delete-connector-btn"
+            variant="destructive"
+            size="sm"
             onClick={() => {
               removeConnector(selectedConnectorId);
               selectConnector(null);
             }}
-            style={{
-              backgroundColor: '#dc2626',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              padding: '6px 14px',
-              fontSize: '13px',
-              cursor: 'pointer',
-            }}
           >
             Delete
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -121,19 +110,9 @@ export default function ConfigPanel() {
   return (
     <div
       data-testid="config-panel"
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#1e1e1e',
-        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        padding: '16px 24px',
-        zIndex: 50,
-        color: 'rgba(255, 255, 255, 0.9)',
-      }}
+      className="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-white/10 px-6 py-4 z-50 text-white/90"
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="flex items-center gap-4">
         {/* Service icon */}
         {iconPath && (
           <img
@@ -146,49 +125,33 @@ export default function ConfigPanel() {
         )}
 
         {/* Editable name input */}
-        <input
+        <Input
           data-testid="element-name-input"
           type="text"
           value={element.name}
           onChange={(e) => updateElementName(element.id, e.target.value)}
-          style={{
-            backgroundColor: '#2a2a2a',
-            color: '#fff',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: '4px',
-            padding: '4px 8px',
-            fontSize: '14px',
-            fontWeight: 600,
-            width: '200px',
-          }}
+          className="w-[200px] text-sm font-semibold"
         />
 
         {/* Spacer */}
-        <div style={{ flex: 1 }} />
+        <div className="flex-1" />
 
         {/* Delete button */}
-        <button
+        <Button
           data-testid="delete-element-btn"
+          variant="destructive"
+          size="sm"
           onClick={() => {
             removeElement(selectedElementId!);
             selectElement(null);
           }}
-          style={{
-            backgroundColor: '#dc2626',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            padding: '6px 14px',
-            fontSize: '13px',
-            cursor: 'pointer',
-          }}
         >
           Delete
-        </button>
+        </Button>
       </div>
 
       {/* Service-specific config form */}
-      <div data-testid="config-form-slot" style={{ marginTop: '12px' }}>
+      <div data-testid="config-form-slot" className="mt-3">
         <SchemaConfigForm elementId={element.id} serviceType={element.serviceType} />
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useDiagramStore } from '@/store/diagram-store';
+import { Button } from '@/components/ui/button';
 
 interface ZOrderControlsProps {
   objectId: string;
@@ -12,46 +13,40 @@ export default function ZOrderControls({ objectId }: ZOrderControlsProps) {
   const bringForward = useDiagramStore((s) => s.bringForward);
   const sendBackward = useDiagramStore((s) => s.sendBackward);
 
-  const buttonStyle: React.CSSProperties = {
-    padding: '4px 10px',
-    fontSize: '12px',
-    color: 'rgba(255, 255, 255, 0.8)',
-    backgroundColor: 'transparent',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  };
-
   return (
-    <div data-testid="z-order-controls" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-      <button
+    <div data-testid="z-order-controls" className="flex gap-2 items-center">
+      <Button
         data-testid="bring-to-front-button"
+        variant="outline"
+        size="sm"
         onClick={() => bringToFront(objectId)}
-        style={buttonStyle}
       >
         Bring to Front
-      </button>
-      <button
+      </Button>
+      <Button
         data-testid="bring-forward-button"
+        variant="outline"
+        size="sm"
         onClick={() => bringForward(objectId)}
-        style={buttonStyle}
       >
         Bring Forward
-      </button>
-      <button
+      </Button>
+      <Button
         data-testid="send-backward-button"
+        variant="outline"
+        size="sm"
         onClick={() => sendBackward(objectId)}
-        style={buttonStyle}
       >
         Send Backward
-      </button>
-      <button
+      </Button>
+      <Button
         data-testid="send-to-back-button"
+        variant="outline"
+        size="sm"
         onClick={() => sendToBack(objectId)}
-        style={buttonStyle}
       >
         Send to Back
-      </button>
+      </Button>
     </div>
   );
 }

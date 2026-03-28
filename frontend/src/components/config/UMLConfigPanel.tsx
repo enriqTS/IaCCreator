@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import type { UMLObject } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface UMLConfigPanelProps {
   object: UMLObject;
@@ -72,133 +75,141 @@ export default function UMLConfigPanel({ object }: UMLConfigPanelProps) {
   };
 
   return (
-    <div data-testid="uml-config-panel" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div data-testid="uml-config-panel" className="flex flex-col gap-4">
       {/* UML Kind (read-only) */}
-      <div style={labelStyle}>
-        <span style={labelTextStyle}>UML Kind</span>
-        <span data-testid="uml-kind" style={{ color: '#fff', fontSize: 13, textTransform: 'capitalize' }}>
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">UML Kind</Label>
+        <span data-testid="uml-kind" className="text-foreground text-[13px] capitalize">
           {object.umlKind}
         </span>
       </div>
 
       {/* Visual config controls */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-        <label style={labelStyle}>
-          <span style={labelTextStyle}>Fill Color</span>
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="flex flex-col gap-1 text-[13px]">
+          <Label className="text-xs text-muted-foreground">Fill Color</Label>
           <input
             data-testid="uml-fill-color"
             type="color"
             value={object.visualConfig.fillColor}
             onChange={handleFillColorChange}
-            style={{ ...inputStyle, width: '48px', padding: '2px', cursor: 'pointer' }}
+            className="w-12 h-9 p-0.5 cursor-pointer rounded-md border border-input bg-transparent"
           />
-        </label>
+        </div>
 
-        <label style={labelStyle}>
-          <span style={labelTextStyle}>Border Color</span>
+        <div className="flex flex-col gap-1 text-[13px]">
+          <Label className="text-xs text-muted-foreground">Border Color</Label>
           <input
             data-testid="uml-border-color"
             type="color"
             value={object.visualConfig.borderColor}
             onChange={handleBorderColorChange}
-            style={{ ...inputStyle, width: '48px', padding: '2px', cursor: 'pointer' }}
+            className="w-12 h-9 p-0.5 cursor-pointer rounded-md border border-input bg-transparent"
           />
-        </label>
+        </div>
 
-        <label style={labelStyle}>
-          <span style={labelTextStyle}>Border Width</span>
-          <input
+        <div className="flex flex-col gap-1 text-[13px]">
+          <Label className="text-xs text-muted-foreground">Border Width</Label>
+          <Input
             data-testid="uml-border-width"
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={object.visualConfig.borderWidth}
             onChange={handleBorderWidthChange}
-            min={1}
-            style={inputStyle}
+            className="w-[140px]"
           />
-        </label>
+        </div>
 
-        <label style={labelStyle}>
-          <span style={labelTextStyle}>Header Color</span>
+        <div className="flex flex-col gap-1 text-[13px]">
+          <Label className="text-xs text-muted-foreground">Header Color</Label>
           <input
             data-testid="uml-header-color"
             type="color"
             value={object.visualConfig.headerColor}
             onChange={handleHeaderColorChange}
-            style={{ ...inputStyle, width: '48px', padding: '2px', cursor: 'pointer' }}
+            className="w-12 h-9 p-0.5 cursor-pointer rounded-md border border-input bg-transparent"
           />
-        </label>
+        </div>
       </div>
 
       {/* Attributes and Methods (class/interface only) */}
       {hasClassData && (
         <>
           {/* Attributes */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <span style={{ ...labelTextStyle, fontWeight: 600 }}>Attributes</span>
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs text-muted-foreground font-semibold">Attributes</Label>
             {attributes.map((attr, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span data-testid={`uml-attribute-${i}`} style={{ color: '#fff', fontSize: 13, flex: 1 }}>{attr}</span>
-                <button
+              <div key={i} className="flex items-center gap-1.5">
+                <span data-testid={`uml-attribute-${i}`} className="text-foreground text-[13px] flex-1">{attr}</span>
+                <Button
                   data-testid={`uml-remove-attribute-${i}`}
+                  variant="outline"
+                  size="icon-xs"
                   onClick={() => handleRemoveAttribute(i)}
-                  style={removeButtonStyle}
+                  className="text-destructive text-[11px]"
                 >
                   ✕
-                </button>
+                </Button>
               </div>
             ))}
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <input
+            <div className="flex gap-1.5">
+              <Input
                 data-testid="uml-new-attribute"
                 type="text"
                 placeholder="New attribute..."
                 value={newAttribute}
                 onChange={(e) => setNewAttribute(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddAttribute(); }}
-                style={{ ...inputStyle, flex: 1 }}
+                className="flex-1"
               />
-              <button
+              <Button
                 data-testid="uml-add-attribute"
+                variant="outline"
+                size="icon"
                 onClick={handleAddAttribute}
-                style={addButtonStyle}
+                className="text-green-400 text-base"
               >
                 +
-              </button>
+              </Button>
             </div>
           </div>
 
           {/* Methods */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <span style={{ ...labelTextStyle, fontWeight: 600 }}>Methods</span>
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs text-muted-foreground font-semibold">Methods</Label>
             {methods.map((method, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span data-testid={`uml-method-${i}`} style={{ color: '#fff', fontSize: 13, flex: 1 }}>{method}</span>
-                <button
+              <div key={i} className="flex items-center gap-1.5">
+                <span data-testid={`uml-method-${i}`} className="text-foreground text-[13px] flex-1">{method}</span>
+                <Button
                   data-testid={`uml-remove-method-${i}`}
+                  variant="outline"
+                  size="icon-xs"
                   onClick={() => handleRemoveMethod(i)}
-                  style={removeButtonStyle}
+                  className="text-destructive text-[11px]"
                 >
                   ✕
-                </button>
+                </Button>
               </div>
             ))}
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <input
+            <div className="flex gap-1.5">
+              <Input
                 data-testid="uml-new-method"
                 type="text"
                 placeholder="New method..."
                 value={newMethod}
                 onChange={(e) => setNewMethod(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddMethod(); }}
-                style={{ ...inputStyle, flex: 1 }}
+                className="flex-1"
               />
-              <button
+              <Button
                 data-testid="uml-add-method"
+                variant="outline"
+                size="icon"
                 onClick={handleAddMethod}
-                style={addButtonStyle}
+                className="text-green-400 text-base"
               >
                 +
-              </button>
+              </Button>
             </div>
           </div>
         </>
@@ -206,52 +217,3 @@ export default function UMLConfigPanel({ object }: UMLConfigPanelProps) {
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
-  fontSize: '13px',
-};
-
-const labelTextStyle: React.CSSProperties = {
-  color: 'rgba(255,255,255,0.6)',
-};
-
-const inputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '4px 8px',
-  fontSize: '13px',
-  width: '140px',
-};
-
-const removeButtonStyle: React.CSSProperties = {
-  width: '24px',
-  height: '24px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  background: '#2a2a2a',
-  color: '#ff6b6b',
-  fontSize: '11px',
-  cursor: 'pointer',
-};
-
-const addButtonStyle: React.CSSProperties = {
-  width: '32px',
-  height: '32px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  background: '#2a2a2a',
-  color: '#4ade80',
-  fontSize: '16px',
-  cursor: 'pointer',
-};

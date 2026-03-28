@@ -2,6 +2,16 @@
 
 import type { LineObject, StrokeStyle } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface LineVisualConfigProps {
   object: LineObject;
@@ -22,98 +32,76 @@ export default function LineVisualConfig({ object }: LineVisualConfigProps) {
     }
   };
 
-  const handleStrokeStyleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    updateVisualConfig(object.id, { strokeStyle: e.target.value as StrokeStyle });
+  const handleStrokeStyleChange = (value: string) => {
+    updateVisualConfig(object.id, { strokeStyle: value as StrokeStyle });
   };
 
-  const handleStartArrowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateVisualConfig(object.id, { startArrow: e.target.checked });
+  const handleStartArrowChange = (checked: boolean | 'indeterminate') => {
+    updateVisualConfig(object.id, { startArrow: checked === true });
   };
 
-  const handleEndArrowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateVisualConfig(object.id, { endArrow: e.target.checked });
+  const handleEndArrowChange = (checked: boolean | 'indeterminate') => {
+    updateVisualConfig(object.id, { endArrow: checked === true });
   };
 
   return (
-    <div data-testid="line-visual-config" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Color</span>
+    <div data-testid="line-visual-config" className="flex flex-wrap gap-3 items-end">
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Color</Label>
         <input
           data-testid="line-color"
           type="color"
           value={object.visualConfig.color}
           onChange={handleColorChange}
-          style={{ ...inputStyle, width: '48px', padding: '2px', cursor: 'pointer' }}
+          className="w-12 h-9 p-0.5 cursor-pointer rounded-md border border-input bg-transparent"
         />
-      </label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Border Width</span>
-        <input
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Border Width</Label>
+        <Input
           data-testid="line-border-width"
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={object.visualConfig.borderWidth}
           onChange={handleBorderWidthChange}
-          min={1}
-          style={inputStyle}
+          className="w-[140px]"
         />
-      </label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Stroke Style</span>
-        <select
-          data-testid="line-stroke-style"
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Stroke Style</Label>
+        <Select
           value={object.visualConfig.strokeStyle}
-          onChange={handleStrokeStyleChange}
-          style={inputStyle}
+          onValueChange={handleStrokeStyleChange}
         >
-          <option value="solid">Solid</option>
-          <option value="dashed">Dashed</option>
-        </select>
-      </label>
+          <SelectTrigger data-testid="line-stroke-style" className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="solid">Solid</SelectItem>
+            <SelectItem value="dashed">Dashed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <label style={{ ...labelStyle, flexDirection: 'row', alignItems: 'center', gap: '6px' }}>
-        <input
+      <div className="flex items-center gap-1.5">
+        <Checkbox
           data-testid="line-start-arrow"
-          type="checkbox"
           checked={object.visualConfig.startArrow}
-          onChange={handleStartArrowChange}
-          style={{ accentColor: '#3b82f6', cursor: 'pointer' }}
+          onCheckedChange={handleStartArrowChange}
         />
-        <span style={labelTextStyle}>Start Arrow</span>
-      </label>
+        <Label className="text-xs text-muted-foreground">Start Arrow</Label>
+      </div>
 
-      <label style={{ ...labelStyle, flexDirection: 'row', alignItems: 'center', gap: '6px' }}>
-        <input
+      <div className="flex items-center gap-1.5">
+        <Checkbox
           data-testid="line-end-arrow"
-          type="checkbox"
           checked={object.visualConfig.endArrow}
-          onChange={handleEndArrowChange}
-          style={{ accentColor: '#3b82f6', cursor: 'pointer' }}
+          onCheckedChange={handleEndArrowChange}
         />
-        <span style={labelTextStyle}>End Arrow</span>
-      </label>
+        <Label className="text-xs text-muted-foreground">End Arrow</Label>
+      </div>
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
-  fontSize: '13px',
-};
-
-const labelTextStyle: React.CSSProperties = {
-  color: 'rgba(255,255,255,0.6)',
-};
-
-const inputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '4px 8px',
-  fontSize: '13px',
-  width: '140px',
-};

@@ -4,6 +4,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { SIDEBAR_RESPONSIVE_THRESHOLD } from '@/components/config/panel-constants';
 import type { GlobalTerraformConfig, TerraformVariableType } from '@/types/terraform-variables';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
@@ -234,13 +235,15 @@ function EnvironmentSettings({
     <div data-testid="environment-settings-section" className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <div className="text-sm font-semibold">Environment Settings</div>
-        <button
+        <Button
           data-testid="add-environment"
+          variant="outline"
+          size="xs"
           onClick={addEnvironment}
-          className="text-xs text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
+          className="text-blue-500 border-blue-500/40 hover:bg-blue-500/10"
         >
           + Add Environment
-        </button>
+        </Button>
       </div>
       <div>
         {config.environments.map((env, envIndex) => (
@@ -261,25 +264,29 @@ function EnvironmentSettings({
                 />
               </div>
               <div className="flex items-end">
-                <button
+                <Button
                   data-testid={`remove-environment-${envIndex}`}
+                  variant="outline"
+                  size="xs"
                   onClick={() => removeEnvironment(envIndex)}
-                  className="text-xs text-red-500 border border-red-500/40 rounded px-2 py-1 hover:bg-red-500/10"
+                  className="text-destructive border-destructive/40 hover:bg-destructive/10"
                 >
                   Remove
-                </button>
+                </Button>
               </div>
             </div>
             <div className="ml-1">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs text-muted-foreground">Variable Overrides</span>
-                <button
+                <Button
                   data-testid={`add-override-${envIndex}`}
+                  variant="outline"
+                  size="xs"
                   onClick={() => addOverride(envIndex)}
-                  className="text-[11px] text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
+                  className="text-[11px] text-blue-500 border-blue-500/40 hover:bg-blue-500/10"
                 >
                   + Add
-                </button>
+                </Button>
               </div>
               {Object.entries(env.variableOverrides).map(([key, value]) => (
                 <div key={key} className="flex gap-2 items-center mb-1">
@@ -298,13 +305,15 @@ function EnvironmentSettings({
                     placeholder="value"
                     className="w-32"
                   />
-                  <button
+                  <Button
                     data-testid={`remove-override-${envIndex}-${key}`}
+                    variant="outline"
+                    size="xs"
                     onClick={() => removeOverride(envIndex, key)}
-                    className="text-xs text-red-500 border border-red-500/40 rounded px-1.5 py-0.5 hover:bg-red-500/10"
+                    className="text-destructive border-destructive/40 hover:bg-destructive/10"
                   >
                     ×
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -351,13 +360,15 @@ function GlobalVariablesSection({
     <div data-testid="global-variables-section" className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <div className="text-sm font-semibold">Global Variables</div>
-        <button
+        <Button
           data-testid="add-global-variable"
+          variant="outline"
+          size="xs"
           onClick={addVariable}
-          className="text-xs text-blue-500 border border-blue-500/40 rounded px-2 py-0.5 hover:bg-blue-500/10"
+          className="text-blue-500 border-blue-500/40 hover:bg-blue-500/10"
         >
           + Add Variable
-        </button>
+        </Button>
       </div>
       <div>
         {config.globalVariables.map((variable, index) => (
@@ -414,13 +425,15 @@ function GlobalVariablesSection({
                 />
               </div>
               <div className="flex items-end">
-                <button
+                <Button
                   data-testid={`remove-global-variable-${index}`}
+                  variant="outline"
+                  size="xs"
                   onClick={() => removeVariable(index)}
-                  className="text-xs text-red-500 border border-red-500/40 rounded px-2 py-1 hover:bg-red-500/10"
+                  className="text-destructive border-destructive/40 hover:bg-destructive/10"
                 >
                   Remove
-                </button>
+                </Button>
               </div>
             </div>
           </div>

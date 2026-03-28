@@ -4,6 +4,17 @@ import { useState } from 'react';
 import type { GeometricObject, GeometricShape } from '@/types/diagram';
 import { MIN_OBJECT_WIDTH, MIN_OBJECT_HEIGHT } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface GeoVisualConfigProps {
   object: GeometricObject;
@@ -46,8 +57,8 @@ export default function GeoVisualConfig({ object }: GeoVisualConfigProps) {
     updateVisualConfig(object.id, { height: clamped });
   };
 
-  const handleFillToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateVisualConfig(object.id, { fill: e.target.checked });
+  const handleFillToggle = (checked: boolean | 'indeterminate') => {
+    updateVisualConfig(object.id, { fill: checked === true });
   };
 
   const handleFillColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,117 +76,100 @@ export default function GeoVisualConfig({ object }: GeoVisualConfigProps) {
     }
   };
 
-  const handleShapeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    updateVisualConfig(object.id, { shape: e.target.value as GeometricShape });
+  const handleShapeChange = (value: string) => {
+    updateVisualConfig(object.id, { shape: value as GeometricShape });
   };
 
   return (
-    <div data-testid="geo-visual-config" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Width (px)</span>
-        <input
+    <div data-testid="geo-visual-config" className="flex flex-wrap gap-3 items-end">
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Width (px)</Label>
+        <Input
           data-testid="geo-width"
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={localWidth}
           onChange={handleWidthChange}
           onBlur={handleWidthBlur}
-          min={MIN_OBJECT_WIDTH}
-          style={inputStyle}
+          className="w-[140px]"
         />
-      </label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Height (px)</span>
-        <input
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Height (px)</Label>
+        <Input
           data-testid="geo-height"
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={localHeight}
           onChange={handleHeightChange}
           onBlur={handleHeightBlur}
-          min={MIN_OBJECT_HEIGHT}
-          style={inputStyle}
+          className="w-[140px]"
         />
-      </label>
+      </div>
 
-      <label style={{ ...labelStyle, flexDirection: 'row', alignItems: 'center', gap: '6px' }}>
-        <input
+      <div className="flex items-center gap-1.5">
+        <Checkbox
           data-testid="geo-fill-toggle"
-          type="checkbox"
           checked={object.visualConfig.fill}
-          onChange={handleFillToggle}
-          style={{ accentColor: '#3b82f6', cursor: 'pointer' }}
+          onCheckedChange={handleFillToggle}
         />
-        <span style={labelTextStyle}>Fill</span>
-      </label>
+        <Label className="text-xs text-muted-foreground">Fill</Label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Fill Color</span>
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Fill Color</Label>
         <input
           data-testid="geo-fill-color"
           type="color"
           value={object.visualConfig.fillColor}
           onChange={handleFillColorChange}
           disabled={!object.visualConfig.fill}
-          style={{ ...inputStyle, width: '48px', padding: '2px', cursor: object.visualConfig.fill ? 'pointer' : 'not-allowed', opacity: object.visualConfig.fill ? 1 : 0.4 }}
+          className={cn(
+            'w-12 h-9 p-0.5 rounded-md border border-input bg-transparent',
+            object.visualConfig.fill ? 'cursor-pointer opacity-100' : 'cursor-not-allowed opacity-40'
+          )}
         />
-      </label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Border Color</span>
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Border Color</Label>
         <input
           data-testid="geo-border-color"
           type="color"
           value={object.visualConfig.borderColor}
           onChange={handleBorderColorChange}
-          style={{ ...inputStyle, width: '48px', padding: '2px', cursor: 'pointer' }}
+          className="w-12 h-9 p-0.5 cursor-pointer rounded-md border border-input bg-transparent"
         />
-      </label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Border Width</span>
-        <input
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Border Width</Label>
+        <Input
           data-testid="geo-border-width"
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={object.visualConfig.borderWidth}
           onChange={handleBorderWidthChange}
-          min={1}
-          style={inputStyle}
+          className="w-[140px]"
         />
-      </label>
+      </div>
 
-      <label style={labelStyle}>
-        <span style={labelTextStyle}>Shape</span>
-        <select
-          data-testid="geo-shape"
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Shape</Label>
+        <Select
           value={object.visualConfig.shape}
-          onChange={handleShapeChange}
-          style={inputStyle}
+          onValueChange={handleShapeChange}
         >
-          <option value="rectangle">Rectangle</option>
-          <option value="ellipse">Ellipse</option>
-        </select>
-      </label>
+          <SelectTrigger data-testid="geo-shape" className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="rectangle">Rectangle</SelectItem>
+            <SelectItem value="ellipse">Ellipse</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
-  fontSize: '13px',
-};
-
-const labelTextStyle: React.CSSProperties = {
-  color: 'rgba(255,255,255,0.6)',
-};
-
-const inputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '4px 8px',
-  fontSize: '13px',
-  width: '140px',
-};
