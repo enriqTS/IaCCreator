@@ -16,7 +16,7 @@ function getIconPath(serviceType: ServiceType): string {
 }
 
 /** Padding in pixels on each side of the icon within the block */
-export const ICON_PADDING = 12;
+export const ICON_PADDING = 0;
 
 /** Determine whether a label should be shown for the given name */
 export function shouldShowLabel(name: string): boolean {

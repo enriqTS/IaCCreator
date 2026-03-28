@@ -3,6 +3,8 @@
 import { useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
+import { findSnapAnchor } from '@/utils/anchor';
+import { getObjectBounds } from '@/types/diagram';
 import type { CanvasObject, Point } from '@/types/diagram';
 
 const HANDLE_SIZE = 8;
@@ -217,7 +219,41 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
       updateLineEndpoint(object.id, endpoint, canvasPos);
     };
 
-    const onMouseUp = () => {
+    const onMouseUp = (ev: MouseEvent) => {
+      const canvasPos = screenToCanvas({ x: ev.clientX, y: ev.clientY }, viewport);
+      const store = useDiagramStore.getState();
+
+      // Try to snap to an anchor on a nearby object
+      let snappedObjectId: string | null = null;
+      let snappedPoint: Point | null = null;
+
+      for (const [objId, obj] of store.canvasObjects) {
+        if (objId === object.id) continue;
+        if (obj.objectType === 'line') continue;
+
+        const bounds = getObjectBounds(obj);
+        const snap = findSnapAnchor(canvasPos, bounds);
+        if (snap) {
+          snappedObjectId = objId;
+          snappedPoint = snap;
+          break;
+        }
+      }
+
+      if (snappedObjectId && snappedPoint) {
+        // Snap the endpoint position and attach the anchor
+        updateLineEndpoint(object.id, endpoint, snappedPoint);
+        const anchorKey = endpoint === 'start' ? 'sourceAnchor' : 'targetAnchor';
+        store.updateLineAnchors(object.id, { [anchorKey]: { objectId: snappedObjectId } });
+      } else {
+        // Detach anchor if it was previously attached
+        const anchorKey = endpoint === 'start' ? 'sourceAnchor' : 'targetAnchor';
+        const currentAnchor = endpoint === 'start' ? object.sourceAnchor : object.targetAnchor;
+        if (currentAnchor) {
+          store.updateLineAnchors(object.id, { [anchorKey]: null });
+        }
+      }
+
       draggingRef.current = null;
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
