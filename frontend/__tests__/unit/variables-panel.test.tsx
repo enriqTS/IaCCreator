@@ -131,13 +131,13 @@ describe('VariablesPanel', () => {
   });
 
   it('shows required indicator for required dynamodb fields but not optional ones', () => {
-    // table_name and hash_key are required; range_key is optional
+    // table_name, hash_key, and range_key are all required (no defaults)
     const block = makeBlock('dynamodb');
     render(<VariablesPanel block={block} />);
 
     expect(screen.getByTestId('required-table_name')).toBeDefined();
     expect(screen.getByTestId('required-hash_key')).toBeDefined();
-    expect(screen.queryByTestId('required-range_key')).toBeNull();
+    expect(screen.getByTestId('required-range_key')).toBeDefined();
   });
 
   it('shows empty message for unsupported service type', () => {

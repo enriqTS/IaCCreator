@@ -3,31 +3,7 @@
 import { useDiagramStore } from '@/store/diagram-store';
 import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
 import type { ServiceType } from '@/types/diagram';
-import LambdaConfigForm from './LambdaConfigForm';
-import S3ConfigForm from './S3ConfigForm';
-import DynamoDBConfigForm from './DynamoDBConfigForm';
-import APIGatewayConfigForm from './APIGatewayConfigForm';
-import CloudWatchConfigForm from './CloudWatchConfigForm';
-import IAMConfigForm from './IAMConfigForm';
-
-function ServiceConfigForm({ serviceType, elementId }: { serviceType: ServiceType; elementId: string }) {
-  switch (serviceType) {
-    case 'lambda':
-      return <LambdaConfigForm elementId={elementId} />;
-    case 's3':
-      return <S3ConfigForm elementId={elementId} />;
-    case 'dynamodb':
-      return <DynamoDBConfigForm elementId={elementId} />;
-    case 'api-gateway':
-      return <APIGatewayConfigForm elementId={elementId} />;
-    case 'cloudwatch':
-      return <CloudWatchConfigForm elementId={elementId} />;
-    case 'iam':
-      return <IAMConfigForm elementId={elementId} />;
-    default:
-      return null;
-  }
-}
+import SchemaConfigForm from './SchemaConfigForm';
 
 /** Look up the icon path for a given service type from the registry. */
 function getIconPath(serviceType: ServiceType): string {
@@ -213,7 +189,7 @@ export default function ConfigPanel() {
 
       {/* Service-specific config form */}
       <div data-testid="config-form-slot" style={{ marginTop: '12px' }}>
-        <ServiceConfigForm serviceType={element.serviceType} elementId={element.id} />
+        <SchemaConfigForm elementId={element.id} serviceType={element.serviceType} />
       </div>
     </div>
   );

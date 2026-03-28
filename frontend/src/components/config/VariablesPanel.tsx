@@ -39,10 +39,10 @@ export default function VariablesPanel({ block }: VariablesPanelProps) {
       {schemas.map((schema) => {
         const currentValue = block.terraformVariables[schema.name];
         const hasDefault = schema.default !== undefined;
-        const isRequired = !hasDefault && !schema.optional;
+        const isRequired = !hasDefault;
         const label = humanizeLabel(schema.name);
 
-        if (schema.tfType === 'bool') {
+        if (schema.type === 'bool') {
           return (
             <label
               key={schema.name}
@@ -61,7 +61,7 @@ export default function VariablesPanel({ block }: VariablesPanelProps) {
           );
         }
 
-        if (schema.tfType === 'number') {
+        if (schema.type === 'number') {
           return (
             <div
               key={schema.name}

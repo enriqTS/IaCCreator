@@ -13,7 +13,7 @@ class LambdaGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate lambda.tf with aws_lambda_function resource."""
         attrs: dict = {
-            "function_name": f"var.function_name",
+            "function_name": "var.function_name",
             "role": f"aws_iam_role.{instance.name}_role.arn",
             "handler": "var.handler",
             "runtime": "var.runtime",
@@ -22,6 +22,22 @@ class LambdaGenerator:
             attrs["memory_size"] = "var.memory_size"
         if instance.config.timeout is not None:
             attrs["timeout"] = "var.timeout"
+        if instance.config.description is not None:
+            attrs["description"] = "var.description"
+        if instance.config.architectures is not None:
+            attrs["architectures"] = ["var.architectures"]
+        if instance.config.ephemeral_storage_size is not None:
+            attrs["ephemeral_storage"] = {"size": "var.ephemeral_storage_size"}
+        if instance.config.reserved_concurrent_executions is not None:
+            attrs["reserved_concurrent_executions"] = "var.reserved_concurrent_executions"
+        if instance.config.publish is not None:
+            attrs["publish"] = "var.publish"
+        if instance.config.layers is not None:
+            attrs["layers"] = "var.layers"
+        if instance.config.environment_variables is not None:
+            attrs["environment"] = {"variables": "var.environment_variables"}
+        if instance.config.tags is not None:
+            attrs["tags"] = "var.tags"
 
         return self._r.render_resource("aws_lambda_function", instance.name, attrs)
 
@@ -41,6 +57,46 @@ class LambdaGenerator:
             parts.append(self._r.render_variable(
                 "timeout", "number", "Lambda timeout in seconds",
                 default=instance.config.timeout,
+            ))
+        if instance.config.description is not None:
+            parts.append(self._r.render_variable(
+                "description", "string", "Description of the Lambda function",
+                default=instance.config.description,
+            ))
+        if instance.config.architectures is not None:
+            parts.append(self._r.render_variable(
+                "architectures", "string", "Instruction set architecture for the function",
+                default=instance.config.architectures,
+            ))
+        if instance.config.ephemeral_storage_size is not None:
+            parts.append(self._r.render_variable(
+                "ephemeral_storage_size", "number", "Size of the function /tmp directory in MB",
+                default=instance.config.ephemeral_storage_size,
+            ))
+        if instance.config.reserved_concurrent_executions is not None:
+            parts.append(self._r.render_variable(
+                "reserved_concurrent_executions", "number",
+                "Number of reserved concurrent executions",
+                default=instance.config.reserved_concurrent_executions,
+            ))
+        if instance.config.publish is not None:
+            parts.append(self._r.render_variable(
+                "publish", "bool", "Whether to publish as a new Lambda function version",
+                default=instance.config.publish,
+            ))
+        if instance.config.layers is not None:
+            parts.append(self._r.render_variable(
+                "layers", "list(string)", "List of Lambda layer ARNs to attach",
+                default=instance.config.layers,
+            ))
+        if instance.config.environment_variables is not None:
+            parts.append(self._r.render_variable(
+                "environment_variables", "map(string)",
+                "Environment variables for the Lambda function",
+            ))
+        if instance.config.tags is not None:
+            parts.append(self._r.render_variable(
+                "tags", "map(string)", "Tags to apply to the Lambda function",
             ))
         return "\n".join(parts)
 

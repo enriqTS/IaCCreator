@@ -6,6 +6,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
+from app.generators.schema_validator import validate_config_against_schema
+from app.generators.variable_schemas import VARIABLE_SCHEMAS
 from app.middleware.session_middleware import SessionMiddleware
 from app.models.input_models import ArchitectureDescription
 from app.models.ir_models import GenerationSummary
@@ -68,6 +70,8 @@ def _build_summary(arch: ArchitectureDescription, file_tree: dict) -> Generation
 async def generate_zip(arch: ArchitectureDescription) -> Response:
     """Generate Terraform files and return them as a ZIP archive."""
     try:
+        for resource in arch.resources:
+            validate_config_against_schema(resource.service_type, resource.config)
         project_ir = _ir_builder.build(arch)
         file_tree = _code_gen.generate(project_ir)
         zip_bytes = _serializer.to_zip(file_tree)
@@ -91,6 +95,8 @@ async def generate_zip(arch: ArchitectureDescription) -> Response:
 async def generate_json(arch: ArchitectureDescription) -> JSONResponse:
     """Generate Terraform files and return them as JSON with a summary."""
     try:
+        for resource in arch.resources:
+            validate_config_against_schema(resource.service_type, resource.config)
         project_ir = _ir_builder.build(arch)
         file_tree = _code_gen.generate(project_ir)
         summary = _build_summary(arch, file_tree)
@@ -103,3 +109,12 @@ async def generate_json(arch: ArchitectureDescription) -> JSONResponse:
             status_code=500,
             detail=f"Generation failed: {exc}",
         )
+
+
+@app.get("/api/variable-schemas")
+async def get_variable_schemas() -> dict[str, list[dict]]:
+    """Return all variable schemas as JSON, keyed by service type value."""
+    return {
+        stype.value: [entry.model_dump() for entry in entries]
+        for stype, entries in VARIABLE_SCHEMAS.items()
+    }

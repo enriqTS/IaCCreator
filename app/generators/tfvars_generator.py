@@ -38,14 +38,14 @@ class TfvarsGenerator:
             if not instance.terraform_variables:
                 continue
             schema_list = VARIABLE_SCHEMAS.get(instance.service_type, [])
-            schema_map = {s["name"]: s for s in schema_list}
+            schema_map = {s.name: s for s in schema_list}
 
             for var_name in instance.terraform_variables:
                 full_name = f"{instance.name}_{var_name}" if prefix else var_name
-                schema = schema_map.get(var_name, {})
-                var_type = self._tf_type(schema.get("type", "string"))
-                description = schema.get("description", var_name)
-                default = schema.get("default")
+                schema = schema_map.get(var_name)
+                var_type = self._tf_type(schema.type if schema else "string")
+                description = schema.description if schema else var_name
+                default = schema.default if schema else None
                 blocks.append(
                     self._r.render_variable(full_name, var_type, description, default=default)
                 )
@@ -67,4 +67,10 @@ class TfvarsGenerator:
     @staticmethod
     def _tf_type(schema_type: str) -> str:
         """Map schema type strings to Terraform type keywords."""
-        return {"string": "string", "number": "number", "bool": "bool"}.get(schema_type, "string")
+        return {
+            "string": "string",
+            "number": "number",
+            "bool": "bool",
+            "map": "map(string)",
+            "list": "list(string)",
+        }.get(schema_type, "string")

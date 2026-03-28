@@ -186,6 +186,52 @@ class TestVariablesTfGeneration:
         assert output == ""
 
 
+class TestMapAndListTypes:
+    """Requirement 8.3: map and list Terraform types in _tf_type."""
+
+    def test_map_type_produces_map_string(self):
+        gen = TfvarsGenerator()
+        inst = _make_instance(
+            terraform_variables={"tags": "placeholder"},
+        )
+        output = gen.generate_variables_tf([inst])
+        assert "type        = map(string)" in output
+
+    def test_list_type_produces_list_string(self):
+        gen = TfvarsGenerator()
+        inst = _make_instance(
+            terraform_variables={"layers": "placeholder"},
+        )
+        output = gen.generate_variables_tf([inst])
+        assert "type        = list(string)" in output
+
+    def test_map_variable_has_description_from_schema(self):
+        gen = TfvarsGenerator()
+        inst = _make_instance(
+            terraform_variables={"environment_variables": "placeholder"},
+        )
+        output = gen.generate_variables_tf([inst])
+        assert "Environment variables for the Lambda function" in output
+
+    def test_list_variable_has_description_from_schema(self):
+        gen = TfvarsGenerator()
+        inst = _make_instance(
+            terraform_variables={"layers": "placeholder"},
+        )
+        output = gen.generate_variables_tf([inst])
+        assert "List of Lambda layer ARNs" in output
+
+    def test_unknown_type_falls_back_to_string(self):
+        assert TfvarsGenerator._tf_type("unknown") == "string"
+
+    def test_all_five_types_mapped(self):
+        assert TfvarsGenerator._tf_type("string") == "string"
+        assert TfvarsGenerator._tf_type("number") == "number"
+        assert TfvarsGenerator._tf_type("bool") == "bool"
+        assert TfvarsGenerator._tf_type("map") == "map(string)"
+        assert TfvarsGenerator._tf_type("list") == "list(string)"
+
+
 class TestMixedTypes:
     """Test generation with a mix of string, number, and bool variables."""
 
@@ -236,7 +282,7 @@ def resource_instance_ir_strategy(draw):
     svc = draw(st.sampled_from(_service_types_with_schemas))
     name = draw(st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True))
     schema = VARIABLE_SCHEMAS[svc]
-    var_names = [s["name"] for s in schema]
+    var_names = [s.name for s in schema]
     # Pick a random subset of variables to include
     chosen = draw(st.lists(st.sampled_from(var_names), min_size=1, max_size=len(var_names), unique=True))
     variables = {vn: draw(_tf_var_value_st) for vn in chosen}
@@ -279,3 +325,40 @@ def test_property_3_tfvars_variables_tf_correspondence(instances):
     assert tfvar_names <= declared_names, (
         f"Variables in tfvars without declaration: {tfvar_names - declared_names}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Feature: enhanced-variable-configuration, Property 13: TfvarsGenerator
+# produces entries for all terraform_variables
+# ---------------------------------------------------------------------------
+
+
+@given(instance=resource_instance_ir_strategy())
+@settings(max_examples=50)
+def test_property_13_tfvars_entries_for_all_terraform_variables(instance):
+    """Property 13: TfvarsGenerator produces entries for all terraform_variables.
+
+    For any ResourceInstanceIR with terraform_variables set, the TfvarsGenerator
+    shall produce a terraform.tfvars entry and a matching variable block for every
+    key in terraform_variables, using the type and description from VARIABLE_SCHEMAS.
+
+    **Validates: Requirements 8.3**
+    """
+    gen = TfvarsGenerator()
+    tfvars_output = gen.generate_tfvars([instance])
+    variables_tf_output = gen.generate_variables_tf([instance])
+
+    for var_key in instance.terraform_variables:
+        prefixed_name = f"{instance.name}_{var_key}"
+
+        # tfvars must contain an assignment line for this variable
+        assert prefixed_name in tfvars_output, (
+            f"Missing tfvars entry for '{prefixed_name}'. "
+            f"terraform_variables keys: {list(instance.terraform_variables.keys())}"
+        )
+
+        # variables.tf must contain a variable block for this variable
+        assert f'variable "{prefixed_name}"' in variables_tf_output, (
+            f"Missing variable block for '{prefixed_name}'. "
+            f"terraform_variables keys: {list(instance.terraform_variables.keys())}"
+        )

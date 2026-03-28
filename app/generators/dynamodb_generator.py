@@ -31,6 +31,22 @@ class DynamoDBGenerator:
 
         attrs["attribute"] = attribute_blocks
 
+        # Capacity fields — only when billing_mode is PROVISIONED (visible_when)
+        if instance.config.billing_mode == "PROVISIONED":
+            if instance.config.read_capacity is not None:
+                attrs["read_capacity"] = "var.read_capacity"
+            if instance.config.write_capacity is not None:
+                attrs["write_capacity"] = "var.write_capacity"
+
+        if instance.config.table_class is not None:
+            attrs["table_class"] = "var.table_class"
+        if instance.config.deletion_protection_enabled is not None:
+            attrs["deletion_protection_enabled"] = "var.deletion_protection_enabled"
+        if instance.config.point_in_time_recovery_enabled is not None:
+            attrs["point_in_time_recovery"] = {"enabled": "var.point_in_time_recovery_enabled"}
+        if instance.config.tags is not None:
+            attrs["tags"] = "var.tags"
+
         return self._r.render_resource("aws_dynamodb_table", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
@@ -44,6 +60,39 @@ class DynamoDBGenerator:
             parts.append(
                 self._r.render_variable("range_key", "string", "Range key attribute name")
             )
+        # Capacity variables — only when billing_mode is PROVISIONED (visible_when)
+        if instance.config.billing_mode == "PROVISIONED":
+            if instance.config.read_capacity is not None:
+                parts.append(self._r.render_variable(
+                    "read_capacity", "number", "Provisioned read capacity units",
+                    default=instance.config.read_capacity,
+                ))
+            if instance.config.write_capacity is not None:
+                parts.append(self._r.render_variable(
+                    "write_capacity", "number", "Provisioned write capacity units",
+                    default=instance.config.write_capacity,
+                ))
+        if instance.config.table_class is not None:
+            parts.append(self._r.render_variable(
+                "table_class", "string", "Storage class for the DynamoDB table",
+                default=instance.config.table_class,
+            ))
+        if instance.config.deletion_protection_enabled is not None:
+            parts.append(self._r.render_variable(
+                "deletion_protection_enabled", "bool",
+                "Enable deletion protection for the table",
+                default=instance.config.deletion_protection_enabled,
+            ))
+        if instance.config.point_in_time_recovery_enabled is not None:
+            parts.append(self._r.render_variable(
+                "point_in_time_recovery_enabled", "bool",
+                "Enable point-in-time recovery for the table",
+                default=instance.config.point_in_time_recovery_enabled,
+            ))
+        if instance.config.tags is not None:
+            parts.append(self._r.render_variable(
+                "tags", "map(string)", "Tags to apply to the DynamoDB table",
+            ))
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

@@ -54,18 +54,39 @@ export interface ResourceConfig {
   memory_size?: number;
   timeout?: number;
   is_layer?: boolean;
+  description?: string;
+  environment_variables?: Record<string, string>;
+  tags?: Record<string, string>;
+  layers?: string[];
+  architectures?: string;
+  ephemeral_storage_size?: number;
+  reserved_concurrent_executions?: number;
+  publish?: boolean;
   // S3
   versioning?: boolean;
+  force_destroy?: boolean;
+  object_lock_enabled?: boolean;
+  acceleration_status?: string;
   // DynamoDB
   billing_mode?: string;
   hash_key?: string;
   hash_key_type?: string;
   range_key?: string;
   range_key_type?: string;
+  read_capacity?: number;
+  write_capacity?: number;
+  point_in_time_recovery_enabled?: boolean;
+  deletion_protection_enabled?: boolean;
+  table_class?: string;
   // API Gateway
   protocol_type?: string;
+  cors_configuration?: Record<string, unknown>;
+  disable_execute_api_endpoint?: boolean;
+  route_selection_expression?: string;
   // CloudWatch
   retention_in_days?: number;
+  kms_key_id?: string;
+  log_group_class?: string;
 }
 
 export interface EnvironmentConfig {

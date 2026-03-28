@@ -26,18 +26,39 @@ class ResourceConfig(BaseModel):
     memory_size: Optional[int] = None
     timeout: Optional[int] = None
     is_layer: bool = False
+    description: Optional[str] = None
+    environment_variables: Optional[dict[str, str]] = None
+    tags: Optional[dict[str, str]] = None
+    layers: Optional[list[str]] = None
+    architectures: Optional[str] = None
+    ephemeral_storage_size: Optional[int] = None
+    reserved_concurrent_executions: Optional[int] = None
+    publish: Optional[bool] = None
     # S3
     versioning: Optional[bool] = None
+    force_destroy: Optional[bool] = None
+    object_lock_enabled: Optional[bool] = None
+    acceleration_status: Optional[str] = None
     # DynamoDB
     billing_mode: Optional[str] = None
     hash_key: Optional[str] = None
     hash_key_type: Optional[str] = None
     range_key: Optional[str] = None
     range_key_type: Optional[str] = None
+    read_capacity: Optional[int] = None
+    write_capacity: Optional[int] = None
+    point_in_time_recovery_enabled: Optional[bool] = None
+    deletion_protection_enabled: Optional[bool] = None
+    table_class: Optional[str] = None
     # API Gateway
     protocol_type: Optional[str] = None
+    cors_configuration: Optional[dict] = None
+    disable_execute_api_endpoint: Optional[bool] = None
+    route_selection_expression: Optional[str] = None
     # CloudWatch
     retention_in_days: Optional[int] = None
+    kms_key_id: Optional[str] = None
+    log_group_class: Optional[str] = None
 
 
 class ResourceInstance(BaseModel):

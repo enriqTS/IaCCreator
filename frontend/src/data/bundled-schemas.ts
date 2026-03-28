@@ -1,0 +1,171 @@
+/**
+ * Bundled copy of variable schemas — fallback when /api/variable-schemas is unreachable.
+ * Generated from the same source of truth as the backend (app/generators/variable_schemas.py).
+ *
+ * Keep this in sync with the backend VARIABLE_SCHEMAS whenever schema definitions change.
+ */
+
+import type { ServiceVariableSchemas } from '@/types/terraform-variables';
+
+export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
+  lambda: [
+    { name: 'function_name', type: 'string', description: 'Name of the Lambda function', group: 'General' },
+    { name: 'handler', type: 'string', description: 'Lambda function handler (module.function)', default: 'lambda_function.lambda_handler', group: 'General' },
+    {
+      name: 'runtime', type: 'string', description: 'Lambda function runtime', default: 'python3.12', group: 'General',
+      options: [
+        { value: 'python3.12', label: 'Python 3.12' },
+        { value: 'python3.11', label: 'Python 3.11' },
+        { value: 'python3.10', label: 'Python 3.10' },
+        { value: 'python3.9', label: 'Python 3.9' },
+        { value: 'nodejs20.x', label: 'Node.js 20.x' },
+        { value: 'nodejs18.x', label: 'Node.js 18.x' },
+        { value: 'java21', label: 'Java 21' },
+        { value: 'java17', label: 'Java 17' },
+        { value: 'java11', label: 'Java 11' },
+        { value: 'dotnet8', label: '.NET 8' },
+        { value: 'dotnet6', label: '.NET 6' },
+        { value: 'ruby3.3', label: 'Ruby 3.3' },
+        { value: 'ruby3.2', label: 'Ruby 3.2' },
+        { value: 'provided.al2023', label: 'Custom Runtime (AL2023)' },
+        { value: 'provided.al2', label: 'Custom Runtime (AL2)' },
+      ],
+    },
+    { name: 'description', type: 'string', description: 'Description of the Lambda function', group: 'General' },
+    { name: 'memory_size', type: 'number', description: 'Amount of memory available to the function at runtime (MB)', default: 128, group: 'Performance', validation: { min: 128, max: 10240 } },
+    { name: 'timeout', type: 'number', description: 'Function execution timeout in seconds', default: 3, group: 'Performance', validation: { min: 1, max: 900 } },
+    { name: 'ephemeral_storage_size', type: 'number', description: 'Size of the function /tmp directory in MB', default: 512, group: 'Performance', validation: { min: 512, max: 10240 } },
+    { name: 'reserved_concurrent_executions', type: 'number', description: 'Number of reserved concurrent executions for this function', group: 'Performance', validation: { min: 0, max: 1000 } },
+    {
+      name: 'architectures', type: 'string', description: 'Instruction set architecture for the function', default: 'x86_64', group: 'Performance',
+      options: [
+        { value: 'x86_64', label: 'x86_64' },
+        { value: 'arm64', label: 'ARM64 (Graviton2)' },
+      ],
+    },
+    { name: 'publish', type: 'bool', description: 'Whether to publish creation/change as a new Lambda function version', default: false, group: 'Deployment' },
+    { name: 'layers', type: 'list', description: 'List of Lambda layer ARNs to attach to the function', group: 'Deployment' },
+    { name: 'environment_variables', type: 'map', description: 'Environment variables for the Lambda function', group: 'Metadata' },
+    { name: 'tags', type: 'map', description: 'Tags to apply to the Lambda function', group: 'Metadata' },
+  ],
+  s3: [
+    { name: 'bucket_name', type: 'string', description: 'Name of the S3 bucket', group: 'General' },
+    {
+      name: 'versioning', type: 'string', description: 'Versioning status for the S3 bucket', default: 'Enabled', group: 'General',
+      options: [
+        { value: 'Enabled', label: 'Enabled' },
+        { value: 'Suspended', label: 'Suspended' },
+        { value: 'Disabled', label: 'Disabled' },
+      ],
+    },
+    { name: 'force_destroy', type: 'bool', description: 'Allow deletion of non-empty bucket by deleting all objects', default: false, group: 'Configuration' },
+    { name: 'object_lock_enabled', type: 'bool', description: 'Enable S3 Object Lock on the bucket', default: false, group: 'Configuration' },
+    {
+      name: 'acceleration_status', type: 'string', description: 'Transfer acceleration status for the bucket', group: 'Configuration',
+      options: [
+        { value: 'Enabled', label: 'Enabled' },
+        { value: 'Suspended', label: 'Suspended' },
+      ],
+    },
+    { name: 'tags', type: 'map', description: 'Tags to apply to the S3 bucket', group: 'Metadata' },
+  ],
+  dynamodb: [
+    { name: 'table_name', type: 'string', description: 'Name of the DynamoDB table', group: 'General' },
+    {
+      name: 'billing_mode', type: 'string', description: 'Billing mode for read/write throughput', default: 'PAY_PER_REQUEST', group: 'General',
+      options: [
+        { value: 'PAY_PER_REQUEST', label: 'On-Demand (PAY_PER_REQUEST)' },
+        { value: 'PROVISIONED', label: 'Provisioned' },
+      ],
+    },
+    {
+      name: 'table_class', type: 'string', description: 'Storage class for the DynamoDB table', default: 'STANDARD', group: 'General',
+      options: [
+        { value: 'STANDARD', label: 'Standard' },
+        { value: 'STANDARD_INFREQUENT_ACCESS', label: 'Standard - Infrequent Access' },
+      ],
+    },
+    { name: 'hash_key', type: 'string', description: 'Attribute name for the partition (hash) key', group: 'Key Schema' },
+    {
+      name: 'hash_key_type', type: 'string', description: 'Attribute type for the partition (hash) key', default: 'S', group: 'Key Schema',
+      options: [
+        { value: 'S', label: 'String' },
+        { value: 'N', label: 'Number' },
+        { value: 'B', label: 'Binary' },
+      ],
+    },
+    { name: 'range_key', type: 'string', description: 'Attribute name for the sort (range) key', group: 'Key Schema' },
+    {
+      name: 'range_key_type', type: 'string', description: 'Attribute type for the sort (range) key', default: 'S', group: 'Key Schema',
+      options: [
+        { value: 'S', label: 'String' },
+        { value: 'N', label: 'Number' },
+        { value: 'B', label: 'Binary' },
+      ],
+    },
+    { name: 'read_capacity', type: 'number', description: 'Provisioned read capacity units', default: 5, group: 'Capacity', validation: { min: 1, max: 40000 }, visible_when: { field: 'billing_mode', equals: 'PROVISIONED' } },
+    { name: 'write_capacity', type: 'number', description: 'Provisioned write capacity units', default: 5, group: 'Capacity', validation: { min: 1, max: 40000 }, visible_when: { field: 'billing_mode', equals: 'PROVISIONED' } },
+    { name: 'tags', type: 'map', description: 'Tags to apply to the DynamoDB table', group: 'Metadata' },
+    { name: 'point_in_time_recovery_enabled', type: 'bool', description: 'Enable point-in-time recovery for the table', default: false, group: 'Metadata' },
+    { name: 'deletion_protection_enabled', type: 'bool', description: 'Enable deletion protection for the table', default: false, group: 'Metadata' },
+  ],
+  'api-gateway': [
+    { name: 'api_name', type: 'string', description: 'Name of the API Gateway', group: 'General' },
+    {
+      name: 'protocol_type', type: 'string', description: 'API protocol type', default: 'HTTP', group: 'General',
+      options: [
+        { value: 'HTTP', label: 'HTTP' },
+        { value: 'WEBSOCKET', label: 'WebSocket' },
+        { value: 'REST', label: 'REST' },
+      ],
+    },
+    { name: 'description', type: 'string', description: 'Description of the API', group: 'General' },
+    { name: 'cors_configuration', type: 'map', description: 'CORS configuration for the API', group: 'Configuration' },
+    { name: 'disable_execute_api_endpoint', type: 'bool', description: 'Disable the default execute-api endpoint', default: false, group: 'Configuration' },
+    { name: 'route_selection_expression', type: 'string', description: 'Route selection expression for WebSocket APIs', group: 'Configuration', visible_when: { field: 'protocol_type', equals: 'WEBSOCKET' } },
+    { name: 'tags', type: 'map', description: 'Tags to apply to the API Gateway', group: 'Metadata' },
+  ],
+  cloudwatch: [
+    { name: 'log_group_name', type: 'string', description: 'Name of the CloudWatch log group', group: 'General' },
+    {
+      name: 'retention_in_days', type: 'number', description: 'Number of days to retain log events', default: 30, group: 'General',
+      options: [
+        { value: 0, label: 'Never expire' },
+        { value: 1, label: '1 day' },
+        { value: 3, label: '3 days' },
+        { value: 5, label: '5 days' },
+        { value: 7, label: '1 week' },
+        { value: 14, label: '2 weeks' },
+        { value: 30, label: '1 month' },
+        { value: 60, label: '2 months' },
+        { value: 90, label: '3 months' },
+        { value: 120, label: '4 months' },
+        { value: 150, label: '5 months' },
+        { value: 180, label: '6 months' },
+        { value: 365, label: '1 year' },
+        { value: 400, label: '13 months' },
+        { value: 545, label: '18 months' },
+        { value: 731, label: '2 years' },
+        { value: 1096, label: '3 years' },
+        { value: 1827, label: '5 years' },
+        { value: 2192, label: '6 years' },
+        { value: 2557, label: '7 years' },
+        { value: 2922, label: '8 years' },
+        { value: 3288, label: '9 years' },
+        { value: 3653, label: '10 years' },
+      ],
+      validation: {
+        allowed_values: [0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653],
+      },
+    },
+    { name: 'kms_key_id', type: 'string', description: 'ARN of the KMS key to use for encrypting log data', group: 'Configuration' },
+    {
+      name: 'log_group_class', type: 'string', description: 'Log group class for the CloudWatch log group', default: 'STANDARD', group: 'Configuration',
+      options: [
+        { value: 'STANDARD', label: 'Standard' },
+        { value: 'INFREQUENT_ACCESS', label: 'Infrequent Access' },
+      ],
+    },
+    { name: 'tags', type: 'map', description: 'Tags to apply to the CloudWatch log group', group: 'Metadata' },
+  ],
+};
