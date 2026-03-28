@@ -9,6 +9,35 @@ interface TextObjectComponentProps {
   isSelected: boolean;
 }
 
+/** Measure text dimensions using an offscreen canvas. */
+function measureText(
+  text: string,
+  fontSize: number,
+  bold: boolean,
+  italic: boolean,
+): { width: number; height: number } {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return { width: 50, height: fontSize + 8 };
+
+  const style = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize}px sans-serif`;
+  ctx.font = style;
+
+  const lines = (text || ' ').split('\n');
+  let maxWidth = 0;
+  for (const line of lines) {
+    const m = ctx.measureText(line || ' ');
+    if (m.width > maxWidth) maxWidth = m.width;
+  }
+
+  const padding = 16; // 4px padding on each side * 2 + some breathing room
+  const lineHeight = fontSize * 1.4;
+  return {
+    width: Math.ceil(maxWidth) + padding,
+    height: Math.ceil(lines.length * lineHeight) + padding,
+  };
+}
+
 export default function TextObjectComponent({ object, isSelected }: TextObjectComponentProps) {
   const selectObject = useDiagramStore((s) => s.selectObject);
   const toggleObjectSelection = useDiagramStore((s) => s.toggleObjectSelection);
@@ -26,6 +55,16 @@ export default function TextObjectComponent({ object, isSelected }: TextObjectCo
   const isDragging = useRef(false);
   const didDrag = useRef(false);
   const lastMouse = useRef<{ x: number; y: number } | null>(null);
+
+  // Auto-size the box to fit the text content
+  useEffect(() => {
+    const text = isEditing ? editValue : object.content;
+    if (!text) return;
+    const { fontSize, bold, italic } = object.visualConfig;
+    const measured = measureText(text, fontSize, bold, italic);
+    const updateObjectBounds = useDiagramStore.getState().updateObjectBounds;
+    updateObjectBounds(object.id, { width: measured.width, height: measured.height });
+  }, [object.content, object.id, object.visualConfig, isEditing, editValue]);
 
   // Focus textarea when entering edit mode
   useEffect(() => {
@@ -179,7 +218,8 @@ export default function TextObjectComponent({ object, isSelected }: TextObjectCo
             resize: 'none',
             padding: '4px',
             boxSizing: 'border-box',
-            fontFamily: 'inherit',
+            fontFamily: 'sans-serif',
+            overflow: 'hidden',
           }}
         />
       ) : (
