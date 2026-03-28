@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
+import { ABBREVIATION_MAP } from '@/data/abbreviation-map';
 import { useDiagramStore } from '@/store/diagram-store';
+import { useRecentlyUsedStore } from '@/store/recently-used-store';
 import type { GeometricShape, UMLKind, Tool } from '@/types/diagram';
 
 // --- Picker item types ---
@@ -119,6 +121,7 @@ const ALL_ITEMS: PickerItem[] = ALL_CATEGORIES.flatMap((c) => c.items);
 /**
  * Filter picker items by search term (case-insensitive name match).
  * Exported for testing (Property 10).
+ * @deprecated Use smartSearch() instead, which adds abbreviation-aware matching.
  */
 export function filterPickerItems(items: PickerItem[], searchTerm: string): PickerItem[] {
   if (!searchTerm || searchTerm.trim() === '') return items;
@@ -126,11 +129,99 @@ export function filterPickerItems(items: PickerItem[], searchTerm: string): Pick
   return items.filter((item) => item.name.toLowerCase().includes(lower));
 }
 
+/**
+ * Smart search: matches items by case-insensitive substring on name,
+ * and also expands abbreviation map keys to their full service names.
+ *
+ * Matching logic:
+ * 1. Empty/whitespace search term → return all items
+ * 2. Lowercase the term
+ * 3. If the term is a key in abbreviationMap, collect expanded full names
+ * 4. An item matches if:
+ *    - item.name contains the search term as a substring (case-insensitive), OR
+ *    - item.name matches any expanded abbreviation name (case-insensitive)
+ * 5. All matching is case-insensitive
+ */
+export function smartSearch(
+  items: PickerItem[],
+  searchTerm: string,
+  abbreviationMap: Record<string, string[]>
+): PickerItem[] {
+  if (!searchTerm || searchTerm.trim() === '') return items;
+
+  const lower = searchTerm.toLowerCase();
+
+  // Look up expanded names from the abbreviation map
+  // Use Object.hasOwn to avoid matching Object.prototype properties (e.g., "constructor", "toString")
+  const expandedNames = Object.hasOwn(abbreviationMap, lower) ? abbreviationMap[lower] : undefined;
+  const lowerExpandedNames = expandedNames
+    ? expandedNames.map((n) => n.toLowerCase())
+    : [];
+
+  return items.filter((item) => {
+    const itemNameLower = item.name.toLowerCase();
+
+    // Substring match on the search term
+    if (itemNameLower.includes(lower)) return true;
+
+    // Match against any expanded abbreviation name
+    if (lowerExpandedNames.length > 0) {
+      return lowerExpandedNames.some((expanded) => itemNameLower.includes(expanded));
+    }
+
+    return false;
+  });
+}
+
+/**
+ * Sort categories in the defined display order:
+ * 1. "Recently Used" always first
+ * 2. "Shapes" second
+ * 3. "UML" third
+ * 4. "Text" fourth
+ * 5. "Lines & Arrows" fifth
+ * 6. All AWS categories (starting with "AWS:") in alphabetical order
+ *
+ * Returns a new sorted array without mutating the input.
+ */
+export function sortCategories(
+  categories: { category: string; items: PickerItem[] }[]
+): { category: string; items: PickerItem[] }[] {
+  const fixedOrder: Record<string, number> = {
+    'Recently Used': 0,
+    'Shapes': 1,
+    'UML': 2,
+    'Text': 3,
+    'Lines & Arrows': 4,
+  };
+
+  return [...categories].sort((a, b) => {
+    const aFixed = fixedOrder[a.category];
+    const bFixed = fixedOrder[b.category];
+
+    // Both have fixed positions
+    if (aFixed !== undefined && bFixed !== undefined) {
+      return aFixed - bFixed;
+    }
+
+    // Only a has a fixed position → a comes first
+    if (aFixed !== undefined) return -1;
+
+    // Only b has a fixed position → b comes first
+    if (bFixed !== undefined) return 1;
+
+    // Neither has a fixed position → alphabetical (AWS categories)
+    return a.category.localeCompare(b.category);
+  });
+}
+
 export default function ObjectPickerMenu() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const setActiveTool = useDiagramStore((s) => s.setActiveTool);
+  const recentItems = useRecentlyUsedStore((s) => s.recentItems);
+  const addRecentItem = useRecentlyUsedStore((s) => s.addRecentItem);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close on outside click
@@ -145,7 +236,7 @@ export default function ObjectPickerMenu() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
-  const filteredItems = filterPickerItems(ALL_ITEMS, search);
+  const filteredItems = smartSearch(ALL_ITEMS, search, ABBREVIATION_MAP);
   const filteredItemNames = new Set(filteredItems.map((i) => i.name + '|' + i.category));
 
   const toggleCategory = (name: string) => {
@@ -158,10 +249,19 @@ export default function ObjectPickerMenu() {
   };
 
   // Filter categories to only show those with matching items
-  const visibleCategories = ALL_CATEGORIES.map((cat) => ({
+  const baseCategories = ALL_CATEGORIES.map((cat) => ({
     ...cat,
     items: cat.items.filter((item) => filteredItemNames.has(item.name + '|' + item.category)),
   })).filter((cat) => cat.items.length > 0);
+
+  // Build Recently Used category (only when non-empty)
+  const recentlyUsedCategory: { category: string; items: PickerItem[] }[] =
+    recentItems.length > 0
+      ? [{ category: 'Recently Used', items: recentItems }]
+      : [];
+
+  // Prepend Recently Used and apply sort ordering
+  const visibleCategories = sortCategories([...recentlyUsedCategory, ...baseCategories]);
 
   const isAWSService = (item: PickerItem) =>
     typeof item.tool === 'object' && 'type' in item.tool && item.tool.type === 'place-service';
@@ -208,7 +308,7 @@ export default function ObjectPickerMenu() {
             top: 44,
             left: '50%',
             transform: 'translateX(-50%)',
-            width: 300,
+            width: 320,
             maxHeight: 420,
             overflowY: 'auto',
             background: '#1e1e1e',
@@ -276,49 +376,71 @@ export default function ObjectPickerMenu() {
                   {cat.category}
                 </button>
 
-                {!isCollapsed &&
-                  cat.items.map((item) => {
-                    const disabled = isUnsupportedAWS(item);
-                    return (
-                      <button
-                        key={`${item.category}-${item.name}`}
-                        data-testid={`picker-item-${item.name}`}
-                        disabled={disabled}
-                        onClick={() => {
-                          if (!disabled) {
-                            setActiveTool(item.tool);
-                            setOpen(false);
-                          }
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          padding: '5px 16px',
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#e5e5e5',
-                          fontSize: 13,
-                          cursor: disabled ? 'default' : 'pointer',
-                          opacity: disabled ? 0.4 : 1,
-                          textAlign: 'left',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!disabled) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                        }}
-                      >
-                        {item.icon && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={item.icon} alt={item.name} width={16} height={16} style={{ flexShrink: 0 }} />
-                        )}
-                        {item.name}
-                      </button>
-                    );
-                  })}
+                {!isCollapsed && (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(36px, 1fr))',
+                      gap: 2,
+                      padding: '4px 8px',
+                    }}
+                  >
+                    {cat.items.map((item) => {
+                      const disabled = isUnsupportedAWS(item);
+                      return (
+                        <button
+                          key={`${item.category}-${item.name}`}
+                          data-testid={`picker-item-${item.name}`}
+                          title={item.name}
+                          disabled={disabled}
+                          onClick={() => {
+                            if (!disabled) {
+                              addRecentItem(item);
+                              setActiveTool(item.tool);
+                              setOpen(false);
+                            }
+                          }}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'transparent',
+                            border: 'none',
+                            borderRadius: 6,
+                            cursor: disabled ? 'default' : 'pointer',
+                            opacity: disabled ? 0.4 : 1,
+                            padding: 0,
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!disabled) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                          }}
+                        >
+                          {item.icon ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={item.icon} alt={item.name} width={28} height={28} />
+                          ) : (
+                            <span
+                              style={{
+                                color: '#e5e5e5',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                lineHeight: 1,
+                                userSelect: 'none',
+                              }}
+                            >
+                              {item.name.slice(0, 2)}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
