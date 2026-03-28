@@ -204,7 +204,7 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
             </button>
 
             {expanded && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-start', padding: '8px 0' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '8px 0' }}>
                 {groupEntries.map((entry) => (
                   <FieldRenderer
                     key={entry.name}
@@ -286,7 +286,7 @@ function FieldRenderer({
   // Map → KeyValueEditor
   if (entry.type === 'map') {
     return (
-      <div style={{ ...fieldLabelStyle, width: '300px' }}>
+      <div style={fieldLabelStyle}>
         <span style={labelTextStyle}>{entry.description}</span>
         <KeyValueEditor
           value={currentValue as Record<string, string> | undefined}
@@ -299,7 +299,7 @@ function FieldRenderer({
   // List → ListEditor
   if (entry.type === 'list') {
     return (
-      <div style={{ ...fieldLabelStyle, width: '300px' }}>
+      <div style={fieldLabelStyle}>
         <span style={labelTextStyle}>{entry.description}</span>
         <ListEditor
           value={currentValue as string[] | undefined}
@@ -385,7 +385,8 @@ const inputStyle: React.CSSProperties = {
   borderRadius: '4px',
   padding: '4px 8px',
   fontSize: '13px',
-  width: '160px',
+  width: '100%',
+  boxSizing: 'border-box',
 };
 
 const errorStyle: React.CSSProperties = {
