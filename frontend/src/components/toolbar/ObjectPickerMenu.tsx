@@ -5,6 +5,7 @@ import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
 import { ABBREVIATION_MAP } from '@/data/abbreviation-map';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
+import { getItemIcon } from '@/data/shape-icons';
 import type { GeometricShape, UMLKind, Tool } from '@/types/diagram';
 
 // --- Picker item types ---
@@ -424,17 +425,19 @@ export default function ObjectPickerMenu() {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={item.icon} alt={item.name} width={28} height={28} />
                           ) : (
-                            <span
-                              style={{
-                                color: '#e5e5e5',
-                                fontSize: 12,
-                                fontWeight: 600,
-                                lineHeight: 1,
-                                userSelect: 'none',
-                              }}
-                            >
-                              {item.name.slice(0, 2)}
-                            </span>
+                            getItemIcon(item.name) || (
+                              <span
+                                style={{
+                                  color: '#e5e5e5',
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  lineHeight: 1,
+                                  userSelect: 'none',
+                                }}
+                              >
+                                {item.name.slice(0, 2)}
+                              </span>
+                            )
                           )}
                         </button>
                       );
