@@ -39,36 +39,6 @@ export interface TerraformVariableSchema {
 
 export type ServiceVariableSchemas = Record<string, TerraformVariableSchema[]>;
 
-export const VARIABLE_SCHEMAS: ServiceVariableSchemas = {
-  lambda: [
-    { name: 'function_name', type: 'string', description: 'Name of the Lambda function' },
-    { name: 'handler', type: 'string', description: 'Lambda function handler' },
-    { name: 'runtime', type: 'string', description: 'Lambda function runtime' },
-    { name: 'memory_size', type: 'number', description: 'Memory size in MB', default: 128 },
-    { name: 'timeout', type: 'number', description: 'Timeout in seconds', default: 3 },
-  ],
-  s3: [
-    { name: 'bucket_name', type: 'string', description: 'Name of the S3 bucket' },
-    { name: 'versioning_enabled', type: 'bool', description: 'Enable versioning', default: false },
-  ],
-  dynamodb: [
-    { name: 'table_name', type: 'string', description: 'Name of the DynamoDB table' },
-    { name: 'billing_mode', type: 'string', description: 'Billing mode', default: 'PAY_PER_REQUEST' },
-    { name: 'hash_key', type: 'string', description: 'Hash key attribute name' },
-    { name: 'hash_key_type', type: 'string', description: 'Hash key attribute type', default: 'S' },
-    { name: 'range_key', type: 'string', description: 'Range key attribute name' },
-    { name: 'range_key_type', type: 'string', description: 'Range key attribute type', default: 'S' },
-  ],
-  'api-gateway': [
-    { name: 'api_name', type: 'string', description: 'Name of the API Gateway' },
-    { name: 'protocol_type', type: 'string', description: 'Protocol type', default: 'HTTP' },
-  ],
-  cloudwatch: [
-    { name: 'log_group_name', type: 'string', description: 'Name of the CloudWatch log group' },
-    { name: 'retention_in_days', type: 'number', description: 'Log retention in days', default: 30 },
-  ],
-};
-
 export interface GlobalTerraformConfig {
   backend: {
     type: string;
@@ -99,13 +69,15 @@ export const DEFAULT_GLOBAL_CONFIG: GlobalTerraformConfig = {
   globalVariables: [],
 };
 
+import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
+
 /**
  * Returns a Record of variable names to their default values for a given service type.
  * Variables with a default use that value; string variables default to '',
  * number variables default to 0, and bool variables default to false.
  */
 export function getDefaultVariables(serviceType: string): Record<string, string | number | boolean> {
-  const schemas = VARIABLE_SCHEMAS[serviceType];
+  const schemas = BUNDLED_SCHEMAS[serviceType];
   if (!schemas) return {};
 
   const defaults: Record<string, string | number | boolean> = {};
