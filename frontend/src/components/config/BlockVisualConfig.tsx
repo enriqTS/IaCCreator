@@ -4,6 +4,8 @@ import { useState } from 'react';
 import type { ArchitectureBlock } from '@/types/diagram';
 import { MIN_OBJECT_WIDTH, MIN_OBJECT_HEIGHT } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface BlockVisualConfigProps {
   object: ArchitectureBlock;
@@ -47,42 +49,32 @@ export default function BlockVisualConfig({ object }: BlockVisualConfigProps) {
   };
 
   return (
-    <div data-testid="block-visual-config" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-        <span style={{ color: 'rgba(255,255,255,0.6)' }}>Width (px)</span>
-        <input
+    <div data-testid="block-visual-config" className="flex flex-wrap gap-3 items-end">
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Width (px)</Label>
+        <Input
           data-testid="block-width"
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={localWidth}
           onChange={handleWidthChange}
           onBlur={handleWidthBlur}
-          min={MIN_OBJECT_WIDTH}
-          style={inputStyle}
+          className="w-[140px]"
         />
-      </label>
+      </div>
 
-      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-        <span style={{ color: 'rgba(255,255,255,0.6)' }}>Height (px)</span>
-        <input
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Height (px)</Label>
+        <Input
           data-testid="block-height"
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={localHeight}
           onChange={handleHeightChange}
           onBlur={handleHeightBlur}
-          min={MIN_OBJECT_HEIGHT}
-          style={inputStyle}
+          className="w-[140px]"
         />
-      </label>
+      </div>
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  backgroundColor: '#2a2a2a',
-  color: '#fff',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '4px',
-  padding: '4px 8px',
-  fontSize: '13px',
-  width: '140px',
-};
