@@ -33,7 +33,7 @@ The TinyDB instance contains two tables:
 }
 ```
 
-The `diagram_state` field stores the full frontend diagram state (version, elements, connectors, viewport, environments).
+The `diagram_state` field stores the full frontend diagram state (version, elements, canvas objects, connectors, viewport, environments, object groups, global Terraform config).
 
 ### Querying
 
@@ -71,11 +71,11 @@ The `DynamoDBRepository` constructor accepts:
 
 ## Data Schema: `diagram_state`
 
-The `diagram_state` dict stored in both backends follows this shape:
+The `diagram_state` dict stored in both backends follows this shape (version 3):
 
 ```json
 {
-  "version": 1,
+  "version": 3,
   "projectName": "my-project",
   "environments": [
     {"name": "dev", "variables": {"region": "us-east-1"}}
@@ -83,10 +83,22 @@ The `diagram_state` dict stored in both backends follows this shape:
   "elements": [
     {
       "id": "uuid",
-      "type": "lambda",
-      "x": 100.0,
-      "y": 200.0,
-      "name": "my-function"
+      "serviceType": "lambda",
+      "name": "my-function",
+      "position": {"x": 100, "y": 200},
+      "config": {"handler": "index.handler", "runtime": "python3.12"}
+    }
+  ],
+  "canvasObjects": [
+    {
+      "id": "uuid",
+      "objectType": "architecture-block",
+      "name": "my-function",
+      "serviceType": "lambda",
+      "config": {},
+      "terraformVariables": {},
+      "visualConfig": {"width": 80, "height": 80},
+      "zIndex": 1
     }
   ],
   "connectors": [
@@ -94,9 +106,17 @@ The `diagram_state` dict stored in both backends follows this shape:
       "id": "uuid",
       "sourceId": "element-uuid",
       "targetId": "element-uuid",
-      "type": "triggers"
+      "connectionType": "triggers"
     }
   ],
-  "viewport": {"x": 0.0, "y": 0.0, "zoom": 1.0}
+  "objectGroups": [
+    {"id": "uuid", "name": "Group 1", "memberIds": ["obj-1", "obj-2"]}
+  ],
+  "viewport": {"offsetX": 0, "offsetY": 0, "scale": 1.0},
+  "globalTerraformConfig": {
+    "backend": {"type": "local", "config": {}},
+    "provider": {"region": "us-east-1"},
+    "versionConstraints": {}
+  }
 }
 ```

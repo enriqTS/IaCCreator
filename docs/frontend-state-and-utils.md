@@ -8,40 +8,76 @@ Zustand stores, utility modules, and TypeScript type definitions in the frontend
 
 The primary application store managing all diagram state. Created with Zustand's `create()`.
 
-**Element State:**
-- `elements: Map<string, DiagramElement>` — all diagram nodes keyed by ID
-- `addElement(serviceType, position)` — creates a new element with UUID, returns the ID
-- `updateElementPosition(id, position)` — moves an element
-- `updateElementConfig(id, config)` — merges partial config into an element
-- `updateElementName(id, name)` — renames an element
-- `removeElement(id)` — deletes an element and its connected connectors
+**Element State (legacy):**
+- `elements: Map<string, DiagramElement>` — diagram nodes keyed by ID
+- `addElement(serviceType, position)` — creates a new element with UUID
+- `updateElementPosition / updateElementConfig / updateElementName / removeElement`
+
+**Canvas Object State:**
+- `canvasObjects: Map<string, CanvasObject>` — all canvas objects (architecture blocks, lines, geometric shapes, text, UML)
+- `selectedObjectIds: Set<string>` — multi-selection set
+- `addCanvasObject(payload)` — creates a new object with UUID and auto-assigned zIndex
+- `updateCanvasObject(id, updates)` — partial update
+- `removeCanvasObject(id)` — deletes object and cleans up anchored lines
+- `selectObject / toggleObjectSelection / selectObjectsByRect / clearSelection / selectAllObjects`
+- `updateVisualConfig(id, config)` — update visual properties (size, color, etc.)
+- `updateObjectBounds(id, bounds)` — resize width/height
+- `updateLineEndpoint(id, endpoint, position)` — move line start/end point
+
+**Z-Order:**
+- `bringToFront / sendToBack / bringForward / sendBackward`
+
+**Grouping:**
+- `objectGroups: Map<string, ObjectGroup>` — named groups of objects
+- `groupSelectedObjects()` — create a group from selection
+- `ungroupObjects(groupId)` — dissolve a group
+
+**Clipboard & Duplicate:**
+- `clipboard: CanvasObject[]`
+- `copySelectedObjects() / pasteObjects(position) / duplicateSelectedObjects()`
+
+**Lock & Move:**
+- `toggleLockObjects(ids)` — toggle lock state on objects
+- `moveSelectedObjects(dx, dy)` — batch move all selected objects
+
+**Text Editing:**
+- `editingTextId` / `setEditingTextId` / `updateTextContent`
+
+**Anchor Management:**
+- `updateLineAnchors(lineId, anchors)` — set source/target anchor refs
+- `recomputeAnchoredEndpoints(movedObjectId)` — recalculate line endpoints when an anchored object moves
+
+**Pull-to-Connect:**
+- `pullConnectState` / `setPullConnectState` — state for drag-to-connect interaction
 
 **Connector State:**
 - `connectors: Map<string, Connector>` — all connectors keyed by ID
-- `addConnector(sourceId, targetId, connectionType?)` — creates a connector
-- `updateConnectorType(id, connectionType)` — changes the connection type
-- `removeConnector(id)` — deletes a connector
+- `addConnector / updateConnectorType / removeConnector`
 
 **Viewport State:**
 - `viewport: Viewport` — `{offsetX, offsetY, scale}`
-- `pan(dx, dy)` — translates the viewport
-- `zoom(factor, center)` — zooms at a screen point via `zoomAtPoint()`
+- `pan(dx, dy)` / `zoom(factor, center)` — via `zoomAtPoint()`
+- `fitToScreen(containerRect)` — auto-fit all objects into view
 
 **UI State:**
-- `activeTool: Tool` — current tool (`'pointer'`, `'connector'`, or `{type: 'place-service', serviceType}`)
-- `selectedElementId / selectedConnectorId` — current selection
+- `activeTool: Tool` — current tool (pointer, connector, place-service, place-shape, place-uml, line, text)
+- `selectedElementId / selectedConnectorId` — legacy single selection
 - `pendingConnectorSourceId` — source element when drawing a connector
 
 **History (Undo/Redo):**
 - Snapshot-based history with `MAX_HISTORY = 50` levels
-- `undo()` / `redo()` — restore previous/next snapshot
-- `canUndo` / `canRedo` — boolean flags
-- Snapshots deep-clone `elements` and `connectors` Maps
+- `undo() / redo()` — restore previous/next snapshot
+- `canUndo / canRedo` — boolean flags
+- `beginDragGesture()` — capture snapshot before a drag operation
+- Snapshots deep-clone `elements`, `connectors`, `canvasObjects`, and `objectGroups` Maps
 
 **Project State:**
-- `projectName: string`
-- `environments: EnvironmentConfig[]`
-- `setProjectName(name)` / `setEnvironments(envs)`
+- `projectName` / `environments` / `setProjectName` / `setEnvironments`
+
+**Terraform Variables:**
+- `setTerraformVariable(objectId, varName, value)` — set a single variable
+- `setTerraformVariables(objectId, vars)` — set multiple variables
+- `globalTerraformConfig` / `updateGlobalTerraformConfig`
 
 **Serialization:**
 - `serializeDiagramState() -> DiagramState` — for save/load
@@ -49,9 +85,13 @@ The primary application store managing all diagram state. Created with Zustand's
 - `serializeToArchitectureDescription() -> ArchitectureDescription` — for Terraform export
 
 **Server Persistence:**
-- `currentDiagramId` / `diagramSummaries` / `isSaving` / `isLoading`
-- `saveDiagramToServer()` / `updateDiagramOnServer(id)` / `loadDiagramFromServer(id)`
-- `listDiagramsFromServer()` / `deleteDiagramFromServer(id)`
+- `currentDiagramId / diagramSummaries / isSaving / isLoading`
+- `saveDiagramToServer() / updateDiagramOnServer(id) / loadDiagramFromServer(id)`
+- `listDiagramsFromServer() / deleteDiagramFromServer(id)`
+
+**Panel State:**
+- `bottomPanelExpanded / bottomPanelHeight / toggleBottomPanel`
+- `sidebarExpanded / sidebarWidth / setSidebarWidth`
 
 ### `toast-store.ts` — `useToastStore`
 
@@ -59,6 +99,13 @@ Simple notification store:
 - `toasts: Toast[]` — array of `{id, message, type}`
 - `addToast(message, type)` — adds a toast, auto-removes after 4 seconds
 - `removeToast(id)` — manual removal
+
+### `layout-preferences-store.ts` — `useLayoutPreferencesStore`
+
+Persisted layout preferences (via Zustand `persist` middleware):
+- `sidebarSide: 'left' | 'right'` (default `'right'`)
+- `toolbarPosition: 'top' | 'bottom'` (default `'top'`)
+- `setSidebarSide / setToolbarPosition`
 
 ## Utilities (`frontend/src/utils/`)
 
@@ -82,7 +129,7 @@ Methods:
 - `deleteDiagram(id)` — `DELETE /api/diagrams/{id}`
 - `generateTerraform(arch)` — `POST /generate/zip` (returns `Blob`)
 
-All requests include `credentials: 'include'` for cookie-based sessions. Pydantic 422 errors are parsed into `fieldErrors`.
+All requests include `credentials: 'include'` for cookie-based sessions. Base URL from `NEXT_PUBLIC_API_URL` env var (default empty = relative paths). Pydantic 422 errors are parsed into `fieldErrors`.
 
 ### `export.ts`
 
@@ -98,6 +145,18 @@ localStorage-based save/load:
 - `listSavedDiagrams()` — returns `SavedDiagramEntry[]` with name and savedAt
 - `deleteSavedDiagram(name)` — removes from localStorage
 
+### `anchor.ts`
+
+Anchor and connection geometry utilities:
+- `getAnchorPoints(bounds)` — returns 4 cardinal anchor points (top, right, bottom, left) for a bounding rect
+- `computeAnchorPoint(bounds, externalPoint)` — closest point on a rect's edge to an external point
+- `rayRectIntersection(rect, target)` — where a ray from rect center to target intersects the rect boundary
+- `findSnapAnchor(point, bounds, threshold)` — snap to nearest anchor within threshold (default 20px)
+
+### `shape-paths.ts`
+
+SVG path registry for geometric shapes. `SHAPE_PATH_REGISTRY` maps each `GeometricShape` to a function `(width, height) => string` returning an SVG path `d` attribute. Covers 25+ shapes including basic shapes, polygons, arrows, flowchart shapes, and special shapes (cylinder, cloud, callout).
+
 ## Type Definitions (`frontend/src/types/`)
 
 ### `diagram.ts`
@@ -108,16 +167,35 @@ Core diagram types:
 - `DiagramElement` — `{id, serviceType, name, position, config}`
 - `Connector` — `{id, sourceId, targetId, connectionType}`
 - `Viewport` — `{offsetX, offsetY, scale}` (scale range 0.1–5.0)
-- `Tool` — `'pointer' | 'connector' | {type: 'place-service', serviceType}`
+- `Tool` — `'pointer' | 'connector' | 'line' | 'text' | {type: 'place-service', serviceType} | {type: 'place-shape', shape} | {type: 'place-uml', umlKind}`
 - `ResourceConfig` — mirrors the backend's `ResourceConfig` Pydantic schema
 - `EnvironmentConfig` — `{name, variables}`
+- `CanvasObjectType` — `'architecture-block' | 'line' | 'geometric' | 'text' | 'uml'`
+- `CanvasObject` — discriminated union of `ArchitectureBlock | LineObject | GeometricObject | TextObject | UMLObject`
+- `GeometricShape` — 25+ shape types (rectangle, ellipse, diamond, hexagon, star, cloud, flowchart shapes, etc.)
+- `UMLKind` — `'class' | 'interface' | 'actor' | 'use-case' | 'component' | 'package' | 'node'`
+- Visual config interfaces: `ArchitectureBlockVisualConfig`, `LineVisualConfig`, `GeometricVisualConfig`, `TextVisualConfig`, `UMLVisualConfig`
+- `ObjectGroup` — `{id, name, memberIds}`
+- `AnchorRef` — `{objectId}` for line anchoring
+- `Rect` — `{x, y, width, height}` axis-aligned bounding box
+- `getObjectBounds(obj)` — compute bounding box for any canvas object
+- Default visual configs: `DEFAULT_BLOCK_VISUAL`, `DEFAULT_LINE_VISUAL`, `DEFAULT_GEO_VISUAL`, `DEFAULT_TEXT_VISUAL`, `DEFAULT_UML_VISUAL`
 
 ### `serialization.ts`
 
 Serialization types:
-- `DiagramState` — full state for save/load: `version`, `projectName`, `environments`, `elements`, `connectors`, `viewport`
-- `SerializedElement` / `SerializedConnector` — flattened element/connector shapes
+- `CURRENT_DIAGRAM_VERSION = 3`
+- `DiagramState` — full state for save/load: `version`, `projectName`, `environments`, `elements`, `canvasObjects`, `connectors`, `viewport`, `objectGroups`, `globalTerraformConfig`
+- `SerializedElement` / `SerializedCanvasObject` / `SerializedConnector` / `SerializedObjectGroup`
 - `ArchitectureDescription` — maps to the backend's Pydantic schema for Terraform export
+
+### `terraform-variables.ts`
+
+Terraform variable schemas and global configuration:
+- `VARIABLE_SCHEMAS` — per-service variable definitions (name, type, description, default)
+- `GlobalTerraformConfig` — backend, provider, version constraints, environments, global variables
+- `DEFAULT_GLOBAL_CONFIG` — sensible defaults (local backend, us-east-1)
+- `getDefaultVariables(serviceType)` — returns default variable values for a service type
 
 ### `api.ts`
 

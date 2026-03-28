@@ -10,8 +10,10 @@ Transforms a validated `ArchitectureDescription` into a `ProjectIR`.
   1. Validates all connections reference existing resources and compatible service pairs
   2. Groups resources by `ServiceType` into `ServiceModuleIR` instances
   3. Derives IAM statements from connections (e.g., Lambda → DynamoDB adds DynamoDB read/write actions)
-  4. Builds `EnvironmentIR` entries with `module_refs` pointing to all service types
-  5. Returns the complete `ProjectIR`
+  4. Builds `EnvironmentIR` entries with `module_refs` pointing to all used service types
+  5. Propagates `terraform_variables` from each `ResourceInstance` to `ResourceInstanceIR`
+  6. Builds `GlobalTerraformConfigIR` from the input's `global_terraform_config`
+  7. Returns the complete `ProjectIR`
 
 Compatible connection pairs (defined in `COMPATIBLE_CONNECTIONS`):
 - API Gateway → Lambda
@@ -20,6 +22,11 @@ Compatible connection pairs (defined in `COMPATIBLE_CONNECTIONS`):
 - Lambda → CloudWatch
 
 Invalid connections (unknown resources, incompatible pairs) raise `HTTPException(422)`.
+
+IAM action mappings per target service (defined in `IAM_ACTIONS`):
+- DynamoDB: GetItem, PutItem, Query, Scan, UpdateItem, DeleteItem
+- S3: GetObject, PutObject, DeleteObject, ListBucket
+- CloudWatch: CreateLogGroup, CreateLogStream, PutLogEvents
 
 ## CodeGenerator (`app/services/code_generator.py`)
 
@@ -31,10 +38,10 @@ Top-level orchestrator that produces a `FileTree` from a `ProjectIR`.
 
 ## ConnectionProcessor (`app/services/connection_processor.py`)
 
-Processes resource connections and generates integration HCL and IAM statements.
+Processes resource connections and generates integration HCL and IAM statements. Uses a dispatch table mapping `(source_service, target_service)` tuples to handler methods.
 
 - `process_all(project: ProjectIR) -> list[GeneratedFile]` — iterates all connections
-- `process(connection, project) -> list[GeneratedFile]` — dispatches to a handler based on `(source_service, target_service)`
+- `process(connection, project) -> list[GeneratedFile]` — dispatches to a handler based on service pair
 
 Connection handlers:
 
@@ -52,13 +59,13 @@ IAM statements are mutated in-place on `ResourceInstanceIR.iam_statements`.
 Walks the `ProjectIR` and collects all generated content into a `FileTree` (dict of path → content).
 
 - `assemble(project, extra_files) -> FileTree`
-  1. Environment files: `main.tf` (provider + module blocks), `variables.tf`, `outputs.tf`, `terraform.tfvars`
+  1. Environment files: `main.tf` (provider + module blocks), `variables.tf`, `outputs.tf`, `terraform.tfvars`, `backend.tf`, `provider.tf`, `versions.tf`
   2. Service module files: module-level `main.tf`/`variables.tf`/`outputs.tf` + per-instance subfolders
   3. Per-instance files: `{service}.tf`, `variables.tf`, `outputs.tf` (Lambda also gets `iam.tf`)
   4. IAM policy JSON files: `{name}-policy.json` in `iam-policies/` for every Lambda
   5. Merges `extra_files` from connection processing
 
-Uses `GENERATOR_REGISTRY` to look up the correct generator for each service type.
+Uses `GENERATOR_REGISTRY` to look up the correct generator for each service type. Uses `TfvarsGenerator` to produce `terraform.tfvars` and corresponding variable blocks from resource `terraform_variables`. Uses `GlobalConfigGenerator` to produce `backend.tf`, `provider.tf`, and `versions.tf` from `GlobalTerraformConfigIR`.
 
 ## OutputSerializer (`app/services/output_serializer.py`)
 
@@ -96,7 +103,8 @@ ArchitectureDescription
         │
         └── FileTreeAssembler.assemble()
                 │
-                ├── Environment files
+                ├── Environment files (main.tf, variables.tf, outputs.tf,
+                │     terraform.tfvars, backend.tf, provider.tf, versions.tf)
                 ├── Module files
                 ├── Instance files (via GENERATOR_REGISTRY)
                 ├── IAM policy JSON files

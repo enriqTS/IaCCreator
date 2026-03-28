@@ -1,6 +1,6 @@
 # Backend Generators
 
-The `app/generators/` package contains HCL/Terraform code generators for each AWS service type, a shared HCL renderer, an IAM policy generator, and a registry that maps service types to generator instances.
+The `app/generators/` package contains HCL/Terraform code generators for each AWS service type, a shared HCL renderer, an IAM policy generator, a tfvars generator, a global config generator, variable schemas, and a registry that maps service types to generator instances.
 
 ## Generator Protocol (`app/generators/base.py`)
 
@@ -62,8 +62,8 @@ Generates files for `aws_lambda_function` resources.
 
 Generates files for `aws_s3_bucket` resources.
 
-- `generate_resource_tf()` — `s3.tf` with bucket name; if `versioning=true`, also generates `aws_s3_bucket_versioning`
-- `generate_variables_tf()` — variable for bucket_name
+- `generate_resource_tf()` — `s3.tf` with bucket name + `aws_s3_bucket_versioning` resource
+- `generate_variables_tf()` — variables for bucket_name and versioning_enabled (default `"Enabled"`)
 - `generate_outputs_tf()` — outputs for bucket_arn and bucket_name
 
 ### DynamoDBGenerator (`app/generators/dynamodb_generator.py`)
@@ -71,15 +71,15 @@ Generates files for `aws_s3_bucket` resources.
 Generates files for `aws_dynamodb_table` resources.
 
 - `generate_resource_tf()` — `dynamodb.tf` with table_name, billing_mode, hash_key, attribute blocks; optional range_key
-- `generate_variables_tf()` — variables for table_name, hash_key, optional range_key
+- `generate_variables_tf()` — variables for table_name, billing_mode (default `PAY_PER_REQUEST`), hash_key, optional range_key
 - `generate_outputs_tf()` — outputs for table_arn and table_name
 
 ### APIGatewayGenerator (`app/generators/api_gateway_generator.py`)
 
 Generates files for `aws_apigatewayv2_api` resources.
 
-- `generate_resource_tf()` — `api-gateway.tf` with api_name and protocol_type (default `HTTP`)
-- `generate_variables_tf()` — variable for api_name
+- `generate_resource_tf()` — `api-gateway.tf` with api_name and protocol_type
+- `generate_variables_tf()` — variables for api_name and protocol_type (default `HTTP`)
 - `generate_outputs_tf()` — outputs for api_id and api_endpoint
 
 ### CloudWatchGenerator (`app/generators/cloudwatch_generator.py`)
@@ -106,3 +106,30 @@ Generates files for standalone IAM role and policy resources.
 - `generate_base_execution_policy(function_name)` — produces a minimal policy with only CloudWatch Logs permissions
 
 Every Lambda instance gets a `{name}-policy.json` file in the `iam-policies/` directory.
+
+## TfvarsGenerator (`app/generators/tfvars_generator.py`)
+
+Generates `terraform.tfvars` and corresponding `variables.tf` blocks from resource `terraform_variables`.
+
+- `generate_tfvars(instances, prefix=True)` — produces `terraform.tfvars` content with properly typed values (strings quoted, numbers/bools unquoted). When `prefix=True`, variable names are prefixed with the instance name to avoid collisions.
+- `generate_variables_tf(instances, prefix=True)` — produces matching `variable` blocks with types and descriptions sourced from `VARIABLE_SCHEMAS`.
+
+## GlobalConfigGenerator (`app/generators/global_config_generator.py`)
+
+Generates project-level Terraform configuration files from `GlobalTerraformConfigIR`.
+
+- `generate_backend_tf(config)` — `terraform { backend "..." { ... } }` block
+- `generate_provider_tf(config)` — `provider "aws" { region, optional profile }` block
+- `generate_versions_tf(config)` — `terraform { required_version, required_providers { aws { source, version } } }` block
+
+## Variable Schemas (`app/generators/variable_schemas.py`)
+
+`VARIABLE_SCHEMAS` is a `dict[ServiceType, list[dict]]` defining which Terraform variables each service type exposes. Each entry has `name`, `type`, `description`, and optional `default`. Used by `TfvarsGenerator` to produce correctly typed variable blocks.
+
+| Service      | Variables                                                    |
+|--------------|--------------------------------------------------------------|
+| Lambda       | function_name, handler, runtime, memory_size (128), timeout (3) |
+| S3           | bucket_name, versioning_enabled (False)                      |
+| DynamoDB     | table_name, billing_mode (PAY_PER_REQUEST), hash_key, hash_key_type (S), range_key, range_key_type (S) |
+| API Gateway  | api_name, protocol_type (HTTP)                               |
+| CloudWatch   | log_group_name, retention_in_days (30)                       |

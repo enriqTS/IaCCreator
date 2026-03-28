@@ -58,11 +58,21 @@ Both endpoints run the same pipeline: `IRBuilder.build()` → `CodeGenerator.gen
   "project_name": "my-project",
   "environments": [{"name": "dev", "variables": {"region": "us-east-1"}}],
   "resources": [
-    {"name": "my-func", "service_type": "lambda", "config": {"handler": "index.handler", "runtime": "python3.12"}}
+    {
+      "name": "my-func",
+      "service_type": "lambda",
+      "config": {"handler": "index.handler", "runtime": "python3.12"},
+      "terraform_variables": {"function_name": "my-func", "memory_size": 256}
+    }
   ],
   "connections": [
     {"source": "my-func", "target": "my-table", "connection_type": "reads_from"}
-  ]
+  ],
+  "global_terraform_config": {
+    "backend_type": "s3",
+    "backend_config": {"bucket": "my-tf-state"},
+    "provider_region": "us-east-1"
+  }
 }
 ```
 
@@ -88,11 +98,15 @@ Both endpoints run the same pipeline: `IRBuilder.build()` → `CodeGenerator.gen
 
 ```json
 {
-  "version": 1,
+  "version": 3,
   "projectName": "my-project",
   "environments": [{"name": "dev", "variables": {}}],
   "elements": [{"id": "...", "type": "lambda", "x": 100, "y": 200, "name": "my-func"}],
   "connectors": [{"id": "...", "sourceId": "...", "targetId": "...", "type": "triggers"}],
-  "viewport": {"x": 0, "y": 0, "zoom": 1.0}
+  "viewport": {"x": 0, "y": 0, "zoom": 1.0},
+  "globalTerraformConfig": {
+    "backend_type": "local",
+    "provider_region": "us-east-1"
+  }
 }
 ```

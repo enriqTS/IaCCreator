@@ -32,7 +32,7 @@ Service-specific configuration fields (all optional, used per service type):
 
 ### `ResourceInstance`
 
-A named resource with `name`, `service_type`, and `config`. Includes a model validator that requires `hash_key` for DynamoDB resources.
+A named resource with `name`, `service_type`, `config`, and `terraform_variables` (dict of user-defined variable overrides). Includes a model validator that requires `hash_key` for DynamoDB resources.
 
 ### `Connection`
 
@@ -42,9 +42,16 @@ A connection between two resources: `source`, `target`, `connection_type` (e.g.,
 
 An environment with `name` and `variables` (dict of string key-value pairs).
 
+### `GlobalTerraformConfig`
+
+Project-level Terraform configuration:
+- `backend_type` (default `"local"`), `backend_config` (dict)
+- `provider_region` (default `"us-east-1"`), `provider_profile` (optional)
+- `terraform_version` (optional), `aws_provider_version` (optional)
+
 ### `ArchitectureDescription`
 
-Top-level input schema: `project_name`, `environments` (min 1), `resources` (min 1), `connections` (optional).
+Top-level input schema: `project_name`, `environments` (min 1), `resources` (min 1), `connections` (optional), `global_terraform_config` (optional, defaults to `GlobalTerraformConfig()`).
 
 ## IR Models (`app/models/ir_models.py`)
 
@@ -64,7 +71,7 @@ Normalized connection: `source_name`, `target_name`, `source_service`, `target_s
 
 ### `ResourceInstanceIR`
 
-Enriched resource instance: `name`, `service_type`, `config` (ResourceConfig), `iam_statements` (populated by IRBuilder from connections), `connections` (list of ConnectionIR).
+Enriched resource instance: `name`, `service_type`, `config` (ResourceConfig), `iam_statements` (populated by IRBuilder from connections), `connections` (list of ConnectionIR), `terraform_variables` (dict of user-defined variable values).
 
 ### `ServiceModuleIR`
 
@@ -74,9 +81,13 @@ Groups all instances of a single service type: `service_type`, `instances`.
 
 Environment with `name`, `variables`, and `module_refs` (list of ServiceType values this environment references).
 
+### `GlobalTerraformConfigIR`
+
+Project-level Terraform configuration in the IR: `backend_type`, `backend_config`, `provider_region`, `provider_profile`, `terraform_version`, `aws_provider_version`.
+
 ### `ProjectIR`
 
-Top-level IR: `project_name`, `environments`, `modules`, `connections`.
+Top-level IR: `project_name`, `environments`, `modules`, `connections`, `global_config` (GlobalTerraformConfigIR).
 
 ### `GeneratedFile`
 
@@ -92,7 +103,7 @@ Pydantic schemas for diagram state validation (save/load endpoints).
 
 ### `DiagramStateInput`
 
-Top-level diagram state: `version` (int), `projectName`, `environments` (list of `EnvironmentConfigInput`), `elements` (list of `SerializedElementInput`), `connectors` (list of `SerializedConnectorInput`), `viewport` (`ViewportInput`).
+Top-level diagram state: `version` (int), `projectName`, `environments` (list of `EnvironmentConfigInput`), `elements` (list of `SerializedElementInput`), `connectors` (list of `SerializedConnectorInput`), `viewport` (`ViewportInput`), `globalTerraformConfig` (optional dict).
 
 ### `SerializedElementInput`
 
