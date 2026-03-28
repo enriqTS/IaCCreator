@@ -119,7 +119,7 @@ export default function Toolbar() {
         variant="ghost"
         size="icon"
         title="Undo (Ctrl+Z)"
-        disabled={!canUndo}
+        disabled={!canUndo || undefined}
         onClick={undo}
       >
         ↩
@@ -128,7 +128,7 @@ export default function Toolbar() {
         variant="ghost"
         size="icon"
         title="Redo (Ctrl+Shift+Z)"
-        disabled={!canRedo}
+        disabled={!canRedo || undefined}
         onClick={redo}
       >
         ↪
