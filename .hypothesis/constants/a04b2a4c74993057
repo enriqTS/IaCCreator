@@ -1,4 +1,0 @@
-# file: C:\Users\Henrique\Documents\IaCreator\app\generators\cloudwatch_generator.py
-# hypothesis_version: 6.151.9
-
-['log_group_arn', 'log_group_name', 'name', 'number', 'retention_in_days', 'string', 'var.log_group_name']

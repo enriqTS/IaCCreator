@@ -1,4 +1,0 @@
-# file: C:\Users\Henrique\Documents\IaCreator\app\services\file_tree_assembler.py
-# hypothesis_version: 6.151.9
-
-['any', 'aws', 'aws_region', 'string', 'var.aws_region']

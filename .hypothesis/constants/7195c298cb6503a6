@@ -1,4 +1,0 @@
-# file: C:\Users\Henrique\Documents\IaCreator\app\services\ir_builder.py
-# hypothesis_version: 6.151.9
-
-[422, 'Allow', 'dynamodb:DeleteItem', 'dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:Query', 'dynamodb:Scan', 'dynamodb:UpdateItem', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents', 's3:DeleteObject', 's3:GetObject', 's3:ListBucket', 's3:PutObject']

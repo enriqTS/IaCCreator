@@ -1,4 +1,0 @@
-# file: C:\Users\Henrique\Documents\IaCreator\app\main.py
-# hypothesis_version: 6.151.9
-
-[500, '-policy.json', '/generate/json', '/generate/zip', '/iam-policies/', '0.1.0', 'Content-Disposition', 'application/zip']

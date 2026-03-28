@@ -1,4 +1,0 @@
-# file: C:\Users\Henrique\Documents\IaCreator\app\models\input_models.py
-# hypothesis_version: 6.151.9
-
-['ResourceInstance', 'after', 'api-gateway', 'cloudwatch', 'dynamodb', 'iam', 'lambda', 's3']

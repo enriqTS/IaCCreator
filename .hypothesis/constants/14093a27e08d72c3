@@ -1,4 +1,0 @@
-# file: C:\Users\Henrique\Documents\IaCreator\app\generators\s3_generator.py
-# hypothesis_version: 6.151.9
-
-['ARN of the S3 bucket', 'Enabled', 'aws_s3_bucket', 'bucket', 'bucket_arn', 'bucket_name', 'status', 'string', 'var.bucket_name']
