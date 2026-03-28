@@ -261,6 +261,11 @@ export default function Canvas() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !e.repeat) {
+        // Allow spacebar in text inputs (textarea, input, contenteditable)
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT' || target.isContentEditable) {
+          return;
+        }
         // Prevent page scroll when space is pressed
         if (e.target === document.body || containerRef.current?.contains(e.target as Node)) {
           e.preventDefault();
