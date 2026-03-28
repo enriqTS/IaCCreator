@@ -5,7 +5,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import type { CanvasObject } from '@/types/diagram';
 import { MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT_RATIO } from './panel-constants';
 import TerraformTab from './TerraformTab';
-import VariablesPanel from './VariablesPanel';
+import SchemaConfigForm from './SchemaConfigForm';
 import VisualTab from './VisualTab';
 import ZOrderControls from './ZOrderControls';
 import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
@@ -314,7 +314,7 @@ export default function BottomPanel() {
           <div data-testid="terraform-tab-content"><TerraformTab block={selectedObject} /></div>
         )}
         {activeTab === 'Variables' && selectedObject?.objectType === 'architecture-block' && (
-          <div data-testid="variables-tab-content"><VariablesPanel block={selectedObject} /></div>
+          <div data-testid="variables-tab-content"><SchemaConfigForm elementId={selectedObject.id} serviceType={selectedObject.serviceType} /></div>
         )}
         {activeTab === 'Visual' && (
           <div data-testid="visual-tab-content"><VisualTab object={selectedObject} /></div>

@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PanelLeftOpen, PanelRightOpen, PanelLeftClose, PanelRightClose } from 'lucide-react';
 import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
-import VariablesPanel from './VariablesPanel';
+import SchemaConfigForm from './SchemaConfigForm';
 import VisualTab from './VisualTab';
 
 /** Determine available tabs for a given canvas object type. */
@@ -357,7 +357,7 @@ function SingleSelectionView({
         {tabs.includes('Variables') && (
           <TabsContent value="Variables" data-testid="variables-tab-content">
             {selectedObject.objectType === 'architecture-block' && (
-              <VariablesPanel block={selectedObject} />
+              <SchemaConfigForm elementId={selectedObjectId} serviceType={selectedObject.serviceType} />
             )}
           </TabsContent>
         )}
