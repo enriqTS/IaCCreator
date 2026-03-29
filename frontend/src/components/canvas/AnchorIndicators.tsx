@@ -13,6 +13,8 @@ interface AnchorIndicatorsProps {
 }
 
 const ANCHOR_RADIUS = 5;
+/** Invisible hit area radius — much larger than the visual dot for easier grabbing */
+const HIT_RADIUS = 14;
 const ANCHOR_COLOR = '#3b82f6';
 const ANCHOR_STROKE = '#ffffff';
 
@@ -48,18 +50,31 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
               position: 'absolute',
               left: 0,
               top: 0,
-              transform: `translate(${point.x - ANCHOR_RADIUS}px, ${point.y - ANCHOR_RADIUS}px)`,
-              width: ANCHOR_RADIUS * 2,
-              height: ANCHOR_RADIUS * 2,
+              transform: `translate(${point.x - HIT_RADIUS}px, ${point.y - HIT_RADIUS}px)`,
+              width: HIT_RADIUS * 2,
+              height: HIT_RADIUS * 2,
               borderRadius: '50%',
-              backgroundColor: ANCHOR_COLOR,
-              border: `1.5px solid ${ANCHOR_STROKE}`,
-              boxSizing: 'border-box',
               cursor: 'crosshair',
               pointerEvents: 'auto',
               zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-          />
+          >
+            {/* Visual dot */}
+            <div
+              style={{
+                width: ANCHOR_RADIUS * 2,
+                height: ANCHOR_RADIUS * 2,
+                borderRadius: '50%',
+                backgroundColor: ANCHOR_COLOR,
+                border: `1.5px solid ${ANCHOR_STROKE}`,
+                boxSizing: 'border-box',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
         );
       })}
     </>
