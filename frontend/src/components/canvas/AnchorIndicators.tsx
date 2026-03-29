@@ -46,13 +46,15 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
             onMouseDown={(e) => handleMouseDown(e, point, pos)}
             style={{
               position: 'absolute',
-              left: point.x - ANCHOR_RADIUS,
-              top: point.y - ANCHOR_RADIUS,
+              left: 0,
+              top: 0,
+              transform: `translate(${point.x - ANCHOR_RADIUS}px, ${point.y - ANCHOR_RADIUS}px)`,
               width: ANCHOR_RADIUS * 2,
               height: ANCHOR_RADIUS * 2,
               borderRadius: '50%',
               backgroundColor: ANCHOR_COLOR,
               border: `1.5px solid ${ANCHOR_STROKE}`,
+              boxSizing: 'border-box',
               cursor: 'crosshair',
               pointerEvents: 'auto',
               zIndex: 10,
