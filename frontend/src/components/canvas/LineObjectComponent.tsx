@@ -205,10 +205,9 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
               markerUnits="userSpaceOnUse"
             >
               <path
-                d={`M ${arrowSize} 0 L 0 ${arrowSize / 2} L ${arrowSize} ${arrowSize}`}
-                fill="none"
-                stroke={color}
-                strokeWidth={Math.max(borderWidth * 0.6, 1)}
+                d={`M ${arrowSize} 0 L 0 ${arrowSize / 2} L ${arrowSize} ${arrowSize} Z`}
+                fill={color}
+                stroke="none"
               />
             </marker>
           )}
@@ -223,10 +222,9 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
               markerUnits="userSpaceOnUse"
             >
               <path
-                d={`M 0 0 L ${arrowSize} ${arrowSize / 2} L 0 ${arrowSize}`}
-                fill="none"
-                stroke={color}
-                strokeWidth={Math.max(borderWidth * 0.6, 1)}
+                d={`M 0 0 L ${arrowSize} ${arrowSize / 2} L 0 ${arrowSize} Z`}
+                fill={color}
+                stroke="none"
               />
             </marker>
           )}
@@ -303,10 +301,9 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
             markerUnits="userSpaceOnUse"
           >
             <path
-              d={`M ${arrowSize} 0 L 0 ${arrowSize / 2} L ${arrowSize} ${arrowSize}`}
-              fill="none"
-              stroke={color}
-              strokeWidth={Math.max(borderWidth * 0.6, 1)}
+              d={`M ${arrowSize} 0 L 0 ${arrowSize / 2} L ${arrowSize} ${arrowSize} Z`}
+              fill={color}
+              stroke="none"
             />
           </marker>
         )}
@@ -321,10 +318,9 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
             markerUnits="userSpaceOnUse"
           >
             <path
-              d={`M 0 0 L ${arrowSize} ${arrowSize / 2} L 0 ${arrowSize}`}
-              fill="none"
-              stroke={color}
-              strokeWidth={Math.max(borderWidth * 0.6, 1)}
+              d={`M 0 0 L ${arrowSize} ${arrowSize / 2} L 0 ${arrowSize} Z`}
+              fill={color}
+              stroke="none"
             />
           </marker>
         )}
