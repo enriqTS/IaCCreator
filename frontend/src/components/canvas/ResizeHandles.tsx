@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
-import { findSnapAnchor, rayRectIntersection } from '@/utils/anchor';
+import { findSnapAnchor, getAnchorPoints } from '@/utils/anchor';
 import { getObjectBounds } from '@/types/diagram';
 import type { CanvasObject, Point } from '@/types/diagram';
 
@@ -198,7 +198,7 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
     origPoint: Point;
   } | null>(null);
 
-  // Resolve anchored endpoints so handles match the rendered line position
+  // Resolve anchored endpoints using fixed anchor positions
   let canvasStart = object.start;
   let canvasEnd = object.end;
 
@@ -206,7 +206,7 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
     const sourceObj = canvasObjects.get(object.sourceAnchor.objectId);
     if (sourceObj) {
       const bounds = getObjectBounds(sourceObj);
-      canvasStart = rayRectIntersection(bounds, canvasEnd);
+      canvasStart = getAnchorPoints(bounds)[object.sourceAnchor.anchorPosition];
     }
   }
 
@@ -214,7 +214,7 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
     const targetObj = canvasObjects.get(object.targetAnchor.objectId);
     if (targetObj) {
       const bounds = getObjectBounds(targetObj);
-      canvasEnd = rayRectIntersection(bounds, canvasStart);
+      canvasEnd = getAnchorPoints(bounds)[object.targetAnchor.anchorPosition];
     }
   }
 
