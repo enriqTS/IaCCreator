@@ -158,6 +158,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
         alignItems: 'center',
         justifyContent: 'center',
         gap: '4px',
+        boxSizing: 'border-box',
         border: `2px solid ${borderColor}`,
         borderRadius: '4px',
         transition: 'border-color 0.15s',
