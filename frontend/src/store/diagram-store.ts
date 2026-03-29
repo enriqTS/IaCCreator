@@ -1123,7 +1123,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         }
 
         if (updated) {
-          updates.set(line.id, { ...line, start: newStart, end: newEnd });
+          updates.set(line.id, { ...line, start: newStart, end: newEnd, waypoints: null });
         }
       }
 
