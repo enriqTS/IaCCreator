@@ -159,9 +159,9 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
               id={startMarkerId}
               markerWidth={arrowSize}
               markerHeight={arrowSize}
-              refX={arrowSize}
+              refX={0}
               refY={arrowSize / 2}
-              orient="auto-start-reverse"
+              orient="auto"
               markerUnits="userSpaceOnUse"
             >
               <path
@@ -177,7 +177,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
               id={endMarkerId}
               markerWidth={arrowSize}
               markerHeight={arrowSize}
-              refX={0}
+              refX={arrowSize}
               refY={arrowSize / 2}
               orient="auto"
               markerUnits="userSpaceOnUse"
@@ -252,9 +252,9 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
             id={startMarkerId}
             markerWidth={arrowSize}
             markerHeight={arrowSize}
-            refX={arrowSize}
+            refX={0}
             refY={arrowSize / 2}
-            orient="auto-start-reverse"
+            orient="auto"
             markerUnits="userSpaceOnUse"
           >
             <path
@@ -270,7 +270,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
             id={endMarkerId}
             markerWidth={arrowSize}
             markerHeight={arrowSize}
-            refX={0}
+            refX={arrowSize}
             refY={arrowSize / 2}
             orient="auto"
             markerUnits="userSpaceOnUse"
