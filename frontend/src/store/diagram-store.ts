@@ -43,7 +43,7 @@ import type { DiagramState, ArchitectureDescription, SerializedCanvasObject } fr
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 import type { DiagramSummary } from '@/types/api';
 import { zoomAtPoint } from '@/utils/viewport';
-import { getAnchorPoints } from '@/utils/anchor';
+import { getAnchorPoints, findNearestAnchorPosition } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
 import { apiClient } from '@/utils/api-client';
 import { useToastStore } from '@/store/toast-store';
@@ -1109,21 +1109,45 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       for (const obj of canvasObjects.values()) {
         if (obj.objectType !== 'line') continue;
         const line = obj as LineObject;
+        let updatedLine = { ...line };
         let updated = false;
-        let newStart = line.start;
-        let newEnd = line.end;
 
+        // Re-evaluate source anchor position if the moved object is the source
         if (line.sourceAnchor?.objectId === movedObjectId) {
-          newStart = getAnchorPoints(movedBounds)[line.sourceAnchor.anchorPosition];
+          // Determine the other endpoint to evaluate best anchor side
+          let otherPt = line.end;
+          if (line.targetAnchor) {
+            const targetObj = canvasObjects.get(line.targetAnchor.objectId);
+            if (targetObj) {
+              const targetBounds = getObjectBounds(targetObj);
+              otherPt = getAnchorPoints(targetBounds)[line.targetAnchor.anchorPosition];
+            }
+          }
+          const bestPos = findNearestAnchorPosition(otherPt, movedBounds, line.sourceAnchor.anchorPosition);
+          updatedLine.sourceAnchor = { ...line.sourceAnchor, anchorPosition: bestPos };
+          updatedLine.start = getAnchorPoints(movedBounds)[bestPos];
           updated = true;
         }
+
+        // Re-evaluate target anchor position if the moved object is the target
         if (line.targetAnchor?.objectId === movedObjectId) {
-          newEnd = getAnchorPoints(movedBounds)[line.targetAnchor.anchorPosition];
+          let otherPt = updatedLine.start;
+          if (line.sourceAnchor) {
+            const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
+            if (sourceObj && line.sourceAnchor.objectId !== movedObjectId) {
+              const sourceBounds = getObjectBounds(sourceObj);
+              otherPt = getAnchorPoints(sourceBounds)[line.sourceAnchor.anchorPosition];
+            }
+          }
+          const bestPos = findNearestAnchorPosition(otherPt, movedBounds, line.targetAnchor.anchorPosition);
+          updatedLine.targetAnchor = { ...line.targetAnchor, anchorPosition: bestPos };
+          updatedLine.end = getAnchorPoints(movedBounds)[bestPos];
           updated = true;
         }
 
         if (updated) {
-          updates.set(line.id, { ...line, start: newStart, end: newEnd, waypoints: null });
+          updatedLine.waypoints = null;
+          updates.set(line.id, updatedLine as LineObject);
         }
       }
 
