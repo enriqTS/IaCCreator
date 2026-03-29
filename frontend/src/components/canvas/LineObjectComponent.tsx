@@ -5,7 +5,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { useSnapDrag } from '@/hooks/useSnapDrag';
 import { getAnchorPoints } from '@/utils/anchor';
-import { computeOrthogonalWaypoints } from '@/utils/routing';
+import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
 import { getObjectBounds } from '@/types/diagram';
 import type { LineObject, Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
@@ -77,8 +77,6 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   // Compute actual endpoints, resolving anchors when present using fixed anchor positions
   let startPt = line.start;
   let endPt = line.end;
-  const hasSourceAnchor = !!line.sourceAnchor;
-  const hasTargetAnchor = !!line.targetAnchor;
 
   if (line.sourceAnchor) {
     const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
@@ -97,9 +95,8 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   }
 
   // Determine if we should use orthogonal routing:
-  // Only when routingMode is 'orthogonal' AND both anchors are present
-  const useOrthogonal = routingMode === 'orthogonal' && hasSourceAnchor && hasTargetAnchor
-    && !!line.sourceAnchor && !!line.targetAnchor;
+  // Applies whenever routingMode is 'orthogonal', regardless of anchor state
+  const useOrthogonal = routingMode === 'orthogonal';
 
   // Read snap settings for grid-aware routing
   const snapToGridEnabled = useLayoutPreferencesStore((s) => s.snapToGridEnabled);
@@ -107,19 +104,33 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
 
   // Compute the full path points (start + waypoints + end)
   const pathPoints = useMemo((): Point[] => {
-    if (useOrthogonal && line.sourceAnchor && line.targetAnchor) {
+    // If user-modified waypoints exist, use them directly
+    if (line.waypoints && line.waypoints.length > 0) {
+      return [startPt, ...line.waypoints, endPt];
+    }
+
+    if (useOrthogonal) {
+      // Determine anchor positions: use actual anchors when present, infer for unanchored ends
+      const startPos = line.sourceAnchor
+        ? line.sourceAnchor.anchorPosition
+        : inferAnchorPosition(startPt, endPt);
+      const endPos = line.targetAnchor
+        ? line.targetAnchor.anchorPosition
+        : inferAnchorPosition(endPt, startPt);
+
       const waypoints = computeOrthogonalWaypoints(
         startPt,
-        line.sourceAnchor.anchorPosition,
+        startPos,
         endPt,
-        line.targetAnchor.anchorPosition,
+        endPos,
         undefined,
         snapToGridEnabled ? gridCellSize : undefined,
       );
       return [startPt, ...waypoints, endPt];
     }
+
     return [startPt, endPt];
-  }, [useOrthogonal, startPt, endPt, line.sourceAnchor, line.targetAnchor, snapToGridEnabled, gridCellSize]);
+  }, [useOrthogonal, startPt, endPt, line.sourceAnchor, line.targetAnchor, line.waypoints, snapToGridEnabled, gridCellSize]);
 
   const pathD = useMemo(() => buildPathD(pathPoints), [pathPoints]);
 

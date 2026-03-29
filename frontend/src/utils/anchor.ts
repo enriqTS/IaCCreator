@@ -138,6 +138,40 @@ export function findSnapAnchor(
 }
 
 /**
+ * Find the cardinal anchor position on a bounding rect closest to a given point.
+ * Uses Euclidean distance to each of the four anchor points.
+ * When `currentPosition` is provided and ties with another anchor, retains `currentPosition`.
+ */
+export function findNearestAnchorPosition(
+  point: Point,
+  bounds: Rect,
+  currentPosition?: AnchorPosition,
+): AnchorPosition {
+  const anchors = getAnchorPoints(bounds);
+  const positions: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
+
+  let bestPosition: AnchorPosition = positions[0];
+  let bestDist = Infinity;
+
+  for (const pos of positions) {
+    const anchor = anchors[pos];
+    const dx = anchor.x - point.x;
+    const dy = anchor.y - point.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestPosition = pos;
+    } else if (dist === bestDist && pos === currentPosition) {
+      // Tie: retain currentPosition to avoid flickering
+      bestPosition = pos;
+    }
+  }
+
+  return bestPosition;
+}
+
+/**
  * Check if a point is within snap threshold of any anchor on a rect.
  * Returns the closest anchor point and its position if within threshold, or null otherwise.
  */

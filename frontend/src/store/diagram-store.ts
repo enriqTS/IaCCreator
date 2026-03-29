@@ -147,6 +147,10 @@ export interface DiagramStore {
   updateLineAnchors: (lineId: string, anchors: { sourceAnchor?: AnchorRef | null; targetAnchor?: AnchorRef | null }) => void;
   recomputeAnchoredEndpoints: (movedObjectId: string) => void;
 
+  // Waypoint and anchor position management
+  updateLineWaypoints: (lineId: string, waypoints: Point[] | null) => void;
+  updateLineAnchorPosition: (lineId: string, endpoint: 'source' | 'target', position: AnchorPosition) => void;
+
   // Pull-to-connect state
   pullConnectState: { sourceObjectId: string; sourceAnchorPoint: Point; sourceAnchorPosition: AnchorPosition } | null;
   setPullConnectState: (state: { sourceObjectId: string; sourceAnchorPoint: Point; sourceAnchorPosition: AnchorPosition } | null) => void;
@@ -555,7 +559,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       const existing = get().canvasObjects.get(id);
       if (!existing || existing.objectType !== 'line') return;
 
-      const updated = { ...existing, [endpoint]: { ...position } };
+      const updated = { ...existing, [endpoint]: { ...position }, waypoints: null };
 
       set((state) => {
         const next = new Map(state.canvasObjects);
@@ -1134,6 +1138,42 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       });
     },
 
+    // --- Waypoint and anchor position management ---
+
+    updateLineWaypoints: (lineId: string, waypoints: Point[] | null): void => {
+      const existing = get().canvasObjects.get(lineId);
+      if (!existing || existing.objectType !== 'line') return;
+      pushHistory();
+
+      const updated: LineObject = { ...existing, waypoints };
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(lineId, updated);
+        return { canvasObjects: next };
+      });
+    },
+
+    updateLineAnchorPosition: (lineId: string, endpoint: 'source' | 'target', position: AnchorPosition): void => {
+      const existing = get().canvasObjects.get(lineId);
+      if (!existing || existing.objectType !== 'line') return;
+
+      const anchorKey = endpoint === 'source' ? 'sourceAnchor' : 'targetAnchor';
+      const currentAnchor = existing[anchorKey];
+      if (!currentAnchor) return; // No anchor to update
+
+      const updated: LineObject = {
+        ...existing,
+        [anchorKey]: { ...currentAnchor, anchorPosition: position },
+      };
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(lineId, updated);
+        return { canvasObjects: next };
+      });
+    },
+
     // --- Pull-to-connect state ---
 
     pullConnectState: null as { sourceObjectId: string; sourceAnchorPoint: Point; sourceAnchorPosition: AnchorPosition } | null,
@@ -1367,6 +1407,9 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           base.targetAnchorObjectId = obj.targetAnchor ? obj.targetAnchor.objectId : null;
           base.sourceAnchorPosition = obj.sourceAnchor ? obj.sourceAnchor.anchorPosition : null;
           base.targetAnchorPosition = obj.targetAnchor ? obj.targetAnchor.anchorPosition : null;
+          if (obj.waypoints && obj.waypoints.length > 0) {
+            base.waypoints = obj.waypoints.map((wp) => ({ x: wp.x, y: wp.y }));
+          }
         } else if (obj.objectType === 'geometric') {
           base.x = obj.position.x;
           base.y = obj.position.y;
@@ -1489,6 +1532,17 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             const targetAnchor: AnchorRef | null = sObj.targetAnchorObjectId
               ? { objectId: sObj.targetAnchorObjectId, anchorPosition: (sObj.targetAnchorPosition as AnchorPosition) ?? 'left' }
               : null;
+            // Deserialize waypoints: validate shape, treat malformed data as null
+            let waypoints: Point[] | null = null;
+            if (Array.isArray(sObj.waypoints)) {
+              const valid = sObj.waypoints.every(
+                (wp): wp is { x: number; y: number } =>
+                  wp != null && typeof wp === 'object' && typeof wp.x === 'number' && typeof wp.y === 'number' && isFinite(wp.x) && isFinite(wp.y)
+              );
+              if (valid && sObj.waypoints.length > 0) {
+                waypoints = sObj.waypoints.map((wp) => ({ x: wp.x, y: wp.y }));
+              }
+            }
             const obj: LineObject = {
               id: sObj.id,
               objectType: 'line',
@@ -1497,6 +1551,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
               end: { x: sObj.endX ?? 0, y: sObj.endY ?? 0 },
               sourceAnchor,
               targetAnchor,
+              waypoints,
               visualConfig: {
                 color: (sObj.visualConfig.color as string) ?? DEFAULT_LINE_VISUAL.color,
                 borderWidth: (sObj.visualConfig.borderWidth as number) ?? DEFAULT_LINE_VISUAL.borderWidth,

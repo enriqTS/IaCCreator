@@ -6,6 +6,29 @@ import { snapToGrid } from '@/utils/snap';
 export const MIN_OFFSET = 20;
 
 /**
+ * Infer an anchor exit direction from one point toward another.
+ * Used for unanchored endpoints to determine orthogonal routing direction.
+ *
+ * - If |dx| >= |dy|: returns 'right' (dx > 0) or 'left' (dx < 0)
+ * - If |dy| > |dx|: returns 'bottom' (dy > 0) or 'top' (dy < 0)
+ * - When both dx and dy are 0, returns 'right' as default.
+ */
+export function inferAnchorPosition(from: Point, to: Point): AnchorPosition {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+
+  if (dx === 0 && dy === 0) {
+    return 'right';
+  }
+
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx > 0 ? 'right' : 'left';
+  }
+
+  return dy > 0 ? 'bottom' : 'top';
+}
+
+/**
  * Get the unit direction vector for an anchor position's outward-facing direction.
  * top → (0, -1), right → (1, 0), bottom → (0, 1), left → (-1, 0)
  */

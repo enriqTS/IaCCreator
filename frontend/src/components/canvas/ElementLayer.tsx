@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import DiagramElementComponent from './DiagramElement';
 import ArchitectureBlockComponent from './ArchitectureBlockComponent';
 import LineObjectComponent from './LineObjectComponent';
@@ -9,10 +10,14 @@ import GeometricObjectComponent from './GeometricObjectComponent';
 import TextObjectComponent from './TextObjectComponent';
 import UMLObjectComponent from './UMLObjectComponent';
 import ResizeHandles from './ResizeHandles';
+import SegmentHandles from './SegmentHandles';
 import GroupBoundingBox from './GroupBoundingBox';
 import AnchorIndicators from './AnchorIndicators';
 import AlignmentGuides from './AlignmentGuides';
 import { getObjectBounds } from '@/types/diagram';
+import { getAnchorPoints } from '@/utils/anchor';
+import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
+import type { Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
 
 export default function ElementLayer() {
@@ -73,6 +78,62 @@ export default function ElementLayer() {
   const selectedObject = selectedObjectIds.size === 1
     ? canvasObjects.get([...selectedObjectIds][0]) ?? null
     : null;
+
+  // Read snap settings for grid-aware routing (used by segment handles pathPoints)
+  const snapToGridEnabled = useLayoutPreferencesStore((s) => s.snapToGridEnabled);
+  const gridCellSize = useLayoutPreferencesStore((s) => s.gridCellSize);
+
+  // Compute pathPoints for the selected line (needed by SegmentHandles)
+  const selectedLinePathPoints = useMemo((): Point[] | null => {
+    if (!selectedObject || selectedObject.objectType !== 'line') return null;
+    if (selectedObject.locked) return null;
+    if (selectedObject.visualConfig.routingMode !== 'orthogonal') return null;
+
+    const line = selectedObject;
+
+    // Resolve anchor endpoints
+    let startPt = line.start;
+    let endPt = line.end;
+
+    if (line.sourceAnchor) {
+      const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
+      if (sourceObj) {
+        const bounds = getObjectBounds(sourceObj);
+        startPt = getAnchorPoints(bounds)[line.sourceAnchor.anchorPosition];
+      }
+    }
+
+    if (line.targetAnchor) {
+      const targetObj = canvasObjects.get(line.targetAnchor.objectId);
+      if (targetObj) {
+        const bounds = getObjectBounds(targetObj);
+        endPt = getAnchorPoints(bounds)[line.targetAnchor.anchorPosition];
+      }
+    }
+
+    // If user-modified waypoints exist, use them directly
+    if (line.waypoints && line.waypoints.length > 0) {
+      return [startPt, ...line.waypoints, endPt];
+    }
+
+    // Compute orthogonal waypoints
+    const startPos = line.sourceAnchor
+      ? line.sourceAnchor.anchorPosition
+      : inferAnchorPosition(startPt, endPt);
+    const endPos = line.targetAnchor
+      ? line.targetAnchor.anchorPosition
+      : inferAnchorPosition(endPt, startPt);
+
+    const waypoints = computeOrthogonalWaypoints(
+      startPt,
+      startPos,
+      endPt,
+      endPos,
+      undefined,
+      snapToGridEnabled ? gridCellSize : undefined,
+    );
+    return [startPt, ...waypoints, endPt];
+  }, [selectedObject, canvasObjects, snapToGridEnabled, gridCellSize]);
 
   return (
     <div
@@ -178,6 +239,11 @@ export default function ElementLayer() {
 
       {/* Resize handles on the selected canvas object */}
       {selectedObject && <ResizeHandles object={selectedObject} />}
+
+      {/* Segment handles for selected orthogonal line */}
+      {selectedObject && selectedObject.objectType === 'line' && selectedLinePathPoints && (
+        <SegmentHandles line={selectedObject} pathPoints={selectedLinePathPoints} />
+      )}
 
       {/* Group bounding boxes for selected groups */}
       {(() => {

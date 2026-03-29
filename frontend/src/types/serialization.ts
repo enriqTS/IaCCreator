@@ -55,6 +55,8 @@ export interface SerializedCanvasObject {
   // Line anchor positions (v3+)
   sourceAnchorPosition?: string | null;
   targetAnchorPosition?: string | null;
+  // Line waypoints (user-modified intermediate points)
+  waypoints?: { x: number; y: number }[];
   // Architecture block
   serviceType?: ServiceType;
   config?: ResourceConfig;

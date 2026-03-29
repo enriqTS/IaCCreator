@@ -196,6 +196,7 @@ export interface LineObject {
   end: Point;
   sourceAnchor: AnchorRef | null;
   targetAnchor: AnchorRef | null;
+  waypoints?: Point[] | null;
   visualConfig: LineVisualConfig;
   zIndex: number;
   groupId?: string;
