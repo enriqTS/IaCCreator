@@ -1,20 +1,14 @@
 # Frontend Components
 
-The Next.js frontend components in `frontend/src/components/` are organized into five groups: canvas, config, menu, toast, and toolbar.
+The Next.js frontend components in `frontend/src/components/` are organized into six groups: canvas, config, menu, toast, toolbar, and ui.
 
 ## Canvas (`frontend/src/components/canvas/`)
 
-The core diagram rendering layer using a hybrid Canvas + DOM approach.
+The core diagram rendering layer. Supports architecture blocks, geometric shapes, lines, text, and UML objects.
 
 ### `Canvas.tsx`
 
-Main canvas container. Handles:
-- Wheel events → zoom (via `useDiagramStore.zoom()`)
-- Middle-click or Space+left-click drag → pan
-- Left-click on empty canvas → deselect all or place a service (when in `place-service` tool mode)
-- Converts screen coordinates to canvas coordinates via `screenToCanvas()`
-
-Renders `CanvasBackground` and `ElementLayer` as children.
+Main canvas container. Handles wheel events for zoom, middle-click/Space+left-click drag for pan, and left-click for object placement or deselection. Converts screen coordinates to canvas coordinates via `screenToCanvas()`.
 
 ### `CanvasBackground.tsx`
 
@@ -22,23 +16,51 @@ Renders the infinite dot grid background on an HTML5 Canvas element. The grid sc
 
 ### `ElementLayer.tsx`
 
-DOM overlay layer that renders interactive `DiagramElement` components positioned in canvas space. Handles element selection, dragging, and connector drawing.
+DOM overlay layer that renders interactive canvas object components positioned in canvas space. Handles object selection, dragging, marquee selection, and connector drawing.
 
-### `DiagramElement.tsx`
+### Object Components
 
-Individual service node rendered as a DOM element. Displays the service icon, name, and handles click/drag interactions. Positioned using CSS transforms based on canvas-to-screen coordinate conversion.
+| Component                          | Object Type          | Description                                    |
+|------------------------------------|----------------------|------------------------------------------------|
+| `ArchitectureBlockComponent.tsx`   | `architecture-block` | AWS service node with icon, name, config       |
+| `LineObjectComponent.tsx`          | `line`               | Line/arrow with optional anchoring to objects  |
+| `GeometricObjectComponent.tsx`     | `geometric`          | SVG shapes (rectangle, ellipse, diamond, etc.) |
+| `TextObjectComponent.tsx`          | `text`               | Editable text label on the canvas              |
+| `UMLObjectComponent.tsx`           | `uml`                | UML diagrams (class, interface, actor, etc.)   |
+| `DiagramElement.tsx`               | (legacy)             | Legacy service node for backward compatibility |
+
+### Canvas Interaction Components
+
+| Component                    | Purpose                                                    |
+|------------------------------|------------------------------------------------------------|
+| `CanvasContextMenu.tsx`      | Right-click context menu on empty canvas                   |
+| `CanvasObjectContextMenu.tsx`| Right-click context menu on selected objects               |
+| `DragSizingOverlay.tsx`      | Resize handles overlay during drag-to-resize               |
+| `InlineRenameOverlay.tsx`    | Double-click-to-rename overlay for objects                 |
+| `MarqueeSelection.tsx`       | Rectangular selection box for multi-select                 |
+| `PlacementPreview.tsx`       | Ghost preview when placing a new object                    |
+| `PullToConnectOverlay.tsx`   | Visual feedback when dragging to create a connection       |
+| `ResizeHandles.tsx`          | Corner/edge resize handles for selected objects            |
+| `AnchorIndicators.tsx`       | Visual anchor points shown on objects during line drawing   |
+| `GroupBoundingBox.tsx`       | Bounding box rendered around grouped objects               |
 
 ## Config (`frontend/src/components/config/`)
 
-Service-specific configuration panels that appear when a diagram element is selected.
+Configuration panels for selected objects. Supports two layout modes: bottom panel and sidebar panel.
+
+### `BottomPanel.tsx`
+
+Expandable bottom panel showing configuration tabs for selected object(s). Architecture blocks get "Variables" and "Visual" tabs; other objects get only "Visual". Supports drag-to-resize, grouping/ungrouping, and z-order controls.
+
+### `SidebarPanel.tsx`
+
+Collapsible sidebar panel (left or right, configurable via preferences). Same tabs as BottomPanel in a vertical layout with drag-to-resize width.
 
 ### `ConfigPanel.tsx`
 
-Router component that renders the appropriate config form based on the selected element's `serviceType`. Dispatches to one of the service-specific forms below.
+Router component that renders the appropriate config form based on the selected element's `serviceType`.
 
 ### Service Config Forms
-
-Each form reads the selected element's config from the store and calls `updateElementConfig()` on change.
 
 | Component                  | Service      | Fields                                                    |
 |----------------------------|--------------|-----------------------------------------------------------|
@@ -49,17 +71,34 @@ Each form reads the selected element's config from the store and calls `updateEl
 | `CloudWatchConfigForm.tsx` | CloudWatch   | retention_in_days                                         |
 | `IAMConfigForm.tsx`        | IAM          | (minimal config)                                          |
 
-## Menu (`frontend/src/components/menu/`)
+### Visual Config Panels
 
-Application-level menus and dialogs.
+| Component                    | Purpose                                                  |
+|------------------------------|----------------------------------------------------------|
+| `BlockVisualConfig.tsx`      | Width/height for architecture blocks                     |
+| `LineVisualConfig.tsx`       | Color, width, stroke style, arrows for lines             |
+| `GeoVisualConfig.tsx`        | Fill, border, dimensions for geometric shapes            |
+| `TextVisualConfigPanel.tsx`  | Font size, color, alignment, bold/italic for text        |
+| `UMLConfigPanel.tsx`         | Stereotype, attributes, methods for UML objects          |
+| `VisualTab.tsx`              | Dispatches to the correct visual config panel            |
+
+### Other Config Components
+
+| Component                        | Purpose                                              |
+|----------------------------------|------------------------------------------------------|
+| `VariablesPanel.tsx`             | Terraform variable editor for architecture blocks    |
+| `TerraformTab.tsx`               | Terraform-specific configuration tab                 |
+| `GlobalTerraformConfigPanel.tsx` | Project-level Terraform settings (backend, provider) |
+| `ZOrderControls.tsx`             | Bring to front/back, forward/backward buttons        |
+| `PillIndicator.tsx`              | Small pill badge for tab indicators                  |
+| `ResizeHandle.tsx`               | Drag handle for panel resizing                       |
+| `panel-constants.ts`             | Min/max/default dimensions for panels                |
+
+## Menu (`frontend/src/components/menu/`)
 
 ### `HamburgerMenu.tsx`
 
-Top-level hamburger menu providing access to:
-- New diagram
-- Save/load diagrams (server and localStorage)
-- Export to Terraform
-- Project settings
+Top-level hamburger menu: new diagram, save/load, export to Terraform, project settings, preferences.
 
 ### `NewDiagramDialog.tsx`
 
@@ -67,13 +106,17 @@ Dialog for creating a new diagram. Resets the store state.
 
 ### `ProjectSettingsDialog.tsx`
 
-Dialog for editing project name and environment configurations (name + variables per environment).
+Dialog for editing project name and environment configurations.
+
+### `PreferencesDialog.tsx`
+
+Dialog for layout preferences: sidebar side (left/right) and toolbar position (top/bottom). Persisted via `useLayoutPreferencesStore`.
 
 ## Toast (`frontend/src/components/toast/`)
 
 ### `ToastProvider.tsx`
 
-Renders toast notifications from the `useToastStore`. Toasts auto-dismiss after 4 seconds. Supports `success` and `error` types.
+Renders toast notifications from `useToastStore`. Auto-dismiss after 4 seconds. Supports `success` and `error` types.
 
 ## Toolbar (`frontend/src/components/toolbar/`)
 
@@ -81,6 +124,14 @@ Renders toast notifications from the `useToastStore`. Toasts auto-dismiss after 
 
 Main toolbar with tool selection (pointer, connector) and action buttons (undo, redo, delete, export).
 
+### `ObjectPickerMenu.tsx`
+
+Unified object picker organized into categories: AWS Services, Geometric Shapes (25+ shapes), and UML Diagrams (class, interface, actor, use-case, component, package, node).
+
 ### `AWSServicePicker.tsx`
 
-Categorized service picker for placing AWS service nodes. Supports 200+ services across 26 categories. Selecting a service switches to `place-service` tool mode.
+Categorized AWS service picker. Selecting a service switches to `place-service` tool mode.
+
+## UI (`frontend/src/components/ui/`)
+
+Shared shadcn/ui primitives: `button`, `card`, `checkbox`, `dialog`, `dropdown-menu`, `input`, `label`, `radio-group`, `select`, `sheet`, `tabs`.
