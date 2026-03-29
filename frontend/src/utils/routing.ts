@@ -1,5 +1,6 @@
 import type { Point } from '@/types/diagram';
 import type { AnchorPosition } from '@/utils/anchor';
+import { snapToGrid } from '@/utils/snap';
 
 /** Minimum offset distance from the object before the first turn */
 export const MIN_OFFSET = 20;
@@ -36,6 +37,9 @@ function opposite(position: AnchorPosition): AnchorPosition {
  * Compute waypoints for an orthogonal route between two anchor ports.
  * Returns an array of intermediate points (excluding start and end).
  * The path exits each anchor perpendicular to its side for at least minOffset pixels.
+ *
+ * When `gridSize` is provided, all computed waypoint coordinates are snapped to the grid
+ * and `gridSize` is used as the `minOffset` value.
  */
 export function computeOrthogonalWaypoints(
   start: Point,
@@ -43,7 +47,20 @@ export function computeOrthogonalWaypoints(
   end: Point,
   endPosition: AnchorPosition,
   minOffset: number = MIN_OFFSET,
+  gridSize?: number,
 ): Point[] {
+  // When gridSize is provided, use it as minOffset
+  const effectiveMinOffset = gridSize && gridSize > 0 ? gridSize : minOffset;
+
+  // Helper to snap waypoints when gridSize is provided
+  const snapWaypoints = (waypoints: Point[]): Point[] => {
+    if (!gridSize || gridSize <= 0) return waypoints;
+    return waypoints.map(p => ({
+      x: snapToGrid(p.x, gridSize),
+      y: snapToGrid(p.y, gridSize),
+    }));
+  };
+
   // Degenerate case: start and end are the same point
   if (start.x === end.x && start.y === end.y) {
     return [];
@@ -52,18 +69,20 @@ export function computeOrthogonalWaypoints(
   const startDir = getDirection(startPosition);
   const endDir = getDirection(endPosition);
 
-  // Compute exit points: extend minOffset pixels in the outward direction
+  // Compute exit points: extend effectiveMinOffset pixels in the outward direction
   const startExit: Point = {
-    x: start.x + startDir.x * minOffset,
-    y: start.y + startDir.y * minOffset,
+    x: start.x + startDir.x * effectiveMinOffset,
+    y: start.y + startDir.y * effectiveMinOffset,
   };
   const endExit: Point = {
-    x: end.x + endDir.x * minOffset,
-    y: end.y + endDir.y * minOffset,
+    x: end.x + endDir.x * effectiveMinOffset,
+    y: end.y + endDir.y * effectiveMinOffset,
   };
 
   const startH = isHorizontal(startPosition);
   const endH = isHorizontal(endPosition);
+
+  let waypoints: Point[];
 
   // Facing anchors (opposite directions)
   if (endPosition === opposite(startPosition)) {
@@ -77,42 +96,36 @@ export function computeOrthogonalWaypoints(
       }
 
       if (facingCorrectly) {
-        // Case 2: Facing, offset — two waypoints S-shape
-        // The midX must be at least startExit.x in the start's exit direction
-        // and at least endExit.x in the end's exit direction.
-        // When start exits right (startDir.x > 0): midX >= startExit.x
-        // When end exits left (endDir.x < 0): midX <= endExit.x
-        // If these constraints conflict (too close), fall back to detour path.
         const midX = (startExit.x + endExit.x) / 2;
         const startOk = startDir.x > 0 ? midX >= startExit.x : midX <= startExit.x;
         const endOk = endDir.x > 0 ? midX >= endExit.x : midX <= endExit.x;
 
         if (startOk && endOk) {
-          return [
+          waypoints = [
             { x: midX, y: start.y },
             { x: midX, y: end.y },
           ];
+        } else {
+          // Too close for S-shape — fall back to detour using exit points
+          const midY = (start.y + end.y) / 2;
+          waypoints = [
+            startExit,
+            { x: startExit.x, y: midY },
+            { x: endExit.x, y: midY },
+            endExit,
+          ];
         }
-
-        // Too close for S-shape — fall back to detour using exit points
+      } else {
+        // Case 5: Opposing, wrong direction — detour
+        // Exit both sides, route around via midY
         const midY = (start.y + end.y) / 2;
-        return [
+        waypoints = [
           startExit,
           { x: startExit.x, y: midY },
           { x: endExit.x, y: midY },
           endExit,
         ];
       }
-
-      // Case 5: Opposing, wrong direction — detour
-      // Exit both sides, route around via midY
-      const midY = (start.y + end.y) / 2;
-      return [
-        startExit,
-        { x: startExit.x, y: midY },
-        { x: endExit.x, y: midY },
-        endExit,
-      ];
     } else {
       // Both exit vertically in opposite directions
       const facingCorrectly = startDir.y * (end.y - start.y) > 0;
@@ -123,100 +136,91 @@ export function computeOrthogonalWaypoints(
       }
 
       if (facingCorrectly) {
-        // Case 2: Facing, offset — two waypoints S-shape
-        // The midY must be at least startExit.y in the start's exit direction
-        // and at least endExit.y in the end's exit direction.
-        // When start exits down (startDir.y > 0): midY >= startExit.y
-        // When end exits up (endDir.y < 0): midY <= endExit.y
-        // If these constraints conflict (too close), fall back to detour path.
         const midY = (startExit.y + endExit.y) / 2;
         const startOk = startDir.y > 0 ? midY >= startExit.y : midY <= startExit.y;
         const endOk = endDir.y > 0 ? midY >= endExit.y : midY <= endExit.y;
 
         if (startOk && endOk) {
-          return [
+          waypoints = [
             { x: start.x, y: midY },
             { x: end.x, y: midY },
           ];
+        } else {
+          // Too close for S-shape — fall back to detour using exit points
+          const midX = (start.x + end.x) / 2;
+          waypoints = [
+            startExit,
+            { x: midX, y: startExit.y },
+            { x: midX, y: endExit.y },
+            endExit,
+          ];
         }
-
-        // Too close for S-shape — fall back to detour using exit points
+      } else {
+        // Case 5: Opposing, wrong direction — detour
         const midX = (start.x + end.x) / 2;
-        return [
+        waypoints = [
           startExit,
           { x: midX, y: startExit.y },
           { x: midX, y: endExit.y },
           endExit,
         ];
       }
-
-      // Case 5: Opposing, wrong direction — detour
-      const midX = (start.x + end.x) / 2;
-      return [
-        startExit,
-        { x: midX, y: startExit.y },
-        { x: midX, y: endExit.y },
-        endExit,
-      ];
     }
-  }
-
-  // Case 3: Perpendicular anchors — one exits H, the other V
-  if (startH !== endH) {
+  } else if (startH !== endH) {
+    // Case 3: Perpendicular anchors — one exits H, the other V
     if (startH) {
       // Start exits horizontally, end exits vertically
       // Natural corner at (end.x, start.y)
       const corner: Point = { x: end.x, y: start.y };
-      const startOk = startDir.x * (corner.x - start.x) >= minOffset;
-      const endOk = endDir.y * (corner.y - end.y) >= minOffset;
+      const startOk = startDir.x * (corner.x - start.x) >= effectiveMinOffset;
+      const endOk = endDir.y * (corner.y - end.y) >= effectiveMinOffset;
 
       if (startOk && endOk) {
-        return [corner];
+        waypoints = [corner];
+      } else {
+        // Fallback: use exit points and route through them
+        waypoints = [
+          startExit,
+          { x: endExit.x, y: startExit.y },
+          endExit,
+        ];
       }
-
-      // Fallback: use exit points and route through them
-      return [
-        startExit,
-        { x: endExit.x, y: startExit.y },
-        endExit,
-      ];
     } else {
       // Start exits vertically, end exits horizontally
       // Natural corner at (start.x, end.y)
       const corner: Point = { x: start.x, y: end.y };
-      const startOk = startDir.y * (corner.y - start.y) >= minOffset;
-      const endOk = endDir.x * (corner.x - end.x) >= minOffset;
+      const startOk = startDir.y * (corner.y - start.y) >= effectiveMinOffset;
+      const endOk = endDir.x * (corner.x - end.x) >= effectiveMinOffset;
 
       if (startOk && endOk) {
-        return [corner];
+        waypoints = [corner];
+      } else {
+        waypoints = [
+          startExit,
+          { x: startExit.x, y: endExit.y },
+          endExit,
+        ];
       }
-
-      return [
-        startExit,
-        { x: startExit.x, y: endExit.y },
-        endExit,
-      ];
     }
-  }
-
-  // Case 4: Same-side anchors — U-shape
-  if (startH) {
-    // Both exit horizontally in the same direction
+  } else if (startH) {
+    // Case 4: Same-side anchors — U-shape (horizontal)
     const outX = startDir.x > 0
       ? Math.max(startExit.x, endExit.x)
       : Math.min(startExit.x, endExit.x);
-    return [
+    waypoints = [
       { x: outX, y: start.y },
       { x: outX, y: end.y },
     ];
   } else {
-    // Both exit vertically in the same direction
+    // Case 4: Same-side anchors — U-shape (vertical)
     const outY = startDir.y > 0
       ? Math.max(startExit.y, endExit.y)
       : Math.min(startExit.y, endExit.y);
-    return [
+    waypoints = [
       { x: start.x, y: outY },
       { x: end.x, y: outY },
     ];
   }
+
+  return snapWaypoints(waypoints);
 }

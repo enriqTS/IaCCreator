@@ -1,15 +1,19 @@
 'use client';
 
-import { useRef, useCallback, useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
+import { useSnapDrag } from '@/hooks/useSnapDrag';
 import { getAnchorPoints } from '@/utils/anchor';
 import { computeOrthogonalWaypoints } from '@/utils/routing';
 import { getObjectBounds } from '@/types/diagram';
 import type { LineObject, Point } from '@/types/diagram';
+import type { AlignmentGuide } from '@/utils/snap';
 
 interface LineObjectComponentProps {
   line: LineObject;
   isSelected: boolean;
+  onAlignmentGuidesChange?: (guides: AlignmentGuide[]) => void;
 }
 
 /** Build an SVG path `d` attribute from an array of points using M and L commands */
@@ -53,11 +57,20 @@ function shortenPath(points: Point[], startInset: number, endInset: number): Poi
   return result;
 }
 
-export default function LineObjectComponent({ line, isSelected }: LineObjectComponentProps) {
-  const selectObject = useDiagramStore((s) => s.selectObject);
-  const toggleObjectSelection = useDiagramStore((s) => s.toggleObjectSelection);
-  const moveSelectedObjects = useDiagramStore((s) => s.moveSelectedObjects);
+export default function LineObjectComponent({ line, isSelected, onAlignmentGuidesChange }: LineObjectComponentProps) {
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
+
+  const { handleMouseDown, alignmentGuides } = useSnapDrag({
+    objectId: line.id,
+    isSelected,
+    locked: line.locked,
+  });
+
+  // Lift alignment guides up to parent (ElementLayer) since we can't render
+  // the AlignmentGuides SVG component inside an SVG <g> element
+  useEffect(() => {
+    onAlignmentGuidesChange?.(alignmentGuides);
+  }, [alignmentGuides, onAlignmentGuidesChange]);
 
   const { color, borderWidth, strokeStyle, startArrow, endArrow, routingMode } = line.visualConfig;
 
@@ -88,6 +101,10 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
   const useOrthogonal = routingMode === 'orthogonal' && hasSourceAnchor && hasTargetAnchor
     && !!line.sourceAnchor && !!line.targetAnchor;
 
+  // Read snap settings for grid-aware routing
+  const snapToGridEnabled = useLayoutPreferencesStore((s) => s.snapToGridEnabled);
+  const gridCellSize = useLayoutPreferencesStore((s) => s.gridCellSize);
+
   // Compute the full path points (start + waypoints + end)
   const pathPoints = useMemo((): Point[] => {
     if (useOrthogonal && line.sourceAnchor && line.targetAnchor) {
@@ -96,11 +113,13 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
         line.sourceAnchor.anchorPosition,
         endPt,
         line.targetAnchor.anchorPosition,
+        undefined,
+        snapToGridEnabled ? gridCellSize : undefined,
       );
       return [startPt, ...waypoints, endPt];
     }
     return [startPt, endPt];
-  }, [useOrthogonal, startPt, endPt, line.sourceAnchor, line.targetAnchor]);
+  }, [useOrthogonal, startPt, endPt, line.sourceAnchor, line.targetAnchor, snapToGridEnabled, gridCellSize]);
 
   const pathD = useMemo(() => buildPathD(pathPoints), [pathPoints]);
 
@@ -116,69 +135,6 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
   const markerId = `line-${line.id}`;
   const startMarkerId = `${markerId}-start`;
   const endMarkerId = `${markerId}-end`;
-
-  const isDragging = useRef(false);
-  const didDrag = useRef(false);
-  const lastMouse = useRef<{ x: number; y: number } | null>(null);
-
-  const handleMouseDown = useCallback((e: React.MouseEvent<SVGElement>) => {
-    if (e.button !== 0) return;
-
-    const tool = useDiagramStore.getState().activeTool;
-    if (typeof tool === 'object' && (tool.type === 'place-service' || tool.type === 'place-shape')) return;
-
-    if (line.locked) {
-      e.stopPropagation();
-      if (e.shiftKey) {
-        toggleObjectSelection(line.id);
-      } else {
-        selectObject(line.id);
-      }
-      return;
-    }
-
-    e.stopPropagation();
-    useDiagramStore.getState().beginDragGesture();
-
-    if (!e.shiftKey && !isSelected) {
-      selectObject(line.id);
-    }
-
-    isDragging.current = true;
-    didDrag.current = false;
-    lastMouse.current = { x: e.clientX, y: e.clientY };
-
-    const viewport = useDiagramStore.getState().viewport;
-
-    const handleMouseMove = (ev: MouseEvent) => {
-      if (!isDragging.current || !lastMouse.current) return;
-      const dx = (ev.clientX - lastMouse.current.x) / viewport.scale;
-      const dy = (ev.clientY - lastMouse.current.y) / viewport.scale;
-      lastMouse.current = { x: ev.clientX, y: ev.clientY };
-      if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
-        didDrag.current = true;
-        moveSelectedObjects(dx, dy);
-      }
-    };
-
-    const handleMouseUp = (ev: MouseEvent) => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      isDragging.current = false;
-      lastMouse.current = null;
-
-      if (!didDrag.current) {
-        if (ev.shiftKey) {
-          toggleObjectSelection(line.id);
-        } else {
-          selectObject(line.id);
-        }
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  }, [line.id, line.locked, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
 
   // Midpoint for lock indicator — use the geometric center of the path
   const midIdx = Math.floor(pathPoints.length / 2);

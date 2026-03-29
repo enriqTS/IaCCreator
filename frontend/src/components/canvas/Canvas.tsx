@@ -5,6 +5,8 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas, canvasToScreen } from '@/utils/viewport';
 import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL, DEFAULT_TEXT_VISUAL, DEFAULT_UML_VISUAL, DEFAULT_UML_CLASS_DATA } from '@/types/diagram';
 import type { Point } from '@/types/diagram';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
+import { snapPointToGrid } from '@/utils/snap';
 import CanvasBackground from './CanvasBackground';
 import ElementLayer from './ElementLayer';
 import PlacementPreview from './PlacementPreview';
@@ -181,17 +183,23 @@ export default function Canvas() {
           const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
           const canvasPoint = screenToCanvas(screenPoint, viewport);
 
+          // Snap line click position to grid when snap is enabled and Alt is not held
+          const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
+          const snappedCanvasPoint = (snapToGridEnabled && !e.altKey)
+            ? snapPointToGrid(canvasPoint, gridCellSize)
+            : canvasPoint;
+
           if (!lineStart) {
             // First click: record start point
-            setLineStart(canvasPoint);
-            setLinePreviewEnd(canvasPoint);
+            setLineStart(snappedCanvasPoint);
+            setLinePreviewEnd(snappedCanvasPoint);
           } else {
             // Second click: create the line object
             addCanvasObject({
               objectType: 'line',
               name: 'Line',
               start: lineStart,
-              end: canvasPoint,
+              end: snappedCanvasPoint,
               sourceAnchor: null,
               targetAnchor: null,
               visualConfig: { ...DEFAULT_LINE_VISUAL },
@@ -354,11 +362,17 @@ export default function Canvas() {
       const vp = useDiagramStore.getState().viewport;
       const canvasPoint = screenToCanvas(screenPoint, vp);
 
+      // Snap text creation position to grid when snap is enabled
+      const { snapToGridEnabled: snapEnabled, gridCellSize: cellSize } = useLayoutPreferencesStore.getState();
+      const snappedTextPoint = snapEnabled
+        ? snapPointToGrid(canvasPoint, cellSize)
+        : canvasPoint;
+
       const store = useDiagramStore.getState();
       store.addCanvasObject({
         objectType: 'text',
         name: 'Text',
-        position: canvasPoint,
+        position: snappedTextPoint,
         content: 'Text',
         visualConfig: { ...DEFAULT_TEXT_VISUAL },
       });
@@ -367,7 +381,7 @@ export default function Canvas() {
       const updatedObjects = useDiagramStore.getState().canvasObjects;
       let newTextId: string | null = null;
       for (const [id, obj] of updatedObjects) {
-        if (obj.objectType === 'text' && obj.position.x === canvasPoint.x && obj.position.y === canvasPoint.y) {
+        if (obj.objectType === 'text' && obj.position.x === snappedTextPoint.x && obj.position.y === snappedTextPoint.y) {
           newTextId = id;
         }
       }

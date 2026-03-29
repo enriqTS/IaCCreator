@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
 import { MIN_OBJECT_WIDTH, MIN_OBJECT_HEIGHT, DEFAULT_GEO_VISUAL } from '@/types/diagram';
+import { snapPointToGrid, snapDimension } from '@/utils/snap';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import type { Point, GeometricShape } from '@/types/diagram';
 
 /** Minimum drag distance (px) in either axis to count as a drag vs. a click */
@@ -114,15 +116,36 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
         // Position is the center of the dragged rectangle
         const minX = Math.min(originCanvas.x, endCanvas.x);
         const minY = Math.min(originCanvas.y, endCanvas.y);
+
+        // Snap origin corner, width, and height when snap is enabled
+        const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
+        let finalMinX = minX;
+        let finalMinY = minY;
+        let finalWidth = width;
+        let finalHeight = height;
+
+        if (snapToGridEnabled) {
+          const snappedOrigin = snapPointToGrid({ x: minX, y: minY }, gridCellSize);
+          finalMinX = snappedOrigin.x;
+          finalMinY = snappedOrigin.y;
+          finalWidth = snapDimension(width, gridCellSize);
+          finalHeight = snapDimension(height, gridCellSize);
+        }
+
         const canvasPosition: Point = {
-          x: minX + width / 2,
-          y: minY + height / 2,
+          x: finalMinX + finalWidth / 2,
+          y: finalMinY + finalHeight / 2,
         };
 
-        onPlaceObject({ canvasPosition, width, height });
+        onPlaceObject({ canvasPosition, width: finalWidth, height: finalHeight });
       } else {
         // Small drag → treat as click, use default dimensions (caller decides defaults)
-        onPlaceObject({ canvasPosition: originCanvas, width: 0, height: 0 });
+        // Snap click position when snap is enabled
+        const { snapToGridEnabled: snapEnabledClick, gridCellSize: cellSizeClick } = useLayoutPreferencesStore.getState();
+        const clickPosition = snapEnabledClick
+          ? snapPointToGrid(originCanvas, cellSizeClick)
+          : originCanvas;
+        onPlaceObject({ canvasPosition: clickPosition, width: 0, height: 0 });
       }
 
       // Reset

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import DragSizingOverlay from '@/components/canvas/DragSizingOverlay';
 import { useDiagramStore } from '@/store/diagram-store';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 
 function makeContainerRef() {
   const div = document.createElement('div');
@@ -26,6 +27,8 @@ describe('DragSizingOverlay', () => {
       viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
       activeTool: 'pointer',
     });
+    // Disable snap-to-grid so tests verify raw drag-sizing behavior
+    useLayoutPreferencesStore.setState({ snapToGridEnabled: false });
   });
 
   it('renders nothing when activeTool is pointer', () => {

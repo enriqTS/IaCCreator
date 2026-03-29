@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ArchitectureBlockComponent from '@/components/canvas/ArchitectureBlockComponent';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock } from '@/types/diagram';
@@ -124,44 +124,6 @@ describe('ArchitectureBlockComponent', () => {
     expect(selectedObjectIds.has(block.id)).toBe(true);
   });
 
-  it('retries selectObject via requestAnimationFrame if selection is cleared', async () => {
-    const block = makeBlock();
-    useDiagramStore.setState({
-      canvasObjects: new Map([[block.id, block]]),
-      selectedObjectIds: new Set(),
-    });
-
-    // Mock requestAnimationFrame to run callback synchronously
-    const originalRAF = globalThis.requestAnimationFrame;
-    const rafCallbacks: FrameRequestCallback[] = [];
-    globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
-      rafCallbacks.push(cb);
-      return rafCallbacks.length;
-    };
-
-    const { rerender } = render(<ArchitectureBlockComponent block={block} isSelected={false} />);
-    const el = screen.getByTestId('architecture-block-block-1');
-
-    // Click to select
-    fireEvent.mouseDown(el, { button: 0, clientX: 100, clientY: 100 });
-
-    // Verify selection was set
-    expect(useDiagramStore.getState().selectedObjectIds.has(block.id)).toBe(true);
-
-    // Simulate something clearing the selection before the retry check runs
-    useDiagramStore.setState({ selectedObjectIds: new Set() });
-
-    // Trigger re-render so the useEffect fires
-    rerender(<ArchitectureBlockComponent block={block} isSelected={false} />);
-
-    // Run the queued rAF callback — this should retry selectObject
-    for (const cb of rafCallbacks) {
-      act(() => cb(0));
-    }
-
-    // Selection should be restored by the retry
-    expect(useDiagramStore.getState().selectedObjectIds.has(block.id)).toBe(true);
-
-    globalThis.requestAnimationFrame = originalRAF;
-  });
+  // Note: The pendingSelectionId retry mechanism was removed when the component
+  // was refactored to use the useSnapDrag hook, which handles selection directly.
 });

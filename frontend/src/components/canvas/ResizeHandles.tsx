@@ -5,6 +5,8 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
 import { findSnapAnchor, getAnchorPoints } from '@/utils/anchor';
 import { getObjectBounds } from '@/types/diagram';
+import { snapDimension } from '@/utils/snap';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import type { CanvasObject, Point } from '@/types/diagram';
 
 const HANDLE_SIZE = 8;
@@ -137,6 +139,25 @@ export default function ResizeHandles({ object }: ResizeHandlesProps) {
       } else if (h === 'sw' || h === 's' || h === 'se') {
         newHeight = oh + dy;
         newY = origPos.y + dy / 2;
+      }
+
+      // Snap dimensions to grid when snap is enabled and Alt is not held
+      const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
+      if (snapToGridEnabled && !ev.altKey) {
+        newWidth = snapDimension(newWidth, gridCellSize);
+        newHeight = snapDimension(newHeight, gridCellSize);
+
+        // Recompute center position based on snapped dimensions
+        if (h === 'nw' || h === 'w' || h === 'sw') {
+          newX = origPos.x + (ow - newWidth) / 2;
+        } else if (h === 'ne' || h === 'e' || h === 'se') {
+          newX = origPos.x + (newWidth - ow) / 2;
+        }
+        if (h === 'nw' || h === 'n' || h === 'ne') {
+          newY = origPos.y + (oh - newHeight) / 2;
+        } else if (h === 'sw' || h === 's' || h === 'se') {
+          newY = origPos.y + (newHeight - oh) / 2;
+        }
       }
 
       updateObjectBounds(object.id, { width: newWidth, height: newHeight });

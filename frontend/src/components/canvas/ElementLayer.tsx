@@ -11,7 +11,9 @@ import UMLObjectComponent from './UMLObjectComponent';
 import ResizeHandles from './ResizeHandles';
 import GroupBoundingBox from './GroupBoundingBox';
 import AnchorIndicators from './AnchorIndicators';
+import AlignmentGuides from './AlignmentGuides';
 import { getObjectBounds } from '@/types/diagram';
+import type { AlignmentGuide } from '@/utils/snap';
 
 export default function ElementLayer() {
   const elements = useDiagramStore((s) => s.elements);
@@ -21,6 +23,13 @@ export default function ElementLayer() {
   const activeTool = useDiagramStore((s) => s.activeTool);
 
   const [hoveredObjectId, setHoveredObjectId] = useState<string | null>(null);
+
+  // Track alignment guides from line objects (they render inside SVG and can't
+  // render the AlignmentGuides component inline like non-line objects do)
+  const [lineAlignmentGuides, setLineAlignmentGuides] = useState<AlignmentGuide[]>([]);
+  const lineGuidesCallback = useCallback((guides: AlignmentGuide[]) => {
+    setLineAlignmentGuides(guides);
+  }, []);
 
   // Track hover via event delegation on the container
   const handleMouseOver = useCallback((e: React.MouseEvent) => {
@@ -157,11 +166,15 @@ export default function ElementLayer() {
                 key={obj.id}
                 line={obj}
                 isSelected={selectedObjectIds.has(obj.id)}
+                onAlignmentGuidesChange={lineGuidesCallback}
               />
             );
           })}
         </svg>
       )}
+
+      {/* Alignment guides for line objects (rendered outside SVG overlay) */}
+      {lineAlignmentGuides.length > 0 && <AlignmentGuides guides={lineAlignmentGuides} />}
 
       {/* Resize handles on the selected canvas object */}
       {selectedObject && <ResizeHandles object={selectedObject} />}

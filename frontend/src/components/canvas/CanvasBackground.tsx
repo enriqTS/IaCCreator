@@ -2,12 +2,13 @@
 
 import { useRef, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { canvasToScreen } from '@/utils/viewport';
 import type { Viewport, DiagramElement, Connector } from '@/types/diagram';
 
-const GRID_SPACING = 20;
 const DOT_RADIUS = 1;
-const DOT_COLOR = 'rgba(255, 255, 255, 0.15)';
+const DOT_COLOR_ACTIVE = 'rgba(255, 255, 255, 0.15)';
+const DOT_COLOR_INACTIVE = 'rgba(255, 255, 255, 0.07)';
 
 const CONNECTOR_COLOR = 'rgba(255, 255, 255, 0.5)';
 const CONNECTOR_SELECTED_COLOR = 'rgba(59, 130, 246, 0.8)';
@@ -102,6 +103,8 @@ export default function CanvasBackground() {
   const connectors = useDiagramStore((s) => s.connectors);
   const selectedConnectorId = useDiagramStore((s) => s.selectedConnectorId);
   const selectConnector = useDiagramStore((s) => s.selectConnector);
+  const gridCellSize = useLayoutPreferencesStore((s) => s.gridCellSize);
+  const snapToGridEnabled = useLayoutPreferencesStore((s) => s.snapToGridEnabled);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -114,13 +117,13 @@ export default function CanvasBackground() {
     ctx.clearRect(0, 0, width, height);
 
     // --- Draw grid dots ---
-    const scaledSpacing = GRID_SPACING * scale;
+    const scaledSpacing = gridCellSize * scale;
 
     if (scaledSpacing >= 4) {
       const startCanvasX = Math.floor(-offsetX / scaledSpacing) * scaledSpacing + offsetX;
       const startCanvasY = Math.floor(-offsetY / scaledSpacing) * scaledSpacing + offsetY;
 
-      ctx.fillStyle = DOT_COLOR;
+      ctx.fillStyle = snapToGridEnabled ? DOT_COLOR_ACTIVE : DOT_COLOR_INACTIVE;
 
       for (let sx = startCanvasX; sx < width; sx += scaledSpacing) {
         for (let sy = startCanvasY; sy < height; sy += scaledSpacing) {
@@ -155,7 +158,7 @@ export default function CanvasBackground() {
       // Draw arrowhead at target end
       drawArrowhead(ctx, source.x, source.y, target.x, target.y, ARROWHEAD_SIZE, color);
     }
-  }, [viewport, elements, connectors, selectedConnectorId]);
+  }, [viewport, elements, connectors, selectedConnectorId, gridCellSize, snapToGridEnabled]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
