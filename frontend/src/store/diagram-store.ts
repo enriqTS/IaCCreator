@@ -26,6 +26,7 @@ import type {
   Rect,
   ObjectGroup,
   AnchorRef,
+  RoutingMode,
 } from '@/types/diagram';
 import {
   MIN_OBJECT_WIDTH,
@@ -42,7 +43,8 @@ import type { DiagramState, ArchitectureDescription, SerializedCanvasObject } fr
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 import type { DiagramSummary } from '@/types/api';
 import { zoomAtPoint } from '@/utils/viewport';
-import { rayRectIntersection } from '@/utils/anchor';
+import { getAnchorPoints } from '@/utils/anchor';
+import type { AnchorPosition } from '@/utils/anchor';
 import { apiClient } from '@/utils/api-client';
 import { useToastStore } from '@/store/toast-store';
 import type { GlobalTerraformConfig } from '@/types/terraform-variables';
@@ -146,8 +148,8 @@ export interface DiagramStore {
   recomputeAnchoredEndpoints: (movedObjectId: string) => void;
 
   // Pull-to-connect state
-  pullConnectState: { sourceObjectId: string; sourceAnchorPoint: Point } | null;
-  setPullConnectState: (state: { sourceObjectId: string; sourceAnchorPoint: Point } | null) => void;
+  pullConnectState: { sourceObjectId: string; sourceAnchorPoint: Point; sourceAnchorPosition: AnchorPosition } | null;
+  setPullConnectState: (state: { sourceObjectId: string; sourceAnchorPoint: Point; sourceAnchorPosition: AnchorPosition } | null) => void;
 
   // Connector state
   connectors: Map<string, Connector>;
@@ -217,6 +219,10 @@ export interface DiagramStore {
   setSidebarExpanded: (expanded: boolean) => void;
   setSidebarWidth: (width: number) => void;
   toggleSidebar: () => void;
+
+  // Global routing mode
+  globalRoutingMode: RoutingMode;
+  setGlobalRoutingMode: (mode: RoutingMode) => void;
 
   /** @internal — exposed for testing reset only */
   _undoStack: HistoryEntry[];
@@ -1104,22 +1110,15 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         let newEnd = line.end;
 
         if (line.sourceAnchor?.objectId === movedObjectId) {
-          newStart = rayRectIntersection(movedBounds, line.end);
+          newStart = getAnchorPoints(movedBounds)[line.sourceAnchor.anchorPosition];
           updated = true;
         }
         if (line.targetAnchor?.objectId === movedObjectId) {
-          newEnd = rayRectIntersection(movedBounds, line.start);
+          newEnd = getAnchorPoints(movedBounds)[line.targetAnchor.anchorPosition];
           updated = true;
         }
 
         if (updated) {
-          // If both anchors reference the moved object, recompute with updated counterparts
-          if (line.sourceAnchor?.objectId === movedObjectId && line.targetAnchor?.objectId === movedObjectId) {
-            const midStart = rayRectIntersection(movedBounds, newEnd);
-            const midEnd = rayRectIntersection(movedBounds, newStart);
-            newStart = midStart;
-            newEnd = midEnd;
-          }
           updates.set(line.id, { ...line, start: newStart, end: newEnd });
         }
       }
@@ -1137,9 +1136,9 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     // --- Pull-to-connect state ---
 
-    pullConnectState: null as { sourceObjectId: string; sourceAnchorPoint: Point } | null,
+    pullConnectState: null as { sourceObjectId: string; sourceAnchorPoint: Point; sourceAnchorPosition: AnchorPosition } | null,
 
-    setPullConnectState: (state: { sourceObjectId: string; sourceAnchorPoint: Point } | null): void => {
+    setPullConnectState: (state: { sourceObjectId: string; sourceAnchorPoint: Point; sourceAnchorPosition: AnchorPosition } | null): void => {
       set({ pullConnectState: state });
     },
 
@@ -1366,6 +1365,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           base.endY = obj.end.y;
           base.sourceAnchorObjectId = obj.sourceAnchor ? obj.sourceAnchor.objectId : null;
           base.targetAnchorObjectId = obj.targetAnchor ? obj.targetAnchor.objectId : null;
+          base.sourceAnchorPosition = obj.sourceAnchor ? obj.sourceAnchor.anchorPosition : null;
+          base.targetAnchorPosition = obj.targetAnchor ? obj.targetAnchor.anchorPosition : null;
         } else if (obj.objectType === 'geometric') {
           base.x = obj.position.x;
           base.y = obj.position.y;
@@ -1412,6 +1413,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         viewport: { ...viewport },
         ...(serializedGroups.length > 0 && { objectGroups: serializedGroups }),
         globalTerraformConfig: { ...globalTerraformConfig },
+        globalRoutingMode: get().globalRoutingMode,
       };
     },
 
@@ -1482,10 +1484,10 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           } else if (sObj.objectType === 'line') {
             // v2→v3 migration: lines without anchor fields get null anchors
             const sourceAnchor: AnchorRef | null = sObj.sourceAnchorObjectId
-              ? { objectId: sObj.sourceAnchorObjectId }
+              ? { objectId: sObj.sourceAnchorObjectId, anchorPosition: (sObj.sourceAnchorPosition as AnchorPosition) ?? 'right' }
               : null;
             const targetAnchor: AnchorRef | null = sObj.targetAnchorObjectId
-              ? { objectId: sObj.targetAnchorObjectId }
+              ? { objectId: sObj.targetAnchorObjectId, anchorPosition: (sObj.targetAnchorPosition as AnchorPosition) ?? 'left' }
               : null;
             const obj: LineObject = {
               id: sObj.id,
@@ -1501,6 +1503,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
                 strokeStyle: (sObj.visualConfig.strokeStyle as 'solid' | 'dashed') ?? DEFAULT_LINE_VISUAL.strokeStyle,
                 startArrow: (sObj.visualConfig.startArrow as boolean) ?? DEFAULT_LINE_VISUAL.startArrow,
                 endArrow: (sObj.visualConfig.endArrow as boolean) ?? DEFAULT_LINE_VISUAL.endArrow,
+                routingMode: (sObj.visualConfig.routingMode as RoutingMode) ?? DEFAULT_LINE_VISUAL.routingMode,
               },
               zIndex,
               ...(groupId !== undefined && { groupId }),
@@ -1619,6 +1622,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         globalTerraformConfig: state.globalTerraformConfig
           ? { ...state.globalTerraformConfig }
           : { ...DEFAULT_GLOBAL_CONFIG },
+        globalRoutingMode: (state.globalRoutingMode as RoutingMode) ?? 'orthogonal',
         _undoStack: [],
         _redoStack: [],
         canUndo: false,
@@ -1802,6 +1806,13 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     toggleSidebar: (): void => {
       set((state) => ({ sidebarExpanded: !state.sidebarExpanded }));
+    },
+
+    // --- Global routing mode ---
+    globalRoutingMode: 'orthogonal' as RoutingMode,
+
+    setGlobalRoutingMode: (mode: RoutingMode): void => {
+      set({ globalRoutingMode: mode });
     },
   };
 });

@@ -3,6 +3,8 @@
  * These mirror the design document interfaces and align with the backend's Pydantic schema.
  */
 
+import type { AnchorPosition } from '@/utils/anchor';
+
 export type ServiceType =
   | 'lambda'
   | 's3'
@@ -110,9 +112,12 @@ export type UMLKind = 'class' | 'interface' | 'actor' | 'use-case' | 'component'
 
 export type StrokeStyle = 'solid' | 'dashed';
 
+export type RoutingMode = 'orthogonal' | 'diagonal';
+
 // Connection anchor reference
 export interface AnchorRef {
   objectId: string;
+  anchorPosition: AnchorPosition;
 }
 
 // Text visual config
@@ -155,6 +160,7 @@ export interface LineVisualConfig {
   strokeStyle: StrokeStyle;
   startArrow: boolean;
   endArrow: boolean;
+  routingMode: RoutingMode;
 }
 
 export interface GeometricVisualConfig {
@@ -273,6 +279,7 @@ export const DEFAULT_LINE_VISUAL: LineVisualConfig = {
   strokeStyle: 'solid',
   startArrow: false,
   endArrow: false,
+  routingMode: 'orthogonal',
 };
 
 export const DEFAULT_GEO_VISUAL: GeometricVisualConfig = {

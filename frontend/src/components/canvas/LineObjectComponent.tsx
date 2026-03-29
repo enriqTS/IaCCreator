@@ -1,14 +1,22 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useMemo } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { rayRectIntersection } from '@/utils/anchor';
+import { getAnchorPoints } from '@/utils/anchor';
+import { computeOrthogonalWaypoints } from '@/utils/routing';
 import { getObjectBounds } from '@/types/diagram';
-import type { LineObject } from '@/types/diagram';
+import type { LineObject, Point } from '@/types/diagram';
 
 interface LineObjectComponentProps {
   line: LineObject;
   isSelected: boolean;
+}
+
+/** Build an SVG path `d` attribute from an array of points using M and L commands */
+function buildPathD(points: Point[]): string {
+  if (points.length === 0) return '';
+  const [first, ...rest] = points;
+  return `M ${first.x} ${first.y}` + rest.map((p) => ` L ${p.x} ${p.y}`).join('');
 }
 
 export default function LineObjectComponent({ line, isSelected }: LineObjectComponentProps) {
@@ -17,17 +25,19 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
   const moveSelectedObjects = useDiagramStore((s) => s.moveSelectedObjects);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
 
-  const { color, borderWidth, strokeStyle, startArrow, endArrow } = line.visualConfig;
+  const { color, borderWidth, strokeStyle, startArrow, endArrow, routingMode } = line.visualConfig;
 
-  // Compute actual endpoints, resolving anchors when present
+  // Compute actual endpoints, resolving anchors when present using fixed anchor positions
   let startPt = line.start;
   let endPt = line.end;
+  const hasSourceAnchor = !!line.sourceAnchor;
+  const hasTargetAnchor = !!line.targetAnchor;
 
   if (line.sourceAnchor) {
     const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
     if (sourceObj) {
       const bounds = getObjectBounds(sourceObj);
-      startPt = rayRectIntersection(bounds, endPt);
+      startPt = getAnchorPoints(bounds)[line.sourceAnchor.anchorPosition];
     }
   }
 
@@ -35,9 +45,30 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
     const targetObj = canvasObjects.get(line.targetAnchor.objectId);
     if (targetObj) {
       const bounds = getObjectBounds(targetObj);
-      endPt = rayRectIntersection(bounds, startPt);
+      endPt = getAnchorPoints(bounds)[line.targetAnchor.anchorPosition];
     }
   }
+
+  // Determine if we should use orthogonal routing:
+  // Only when routingMode is 'orthogonal' AND both anchors are present
+  const useOrthogonal = routingMode === 'orthogonal' && hasSourceAnchor && hasTargetAnchor
+    && !!line.sourceAnchor && !!line.targetAnchor;
+
+  // Compute the full path points (start + waypoints + end)
+  const pathPoints = useMemo((): Point[] => {
+    if (useOrthogonal && line.sourceAnchor && line.targetAnchor) {
+      const waypoints = computeOrthogonalWaypoints(
+        startPt,
+        line.sourceAnchor.anchorPosition,
+        endPt,
+        line.targetAnchor.anchorPosition,
+      );
+      return [startPt, ...waypoints, endPt];
+    }
+    return [startPt, endPt];
+  }, [useOrthogonal, startPt, endPt, line.sourceAnchor, line.targetAnchor]);
+
+  const pathD = useMemo(() => buildPathD(pathPoints), [pathPoints]);
 
   const markerId = `line-${line.id}`;
   const startMarkerId = `${markerId}-start`;
@@ -50,7 +81,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
   const didDrag = useRef(false);
   const lastMouse = useRef<{ x: number; y: number } | null>(null);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent<SVGLineElement>) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent<SVGElement>) => {
     if (e.button !== 0) return;
 
     const tool = useDiagramStore.getState().activeTool;
@@ -109,11 +140,112 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
     window.addEventListener('mouseup', handleMouseUp);
   }, [line.id, line.locked, isSelected, selectObject, toggleObjectSelection, moveSelectedObjects]);
 
-  const midX = (startPt.x + endPt.x) / 2;
-  const midY = (startPt.y + endPt.y) / 2;
+  // Midpoint for lock indicator — use the geometric center of the path
+  const midIdx = Math.floor(pathPoints.length / 2);
+  const midPt = pathPoints.length % 2 === 1
+    ? pathPoints[midIdx]
+    : {
+        x: (pathPoints[midIdx - 1].x + pathPoints[midIdx].x) / 2,
+        y: (pathPoints[midIdx - 1].y + pathPoints[midIdx].y) / 2,
+      };
 
+  // Render orthogonal path (SVG <path>) or diagonal line (SVG <line>)
+  if (useOrthogonal) {
+    return (
+      <g data-testid={`line-object-${line.id}`} data-object-id={line.id} className="pointer-events-auto" style={{ cursor: line.locked ? 'not-allowed' : 'pointer' }}>
+        <defs>
+          {startArrow && (
+            <marker
+              id={startMarkerId}
+              markerWidth={arrowSize}
+              markerHeight={arrowSize}
+              refX={arrowSize}
+              refY={arrowSize / 2}
+              orient="auto-start-reverse"
+              markerUnits="userSpaceOnUse"
+            >
+              <path
+                d={`M ${arrowSize} 0 L 0 ${arrowSize / 2} L ${arrowSize} ${arrowSize}`}
+                fill="none"
+                stroke={color}
+                strokeWidth={Math.max(borderWidth * 0.6, 1)}
+              />
+            </marker>
+          )}
+          {endArrow && (
+            <marker
+              id={endMarkerId}
+              markerWidth={arrowSize}
+              markerHeight={arrowSize}
+              refX={0}
+              refY={arrowSize / 2}
+              orient="auto"
+              markerUnits="userSpaceOnUse"
+            >
+              <path
+                d={`M 0 0 L ${arrowSize} ${arrowSize / 2} L 0 ${arrowSize}`}
+                fill="none"
+                stroke={color}
+                strokeWidth={Math.max(borderWidth * 0.6, 1)}
+              />
+            </marker>
+          )}
+        </defs>
+
+        {/* Invisible wider hit area for easier clicking — follows full path */}
+        <path
+          d={pathD}
+          stroke="transparent"
+          strokeWidth={Math.max(borderWidth + 10, 12)}
+          fill="none"
+          onMouseDown={handleMouseDown}
+        />
+
+        {/* Selection highlight glow — follows full path */}
+        {isSelected && (
+          <path
+            d={pathD}
+            stroke="rgba(59, 130, 246, 0.5)"
+            strokeWidth={borderWidth + 6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        )}
+
+        {/* Main visible path */}
+        <path
+          d={pathD}
+          stroke={color}
+          strokeWidth={borderWidth}
+          strokeDasharray={dashArray}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          markerStart={startArrow ? `url(#${startMarkerId})` : undefined}
+          markerEnd={endArrow ? `url(#${endMarkerId})` : undefined}
+        />
+
+        {/* Lock indicator */}
+        {line.locked && (
+          <text
+            data-testid={`lock-badge-${line.id}`}
+            x={midPt.x}
+            y={midPt.y - 8}
+            textAnchor="middle"
+            fontSize="12"
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            🔒
+          </text>
+        )}
+      </g>
+    );
+  }
+
+  // Diagonal mode (or free-floating): render straight <line>
   return (
-    <g data-testid={`line-object-${line.id}`} data-object-id={line.id} style={{ pointerEvents: 'auto', cursor: line.locked ? 'not-allowed' : 'pointer' }}>
+    <g data-testid={`line-object-${line.id}`} data-object-id={line.id} className="pointer-events-auto" style={{ cursor: line.locked ? 'not-allowed' : 'pointer' }}>
       <defs>
         {startArrow && (
           <marker
@@ -195,8 +327,8 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
       {line.locked && (
         <text
           data-testid={`lock-badge-${line.id}`}
-          x={midX}
-          y={midY - 8}
+          x={midPt.x}
+          y={midPt.y - 8}
           textAnchor="middle"
           fontSize="12"
           style={{ pointerEvents: 'none', userSelect: 'none' }}

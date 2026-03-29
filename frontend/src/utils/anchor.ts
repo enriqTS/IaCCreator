@@ -136,3 +136,32 @@ export function findSnapAnchor(
 
   return best;
 }
+
+/**
+ * Check if a point is within snap threshold of any anchor on a rect.
+ * Returns the closest anchor point and its position if within threshold, or null otherwise.
+ */
+export function findSnapAnchorWithPosition(
+  point: Point,
+  bounds: Rect,
+  threshold: number = SNAP_THRESHOLD,
+): { point: Point; position: AnchorPosition } | null {
+  const anchors = getAnchorPoints(bounds);
+  const positions = Object.keys(anchors) as AnchorPosition[];
+
+  let best: { point: Point; position: AnchorPosition } | null = null;
+  let bestDist = threshold * threshold; // compare squared distances
+
+  for (const pos of positions) {
+    const anchor = anchors[pos];
+    const dx = anchor.x - point.x;
+    const dy = anchor.y - point.y;
+    const distSq = dx * dx + dy * dy;
+    if (distSq <= bestDist) {
+      bestDist = distSq;
+      best = { point: anchor, position: pos };
+    }
+  }
+
+  return best;
+}

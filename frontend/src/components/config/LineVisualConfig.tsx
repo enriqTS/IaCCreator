@@ -1,6 +1,6 @@
 'use client';
 
-import type { LineObject, StrokeStyle } from '@/types/diagram';
+import type { LineObject, RoutingMode, StrokeStyle } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,10 @@ export default function LineVisualConfig({ object }: LineVisualConfigProps) {
     updateVisualConfig(object.id, { strokeStyle: value as StrokeStyle });
   };
 
+  const handleRoutingModeChange = (value: string) => {
+    updateVisualConfig(object.id, { routingMode: value as RoutingMode });
+  };
+
   const handleStartArrowChange = (checked: boolean | 'indeterminate') => {
     updateVisualConfig(object.id, { startArrow: checked === true });
   };
@@ -65,7 +69,7 @@ export default function LineVisualConfig({ object }: LineVisualConfigProps) {
           inputMode="numeric"
           value={object.visualConfig.borderWidth}
           onChange={handleBorderWidthChange}
-          className="w-[140px]"
+          className="w-full"
         />
       </div>
 
@@ -75,12 +79,28 @@ export default function LineVisualConfig({ object }: LineVisualConfigProps) {
           value={object.visualConfig.strokeStyle}
           onValueChange={handleStrokeStyleChange}
         >
-          <SelectTrigger data-testid="line-stroke-style" className="w-[140px]">
+          <SelectTrigger data-testid="line-stroke-style" className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="solid">Solid</SelectItem>
             <SelectItem value="dashed">Dashed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col gap-1 text-[13px]">
+        <Label className="text-xs text-muted-foreground">Routing</Label>
+        <Select
+          value={object.visualConfig.routingMode}
+          onValueChange={handleRoutingModeChange}
+        >
+          <SelectTrigger data-testid="line-routing-mode" className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="orthogonal">Orthogonal</SelectItem>
+            <SelectItem value="diagonal">Diagonal</SelectItem>
           </SelectContent>
         </Select>
       </div>

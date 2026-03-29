@@ -155,7 +155,7 @@ describe('Property 12: Serialization round-trip for all object types', () => {
             end,
             sourceAnchor: srcAnchor,
             targetAnchor: tgtAnchor,
-            visualConfig: { color: '#ffffff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
+            visualConfig: { color: '#ffffff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false, routingMode: 'orthogonal' },
           });
 
           const original = useDiagramStore.getState().canvasObjects.get(lineId) as LineObject;

@@ -28,6 +28,7 @@ export interface DiagramState {
   viewport: Viewport;
   objectGroups?: SerializedObjectGroup[];
   globalTerraformConfig?: GlobalTerraformConfig;
+  globalRoutingMode?: string;
 }
 
 export interface SerializedElement {
@@ -51,6 +52,9 @@ export interface SerializedCanvasObject {
   // Line anchors (v3)
   sourceAnchorObjectId?: string | null;
   targetAnchorObjectId?: string | null;
+  // Line anchor positions (v3+)
+  sourceAnchorPosition?: string | null;
+  targetAnchorPosition?: string | null;
   // Architecture block
   serviceType?: ServiceType;
   config?: ResourceConfig;

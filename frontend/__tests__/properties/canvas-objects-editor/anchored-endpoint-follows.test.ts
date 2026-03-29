@@ -4,6 +4,9 @@ import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock, LineObject } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_LINE_VISUAL, getObjectBounds } from '@/types/diagram';
 import { getDefaultVariables } from '@/types/terraform-variables';
+import { getAnchorPoints, type AnchorPosition } from '@/utils/anchor';
+
+const anchorPositionArb = fc.constantFrom<AnchorPosition>('top', 'right', 'bottom', 'left');
 
 /**
  * Feature: canvas-objects-editor, Property 5: Anchored endpoint follows connected object
@@ -11,7 +14,6 @@ import { getDefaultVariables } from '@/types/terraform-variables';
  */
 describe('Property 5: Anchored endpoint follows connected object', () => {
   beforeEach(() => {
-    const state = useDiagramStore.getState();
     // Reset store state
     useDiagramStore.setState({
       canvasObjects: new Map(),
@@ -29,7 +31,7 @@ describe('Property 5: Anchored endpoint follows connected object', () => {
   it('after moving a connected block, the anchored line endpoint lies on the block boundary', () => {
     fc.assert(
       fc.property(
-        // Generate positions for two blocks and a move delta
+        // Generate positions for two blocks, a move delta, and anchor positions
         fc.record({
           posAx: fc.double({ min: -2000, max: 2000, noNaN: true, noDefaultInfinity: true }),
           posAy: fc.double({ min: -2000, max: 2000, noNaN: true, noDefaultInfinity: true }),
@@ -37,15 +39,10 @@ describe('Property 5: Anchored endpoint follows connected object', () => {
           posBy: fc.double({ min: -2000, max: 2000, noNaN: true, noDefaultInfinity: true }),
           dx: fc.double({ min: -500, max: 500, noNaN: true, noDefaultInfinity: true }),
           dy: fc.double({ min: -500, max: 500, noNaN: true, noDefaultInfinity: true }),
-        }).filter(({ posAx, posAy, posBx, posBy, dx, dy }) => {
-          // After moving block A, the line's end (at block B) must not coincide with block A's center.
-          // Otherwise rayRectIntersection returns center (degenerate case with zero-length ray).
-          const movedAx = posAx + dx;
-          const movedAy = posAy + dy;
-          const dist = Math.hypot(posBx - movedAx, posBy - movedAy);
-          return dist > 1; // blocks must be at least 1px apart after move
+          sourceAnchorPos: anchorPositionArb,
+          targetAnchorPos: anchorPositionArb,
         }),
-        ({ posAx, posAy, posBx, posBy, dx, dy }) => {
+        ({ posAx, posAy, posBx, posBy, dx, dy, sourceAnchorPos, targetAnchorPos }) => {
           const store = useDiagramStore.getState();
 
           // Create block A
@@ -70,14 +67,20 @@ describe('Property 5: Anchored endpoint follows connected object', () => {
             visualConfig: { ...DEFAULT_BLOCK_VISUAL },
           });
 
-          // Create a line anchored from A to B
+          // Compute initial anchor coordinates
+          const blockA = useDiagramStore.getState().canvasObjects.get(blockAId) as ArchitectureBlock;
+          const blockB = useDiagramStore.getState().canvasObjects.get(blockBId) as ArchitectureBlock;
+          const startPt = getAnchorPoints(getObjectBounds(blockA))[sourceAnchorPos];
+          const endPt = getAnchorPoints(getObjectBounds(blockB))[targetAnchorPos];
+
+          // Create a line anchored from A to B with fixed anchor positions
           const lineId = store.addCanvasObject({
             objectType: 'line',
             name: 'Line1',
-            start: { x: posAx, y: posAy },
-            end: { x: posBx, y: posBy },
-            sourceAnchor: { objectId: blockAId },
-            targetAnchor: { objectId: blockBId },
+            start: startPt,
+            end: endPt,
+            sourceAnchor: { objectId: blockAId, anchorPosition: sourceAnchorPos },
+            targetAnchor: { objectId: blockBId, anchorPosition: targetAnchorPos },
             visualConfig: { ...DEFAULT_LINE_VISUAL },
           });
 

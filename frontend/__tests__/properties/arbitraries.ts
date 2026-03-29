@@ -334,6 +334,7 @@ export function geometricObjectWithoutIdArbitrary(): fc.Arbitrary<Omit<Geometric
 export function anchorRefArbitrary(): fc.Arbitrary<AnchorRef> {
   return fc.record({
     objectId: fc.uuid(),
+    anchorPosition: fc.constantFrom('top' as const, 'right' as const, 'bottom' as const, 'left' as const),
   });
 }
 

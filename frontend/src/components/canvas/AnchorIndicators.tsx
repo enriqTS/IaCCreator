@@ -24,11 +24,11 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
   const anchors = getAnchorPoints(bounds);
 
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent, anchorPoint: Point) => {
+    (e: React.MouseEvent, anchorPoint: Point, anchorPos: AnchorPosition) => {
       if (locked) return;
       e.stopPropagation();
       e.preventDefault();
-      setPullConnectState({ sourceObjectId: objectId, sourceAnchorPoint: anchorPoint });
+      setPullConnectState({ sourceObjectId: objectId, sourceAnchorPoint: anchorPoint, sourceAnchorPosition: anchorPos });
     },
     [objectId, locked, setPullConnectState],
   );
@@ -43,7 +43,7 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
           <div
             key={pos}
             data-testid={`anchor-indicator-${objectId}-${pos}`}
-            onMouseDown={(e) => handleMouseDown(e, point)}
+            onMouseDown={(e) => handleMouseDown(e, point, pos)}
             style={{
               position: 'absolute',
               left: point.x - ANCHOR_RADIUS,

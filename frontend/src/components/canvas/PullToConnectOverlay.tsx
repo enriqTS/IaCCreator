@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { findSnapAnchor } from '@/utils/anchor';
+import { findSnapAnchorWithPosition } from '@/utils/anchor';
+import type { AnchorPosition } from '@/utils/anchor';
 import { getObjectBounds } from '@/types/diagram';
 import { DEFAULT_LINE_VISUAL } from '@/types/diagram';
 import type { Point } from '@/types/diagram';
@@ -13,6 +14,7 @@ export default function PullToConnectOverlay() {
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const viewport = useDiagramStore((s) => s.viewport);
+  const globalRoutingMode = useDiagramStore((s) => s.globalRoutingMode);
 
   const [mousePos, setMousePos] = useState<Point | null>(null);
 
@@ -37,7 +39,7 @@ export default function PullToConnectOverlay() {
 
       // Try to find a snap target on another object
       let targetObjectId: string | null = null;
-      let snappedPoint: Point | null = null;
+      let snapResult: { point: Point; position: AnchorPosition } | null = null;
 
       for (const [objId, obj] of canvasObjects) {
         // Skip the source object and line objects
@@ -45,24 +47,26 @@ export default function PullToConnectOverlay() {
         if (obj.objectType === 'line') continue;
 
         const bounds = getObjectBounds(obj);
-        const snap = findSnapAnchor(dropPoint, bounds);
+        const snap = findSnapAnchorWithPosition(dropPoint, bounds);
         if (snap) {
           targetObjectId = objId;
-          snappedPoint = snap;
+          snapResult = snap;
           break;
         }
       }
 
-      if (targetObjectId && snappedPoint) {
+      const { sourceAnchorPosition } = pullConnectState;
+
+      if (targetObjectId && snapResult) {
         // Create an anchored line
         addCanvasObject({
           objectType: 'line',
           name: 'Line',
           start: pullConnectState.sourceAnchorPoint,
-          end: snappedPoint,
-          sourceAnchor: { objectId: pullConnectState.sourceObjectId },
-          targetAnchor: { objectId: targetObjectId },
-          visualConfig: { ...DEFAULT_LINE_VISUAL },
+          end: snapResult.point,
+          sourceAnchor: { objectId: pullConnectState.sourceObjectId, anchorPosition: sourceAnchorPosition },
+          targetAnchor: { objectId: targetObjectId, anchorPosition: snapResult.position },
+          visualConfig: { ...DEFAULT_LINE_VISUAL, routingMode: globalRoutingMode },
         });
       } else {
         // Create a free-floating line
@@ -71,16 +75,16 @@ export default function PullToConnectOverlay() {
           name: 'Line',
           start: pullConnectState.sourceAnchorPoint,
           end: dropPoint,
-          sourceAnchor: { objectId: pullConnectState.sourceObjectId },
+          sourceAnchor: { objectId: pullConnectState.sourceObjectId, anchorPosition: sourceAnchorPosition },
           targetAnchor: null,
-          visualConfig: { ...DEFAULT_LINE_VISUAL },
+          visualConfig: { ...DEFAULT_LINE_VISUAL, routingMode: globalRoutingMode },
         });
       }
 
       setPullConnectState(null);
       setMousePos(null);
     },
-    [pullConnectState, viewport, canvasObjects, addCanvasObject, setPullConnectState],
+    [pullConnectState, viewport, canvasObjects, addCanvasObject, setPullConnectState, globalRoutingMode],
   );
 
   useEffect(() => {
