@@ -19,6 +19,40 @@ function buildPathD(points: Point[]): string {
   return `M ${first.x} ${first.y}` + rest.map((p) => ` L ${p.x} ${p.y}`).join('');
 }
 
+/**
+ * Shorten a path by pulling the first and/or last point inward along its segment.
+ * This makes room for arrow markers so the line doesn't poke through the arrowhead.
+ */
+function shortenPath(points: Point[], startInset: number, endInset: number): Point[] {
+  if (points.length < 2) return points;
+  const result = [...points];
+
+  if (startInset > 0) {
+    const a = result[0];
+    const b = result[1];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len > startInset) {
+      result[0] = { x: a.x + (dx / len) * startInset, y: a.y + (dy / len) * startInset };
+    }
+  }
+
+  if (endInset > 0) {
+    const last = result.length - 1;
+    const a = result[last];
+    const b = result[last - 1];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len > endInset) {
+      result[last] = { x: a.x + (dx / len) * endInset, y: a.y + (dy / len) * endInset };
+    }
+  }
+
+  return result;
+}
+
 export default function LineObjectComponent({ line, isSelected }: LineObjectComponentProps) {
   const selectObject = useDiagramStore((s) => s.selectObject);
   const toggleObjectSelection = useDiagramStore((s) => s.toggleObjectSelection);
@@ -70,12 +104,18 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
 
   const pathD = useMemo(() => buildPathD(pathPoints), [pathPoints]);
 
+  const dashArray = strokeStyle === 'dashed' ? `${borderWidth * 3} ${borderWidth * 2}` : undefined;
+  const arrowSize = Math.max(borderWidth * 3, 6);
+
+  // Build a shortened path for the visible line so arrows sit flush at endpoints
+  const visiblePathD = useMemo(() => {
+    const shortened = shortenPath(pathPoints, startArrow ? arrowSize : 0, endArrow ? arrowSize : 0);
+    return buildPathD(shortened);
+  }, [pathPoints, startArrow, endArrow, arrowSize]);
+
   const markerId = `line-${line.id}`;
   const startMarkerId = `${markerId}-start`;
   const endMarkerId = `${markerId}-end`;
-
-  const dashArray = strokeStyle === 'dashed' ? `${borderWidth * 3} ${borderWidth * 2}` : undefined;
-  const arrowSize = Math.max(borderWidth * 3, 6);
 
   const isDragging = useRef(false);
   const didDrag = useRef(false);
@@ -159,7 +199,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
               id={startMarkerId}
               markerWidth={arrowSize}
               markerHeight={arrowSize}
-              refX={0}
+              refX={arrowSize}
               refY={arrowSize / 2}
               orient="auto"
               markerUnits="userSpaceOnUse"
@@ -177,7 +217,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
               id={endMarkerId}
               markerWidth={arrowSize}
               markerHeight={arrowSize}
-              refX={arrowSize}
+              refX={0}
               refY={arrowSize / 2}
               orient="auto"
               markerUnits="userSpaceOnUse"
@@ -215,7 +255,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
 
         {/* Main visible path */}
         <path
-          d={pathD}
+          d={visiblePathD}
           stroke={color}
           strokeWidth={borderWidth}
           strokeDasharray={dashArray}
@@ -244,6 +284,11 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
   }
 
   // Diagonal mode (or free-floating): render straight <line>
+  // Compute shortened endpoints for the visible line
+  const diagShortened = useMemo(() => {
+    return shortenPath([startPt, endPt], startArrow ? arrowSize : 0, endArrow ? arrowSize : 0);
+  }, [startPt, endPt, startArrow, endArrow, arrowSize]);
+
   return (
     <g data-testid={`line-object-${line.id}`} data-object-id={line.id} className="pointer-events-auto" style={{ cursor: line.locked ? 'not-allowed' : 'pointer' }}>
       <defs>
@@ -252,7 +297,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
             id={startMarkerId}
             markerWidth={arrowSize}
             markerHeight={arrowSize}
-            refX={0}
+            refX={arrowSize}
             refY={arrowSize / 2}
             orient="auto"
             markerUnits="userSpaceOnUse"
@@ -270,7 +315,7 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
             id={endMarkerId}
             markerWidth={arrowSize}
             markerHeight={arrowSize}
-            refX={arrowSize}
+            refX={0}
             refY={arrowSize / 2}
             orient="auto"
             markerUnits="userSpaceOnUse"
@@ -309,12 +354,12 @@ export default function LineObjectComponent({ line, isSelected }: LineObjectComp
         />
       )}
 
-      {/* Main visible line */}
+      {/* Main visible line — shortened to make room for arrows */}
       <line
-        x1={startPt.x}
-        y1={startPt.y}
-        x2={endPt.x}
-        y2={endPt.y}
+        x1={diagShortened[0].x}
+        y1={diagShortened[0].y}
+        x2={diagShortened[1].x}
+        y2={diagShortened[1].y}
         stroke={color}
         strokeWidth={borderWidth}
         strokeDasharray={dashArray}
