@@ -14,7 +14,7 @@ interface AnchorIndicatorsProps {
 
 const ANCHOR_RADIUS = 5;
 /** Desired screen-pixel radius for the invisible hit area */
-const HIT_RADIUS_SCREEN = 14;
+const HIT_RADIUS_SCREEN = 24;
 /** Desired screen-pixel radius for the visual dot */
 const DOT_RADIUS_SCREEN = 5;
 const ANCHOR_COLOR = '#3b82f6';
