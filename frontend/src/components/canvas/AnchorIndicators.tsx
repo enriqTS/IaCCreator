@@ -13,8 +13,10 @@ interface AnchorIndicatorsProps {
 }
 
 const ANCHOR_RADIUS = 5;
-/** Invisible hit area radius — much larger than the visual dot for easier grabbing */
-const HIT_RADIUS = 14;
+/** Desired screen-pixel radius for the invisible hit area */
+const HIT_RADIUS_SCREEN = 14;
+/** Desired screen-pixel radius for the visual dot */
+const DOT_RADIUS_SCREEN = 5;
 const ANCHOR_COLOR = '#3b82f6';
 const ANCHOR_STROKE = '#ffffff';
 
@@ -22,8 +24,14 @@ const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
 export default function AnchorIndicators({ objectId, bounds, locked }: AnchorIndicatorsProps) {
   const setPullConnectState = useDiagramStore((s) => s.setPullConnectState);
+  const scale = useDiagramStore((s) => s.viewport.scale);
 
   const anchors = getAnchorPoints(bounds);
+
+  // Scale-compensated radii so they stay constant in screen pixels
+  const hitRadius = HIT_RADIUS_SCREEN / scale;
+  const dotRadius = DOT_RADIUS_SCREEN / scale;
+  const borderWidth = 1.5 / scale;
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, anchorPoint: Point, anchorPos: AnchorPosition) => {
@@ -50,9 +58,9 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
               position: 'absolute',
               left: 0,
               top: 0,
-              transform: `translate(${point.x - HIT_RADIUS}px, ${point.y - HIT_RADIUS}px)`,
-              width: HIT_RADIUS * 2,
-              height: HIT_RADIUS * 2,
+              transform: `translate(${point.x - hitRadius}px, ${point.y - hitRadius}px)`,
+              width: hitRadius * 2,
+              height: hitRadius * 2,
               borderRadius: '50%',
               cursor: 'crosshair',
               pointerEvents: 'auto',
@@ -65,11 +73,11 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
             {/* Visual dot */}
             <div
               style={{
-                width: ANCHOR_RADIUS * 2,
-                height: ANCHOR_RADIUS * 2,
+                width: dotRadius * 2,
+                height: dotRadius * 2,
                 borderRadius: '50%',
                 backgroundColor: ANCHOR_COLOR,
-                border: `1.5px solid ${ANCHOR_STROKE}`,
+                border: `${borderWidth}px solid ${ANCHOR_STROKE}`,
                 boxSizing: 'border-box',
                 pointerEvents: 'none',
               }}
