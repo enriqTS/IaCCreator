@@ -49,7 +49,15 @@ Ownership checks: `GET /{id}`, `PUT /{id}`, and `DELETE /{id}` compare `record.s
 | `POST` | `/generate/json` | Generate Terraform files, return as JSON + summary | `ArchitectureDescription`  | `{"summary": ..., "files": ...}` |
 | `POST` | `/generate/zip`  | Generate Terraform files, return as ZIP download   | `ArchitectureDescription`  | `application/zip` binary     |
 
-Both endpoints run the same pipeline: `IRBuilder.build()` → `CodeGenerator.generate()` → serialize. The `/generate/zip` endpoint sets `Content-Disposition` with the project name. Errors return `500` with a descriptive message; Pydantic validation failures return `422`.
+Both endpoints run the same pipeline: validate each resource's config against `VARIABLE_SCHEMAS` via `validate_config_against_schema()`, then `IRBuilder.build()` → `CodeGenerator.generate()` → serialize. The `/generate/zip` endpoint sets `Content-Disposition` with the project name. Errors return `500` with a descriptive message; Pydantic validation failures return `422`; schema validation failures (out-of-range values, disallowed options) also return `422`.
+
+### Variable Schemas
+
+| Method | Path                      | Description                                      | Request Body | Response                          |
+|--------|---------------------------|--------------------------------------------------|--------------|-----------------------------------|
+| `GET`  | `/api/variable-schemas`   | Return all variable schemas keyed by service type | —            | `dict[str, list[dict]]`           |
+
+Returns the full `VARIABLE_SCHEMAS` dictionary serialized as JSON. Each key is a service type value (e.g., `"lambda"`, `"s3"`), and each value is a list of schema entry objects with `name`, `type`, `description`, `default`, `group`, `options`, `validation`, and `visible_when` fields. Used by the frontend to drive the schema-based config form.
 
 ### Request Body: `ArchitectureDescription`
 

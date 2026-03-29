@@ -107,6 +107,21 @@ Persisted layout preferences (via Zustand `persist` middleware):
 - `toolbarPosition: 'top' | 'bottom'` (default `'top'`)
 - `setSidebarSide / setToolbarPosition`
 
+### `schema-store.ts` — `fetchSchemas` / `getSchemas`
+
+Module-level schema cache (not a Zustand store). Fetches variable schemas from the backend `/api/variable-schemas` endpoint and caches in memory. Falls back to bundled schemas (`frontend/src/data/bundled-schemas.ts`) when the API is unreachable.
+
+- `fetchSchemas()` — async fetch with in-memory caching
+- `getSchemas()` — synchronous access to cached or bundled schemas
+- `clearSchemaCache()` — reset cache (for testing)
+
+### `recently-used-store.ts` — `useRecentlyUsedStore`
+
+Tracks recently used picker items (via Zustand `persist` middleware with sessionStorage, falling back to in-memory storage when sessionStorage is unavailable):
+- `recentItems: PickerItem[]` — capped at `MAX_RECENT_ITEMS` (12)
+- `addRecentItem(item)` — prepend item, deduplicate by name+category
+- `clearRecentItems()` — reset list
+
 ## Utilities (`frontend/src/utils/`)
 
 ### `viewport.ts`
@@ -145,6 +160,14 @@ localStorage-based save/load:
 - `listSavedDiagrams()` — returns `SavedDiagramEntry[]` with name and savedAt
 - `deleteSavedDiagram(name)` — removes from localStorage
 
+### `routing.ts`
+
+Orthogonal connection routing between anchor ports. Computes waypoints for right-angle paths between two anchor positions on objects.
+
+- `computeOrthogonalWaypoints(start, startPosition, end, endPosition, minOffset)` — returns intermediate waypoints (excluding start/end) for an orthogonal route
+- Handles five cases: facing anchors (aligned, offset, wrong direction), perpendicular anchors, and same-side anchors (U-shape)
+- `MIN_OFFSET` (20px) — minimum distance from the object before the first turn
+
 ### `anchor.ts`
 
 Anchor and connection geometry utilities:
@@ -157,7 +180,18 @@ Anchor and connection geometry utilities:
 
 SVG path registry for geometric shapes. `SHAPE_PATH_REGISTRY` maps each `GeometricShape` to a function `(width, height) => string` returning an SVG path `d` attribute. Covers 25+ shapes including basic shapes, polygons, arrows, flowchart shapes, and special shapes (cylinder, cloud, callout).
 
+## Data Modules (`frontend/src/data/`)
+
+| Module                    | Purpose                                                              |
+|---------------------------|----------------------------------------------------------------------|
+| `bundled-schemas.ts`      | Bundled copy of variable schemas for offline/fallback use            |
+| `aws-icon-registry.ts`    | Maps AWS service types to icon components/paths                      |
+| `abbreviation-map.ts`     | Maps abbreviations to full service names for search (e.g., "ec2" → "Elastic Compute Cloud") |
+| `shape-icons.tsx`         | Icon components for geometric shapes in the picker                   |
+
 ## Type Definitions (`frontend/src/types/`)
+
+### `diagram.ts`
 
 ### `diagram.ts`
 

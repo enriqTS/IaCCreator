@@ -46,30 +46,19 @@ DOM overlay layer that renders interactive canvas object components positioned i
 
 ## Config (`frontend/src/components/config/`)
 
-Configuration panels for selected objects. Supports two layout modes: bottom panel and sidebar panel.
-
-### `BottomPanel.tsx`
-
-Expandable bottom panel showing configuration tabs for selected object(s). Architecture blocks get "Variables" and "Visual" tabs; other objects get only "Visual". Supports drag-to-resize, grouping/ungrouping, and z-order controls.
+Configuration panels for selected objects. The primary UI uses a sidebar panel; a legacy bottom panel existed previously but has been removed from the codebase.
 
 ### `SidebarPanel.tsx`
 
-Collapsible sidebar panel (left or right, configurable via preferences). Same tabs as BottomPanel in a vertical layout with drag-to-resize width.
+Collapsible sidebar panel (left or right, configurable via preferences). Architecture blocks get "Variables" and "Visual" tabs; other objects get only "Visual". Supports drag-to-resize width. Exports `getTabsForObject()` utility for determining which tabs to show per object type. Includes `MultiSelectionView` and `SingleSelectionView` sub-components.
 
 ### `ConfigPanel.tsx`
 
 Router component that renders the appropriate config form based on the selected element's `serviceType`.
 
-### Service Config Forms
+### `SchemaConfigForm.tsx`
 
-| Component                  | Service      | Fields                                                    |
-|----------------------------|--------------|-----------------------------------------------------------|
-| `LambdaConfigForm.tsx`     | Lambda       | handler, runtime, memory_size, timeout, is_layer          |
-| `S3ConfigForm.tsx`         | S3           | versioning                                                |
-| `DynamoDBConfigForm.tsx`   | DynamoDB     | billing_mode, hash_key, hash_key_type, range_key, range_key_type |
-| `APIGatewayConfigForm.tsx` | API Gateway  | protocol_type                                             |
-| `CloudWatchConfigForm.tsx` | CloudWatch   | retention_in_days                                         |
-| `IAMConfigForm.tsx`        | IAM          | (minimal config)                                          |
+Schema-driven config form that dynamically renders fields based on `VARIABLE_SCHEMAS` fetched from the backend. Handles conditional visibility (`visible_when`), validation rules, grouped field layout, and option dropdowns. Replaces the individual per-service config forms (LambdaConfigForm, S3ConfigForm, etc.) with a single data-driven component.
 
 ### Visual Config Panels
 
@@ -82,12 +71,17 @@ Router component that renders the appropriate config form based on the selected 
 | `UMLConfigPanel.tsx`         | Stereotype, attributes, methods for UML objects          |
 | `VisualTab.tsx`              | Dispatches to the correct visual config panel            |
 
+### Editors
+
+| Component                        | Purpose                                              |
+|----------------------------------|------------------------------------------------------|
+| `KeyValueEditor.tsx`             | Generic key-value pair editor for `map` type variables (environment variables, tags) |
+| `ListEditor.tsx`                 | Generic list editor for `list` type variables (Lambda layers) |
+
 ### Other Config Components
 
 | Component                        | Purpose                                              |
 |----------------------------------|------------------------------------------------------|
-| `VariablesPanel.tsx`             | Terraform variable editor for architecture blocks    |
-| `TerraformTab.tsx`               | Terraform-specific configuration tab                 |
 | `GlobalTerraformConfigPanel.tsx` | Project-level Terraform settings (backend, provider) |
 | `ZOrderControls.tsx`             | Bring to front/back, forward/backward buttons        |
 | `PillIndicator.tsx`              | Small pill badge for tab indicators                  |
@@ -126,11 +120,7 @@ Main toolbar with tool selection (pointer, connector) and action buttons (undo, 
 
 ### `ObjectPickerMenu.tsx`
 
-Unified object picker organized into categories: AWS Services, Geometric Shapes (25+ shapes), and UML Diagrams (class, interface, actor, use-case, component, package, node).
-
-### `AWSServicePicker.tsx`
-
-Categorized AWS service picker. Selecting a service switches to `place-service` tool mode.
+Unified object picker organized into categories: AWS Services (with search, abbreviation expansion, and recently-used tracking), Geometric Shapes (25+ shapes), and UML Diagrams (class, interface, actor, use-case, component, package, node). Selecting an item switches to the appropriate placement tool mode.
 
 ## UI (`frontend/src/components/ui/`)
 

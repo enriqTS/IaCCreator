@@ -127,11 +127,12 @@ The diagram editor is a Next.js 16 (App Router) + Tailwind CSS single-page appli
 ### Features
 
 - Infinite pan/zoom canvas with dot grid background
-- Place AWS service nodes from a categorized picker (200+ services, 26 categories)
+- Place AWS service nodes from a categorized picker with search (200+ services, 26 categories) and recently-used tracking
 - Place geometric shapes (26 types: rectangle, ellipse, diamond, hexagon, cylinder, cloud, flowchart shapes, etc.)
 - Place UML elements (class, interface, actor, use case, component, package, node)
 - Place text labels and freeform line/connector objects with anchor snapping
-- Draw directional connectors between services with arrowheads
+- Draw directional connectors between services with arrowheads and pull-to-connect from anchor points
+- Global connection routing mode (orthogonal or diagonal)
 - Right-click context menus on canvas and objects (copy, paste, duplicate, rename, lock/unlock, group/ungroup, z-order, delete)
 - Marquee (box) selection for multi-object operations
 - Object resize handles with drag sizing
@@ -155,9 +156,9 @@ The diagram editor is a Next.js 16 (App Router) + Tailwind CSS single-page appli
 
 ### Testing
 
-106 test files covering:
-- 79 property-based test files (fast-check) validating viewport math, element/connector operations, state consistency, undo/redo round-trips, serialization, canvas object CRUD, context menu actions, z-order, grouping, locking, marquee selection, drag sizing, anchor snapping, sidebar/bottom panel behavior, and layout preferences
-- 26 unit test files for the Zustand store, viewport utilities, icon registry, storage, export, config forms, tool state, hamburger menu, dialogs, bottom panel, element layer, placement preview, visual config, z-order controls, Terraform variables, and more
+129 test files covering:
+- 97 property-based test files (fast-check) validating viewport math, element/connector operations, state consistency, undo/redo round-trips, serialization, canvas object CRUD, context menu actions, z-order, grouping, locking, marquee selection, drag sizing, anchor snapping, sidebar/bottom panel behavior, layout preferences, architecture search panel, connection routing, and variable configuration
+- 31 unit test files for the Zustand store, viewport utilities, icon registry, storage, export, config forms, tool state, hamburger menu, dialogs, bottom panel, element layer, placement preview, visual config, z-order controls, Terraform variables, connection routing, and more
 - 1 integration test for Next.js config
 
 ## Backend
@@ -187,6 +188,10 @@ The backend is organized into layers:
 All diagram endpoints are scoped to the current session via the `session_id` cookie. Cross-session access returns 403.
 
 #### Terraform Generation
+
+#### `GET /api/variable-schemas`
+
+Returns all Terraform variable schemas as JSON, keyed by service type. Used by the frontend to render per-resource variable configuration forms.
 
 #### `POST /generate/json`
 

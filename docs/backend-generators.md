@@ -124,12 +124,32 @@ Generates project-level Terraform configuration files from `GlobalTerraformConfi
 
 ## Variable Schemas (`app/generators/variable_schemas.py`)
 
-`VARIABLE_SCHEMAS` is a `dict[ServiceType, list[dict]]` defining which Terraform variables each service type exposes. Each entry has `name`, `type`, `description`, and optional `default`. Used by `TfvarsGenerator` to produce correctly typed variable blocks.
+`VARIABLE_SCHEMAS` is a `dict[ServiceType, list[VariableSchemaEntry]]` defining which Terraform variables each service type exposes. Used by `TfvarsGenerator` to produce correctly typed variable blocks, by `SchemaConfigForm` on the frontend to render dynamic config forms, and by the `/api/variable-schemas` endpoint.
 
-| Service      | Variables                                                    |
-|--------------|--------------------------------------------------------------|
-| Lambda       | function_name, handler, runtime, memory_size (128), timeout (3) |
-| S3           | bucket_name, versioning_enabled (False)                      |
-| DynamoDB     | table_name, billing_mode (PAY_PER_REQUEST), hash_key, hash_key_type (S), range_key, range_key_type (S) |
-| API Gateway  | api_name, protocol_type (HTTP)                               |
-| CloudWatch   | log_group_name, retention_in_days (30)                       |
+### Schema Model Classes
+
+| Class                  | Purpose                                                                 |
+|------------------------|-------------------------------------------------------------------------|
+| `VariableSchemaEntry`  | Schema for a single variable: `name`, `type`, `description`, `default`, `group`, `options`, `validation`, `visible_when` |
+| `ValidationRule`       | Constraints: `min`, `max`, `pattern`, `pattern_description`, `allowed_values` |
+| `OptionEntry`          | Predefined selectable option: `value`, `label`, `group`                 |
+| `VisibleWhen`          | Conditional visibility: show variable only when `field` equals `equals` |
+
+### Variables Per Service
+
+| Service      | Count | Variables (with defaults where set)                                                    |
+|--------------|-------|----------------------------------------------------------------------------------------|
+| Lambda       | 13    | function_name, handler (`lambda_function.lambda_handler`), runtime (`python3.12`), description, memory_size (128), timeout (3), ephemeral_storage_size (512), reserved_concurrent_executions, architectures (`x86_64`), publish (false), layers, environment_variables, tags |
+| S3           | 6     | bucket_name, versioning (`Enabled`), force_destroy (false), object_lock_enabled (false), acceleration_status, tags |
+| DynamoDB     | 12    | table_name, billing_mode (`PAY_PER_REQUEST`), table_class (`STANDARD`), hash_key, hash_key_type (`S`), range_key, range_key_type (`S`), read_capacity (5, visible when PROVISIONED), write_capacity (5, visible when PROVISIONED), tags, point_in_time_recovery_enabled (false), deletion_protection_enabled (false) |
+| API Gateway  | 7     | api_name, protocol_type (`HTTP`), description, cors_configuration, disable_execute_api_endpoint (false), route_selection_expression (visible when WEBSOCKET), tags |
+| CloudWatch   | 5     | log_group_name, retention_in_days (30), kms_key_id, log_group_class (`STANDARD`), tags |
+
+## Schema Validator (`app/generators/schema_validator.py`)
+
+`validate_config_against_schema()` validates a `ResourceConfig` against the `VARIABLE_SCHEMAS` for a given service type. Called by both `/generate/json` and `/generate/zip` endpoints before IR building.
+
+- Iterates each `VariableSchemaEntry` for the service type
+- Evaluates `visible_when` conditions — skips validation for hidden fields
+- Checks `ValidationRule` constraints: `min`/`max` bounds, `allowed_values`, `pattern` regex
+- Raises `HTTPException(422)` on the first constraint violation

@@ -37,6 +37,10 @@ Run with: `pytest`
 | `test_global_config_generator.py`                 | GlobalConfigGenerator: backend.tf, provider.tf, versions.tf output    |
 | `test_tfvars_generator.py`                        | TfvarsGenerator: string/number/bool formatting, prefix collision avoidance, variable block correspondence |
 | `test_file_tree_assembler_terraform_variables.py` | Integration: file tree contains terraform.tfvars, backend.tf, provider.tf, versions.tf |
+| `test_schema_content.py`                          | VARIABLE_SCHEMAS content: variable names per service, defaults, options, group assignments |
+| `test_schema_serialization.py`                    | Property-based: VariableSchemaEntry serialization round-trip; all entries have non-empty groups |
+| `test_schema_validator.py`                        | Property-based: backend rejects invalid values outside validation bounds; valid values pass |
+| `test_variable_schemas_endpoint.py`               | GET /api/variable-schemas: returns 200, contains all service types, entries have required fields, options structure |
 
 ## Frontend Tests
 
@@ -72,9 +76,12 @@ Uses fast-check for property-based testing (100+ iterations each).
 
 | Directory                                     | Coverage                                                    |
 |-----------------------------------------------|-------------------------------------------------------------|
-| `properties/canvas-context-menu/`             | Context menu property tests                                 |
-| `properties/canvas-objects-editor/`           | Canvas objects editor property tests                        |
-| `properties/sidebar-config-panel/`            | Sidebar config panel property tests                         |
+| `properties/architecture-search-panel/`       | Search: abbreviation expansion, case-insensitive/substring search, category ordering, click tool activation, recently-used capacity/ordering/persistence, text fallback (9 tests) |
+| `properties/canvas-context-menu/`             | Context menu: copy/paste round-trip, delete, duplicate, fit-to-screen, group/ungroup, lock/unlock, rename, right-click selection, select-all, z-order operations (18 tests) |
+| `properties/canvas-objects-editor/`           | Canvas editor: anchor detach/follow, empty text removal, icon scaling, label visibility, object creation type, picker search, ray-rect intersection, serialization round-trip, shape path validity, snap threshold, UML data persistence, v2→v3 migration (13 tests) |
+| `properties/enhanced-variable-configuration/` | Schema config form rendering, visible_when conditional logic (2 tests) |
+| `properties/fixed-connection-routing/`        | Connection routing: anchor stability, diagonal no-waypoints, drop threshold, facing anchors, global routing mode isolation, nearest anchor selection, orthogonal segments, perpendicular exit offset (8 tests) |
+| `properties/sidebar-config-panel/`            | Sidebar panel: hamburger opposite side, layout prefs persistence, arch block tabs, deselection collapse, drag collapse, layout mode, multi-selection count, non-block tabs, selection expand, toggle collapse, width clamping/persistence (12 tests) |
 
 ### Additional Property Tests (`frontend/__tests__/property/`)
 
@@ -121,6 +128,11 @@ Uses fast-check for property-based testing (100+ iterations each).
 | `visual-tab.test.tsx`                         | Visual tab dispatching                                      |
 | `z-order-controls.test.tsx`                   | Z-order control buttons                                     |
 | `z-order-store.test.ts`                       | Z-order store operations                                    |
+| `object-picker-menu.test.tsx`                 | Object picker menu rendering and search                     |
+| `recently-used-store.test.ts`                 | Recently used store: add, deduplicate, capacity cap         |
+| `routing.test.ts`                             | Orthogonal connection routing waypoint computation           |
+| `schema-store.test.ts`                        | Schema store: fetch, cache, fallback to bundled schemas     |
+| `fixed-connection-routing.test.ts`            | Fixed connection routing unit tests                         |
 
 ### API Client Tests (`frontend/src/utils/__tests__/`)
 
