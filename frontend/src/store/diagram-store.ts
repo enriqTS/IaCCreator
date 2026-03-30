@@ -1114,13 +1114,13 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
         // Re-evaluate source anchor position if the moved object is the source
         if (line.sourceAnchor?.objectId === movedObjectId) {
-          // Determine the other endpoint to evaluate best anchor side
+          // Use the center of the other object (or the free endpoint) as reference
           let otherPt = line.end;
           if (line.targetAnchor) {
             const targetObj = canvasObjects.get(line.targetAnchor.objectId);
             if (targetObj) {
-              const targetBounds = getObjectBounds(targetObj);
-              otherPt = getAnchorPoints(targetBounds)[line.targetAnchor.anchorPosition];
+              const tb = getObjectBounds(targetObj);
+              otherPt = { x: tb.x + tb.width / 2, y: tb.y + tb.height / 2 };
             }
           }
           const bestPos = findNearestAnchorPosition(otherPt, movedBounds, line.sourceAnchor.anchorPosition);
@@ -1131,12 +1131,13 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
         // Re-evaluate target anchor position if the moved object is the target
         if (line.targetAnchor?.objectId === movedObjectId) {
+          // Use the center of the other object (or the free endpoint) as reference
           let otherPt = updatedLine.start;
           if (line.sourceAnchor) {
             const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
             if (sourceObj && line.sourceAnchor.objectId !== movedObjectId) {
-              const sourceBounds = getObjectBounds(sourceObj);
-              otherPt = getAnchorPoints(sourceBounds)[line.sourceAnchor.anchorPosition];
+              const sb = getObjectBounds(sourceObj);
+              otherPt = { x: sb.x + sb.width / 2, y: sb.y + sb.height / 2 };
             }
           }
           const bestPos = findNearestAnchorPosition(otherPt, movedBounds, line.targetAnchor.anchorPosition);
@@ -1146,6 +1147,27 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         }
 
         if (updated) {
+          // Also re-evaluate the non-moved end's anchor since relative geometry changed
+          if (updatedLine.sourceAnchor && updatedLine.sourceAnchor.objectId !== movedObjectId) {
+            const sourceObj = canvasObjects.get(updatedLine.sourceAnchor.objectId);
+            if (sourceObj) {
+              const sourceBounds = getObjectBounds(sourceObj);
+              const movedCenter = { x: movedBounds.x + movedBounds.width / 2, y: movedBounds.y + movedBounds.height / 2 };
+              const bestSourcePos = findNearestAnchorPosition(movedCenter, sourceBounds, updatedLine.sourceAnchor.anchorPosition);
+              updatedLine.sourceAnchor = { ...updatedLine.sourceAnchor, anchorPosition: bestSourcePos };
+              updatedLine.start = getAnchorPoints(sourceBounds)[bestSourcePos];
+            }
+          }
+          if (updatedLine.targetAnchor && updatedLine.targetAnchor.objectId !== movedObjectId) {
+            const targetObj = canvasObjects.get(updatedLine.targetAnchor.objectId);
+            if (targetObj) {
+              const targetBounds = getObjectBounds(targetObj);
+              const movedCenter = { x: movedBounds.x + movedBounds.width / 2, y: movedBounds.y + movedBounds.height / 2 };
+              const bestTargetPos = findNearestAnchorPosition(movedCenter, targetBounds, updatedLine.targetAnchor.anchorPosition);
+              updatedLine.targetAnchor = { ...updatedLine.targetAnchor, anchorPosition: bestTargetPos };
+              updatedLine.end = getAnchorPoints(targetBounds)[bestTargetPos];
+            }
+          }
           updatedLine.waypoints = null;
           updates.set(line.id, updatedLine as LineObject);
         }
