@@ -12,14 +12,10 @@ interface AnchorIndicatorsProps {
   locked?: boolean;
 }
 
-const ANCHOR_RADIUS = 5;
-/** Desired screen-pixel radius for the invisible hit area */
-const HIT_RADIUS_SCREEN = 20;
-/** Desired screen-pixel size for the visual anchor marker */
-const MARKER_SIZE_SCREEN = 10;
-const ANCHOR_COLOR = 'rgba(59, 130, 246, 0.7)';
-const ANCHOR_HOVER_COLOR = 'rgba(34, 197, 94, 0.9)';
-const ANCHOR_STROKE = '#ffffff';
+/** Screen-pixel size for the visible clickable anchor zone */
+const ANCHOR_ZONE_SCREEN = 16;
+/** Screen-pixel size for the center dot */
+const DOT_SIZE_SCREEN = 8;
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
@@ -30,8 +26,8 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
   const anchors = getAnchorPoints(bounds);
 
   // Scale-compensated sizes so they stay constant in screen pixels
-  const hitRadius = HIT_RADIUS_SCREEN / scale;
-  const markerSize = MARKER_SIZE_SCREEN / scale;
+  const zoneSize = ANCHOR_ZONE_SCREEN / scale;
+  const dotSize = DOT_SIZE_SCREEN / scale;
   const borderWidth = 1.5 / scale;
 
   const handleMouseDown = useCallback(
@@ -59,31 +55,30 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
               position: 'absolute',
               left: 0,
               top: 0,
-              transform: `translate(${point.x - hitRadius}px, ${point.y - hitRadius}px)`,
-              width: hitRadius * 2,
-              height: hitRadius * 2,
-              borderRadius: '50%',
+              transform: `translate(${point.x - zoneSize / 2}px, ${point.y - zoneSize / 2}px)`,
+              width: zoneSize,
+              height: zoneSize,
+              borderRadius: `${3 / scale}px`,
               cursor: 'crosshair',
               pointerEvents: 'auto',
               zIndex: 10,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              backgroundColor: 'rgba(34, 197, 94, 0.25)',
+              border: `${borderWidth}px solid rgba(34, 197, 94, 0.6)`,
+              boxSizing: 'border-box',
             }}
           >
-            {/* Visual marker — larger and more visible */}
+            {/* Center dot */}
             <div
               style={{
-                width: markerSize,
-                height: markerSize,
+                width: dotSize,
+                height: dotSize,
                 borderRadius: '50%',
-                backgroundColor: ANCHOR_COLOR,
-                border: `${borderWidth}px solid ${ANCHOR_STROKE}`,
-                boxSizing: 'border-box',
+                backgroundColor: 'rgba(34, 197, 94, 0.9)',
                 pointerEvents: 'none',
-                transition: 'background-color 0.1s',
               }}
-              className="group-hover:bg-green-500"
             />
           </div>
         );
