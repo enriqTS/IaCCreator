@@ -34,12 +34,6 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
   const { width, height } = block.visualConfig;
 
   const showLabel = shouldShowLabel(block.name);
-  const labelSpace = showLabel ? 20 : 0;
-  const iconSize = Math.max(0, Math.min(width - 2 * ICON_PADDING, height - 2 * ICON_PADDING - labelSpace));
-
-  const borderColor = isSelected
-    ? 'rgba(59, 130, 246, 0.8)'
-    : 'transparent';
 
   const { handleMouseDown, alignmentGuides } = useSnapDrag({
     objectId: block.id,
@@ -63,18 +57,54 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
           pointerEvents: 'auto',
           cursor: block.locked ? 'not-allowed' : 'grab',
           userSelect: 'none',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '4px',
           boxSizing: 'border-box',
-          border: `2px solid ${borderColor}`,
-          borderRadius: '4px',
-          transition: 'border-color 0.15s',
           overflow: 'hidden',
         }}
       >
+        {/* Icon fills the entire block */}
+        {iconPath && (
+          <img
+            src={iconPath}
+            alt={block.serviceType}
+            width={width}
+            height={showLabel ? height - 18 : height}
+            draggable={false}
+            style={{ pointerEvents: 'none', display: 'block', objectFit: 'contain' }}
+          />
+        )}
+        {/* Label at the bottom, overlaid on the icon */}
+        {showLabel && (
+          <span
+            style={{
+              position: 'absolute',
+              bottom: 2,
+              left: 0,
+              right: 0,
+              fontSize: '11px',
+              color: 'rgba(255, 255, 255, 0.9)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              textAlign: 'center',
+              textShadow: '0 1px 3px rgba(0,0,0,0.7)',
+              pointerEvents: 'none',
+            }}
+          >
+            {block.name}
+          </span>
+        )}
+        {/* Selection border drawn on top of the image */}
+        {isSelected && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              border: '2px solid rgba(59, 130, 246, 0.8)',
+              borderRadius: '4px',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
         {block.locked && (
           <span
             data-testid={`lock-badge-${block.id}`}
@@ -88,31 +118,6 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
             }}
           >
             🔒
-          </span>
-        )}
-        {iconPath && (
-          <img
-            src={iconPath}
-            alt={block.serviceType}
-            width={iconSize}
-            height={iconSize}
-            draggable={false}
-            style={{ pointerEvents: 'none', flexShrink: 0 }}
-          />
-        )}
-        {showLabel && (
-          <span
-            style={{
-              fontSize: '11px',
-              color: 'rgba(255, 255, 255, 0.8)',
-              whiteSpace: 'nowrap',
-              maxWidth: `${width - 8}px`,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              textAlign: 'center',
-            }}
-          >
-            {block.name}
           </span>
         )}
       </div>
