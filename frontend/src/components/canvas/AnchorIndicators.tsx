@@ -14,10 +14,11 @@ interface AnchorIndicatorsProps {
 
 const ANCHOR_RADIUS = 5;
 /** Desired screen-pixel radius for the invisible hit area */
-const HIT_RADIUS_SCREEN = 24;
-/** Desired screen-pixel radius for the visual dot */
-const DOT_RADIUS_SCREEN = 5;
-const ANCHOR_COLOR = '#3b82f6';
+const HIT_RADIUS_SCREEN = 20;
+/** Desired screen-pixel size for the visual anchor marker */
+const MARKER_SIZE_SCREEN = 10;
+const ANCHOR_COLOR = 'rgba(59, 130, 246, 0.7)';
+const ANCHOR_HOVER_COLOR = 'rgba(34, 197, 94, 0.9)';
 const ANCHOR_STROKE = '#ffffff';
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
@@ -28,9 +29,9 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
 
   const anchors = getAnchorPoints(bounds);
 
-  // Scale-compensated radii so they stay constant in screen pixels
+  // Scale-compensated sizes so they stay constant in screen pixels
   const hitRadius = HIT_RADIUS_SCREEN / scale;
-  const dotRadius = DOT_RADIUS_SCREEN / scale;
+  const markerSize = MARKER_SIZE_SCREEN / scale;
   const borderWidth = 1.5 / scale;
 
   const handleMouseDown = useCallback(
@@ -70,17 +71,19 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
               justifyContent: 'center',
             }}
           >
-            {/* Visual dot */}
+            {/* Visual marker — larger and more visible */}
             <div
               style={{
-                width: dotRadius * 2,
-                height: dotRadius * 2,
+                width: markerSize,
+                height: markerSize,
                 borderRadius: '50%',
                 backgroundColor: ANCHOR_COLOR,
                 border: `${borderWidth}px solid ${ANCHOR_STROKE}`,
                 boxSizing: 'border-box',
                 pointerEvents: 'none',
+                transition: 'background-color 0.1s',
               }}
+              className="group-hover:bg-green-500"
             />
           </div>
         );
