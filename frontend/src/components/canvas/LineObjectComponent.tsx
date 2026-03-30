@@ -9,6 +9,7 @@ import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing
 import { getObjectBounds } from '@/types/diagram';
 import type { LineObject, Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
+import { snapPointToGrid } from '@/utils/snap';
 
 interface LineObjectComponentProps {
   line: LineObject;
@@ -110,23 +111,29 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
     }
 
     if (useOrthogonal) {
+      // Snap unanchored endpoints to grid to avoid slight diagonals
+      const snappedStart = (!line.sourceAnchor && snapToGridEnabled)
+        ? snapPointToGrid(startPt, gridCellSize) : startPt;
+      const snappedEnd = (!line.targetAnchor && snapToGridEnabled)
+        ? snapPointToGrid(endPt, gridCellSize) : endPt;
+
       // Determine anchor positions: use actual anchors when present, infer for unanchored ends
       const startPos = line.sourceAnchor
         ? line.sourceAnchor.anchorPosition
-        : inferAnchorPosition(startPt, endPt);
+        : inferAnchorPosition(snappedStart, snappedEnd);
       const endPos = line.targetAnchor
         ? line.targetAnchor.anchorPosition
-        : inferAnchorPosition(endPt, startPt);
+        : inferAnchorPosition(snappedEnd, snappedStart);
 
       const waypoints = computeOrthogonalWaypoints(
-        startPt,
+        snappedStart,
         startPos,
-        endPt,
+        snappedEnd,
         endPos,
         undefined,
         snapToGridEnabled ? gridCellSize : undefined,
       );
-      return [startPt, ...waypoints, endPt];
+      return [snappedStart, ...waypoints, snappedEnd];
     }
 
     return [startPt, endPt];
