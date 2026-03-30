@@ -259,6 +259,20 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
         lastMouse.current = null;
         setAlignmentGuides([]);
 
+        // Final snap: ensure the object's stored position is grid-aligned
+        const prefs = useLayoutPreferencesStore.getState();
+        if (didDrag.current && prefs.snapToGridEnabled) {
+          const store = useDiagramStore.getState();
+          const obj = store.canvasObjects.get(objectId);
+          if (obj && obj.objectType !== 'line') {
+            const snappedX = snapToGrid(obj.position.x, prefs.gridCellSize);
+            const snappedY = snapToGrid(obj.position.y, prefs.gridCellSize);
+            if (snappedX !== obj.position.x || snappedY !== obj.position.y) {
+              store.moveSelectedObjects(snappedX - obj.position.x, snappedY - obj.position.y);
+            }
+          }
+        }
+
         if (!didDrag.current) {
           // It was a click, not a drag
           const currentStore = useDiagramStore.getState();
