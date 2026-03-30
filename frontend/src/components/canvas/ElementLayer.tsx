@@ -97,7 +97,7 @@ export default function ElementLayer() {
 
     if (line.sourceAnchor) {
       const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
-      if (sourceObj) {
+      if (sourceObj && line.sourceAnchor.anchorPosition) {
         const bounds = getObjectBounds(sourceObj);
         startPt = getAnchorPoints(bounds)[line.sourceAnchor.anchorPosition];
       }
@@ -105,11 +105,14 @@ export default function ElementLayer() {
 
     if (line.targetAnchor) {
       const targetObj = canvasObjects.get(line.targetAnchor.objectId);
-      if (targetObj) {
+      if (targetObj && line.targetAnchor.anchorPosition) {
         const bounds = getObjectBounds(targetObj);
         endPt = getAnchorPoints(bounds)[line.targetAnchor.anchorPosition];
       }
     }
+
+    // Guard against undefined endpoints
+    if (!startPt || !endPt) return null;
 
     // If user-modified waypoints exist, use them directly
     if (line.waypoints && line.waypoints.length > 0) {

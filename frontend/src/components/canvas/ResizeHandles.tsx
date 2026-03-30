@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
-import { findSnapAnchor, getAnchorPoints } from '@/utils/anchor';
+import { findSnapAnchor, getAnchorPoints, findNearestAnchorPosition } from '@/utils/anchor';
 import { getObjectBounds } from '@/types/diagram';
 import { snapDimension, snapPointToGrid } from '@/utils/snap';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
@@ -288,10 +288,17 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
       }
 
       if (snappedObjectId && snappedPoint) {
-        // Snap the endpoint position and attach the anchor
+        // Snap the endpoint position and attach the anchor with computed position
         updateLineEndpoint(object.id, endpoint, snappedPoint);
         const anchorKey = endpoint === 'start' ? 'sourceAnchor' : 'targetAnchor';
-        store.updateLineAnchors(object.id, { [anchorKey]: { objectId: snappedObjectId } });
+        const snappedObj = store.canvasObjects.get(snappedObjectId);
+        const snappedBounds = snappedObj ? getObjectBounds(snappedObj) : null;
+        // Determine the other endpoint to find the best anchor side
+        const otherPt = endpoint === 'start' ? object.end : object.start;
+        const anchorPosition = snappedBounds
+          ? findNearestAnchorPosition(otherPt, snappedBounds)
+          : 'right' as import('@/utils/anchor').AnchorPosition;
+        store.updateLineAnchors(object.id, { [anchorKey]: { objectId: snappedObjectId, anchorPosition } });
       } else {
         // Detach anchor if it was previously attached
         const anchorKey = endpoint === 'start' ? 'sourceAnchor' : 'targetAnchor';
