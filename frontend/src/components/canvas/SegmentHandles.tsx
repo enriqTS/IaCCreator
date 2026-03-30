@@ -121,6 +121,7 @@ function evaluateAdaptiveAnchors(
   canvasObjects: Map<string, import('@/types/diagram').CanvasObject>,
 ): void {
   const fullPath = [line.start, ...newWaypoints, line.end];
+  let anchorChanged = false;
 
   // Evaluate source anchor — use the second waypoint (first turn) as reference
   // This captures the direction the route goes after leaving the source
@@ -135,6 +136,7 @@ function evaluateAdaptiveAnchors(
       const nearest = findNearestAnchorPosition(refPt, sourceBounds, line.sourceAnchor.anchorPosition);
       if (nearest !== line.sourceAnchor.anchorPosition) {
         store.updateLineAnchorPosition(line.id, 'source', nearest);
+        anchorChanged = true;
       }
     }
   }
@@ -149,8 +151,15 @@ function evaluateAdaptiveAnchors(
       const nearest = findNearestAnchorPosition(refPt, targetBounds, line.targetAnchor.anchorPosition);
       if (nearest !== line.targetAnchor.anchorPosition) {
         store.updateLineAnchorPosition(line.id, 'target', nearest);
+        anchorChanged = true;
       }
     }
+  }
+
+  // When an anchor switches, the user-modified waypoints are no longer valid
+  // for the new anchor configuration — clear them so routing recomputes cleanly.
+  if (anchorChanged) {
+    store.updateLineWaypoints(line.id, null);
   }
 }
 
