@@ -201,10 +201,11 @@ export function computeOrthogonalWaypoints(
       if (startOk && endOk) {
         waypoints = [corner];
       } else {
-        // Fallback: use exit points and route through them
+        // Fallback: route around via exit points using a 4-waypoint detour
+        // to avoid the path cutting through either object.
         waypoints = [
           startExit,
-          { x: endExit.x, y: startExit.y },
+          { x: startExit.x, y: endExit.y },
           endExit,
         ];
       }
@@ -218,9 +219,11 @@ export function computeOrthogonalWaypoints(
       if (startOk && endOk) {
         waypoints = [corner];
       } else {
+        // Fallback: route around via exit points using a 4-waypoint detour
+        // to avoid the path cutting through either object.
         waypoints = [
           startExit,
-          { x: startExit.x, y: endExit.y },
+          { x: endExit.x, y: startExit.y },
           endExit,
         ];
       }
