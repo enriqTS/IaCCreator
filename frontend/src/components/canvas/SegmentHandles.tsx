@@ -120,39 +120,33 @@ function evaluateAdaptiveAnchors(
   store: ReturnType<typeof useDiagramStore.getState>,
   canvasObjects: Map<string, import('@/types/diagram').CanvasObject>,
 ): void {
-  // Build the full path: start + waypoints + end
   const fullPath = [line.start, ...newWaypoints, line.end];
 
-  // Evaluate source anchor
+  // Evaluate source anchor — use the second waypoint (first turn) as reference
+  // This captures the direction the route goes after leaving the source
   if (line.sourceAnchor) {
     const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
     if (sourceObj) {
-      const bounds = getObjectBounds(sourceObj);
-      // Use the first waypoint (or end if no waypoints) as the reference point
-      const referencePoint = fullPath.length > 1 ? fullPath[1] : fullPath[0];
-      const nearest = findNearestAnchorPosition(
-        referencePoint,
-        bounds,
-        line.sourceAnchor.anchorPosition,
-      );
+      const sourceBounds = getObjectBounds(sourceObj);
+      // Use the waypoint after the first turn (index 2) if available,
+      // otherwise the first waypoint, otherwise the end
+      const refIdx = Math.min(2, fullPath.length - 1);
+      const refPt = fullPath[refIdx];
+      const nearest = findNearestAnchorPosition(refPt, sourceBounds, line.sourceAnchor.anchorPosition);
       if (nearest !== line.sourceAnchor.anchorPosition) {
         store.updateLineAnchorPosition(line.id, 'source', nearest);
       }
     }
   }
 
-  // Evaluate target anchor
+  // Evaluate target anchor — use the second-to-last turn point as reference
   if (line.targetAnchor) {
     const targetObj = canvasObjects.get(line.targetAnchor.objectId);
     if (targetObj) {
-      const bounds = getObjectBounds(targetObj);
-      // Use the last waypoint (or start if no waypoints) as the reference point
-      const referencePoint = fullPath.length > 1 ? fullPath[fullPath.length - 2] : fullPath[fullPath.length - 1];
-      const nearest = findNearestAnchorPosition(
-        referencePoint,
-        bounds,
-        line.targetAnchor.anchorPosition,
-      );
+      const targetBounds = getObjectBounds(targetObj);
+      const refIdx = Math.max(0, fullPath.length - 3);
+      const refPt = fullPath[refIdx];
+      const nearest = findNearestAnchorPosition(refPt, targetBounds, line.targetAnchor.anchorPosition);
       if (nearest !== line.targetAnchor.anchorPosition) {
         store.updateLineAnchorPosition(line.id, 'target', nearest);
       }
