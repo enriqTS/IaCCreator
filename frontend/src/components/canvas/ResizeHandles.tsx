@@ -5,7 +5,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
 import { findSnapAnchor, getAnchorPoints } from '@/utils/anchor';
 import { getObjectBounds } from '@/types/diagram';
-import { snapDimension } from '@/utils/snap';
+import { snapDimension, snapPointToGrid } from '@/utils/snap';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import type { CanvasObject, Point } from '@/types/diagram';
 
@@ -237,6 +237,15 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
       const bounds = getObjectBounds(targetObj);
       canvasEnd = getAnchorPoints(bounds)[object.targetAnchor.anchorPosition];
     }
+  }
+
+  // Snap unanchored endpoints to grid so handles match the rendered line position
+  const { snapToGridEnabled: snapEnabled, gridCellSize: cellSize } = useLayoutPreferencesStore.getState();
+  if (!object.sourceAnchor && snapEnabled) {
+    canvasStart = snapPointToGrid(canvasStart, cellSize);
+  }
+  if (!object.targetAnchor && snapEnabled) {
+    canvasEnd = snapPointToGrid(canvasEnd, cellSize);
   }
 
   // Inverse scale so handles remain a constant screen-pixel size
