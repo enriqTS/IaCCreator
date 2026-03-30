@@ -60,6 +60,7 @@ function shortenPath(points: Point[], startInset: number, endInset: number): Poi
 
 export default function LineObjectComponent({ line, isSelected, onAlignmentGuidesChange }: LineObjectComponentProps) {
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
+  const viewportScale = useDiagramStore((s) => s.viewport.scale);
 
   const { handleMouseDown, alignmentGuides } = useSnapDrag({
     objectId: line.id,
@@ -144,6 +145,9 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   const dashArray = strokeStyle === 'dashed' ? `${borderWidth * 3} ${borderWidth * 2}` : undefined;
   const arrowSize = Math.max(borderWidth * 3, 6);
 
+  // Hit area width: constant 20 screen pixels, scaled inversely with zoom
+  const hitWidth = Math.max(20 / viewportScale, borderWidth + 10);
+
   // Build a shortened path for the visible line so arrows sit flush at endpoints
   const visiblePathD = useMemo(() => {
     const shortened = shortenPath(pathPoints, startArrow ? arrowSize : 0, endArrow ? arrowSize : 0);
@@ -208,7 +212,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         <path
           d={pathD}
           stroke="transparent"
-          strokeWidth={Math.max(borderWidth + 10, 12)}
+          strokeWidth={hitWidth}
           fill="none"
           onMouseDown={handleMouseDown}
         />
@@ -307,7 +311,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         x2={endPt.x}
         y2={endPt.y}
         stroke="transparent"
-        strokeWidth={Math.max(borderWidth + 10, 12)}
+        strokeWidth={hitWidth}
         onMouseDown={handleMouseDown}
       />
 
