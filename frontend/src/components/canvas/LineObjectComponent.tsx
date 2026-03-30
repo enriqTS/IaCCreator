@@ -106,38 +106,38 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
 
   // Compute the full path points (start + waypoints + end)
   const pathPoints = useMemo((): Point[] => {
+    // Snap unanchored endpoints to grid to avoid diagonals
+    const effectiveStart = (!line.sourceAnchor && snapToGridEnabled)
+      ? snapPointToGrid(startPt, gridCellSize) : startPt;
+    const effectiveEnd = (!line.targetAnchor && snapToGridEnabled)
+      ? snapPointToGrid(endPt, gridCellSize) : endPt;
+
     // If user-modified waypoints exist, use them directly
     if (line.waypoints && line.waypoints.length > 0) {
-      return [startPt, ...line.waypoints, endPt];
+      return [effectiveStart, ...line.waypoints, effectiveEnd];
     }
 
     if (useOrthogonal) {
-      // Snap unanchored endpoints to grid to avoid slight diagonals
-      const snappedStart = (!line.sourceAnchor && snapToGridEnabled)
-        ? snapPointToGrid(startPt, gridCellSize) : startPt;
-      const snappedEnd = (!line.targetAnchor && snapToGridEnabled)
-        ? snapPointToGrid(endPt, gridCellSize) : endPt;
-
       // Determine anchor positions: use actual anchors when present, infer for unanchored ends
       const startPos = line.sourceAnchor
         ? line.sourceAnchor.anchorPosition
-        : inferAnchorPosition(snappedStart, snappedEnd);
+        : inferAnchorPosition(effectiveStart, effectiveEnd);
       const endPos = line.targetAnchor
         ? line.targetAnchor.anchorPosition
-        : inferAnchorPosition(snappedEnd, snappedStart);
+        : inferAnchorPosition(effectiveEnd, effectiveStart);
 
       const waypoints = computeOrthogonalWaypoints(
-        snappedStart,
+        effectiveStart,
         startPos,
-        snappedEnd,
+        effectiveEnd,
         endPos,
         undefined,
         snapToGridEnabled ? gridCellSize : undefined,
       );
-      return [snappedStart, ...waypoints, snappedEnd];
+      return [effectiveStart, ...waypoints, effectiveEnd];
     }
 
-    return [startPt, endPt];
+    return [effectiveStart, effectiveEnd];
   }, [useOrthogonal, startPt, endPt, line.sourceAnchor, line.targetAnchor, line.waypoints, snapToGridEnabled, gridCellSize]);
 
   const pathD = useMemo(() => buildPathD(pathPoints), [pathPoints]);
