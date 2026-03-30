@@ -106,10 +106,10 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
 
   // Compute the full path points (start + waypoints + end)
   const pathPoints = useMemo((): Point[] => {
-    // Snap unanchored endpoints to grid to avoid diagonals
-    const effectiveStart = (!line.sourceAnchor && snapToGridEnabled)
+    // Snap all endpoints to grid to avoid diagonals (anchored or not)
+    const effectiveStart = snapToGridEnabled
       ? snapPointToGrid(startPt, gridCellSize) : startPt;
-    const effectiveEnd = (!line.targetAnchor && snapToGridEnabled)
+    const effectiveEnd = snapToGridEnabled
       ? snapPointToGrid(endPt, gridCellSize) : endPt;
 
     // If user-modified waypoints exist, use them directly
