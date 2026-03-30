@@ -226,6 +226,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
+            pointerEvents="none"
           />
         )}
 
@@ -238,6 +239,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
+          pointerEvents="none"
           markerStart={startArrow ? `url(#${startMarkerId})` : undefined}
           markerEnd={endArrow ? `url(#${endMarkerId})` : undefined}
         />
@@ -325,6 +327,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           stroke="rgba(59, 130, 246, 0.5)"
           strokeWidth={borderWidth + 6}
           strokeLinecap="round"
+          pointerEvents="none"
         />
       )}
 
@@ -338,6 +341,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         strokeWidth={borderWidth}
         strokeDasharray={dashArray}
         strokeLinecap="round"
+        pointerEvents="none"
         markerStart={startArrow ? `url(#${startMarkerId})` : undefined}
         markerEnd={endArrow ? `url(#${endMarkerId})` : undefined}
       />
