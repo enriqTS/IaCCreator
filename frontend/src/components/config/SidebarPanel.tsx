@@ -316,6 +316,15 @@ function MultiSelectionView({
           </Button>
         )}
       </div>
+      <Button
+        variant="destructive"
+        size="sm"
+        data-testid="delete-object-button"
+        onClick={() => { for (const id of selectedObjectIds) removeCanvasObject(id); }}
+        className="w-full"
+      >
+        <Trash2 className="size-4" /> Delete ({selectedObjectIds.size})
+      </Button>
     </div>
   );
 }
@@ -334,6 +343,7 @@ function SingleSelectionView({
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }) {
+  const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
   // Ensure activeTab is valid for current tabs
   const effectiveTab = tabs.includes(activeTab) ? activeTab : tabs[0] ?? '';
 
@@ -366,6 +376,15 @@ function SingleSelectionView({
           <VisualTab object={selectedObject} />
         </TabsContent>
       </Tabs>
+      <Button
+        variant="destructive"
+        size="sm"
+        data-testid="delete-object-button"
+        onClick={() => removeCanvasObject(selectedObjectId)}
+        className="w-full"
+      >
+        <Trash2 className="size-4" /> Delete
+      </Button>
     </div>
   );
 }
