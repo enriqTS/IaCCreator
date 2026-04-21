@@ -302,20 +302,37 @@ export default function Canvas() {
   }, []);
 
   // Delete/Backspace key handler for removing selected objects
+  // Note: The primary handler is in page.tsx; this is a fallback for when
+  // Canvas is rendered outside the page context (e.g., tests).
   useEffect(() => {
     const handleDeleteKey = (e: KeyboardEvent) => {
       if (e.key !== 'Delete' && e.key !== 'Backspace') return;
 
-      // Don't delete when user is typing in an input/textarea/contenteditable
       const target = e.target as HTMLElement;
-      if (
+      const isTyping =
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
         target.tagName === 'SELECT' ||
-        target.isContentEditable
-      ) {
+        target.isContentEditable;
+
+      // If typing inside an inline canvas editor, let it behave normally
+      if (isTyping && target.closest('[data-testid="viewport-transform-container"]')) return;
+
+      // If typing inside the sidebar, blur and delete the selected objects
+      if (isTyping && target.closest('[data-testid="sidebar-panel"]')) {
+        const currentSelectedIds = useDiagramStore.getState().selectedObjectIds;
+        if (currentSelectedIds.size > 0) {
+          e.preventDefault();
+          (document.activeElement as HTMLElement)?.blur();
+          for (const id of currentSelectedIds) {
+            useDiagramStore.getState().removeCanvasObject(id);
+          }
+        }
         return;
       }
+
+      // If typing in some other input (e.g. dialog), let it behave normally
+      if (isTyping) return;
 
       const currentSelectedIds = useDiagramStore.getState().selectedObjectIds;
       if (currentSelectedIds.size > 0) {
