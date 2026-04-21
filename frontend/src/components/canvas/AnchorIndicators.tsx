@@ -12,10 +12,12 @@ interface AnchorIndicatorsProps {
   locked?: boolean;
 }
 
-/** Screen-pixel size for the visible clickable anchor zone */
+/** Screen-pixel size for the invisible clickable hit area */
+const HIT_ZONE_SCREEN = 24;
+/** Screen-pixel size for the visible anchor zone */
 const ANCHOR_ZONE_SCREEN = 20;
 /** Screen-pixel size for the center dot */
-const DOT_SIZE_SCREEN = 10;
+const DOT_SIZE_SCREEN = 8;
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
@@ -26,6 +28,7 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
   const anchors = getAnchorPoints(bounds);
 
   // Scale-compensated sizes so they stay constant in screen pixels
+  const hitSize = HIT_ZONE_SCREEN / scale;
   const zoneSize = ANCHOR_ZONE_SCREEN / scale;
   const dotSize = DOT_SIZE_SCREEN / scale;
   const borderWidth = 1.5 / scale;
