@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import BottomPanel from '@/components/config/BottomPanel';
+import SidebarPanel from '@/components/config/SidebarPanel';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { LineObject, GeometricObject, ArchitectureBlock } from '@/types/diagram';
 import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
@@ -44,13 +44,13 @@ function makeGeo(id = 'geo-1'): GeometricObject {
   };
 }
 
-describe('Delete button in BottomPanel', () => {
+describe('Delete button in SidebarPanel', () => {
   beforeEach(() => {
     useDiagramStore.setState({
       canvasObjects: new Map(),
       selectedObjectIds: new Set(),
       connectors: new Map(),
-      bottomPanelExpanded: true,
+      sidebarExpanded: true,
     });
   });
 
@@ -59,8 +59,9 @@ describe('Delete button in BottomPanel', () => {
     useDiagramStore.setState({
       canvasObjects: new Map([[line.id, line]]),
       selectedObjectIds: new Set([line.id]),
+      sidebarExpanded: true,
     });
-    render(<BottomPanel />);
+    render(<SidebarPanel />);
     expect(screen.getByTestId('delete-object-button')).toBeDefined();
   });
 
@@ -69,8 +70,9 @@ describe('Delete button in BottomPanel', () => {
     useDiagramStore.setState({
       canvasObjects: new Map([[geo.id, geo]]),
       selectedObjectIds: new Set([geo.id]),
+      sidebarExpanded: true,
     });
-    render(<BottomPanel />);
+    render(<SidebarPanel />);
 
     fireEvent.click(screen.getByTestId('delete-object-button'));
 
@@ -84,11 +86,12 @@ describe('Delete button in BottomPanel', () => {
     useDiagramStore.setState({
       canvasObjects: new Map([[block.id, block]]),
       selectedObjectIds: new Set([block.id]),
+      sidebarExpanded: true,
       connectors: new Map([
         ['conn-1', { id: 'conn-1', sourceId: block.id, targetId: 'other', connectionType: 'triggers' }],
       ]),
     });
-    render(<BottomPanel />);
+    render(<SidebarPanel />);
 
     fireEvent.click(screen.getByTestId('delete-object-button'));
 
