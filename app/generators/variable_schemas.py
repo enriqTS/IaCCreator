@@ -623,4 +623,387 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             group="General",
         ),
     ],
+    # ── Athena (1 variable) ───────────────────────────────────────────
+    ServiceType.ATHENA: [
+        VariableSchemaEntry(
+            name="workgroup_name",
+            type="string",
+            description="Name of the Athena workgroup",
+            group="General",
+        ),
+    ],
+    # ── CloudSearch (1 variable) ──────────────────────────────────────
+    ServiceType.CLOUDSEARCH: [
+        VariableSchemaEntry(
+            name="domain_name",
+            type="string",
+            description="Name of the CloudSearch domain",
+            group="General",
+        ),
+    ],
+    # ── EMR (3 variables) ─────────────────────────────────────────────
+    ServiceType.EMR: [
+        VariableSchemaEntry(
+            name="cluster_name",
+            type="string",
+            description="Name of the EMR cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="release_label",
+            type="string",
+            description="EMR release label",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="service_role",
+            type="string",
+            description="IAM service role for the EMR cluster",
+            group="General",
+        ),
+    ],
+    # ── Glue (1 variable) ─────────────────────────────────────────────
+    ServiceType.GLUE: [
+        VariableSchemaEntry(
+            name="database_name",
+            type="string",
+            description="Name of the Glue catalog database",
+            group="General",
+        ),
+    ],
+    # ── Kinesis (2 variables) ─────────────────────────────────────────
+    ServiceType.KINESIS: [
+        VariableSchemaEntry(
+            name="stream_name",
+            type="string",
+            description="Name of the Kinesis stream",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="shard_count",
+            type="number",
+            description="Number of shards for the Kinesis stream",
+            group="General",
+        ),
+    ],
+    # ── Kinesis Firehose (2 variables) ────────────────────────────────
+    ServiceType.KINESIS_FIREHOSE: [
+        VariableSchemaEntry(
+            name="stream_name",
+            type="string",
+            description="Name of the Firehose delivery stream",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="destination",
+            type="string",
+            description="Destination for the Firehose delivery stream",
+            group="General",
+        ),
+    ],
+    # ── MSK (3 variables) ─────────────────────────────────────────────
+    ServiceType.MSK: [
+        VariableSchemaEntry(
+            name="cluster_name",
+            type="string",
+            description="Name of the MSK cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="kafka_version",
+            type="string",
+            description="Apache Kafka version for the MSK cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="number_of_broker_nodes",
+            type="number",
+            description="Number of broker nodes in the MSK cluster",
+            group="General",
+        ),
+    ],
+    # ── OpenSearch (1 variable) ───────────────────────────────────────
+    ServiceType.OPENSEARCH: [
+        VariableSchemaEntry(
+            name="domain_name",
+            type="string",
+            description="Name of the OpenSearch domain",
+            group="General",
+        ),
+    ],
+    # ── Redshift (3 variables) ────────────────────────────────────────
+    ServiceType.REDSHIFT: [
+        VariableSchemaEntry(
+            name="cluster_identifier",
+            type="string",
+            description="Identifier for the Redshift cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="node_type",
+            type="string",
+            description="Node type for the Redshift cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="master_username",
+            type="string",
+            description="Master username for the Redshift cluster",
+            group="General",
+        ),
+    ],
+    # ── Connect (3 variables) ─────────────────────────────────────────
+    ServiceType.CONNECT: [
+        VariableSchemaEntry(
+            name="identity_management_type",
+            type="string",
+            description="Identity management type for the Connect instance",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="inbound_calls_enabled",
+            type="bool",
+            description="Whether inbound calls are enabled",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="outbound_calls_enabled",
+            type="bool",
+            description="Whether outbound calls are enabled",
+            group="General",
+        ),
+    ],
+    # ── SES (1 variable) ──────────────────────────────────────────────
+    ServiceType.SES: [
+        VariableSchemaEntry(
+            name="domain",
+            type="string",
+            description="Domain name for SES identity",
+            group="General",
+        ),
+    ],
+    # ── Pinpoint (1 variable) ─────────────────────────────────────────
+    ServiceType.PINPOINT: [
+        VariableSchemaEntry(
+            name="app_name",
+            type="string",
+            description="Name of the Pinpoint application",
+            group="General",
+        ),
+    ],
+    # ── Aurora (3 variables) ──────────────────────────────────────────
+    ServiceType.AURORA: [
+        VariableSchemaEntry(
+            name="cluster_identifier",
+            type="string",
+            description="Identifier for the Aurora cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="engine",
+            type="string",
+            description="Database engine for the Aurora cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="master_username",
+            type="string",
+            description="Master username for the Aurora cluster",
+            group="General",
+        ),
+    ],
+    # ── DocumentDB (2 variables) ──────────────────────────────────────
+    ServiceType.DOCUMENTDB: [
+        VariableSchemaEntry(
+            name="cluster_identifier",
+            type="string",
+            description="Identifier for the DocumentDB cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="master_username",
+            type="string",
+            description="Master username for the DocumentDB cluster",
+            group="General",
+        ),
+    ],
+    # ── ElastiCache (4 variables) ─────────────────────────────────────
+    ServiceType.ELASTICACHE: [
+        VariableSchemaEntry(
+            name="cluster_id",
+            type="string",
+            description="Identifier for the ElastiCache cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="engine",
+            type="string",
+            description="Cache engine type",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="node_type",
+            type="string",
+            description="ElastiCache node type",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="num_cache_nodes",
+            type="number",
+            description="Number of cache nodes in the cluster",
+            group="General",
+        ),
+    ],
+    # ── Neptune (1 variable) ──────────────────────────────────────────
+    ServiceType.NEPTUNE: [
+        VariableSchemaEntry(
+            name="cluster_identifier",
+            type="string",
+            description="Identifier for the Neptune cluster",
+            group="General",
+        ),
+    ],
+    # ── RDS (5 variables) ─────────────────────────────────────────────
+    ServiceType.RDS: [
+        VariableSchemaEntry(
+            name="db_identifier",
+            type="string",
+            description="Identifier for the RDS instance",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="engine",
+            type="string",
+            description="Database engine type",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="instance_class",
+            type="string",
+            description="RDS instance class",
+            default="db.t3.micro",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="allocated_storage",
+            type="number",
+            description="Allocated storage in GB",
+            default=20,
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="username",
+            type="string",
+            description="Master username for the database",
+            group="General",
+        ),
+    ],
+    # ── Timestream (1 variable) ───────────────────────────────────────
+    ServiceType.TIMESTREAM: [
+        VariableSchemaEntry(
+            name="database_name",
+            type="string",
+            description="Name of the Timestream database",
+            group="General",
+        ),
+    ],
+    # ── CodeBuild (3 variables) ───────────────────────────────────────
+    ServiceType.CODEBUILD: [
+        VariableSchemaEntry(
+            name="project_name",
+            type="string",
+            description="Name of the CodeBuild project",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="service_role",
+            type="string",
+            description="IAM service role ARN for CodeBuild",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="source_type",
+            type="string",
+            description="Source type for the CodeBuild project",
+            group="General",
+        ),
+    ],
+    # ── CodeCommit (1 variable) ───────────────────────────────────────
+    ServiceType.CODECOMMIT: [
+        VariableSchemaEntry(
+            name="repository_name",
+            type="string",
+            description="Name of the CodeCommit repository",
+            group="General",
+        ),
+    ],
+    # ── CodeDeploy (2 variables) ──────────────────────────────────────
+    ServiceType.CODEDEPLOY: [
+        VariableSchemaEntry(
+            name="app_name",
+            type="string",
+            description="Name of the CodeDeploy application",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="compute_platform",
+            type="string",
+            description="Compute platform for CodeDeploy",
+            group="General",
+        ),
+    ],
+    # ── CodePipeline (2 variables) ────────────────────────────────────
+    ServiceType.CODEPIPELINE: [
+        VariableSchemaEntry(
+            name="pipeline_name",
+            type="string",
+            description="Name of the CodePipeline pipeline",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="role_arn",
+            type="string",
+            description="IAM role ARN for CodePipeline",
+            group="General",
+        ),
+    ],
+    # ── AppStream (2 variables) ───────────────────────────────────────
+    ServiceType.APPSTREAM: [
+        VariableSchemaEntry(
+            name="fleet_name",
+            type="string",
+            description="Name of the AppStream fleet",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="instance_type",
+            type="string",
+            description="Instance type for the AppStream fleet",
+            group="General",
+        ),
+    ],
+    # ── Amplify (1 variable) ──────────────────────────────────────────
+    ServiceType.AMPLIFY: [
+        VariableSchemaEntry(
+            name="app_name",
+            type="string",
+            description="Name of the Amplify application",
+            group="General",
+        ),
+    ],
+    # ── GameLift (2 variables) ────────────────────────────────────────
+    ServiceType.GAMELIFT: [
+        VariableSchemaEntry(
+            name="fleet_name",
+            type="string",
+            description="Name of the GameLift fleet",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="ec2_instance_type",
+            type="string",
+            description="EC2 instance type for the GameLift fleet",
+            group="General",
+        ),
+    ],
 }

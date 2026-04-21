@@ -56,7 +56,112 @@ export type ServiceType =
   | 'eks-anywhere'
   | 'eks-cloud'
   | 'eks-distro'
-  | 'red-hat-openshift';
+  | 'red-hat-openshift'
+  // Analytics — full-generator services
+  | 'athena'
+  | 'cloudsearch'
+  | 'emr'
+  | 'glue'
+  | 'kinesis'
+  | 'kinesis-firehose'
+  | 'msk'
+  | 'opensearch'
+  | 'redshift'
+  // Analytics — icon-only services
+  | 'clean-rooms'
+  | 'data-exchange'
+  | 'data-pipeline'
+  | 'datazone'
+  | 'finspace'
+  | 'glue-databrew'
+  | 'glue-elastic-views'
+  | 'kinesis-data-analytics'
+  | 'kinesis-data-streams'
+  | 'kinesis-video-streams'
+  | 'lake-formation'
+  | 'quicksight'
+  // Blockchain — icon-only services
+  | 'managed-blockchain'
+  | 'quantum-ledger-database'
+  // Business Applications — full-generator services
+  | 'connect'
+  | 'ses'
+  | 'pinpoint'
+  // Business Applications — icon-only services
+  | 'alexa-for-business'
+  | 'chime-sdk'
+  | 'chime-voice-connector'
+  | 'chime'
+  | 'honeycode'
+  | 'pinpoint-apis'
+  | 'supply-chain'
+  | 'wickr'
+  | 'workdocs-sdk'
+  | 'workdocs'
+  | 'workmail'
+  // Cloud Financial Management — icon-only services
+  | 'application-cost-profiler'
+  | 'billing-conductor'
+  | 'budgets'
+  | 'cost-and-usage-report'
+  | 'cost-explorer'
+  | 'reserved-instance-reporting'
+  | 'savings-plans'
+  // Customer Enablement — icon-only services
+  | 'activate'
+  | 'iq'
+  | 'managed-services'
+  | 'professional-services'
+  | 'repost'
+  | 'support'
+  | 'training-certification'
+  // Database — full-generator services
+  | 'aurora'
+  | 'documentdb'
+  | 'elasticache'
+  | 'neptune'
+  | 'rds'
+  | 'timestream'
+  // Database — icon-only services
+  | 'database-migration-service'
+  | 'keyspaces'
+  | 'memorydb'
+  | 'rds-on-vmware'
+  // Developer Tools — full-generator services
+  | 'codebuild'
+  | 'codecommit'
+  | 'codedeploy'
+  | 'codepipeline'
+  // Developer Tools — icon-only services
+  | 'application-composer'
+  | 'cloud-control-api'
+  | 'cloud-development-kit'
+  | 'cloud9'
+  | 'cloudshell'
+  | 'codeartifact'
+  | 'codecatalyst'
+  | 'codestar'
+  | 'command-line-interface'
+  | 'corretto'
+  | 'tools-and-sdks'
+  | 'x-ray'
+  // End User Computing — full-generator services
+  | 'appstream'
+  // End User Computing — icon-only services
+  | 'worklink'
+  | 'workspaces-family'
+  // Front End Web Mobile — full-generator services
+  | 'amplify'
+  // Front End Web Mobile — icon-only services
+  | 'device-farm'
+  | 'location-service'
+  // Games — full-generator services
+  | 'gamelift'
+  // Games — icon-only services
+  | 'gamekit'
+  | 'gamesparks'
+  | 'lumberyard'
+  | 'open-3d-engine';
 
 export interface Point {
   x: number;
@@ -177,6 +282,50 @@ export interface ResourceConfig {
   // ECR
   ecr_image_tag_mutability?: string;
   ecr_scan_on_push?: boolean;
+  // Analytics
+  athena_name?: string;
+  cloudsearch_name?: string;
+  emr_release_label?: string;
+  emr_service_role?: string;
+  glue_catalog_database_name?: string;
+  kinesis_shard_count?: number;
+  firehose_destination?: string;
+  msk_kafka_version?: string;
+  msk_number_of_broker_nodes?: number;
+  opensearch_domain_name?: string;
+  redshift_node_type?: string;
+  redshift_master_username?: string;
+  // Business Applications
+  connect_identity_management_type?: string;
+  connect_inbound_calls_enabled?: boolean;
+  connect_outbound_calls_enabled?: boolean;
+  ses_domain?: string;
+  pinpoint_name?: string;
+  // Database
+  aurora_engine?: string;
+  aurora_master_username?: string;
+  documentdb_master_username?: string;
+  elasticache_engine?: string;
+  elasticache_node_type?: string;
+  elasticache_num_cache_nodes?: number;
+  neptune_cluster_identifier?: string;
+  rds_engine?: string;
+  rds_instance_class?: string;
+  rds_allocated_storage?: number;
+  rds_username?: string;
+  timestream_database_name?: string;
+  // Developer Tools
+  codebuild_source_type?: string;
+  codebuild_service_role?: string;
+  codecommit_repository_name?: string;
+  codedeploy_compute_platform?: string;
+  codepipeline_role_arn?: string;
+  // End User Computing
+  appstream_instance_type?: string;
+  // Front End Web Mobile
+  amplify_name?: string;
+  // Games
+  gamelift_ec2_instance_type?: string;
 }
 
 export interface EnvironmentConfig {

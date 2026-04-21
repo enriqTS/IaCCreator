@@ -35,6 +35,43 @@ _FIELD_NAME_MAP: dict[str, str] = {
     "versioning": "versioning",
 }
 
+# Per-service mapping from schema variable name → ResourceConfig field name.
+# Used when the schema name differs from the config field name.
+_SERVICE_FIELD_NAME_MAP: dict[ServiceType, dict[str, str]] = {
+    # Analytics
+    ServiceType.ATHENA: {"workgroup_name": "athena_name"},
+    ServiceType.CLOUDSEARCH: {"domain_name": "cloudsearch_name"},
+    ServiceType.EMR: {"release_label": "emr_release_label", "service_role": "emr_service_role"},
+    ServiceType.GLUE: {"database_name": "glue_catalog_database_name"},
+    ServiceType.KINESIS: {"shard_count": "kinesis_shard_count"},
+    ServiceType.KINESIS_FIREHOSE: {"destination": "firehose_destination"},
+    ServiceType.MSK: {"kafka_version": "msk_kafka_version", "number_of_broker_nodes": "msk_number_of_broker_nodes"},
+    ServiceType.OPENSEARCH: {"domain_name": "opensearch_domain_name"},
+    ServiceType.REDSHIFT: {"node_type": "redshift_node_type", "master_username": "redshift_master_username"},
+    # Business Applications
+    ServiceType.CONNECT: {"identity_management_type": "connect_identity_management_type", "inbound_calls_enabled": "connect_inbound_calls_enabled", "outbound_calls_enabled": "connect_outbound_calls_enabled"},
+    ServiceType.SES: {"domain": "ses_domain"},
+    ServiceType.PINPOINT: {"app_name": "pinpoint_name"},
+    # Database
+    ServiceType.AURORA: {"engine": "aurora_engine", "master_username": "aurora_master_username"},
+    ServiceType.DOCUMENTDB: {"master_username": "documentdb_master_username"},
+    ServiceType.ELASTICACHE: {"engine": "elasticache_engine", "node_type": "elasticache_node_type", "num_cache_nodes": "elasticache_num_cache_nodes"},
+    ServiceType.NEPTUNE: {"cluster_identifier": "neptune_cluster_identifier"},
+    ServiceType.RDS: {"engine": "rds_engine", "instance_class": "rds_instance_class", "allocated_storage": "rds_allocated_storage", "username": "rds_username"},
+    ServiceType.TIMESTREAM: {"database_name": "timestream_database_name"},
+    # Developer Tools
+    ServiceType.CODEBUILD: {"service_role": "codebuild_service_role", "source_type": "codebuild_source_type"},
+    ServiceType.CODECOMMIT: {"repository_name": "codecommit_repository_name"},
+    ServiceType.CODEDEPLOY: {"compute_platform": "codedeploy_compute_platform"},
+    ServiceType.CODEPIPELINE: {"role_arn": "codepipeline_role_arn"},
+    # End User Computing
+    ServiceType.APPSTREAM: {"instance_type": "appstream_instance_type"},
+    # Front End Web Mobile
+    ServiceType.AMPLIFY: {"app_name": "amplify_name"},
+    # Games
+    ServiceType.GAMELIFT: {"ec2_instance_type": "gamelift_ec2_instance_type"},
+}
+
 # Fields that are "always present" in the HCL for a service (emitted
 # unconditionally regardless of config population).  These use var.*
 # references even when the config field is None, so we skip them in
@@ -45,6 +82,38 @@ _ALWAYS_PRESENT_FIELDS: dict[ServiceType, set[str]] = {
     ServiceType.DYNAMODB: {"table_name", "billing_mode", "hash_key"},
     ServiceType.API_GATEWAY: {"api_name", "protocol_type"},
     ServiceType.CLOUDWATCH: {"log_group_name"},
+    # Analytics
+    ServiceType.ATHENA: {"workgroup_name"},
+    ServiceType.CLOUDSEARCH: {"domain_name"},
+    ServiceType.EMR: {"cluster_name"},
+    ServiceType.GLUE: {"database_name"},
+    ServiceType.KINESIS: {"stream_name"},
+    ServiceType.KINESIS_FIREHOSE: {"stream_name"},
+    ServiceType.MSK: {"cluster_name"},
+    ServiceType.OPENSEARCH: {"domain_name"},
+    ServiceType.REDSHIFT: {"cluster_identifier"},
+    # Business Applications
+    ServiceType.CONNECT: set(),
+    ServiceType.SES: {"domain"},
+    ServiceType.PINPOINT: {"app_name"},
+    # Database
+    ServiceType.AURORA: {"cluster_identifier"},
+    ServiceType.DOCUMENTDB: {"cluster_identifier"},
+    ServiceType.ELASTICACHE: {"cluster_id"},
+    ServiceType.NEPTUNE: {"cluster_identifier"},
+    ServiceType.RDS: {"db_identifier"},
+    ServiceType.TIMESTREAM: {"database_name"},
+    # Developer Tools
+    ServiceType.CODEBUILD: {"project_name"},
+    ServiceType.CODECOMMIT: {"repository_name"},
+    ServiceType.CODEDEPLOY: {"app_name"},
+    ServiceType.CODEPIPELINE: {"pipeline_name"},
+    # End User Computing
+    ServiceType.APPSTREAM: {"fleet_name"},
+    # Front End Web Mobile
+    ServiceType.AMPLIFY: {"app_name"},
+    # Games
+    ServiceType.GAMELIFT: {"fleet_name"},
 }
 
 # Some schema variable names map to a *different* var reference name
@@ -147,7 +216,9 @@ def resource_instance_with_populated_fields(draw):
     for entry, should_populate in zip(optional_entries, populate_flags):
         if not should_populate:
             continue
-        field_name = _FIELD_NAME_MAP.get(entry.name, entry.name)
+        # Resolve config field name: check per-service map first, then global map, then use schema name
+        svc_map = _SERVICE_FIELD_NAME_MAP.get(service_type, {})
+        field_name = svc_map.get(entry.name, _FIELD_NAME_MAP.get(entry.name, entry.name))
         # Use options values when available for more realistic data
         if entry.options:
             value = draw(st.sampled_from([o.value for o in entry.options]))
@@ -161,7 +232,8 @@ def resource_instance_with_populated_fields(draw):
     for entry, should_populate in zip(optional_entries, populate_flags):
         if not should_populate:
             continue
-        field_name = _FIELD_NAME_MAP.get(entry.name, entry.name)
+        svc_map = _SERVICE_FIELD_NAME_MAP.get(service_type, {})
+        field_name = svc_map.get(entry.name, _FIELD_NAME_MAP.get(entry.name, entry.name))
         if _visible_when_satisfied(entry.visible_when, config):
             # Use the var reference name (may differ from field name)
             var_name = _VAR_REF_OVERRIDES.get(entry.name, entry.name)

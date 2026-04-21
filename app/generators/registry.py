@@ -20,6 +20,45 @@ from app.generators.ec2_image_builder_generator import EC2ImageBuilderGenerator
 from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.ecr_generator import ECRGenerator
 
+# Analytics generators
+from app.generators.athena_generator import AthenaGenerator
+from app.generators.cloudsearch_generator import CloudSearchGenerator
+from app.generators.emr_generator import EMRGenerator
+from app.generators.glue_generator import GlueGenerator
+from app.generators.kinesis_generator import KinesisGenerator
+from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
+from app.generators.msk_generator import MSKGenerator
+from app.generators.opensearch_generator import OpenSearchGenerator
+from app.generators.redshift_generator import RedshiftGenerator
+
+# Business Applications generators
+from app.generators.connect_generator import ConnectGenerator
+from app.generators.ses_generator import SESGenerator
+from app.generators.pinpoint_generator import PinpointGenerator
+
+# Database generators
+from app.generators.aurora_generator import AuroraGenerator
+from app.generators.documentdb_generator import DocumentDBGenerator
+from app.generators.elasticache_generator import ElastiCacheGenerator
+from app.generators.neptune_generator import NeptuneGenerator
+from app.generators.rds_generator import RDSGenerator
+from app.generators.timestream_generator import TimestreamGenerator
+
+# Developer Tools generators
+from app.generators.codebuild_generator import CodeBuildGenerator
+from app.generators.codecommit_generator import CodeCommitGenerator
+from app.generators.codedeploy_generator import CodeDeployGenerator
+from app.generators.codepipeline_generator import CodePipelineGenerator
+
+# End User Computing generators
+from app.generators.appstream_generator import AppStreamGenerator
+
+# Front End Web Mobile generators
+from app.generators.amplify_generator import AmplifyGenerator
+
+# Games generators
+from app.generators.gamelift_generator import GameLiftGenerator
+
 GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.LAMBDA: LambdaGenerator(),
     ServiceType.S3: S3Generator(),
@@ -38,4 +77,36 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.EC2_IMAGE_BUILDER: EC2ImageBuilderGenerator(),
     ServiceType.LIGHTSAIL: LightsailGenerator(),
     ServiceType.ECR: ECRGenerator(),
+    # Analytics
+    ServiceType.ATHENA: AthenaGenerator(),
+    ServiceType.CLOUDSEARCH: CloudSearchGenerator(),
+    ServiceType.EMR: EMRGenerator(),
+    ServiceType.GLUE: GlueGenerator(),
+    ServiceType.KINESIS: KinesisGenerator(),
+    ServiceType.KINESIS_FIREHOSE: KinesisFirehoseGenerator(),
+    ServiceType.MSK: MSKGenerator(),
+    ServiceType.OPENSEARCH: OpenSearchGenerator(),
+    ServiceType.REDSHIFT: RedshiftGenerator(),
+    # Business Applications
+    ServiceType.CONNECT: ConnectGenerator(),
+    ServiceType.SES: SESGenerator(),
+    ServiceType.PINPOINT: PinpointGenerator(),
+    # Database
+    ServiceType.AURORA: AuroraGenerator(),
+    ServiceType.DOCUMENTDB: DocumentDBGenerator(),
+    ServiceType.ELASTICACHE: ElastiCacheGenerator(),
+    ServiceType.NEPTUNE: NeptuneGenerator(),
+    ServiceType.RDS: RDSGenerator(),
+    ServiceType.TIMESTREAM: TimestreamGenerator(),
+    # Developer Tools
+    ServiceType.CODEBUILD: CodeBuildGenerator(),
+    ServiceType.CODECOMMIT: CodeCommitGenerator(),
+    ServiceType.CODEDEPLOY: CodeDeployGenerator(),
+    ServiceType.CODEPIPELINE: CodePipelineGenerator(),
+    # End User Computing
+    ServiceType.APPSTREAM: AppStreamGenerator(),
+    # Front End Web Mobile
+    ServiceType.AMPLIFY: AmplifyGenerator(),
+    # Games
+    ServiceType.GAMELIFT: GameLiftGenerator(),
 }

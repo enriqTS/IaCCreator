@@ -63,6 +63,128 @@ class ServiceType(str, Enum):
     EKS_DISTRO = "eks-distro"
     RED_HAT_OPENSHIFT = "red-hat-openshift"
 
+    # Analytics – full-generator services
+    ATHENA = "athena"
+    CLOUDSEARCH = "cloudsearch"
+    EMR = "emr"
+    GLUE = "glue"
+    KINESIS = "kinesis"
+    KINESIS_FIREHOSE = "kinesis-firehose"
+    MSK = "msk"
+    OPENSEARCH = "opensearch"
+    REDSHIFT = "redshift"
+
+    # Business Applications – full-generator services
+    CONNECT = "connect"
+    SES = "ses"
+    PINPOINT = "pinpoint"
+
+    # Database – full-generator services
+    AURORA = "aurora"
+    DOCUMENTDB = "documentdb"
+    ELASTICACHE = "elasticache"
+    NEPTUNE = "neptune"
+    RDS = "rds"
+    TIMESTREAM = "timestream"
+
+    # Developer Tools – full-generator services
+    CODEBUILD = "codebuild"
+    CODECOMMIT = "codecommit"
+    CODEDEPLOY = "codedeploy"
+    CODEPIPELINE = "codepipeline"
+
+    # End User Computing – full-generator services
+    APPSTREAM = "appstream"
+
+    # Front End Web Mobile – full-generator services
+    AMPLIFY = "amplify"
+
+    # Games – full-generator services
+    GAMELIFT = "gamelift"
+
+    # Analytics – icon-only services
+    CLEAN_ROOMS = "clean-rooms"
+    DATA_EXCHANGE = "data-exchange"
+    DATA_PIPELINE = "data-pipeline"
+    DATAZONE = "datazone"
+    FINSPACE = "finspace"
+    GLUE_DATABREW = "glue-databrew"
+    GLUE_ELASTIC_VIEWS = "glue-elastic-views"
+    KINESIS_DATA_ANALYTICS = "kinesis-data-analytics"
+    KINESIS_DATA_STREAMS = "kinesis-data-streams"
+    KINESIS_VIDEO_STREAMS = "kinesis-video-streams"
+    LAKE_FORMATION = "lake-formation"
+    QUICKSIGHT = "quicksight"
+
+    # Blockchain – icon-only services
+    MANAGED_BLOCKCHAIN = "managed-blockchain"
+    QUANTUM_LEDGER_DATABASE = "quantum-ledger-database"
+
+    # Business Applications – icon-only services
+    ALEXA_FOR_BUSINESS = "alexa-for-business"
+    CHIME_SDK = "chime-sdk"
+    CHIME_VOICE_CONNECTOR = "chime-voice-connector"
+    CHIME = "chime"
+    HONEYCODE = "honeycode"
+    PINPOINT_APIS = "pinpoint-apis"
+    SUPPLY_CHAIN = "supply-chain"
+    WICKR = "wickr"
+    WORKDOCS_SDK = "workdocs-sdk"
+    WORKDOCS = "workdocs"
+    WORKMAIL = "workmail"
+
+    # Cloud Financial Management – icon-only services
+    APPLICATION_COST_PROFILER = "application-cost-profiler"
+    BILLING_CONDUCTOR = "billing-conductor"
+    BUDGETS = "budgets"
+    COST_AND_USAGE_REPORT = "cost-and-usage-report"
+    COST_EXPLORER = "cost-explorer"
+    RESERVED_INSTANCE_REPORTING = "reserved-instance-reporting"
+    SAVINGS_PLANS = "savings-plans"
+
+    # Customer Enablement – icon-only services
+    ACTIVATE = "activate"
+    IQ = "iq"
+    MANAGED_SERVICES = "managed-services"
+    PROFESSIONAL_SERVICES = "professional-services"
+    REPOST = "repost"
+    SUPPORT = "support"
+    TRAINING_CERTIFICATION = "training-certification"
+
+    # Database – icon-only services
+    DATABASE_MIGRATION_SERVICE = "database-migration-service"
+    KEYSPACES = "keyspaces"
+    MEMORYDB = "memorydb"
+    RDS_ON_VMWARE = "rds-on-vmware"
+
+    # Developer Tools – icon-only services
+    APPLICATION_COMPOSER = "application-composer"
+    CLOUD_CONTROL_API = "cloud-control-api"
+    CLOUD_DEVELOPMENT_KIT = "cloud-development-kit"
+    CLOUD9 = "cloud9"
+    CLOUDSHELL = "cloudshell"
+    CODEARTIFACT = "codeartifact"
+    CODECATALYST = "codecatalyst"
+    CODESTAR = "codestar"
+    COMMAND_LINE_INTERFACE = "command-line-interface"
+    CORRETTO = "corretto"
+    TOOLS_AND_SDKS = "tools-and-sdks"
+    X_RAY = "x-ray"
+
+    # End User Computing – icon-only services
+    WORKLINK = "worklink"
+    WORKSPACES_FAMILY = "workspaces-family"
+
+    # Front End Web Mobile – icon-only services
+    DEVICE_FARM = "device-farm"
+    LOCATION_SERVICE = "location-service"
+
+    # Games – icon-only services
+    GAMEKIT = "gamekit"
+    GAMESPARKS = "gamesparks"
+    LUMBERYARD = "lumberyard"
+    OPEN_3D_ENGINE = "open-3d-engine"
+
 
 class ResourceConfig(BaseModel):
     """Service-specific configuration for a resource instance."""
@@ -148,6 +270,50 @@ class ResourceConfig(BaseModel):
     # ECR
     ecr_image_tag_mutability: Optional[str] = None
     ecr_scan_on_push: Optional[bool] = None
+    # Analytics
+    athena_name: Optional[str] = None
+    cloudsearch_name: Optional[str] = None
+    emr_release_label: Optional[str] = None
+    emr_service_role: Optional[str] = None
+    glue_catalog_database_name: Optional[str] = None
+    kinesis_shard_count: Optional[int] = None
+    firehose_destination: Optional[str] = None
+    msk_kafka_version: Optional[str] = None
+    msk_number_of_broker_nodes: Optional[int] = None
+    opensearch_domain_name: Optional[str] = None
+    redshift_node_type: Optional[str] = None
+    redshift_master_username: Optional[str] = None
+    # Business Applications
+    connect_identity_management_type: Optional[str] = None
+    connect_inbound_calls_enabled: Optional[bool] = None
+    connect_outbound_calls_enabled: Optional[bool] = None
+    ses_domain: Optional[str] = None
+    pinpoint_name: Optional[str] = None
+    # Database
+    aurora_engine: Optional[str] = None
+    aurora_master_username: Optional[str] = None
+    documentdb_master_username: Optional[str] = None
+    elasticache_engine: Optional[str] = None
+    elasticache_node_type: Optional[str] = None
+    elasticache_num_cache_nodes: Optional[int] = None
+    neptune_cluster_identifier: Optional[str] = None
+    rds_engine: Optional[str] = None
+    rds_instance_class: Optional[str] = None
+    rds_allocated_storage: Optional[int] = None
+    rds_username: Optional[str] = None
+    timestream_database_name: Optional[str] = None
+    # Developer Tools
+    codebuild_source_type: Optional[str] = None
+    codebuild_service_role: Optional[str] = None
+    codecommit_repository_name: Optional[str] = None
+    codedeploy_compute_platform: Optional[str] = None
+    codepipeline_role_arn: Optional[str] = None
+    # End User Computing
+    appstream_instance_type: Optional[str] = None
+    # Front End Web Mobile
+    amplify_name: Optional[str] = None
+    # Games
+    gamelift_ec2_instance_type: Optional[str] = None
 
 
 class ResourceInstance(BaseModel):

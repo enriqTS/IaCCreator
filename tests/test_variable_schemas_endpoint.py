@@ -36,6 +36,21 @@ EXPECTED_SERVICE_TYPES = {
     "lambda", "s3", "dynamodb", "api-gateway", "cloudwatch",
     "ec2", "ecs", "eks", "elastic-beanstalk", "app-runner",
     "batch", "ec2-image-builder", "lightsail", "ecr",
+    # Analytics
+    "athena", "cloudsearch", "emr", "glue", "kinesis",
+    "kinesis-firehose", "msk", "opensearch", "redshift",
+    # Business Applications
+    "connect", "ses", "pinpoint",
+    # Database
+    "aurora", "documentdb", "elasticache", "neptune", "rds", "timestream",
+    # Developer Tools
+    "codebuild", "codecommit", "codedeploy", "codepipeline",
+    # End User Computing
+    "appstream",
+    # Front End Web Mobile
+    "amplify",
+    # Games
+    "gamelift",
 }
 
 

@@ -210,4 +210,112 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
   ecr: [
     { name: 'repository_name', type: 'string', description: 'Name of the ECR repository', group: 'General' },
   ],
+  // Analytics
+  athena: [
+    { name: 'workgroup_name', type: 'string', description: 'Name of the Athena workgroup', group: 'General' },
+  ],
+  cloudsearch: [
+    { name: 'domain_name', type: 'string', description: 'Name of the CloudSearch domain', group: 'General' },
+  ],
+  emr: [
+    { name: 'cluster_name', type: 'string', description: 'Name of the EMR cluster', group: 'General' },
+    { name: 'release_label', type: 'string', description: 'EMR release label', group: 'General' },
+    { name: 'service_role', type: 'string', description: 'IAM service role for the EMR cluster', group: 'General' },
+  ],
+  glue: [
+    { name: 'database_name', type: 'string', description: 'Name of the Glue catalog database', group: 'General' },
+  ],
+  kinesis: [
+    { name: 'stream_name', type: 'string', description: 'Name of the Kinesis stream', group: 'General' },
+    { name: 'shard_count', type: 'number', description: 'Number of shards for the Kinesis stream', group: 'General' },
+  ],
+  'kinesis-firehose': [
+    { name: 'stream_name', type: 'string', description: 'Name of the Firehose delivery stream', group: 'General' },
+    { name: 'destination', type: 'string', description: 'Destination for the Firehose delivery stream', group: 'General' },
+  ],
+  msk: [
+    { name: 'cluster_name', type: 'string', description: 'Name of the MSK cluster', group: 'General' },
+    { name: 'kafka_version', type: 'string', description: 'Apache Kafka version for the MSK cluster', group: 'General' },
+    { name: 'number_of_broker_nodes', type: 'number', description: 'Number of broker nodes in the MSK cluster', group: 'General' },
+  ],
+  opensearch: [
+    { name: 'domain_name', type: 'string', description: 'Name of the OpenSearch domain', group: 'General' },
+  ],
+  redshift: [
+    { name: 'cluster_identifier', type: 'string', description: 'Identifier for the Redshift cluster', group: 'General' },
+    { name: 'node_type', type: 'string', description: 'Node type for the Redshift cluster', group: 'General' },
+    { name: 'master_username', type: 'string', description: 'Master username for the Redshift cluster', group: 'General' },
+  ],
+  // Business Applications
+  connect: [
+    { name: 'identity_management_type', type: 'string', description: 'Identity management type for the Connect instance', group: 'General' },
+    { name: 'inbound_calls_enabled', type: 'bool', description: 'Whether inbound calls are enabled', group: 'General' },
+    { name: 'outbound_calls_enabled', type: 'bool', description: 'Whether outbound calls are enabled', group: 'General' },
+  ],
+  ses: [
+    { name: 'domain', type: 'string', description: 'Domain name for SES identity', group: 'General' },
+  ],
+  pinpoint: [
+    { name: 'app_name', type: 'string', description: 'Name of the Pinpoint application', group: 'General' },
+  ],
+  // Database
+  aurora: [
+    { name: 'cluster_identifier', type: 'string', description: 'Identifier for the Aurora cluster', group: 'General' },
+    { name: 'engine', type: 'string', description: 'Database engine for the Aurora cluster', group: 'General' },
+    { name: 'master_username', type: 'string', description: 'Master username for the Aurora cluster', group: 'General' },
+  ],
+  documentdb: [
+    { name: 'cluster_identifier', type: 'string', description: 'Identifier for the DocumentDB cluster', group: 'General' },
+    { name: 'master_username', type: 'string', description: 'Master username for the DocumentDB cluster', group: 'General' },
+  ],
+  elasticache: [
+    { name: 'cluster_id', type: 'string', description: 'Identifier for the ElastiCache cluster', group: 'General' },
+    { name: 'engine', type: 'string', description: 'Cache engine type', group: 'General' },
+    { name: 'node_type', type: 'string', description: 'ElastiCache node type', group: 'General' },
+    { name: 'num_cache_nodes', type: 'number', description: 'Number of cache nodes in the cluster', group: 'General' },
+  ],
+  neptune: [
+    { name: 'cluster_identifier', type: 'string', description: 'Identifier for the Neptune cluster', group: 'General' },
+  ],
+  rds: [
+    { name: 'db_identifier', type: 'string', description: 'Identifier for the RDS instance', group: 'General' },
+    { name: 'engine', type: 'string', description: 'Database engine type', group: 'General' },
+    { name: 'instance_class', type: 'string', description: 'RDS instance class', default: 'db.t3.micro', group: 'General' },
+    { name: 'allocated_storage', type: 'number', description: 'Allocated storage in GB', default: 20, group: 'General' },
+    { name: 'username', type: 'string', description: 'Master username for the database', group: 'General' },
+  ],
+  timestream: [
+    { name: 'database_name', type: 'string', description: 'Name of the Timestream database', group: 'General' },
+  ],
+  // Developer Tools
+  codebuild: [
+    { name: 'project_name', type: 'string', description: 'Name of the CodeBuild project', group: 'General' },
+    { name: 'service_role', type: 'string', description: 'IAM service role ARN for CodeBuild', group: 'General' },
+    { name: 'source_type', type: 'string', description: 'Source type for the CodeBuild project', group: 'General' },
+  ],
+  codecommit: [
+    { name: 'repository_name', type: 'string', description: 'Name of the CodeCommit repository', group: 'General' },
+  ],
+  codedeploy: [
+    { name: 'app_name', type: 'string', description: 'Name of the CodeDeploy application', group: 'General' },
+    { name: 'compute_platform', type: 'string', description: 'Compute platform for CodeDeploy', group: 'General' },
+  ],
+  codepipeline: [
+    { name: 'pipeline_name', type: 'string', description: 'Name of the CodePipeline pipeline', group: 'General' },
+    { name: 'role_arn', type: 'string', description: 'IAM role ARN for CodePipeline', group: 'General' },
+  ],
+  // End User Computing
+  appstream: [
+    { name: 'fleet_name', type: 'string', description: 'Name of the AppStream fleet', group: 'General' },
+    { name: 'instance_type', type: 'string', description: 'Instance type for the AppStream fleet', group: 'General' },
+  ],
+  // Front End Web Mobile
+  amplify: [
+    { name: 'app_name', type: 'string', description: 'Name of the Amplify application', group: 'General' },
+  ],
+  // Games
+  gamelift: [
+    { name: 'fleet_name', type: 'string', description: 'Name of the GameLift fleet', group: 'General' },
+    { name: 'ec2_instance_type', type: 'string', description: 'EC2 instance type for the GameLift fleet', group: 'General' },
+  ],
 };

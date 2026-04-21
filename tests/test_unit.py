@@ -135,7 +135,7 @@ class TestUnsupportedServiceType:
             "project_name": "bad-svc",
             "environments": [_make_env()],
             "resources": [
-                {"name": "res", "service_type": "rds", "config": {}},
+                {"name": "res", "service_type": "nonexistent-service", "config": {}},
             ],
         }
         with pytest.raises(ValidationError) as exc_info:
