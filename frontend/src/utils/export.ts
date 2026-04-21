@@ -4,7 +4,7 @@
  * of the resulting ZIP.
  */
 
-import type { DiagramElement } from '@/types/diagram';
+import type { ArchitectureBlock, CanvasObject } from '@/types/diagram';
 import type { ArchitectureDescription } from '@/types/serialization';
 import { apiClient } from '@/utils/api-client';
 
