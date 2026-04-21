@@ -83,6 +83,7 @@ export interface SerializedConnector {
   sourceId: string;
   targetId: string;
   connectionType: string;
+  connection_config?: Record<string, string | number | boolean>;
 }
 
 /** Maps to the backend's ArchitectureDescription Pydantic schema for Terraform export. */
@@ -99,6 +100,7 @@ export interface ArchitectureDescription {
     source: string;
     target: string;
     connection_type: string;
+    connection_config?: Record<string, string | number | boolean>;
   }[];
   global_terraform_config?: {
     backend_type: string;

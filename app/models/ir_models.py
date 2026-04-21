@@ -24,6 +24,7 @@ class ConnectionIR(BaseModel):
     source_service: ServiceType
     target_service: ServiceType
     connection_type: str
+    connection_config: dict[str, str | int | float | bool] = Field(default_factory=dict)
 
 
 class ResourceInstanceIR(BaseModel):

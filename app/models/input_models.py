@@ -15,6 +15,8 @@ class ServiceType(str, Enum):
     DYNAMODB = "dynamodb"
     IAM = "iam"
     CLOUDWATCH = "cloudwatch"
+    SNS = "sns"
+    SQS = "sqs"
 
 
 class ResourceConfig(BaseModel):
@@ -59,6 +61,17 @@ class ResourceConfig(BaseModel):
     retention_in_days: Optional[int] = None
     kms_key_id: Optional[str] = None
     log_group_class: Optional[str] = None
+    # SNS
+    display_name: Optional[str] = None
+    fifo_topic: Optional[bool] = None
+    content_based_deduplication: Optional[bool] = None  # shared with SQS
+    kms_master_key_id: Optional[str] = None  # shared with CloudWatch
+    # SQS
+    visibility_timeout_seconds: Optional[int] = None
+    message_retention_seconds: Optional[int] = None
+    fifo_queue: Optional[bool] = None
+    delay_seconds: Optional[int] = None
+    max_message_size: Optional[int] = None
 
 
 class ResourceInstance(BaseModel):
@@ -87,6 +100,7 @@ class Connection(BaseModel):
     connection_type: str = Field(
         ..., description="e.g., 'triggers', 'reads_from', 'writes_to'"
     )
+    connection_config: dict[str, str | int | float | bool] = Field(default_factory=dict)
 
 
 class EnvironmentConfig(BaseModel):

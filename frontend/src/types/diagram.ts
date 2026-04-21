@@ -11,7 +11,9 @@ export type ServiceType =
   | 'api-gateway'
   | 'dynamodb'
   | 'iam'
-  | 'cloudwatch';
+  | 'cloudwatch'
+  | 'sns'
+  | 'sqs';
 
 export interface Point {
   x: number;
@@ -31,6 +33,7 @@ export interface Connector {
   sourceId: string;
   targetId: string;
   connectionType: string;
+  connectionConfig?: Record<string, string | number | boolean>;
 }
 
 export interface Viewport {
@@ -89,6 +92,17 @@ export interface ResourceConfig {
   retention_in_days?: number;
   kms_key_id?: string;
   log_group_class?: string;
+  // SNS
+  display_name?: string;
+  fifo_topic?: boolean;
+  content_based_deduplication?: boolean;
+  kms_master_key_id?: string;
+  // SQS
+  visibility_timeout_seconds?: number;
+  message_retention_seconds?: number;
+  fifo_queue?: boolean;
+  delay_seconds?: number;
+  max_message_size?: number;
 }
 
 export interface EnvironmentConfig {

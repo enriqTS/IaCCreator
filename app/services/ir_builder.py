@@ -25,6 +25,11 @@ COMPATIBLE_CONNECTIONS: set[tuple[ServiceType, ServiceType]] = {
     (ServiceType.LAMBDA, ServiceType.DYNAMODB),
     (ServiceType.LAMBDA, ServiceType.S3),
     (ServiceType.LAMBDA, ServiceType.CLOUDWATCH),
+    (ServiceType.LAMBDA, ServiceType.SNS),
+    (ServiceType.LAMBDA, ServiceType.SQS),
+    (ServiceType.SQS, ServiceType.LAMBDA),
+    (ServiceType.SNS, ServiceType.SQS),
+    (ServiceType.SNS, ServiceType.LAMBDA),
 }
 
 # IAM action mappings per target service type
@@ -48,6 +53,8 @@ IAM_ACTIONS: dict[ServiceType, list[str]] = {
         "logs:CreateLogStream",
         "logs:PutLogEvents",
     ],
+    ServiceType.SNS: ["sns:Publish"],
+    ServiceType.SQS: ["sqs:SendMessage"],
 }
 
 
@@ -62,6 +69,10 @@ def _build_iam_resources(target_name: str, target_service: ServiceType) -> list[
         ]
     elif target_service == ServiceType.CLOUDWATCH:
         return [f"arn:aws:logs:*:*:log-group:/aws/lambda/{target_name}:*"]
+    elif target_service == ServiceType.SNS:
+        return [f"${{aws_sns_topic.{target_name}.arn}}"]
+    elif target_service == ServiceType.SQS:
+        return [f"${{aws_sqs_queue.{target_name}.arn}}"]
     return []
 
 
@@ -176,6 +187,7 @@ class IRBuilder:
                     source_service=source_resource.service_type,
                     target_service=target_resource.service_type,
                     connection_type=conn.connection_type,
+                    connection_config=conn.connection_config,
                 )
             )
 

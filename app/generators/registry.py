@@ -8,6 +8,8 @@ from app.generators.dynamodb_generator import DynamoDBGenerator
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.generators.cloudwatch_generator import CloudWatchGenerator
 from app.generators.iam_generator import IAMGenerator
+from app.generators.sns_generator import SNSGenerator
+from app.generators.sqs_generator import SQSGenerator
 
 GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.LAMBDA: LambdaGenerator(),
@@ -16,4 +18,6 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.API_GATEWAY: APIGatewayGenerator(),
     ServiceType.CLOUDWATCH: CloudWatchGenerator(),
     ServiceType.IAM: IAMGenerator(),
+    ServiceType.SNS: SNSGenerator(),
+    ServiceType.SQS: SQSGenerator(),
 }

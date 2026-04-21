@@ -540,7 +540,7 @@ def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
     files = processor.process_all(project)
 
     assert len(files) >= 1
-    integration_files = [f for f in files if "aws_apigatewayv2_integration" in f.content]
+    integration_files = [f for f in files if 'resource "aws_apigatewayv2_integration"' in f.content]
     assert len(integration_files) == 1
     assert lambda_name in integration_files[0].content
     assert apigw_name in integration_files[0].content
