@@ -41,7 +41,24 @@ export default function DiagramEditorPage() {
       }
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        // Allow normal delete/backspace behavior inside text inputs
+        // If typing inside an inline canvas editor (textarea/contenteditable), let it behave normally
+        if (isTyping && (e.target as HTMLElement)?.closest('[data-testid="viewport-transform-container"]')) return;
+
+        // If typing inside the sidebar config panel, blur the input and delete the object
+        if (isTyping && (e.target as HTMLElement)?.closest('[data-testid="sidebar-panel"]')) {
+          if (store.selectedObjectIds.size > 0) {
+            e.preventDefault();
+            (document.activeElement as HTMLElement)?.blur();
+            for (const id of store.selectedObjectIds) {
+              store.removeCanvasObject(id);
+            }
+            return;
+          }
+          // No objects selected — let the input handle delete/backspace normally
+          return;
+        }
+
+        // If typing in some other input (e.g. dialog), let it behave normally
         if (isTyping) return;
 
         e.preventDefault();
