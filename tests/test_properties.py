@@ -1423,6 +1423,9 @@ def test_property_14_zip_output_format(arch):
     buf = io.BytesIO(zip_response.content)
     with zipfile.ZipFile(buf, "r") as zf:
         zip_files = set(zf.namelist())
-        assert zip_files == expected_files, (
-            f"ZIP files {zip_files} != expected {expected_files}"
+        # ZIP paths have the project_name prefix stripped
+        prefix = f"{arch.project_name}/"
+        expected_stripped = {p.removeprefix(prefix) for p in expected_files}
+        assert zip_files == expected_stripped, (
+            f"ZIP files {zip_files} != expected {expected_stripped}"
         )

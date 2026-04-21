@@ -104,7 +104,8 @@ export async function exportToTerraform(
   const result = await apiClient.generateTerraform(payload);
 
   if (result.ok) {
-    triggerDownload(result.data, 'terraform.zip');
+    const filename = `${payload.project_name || 'terraform'}.zip`;
+    triggerDownload(result.data, filename);
     return { success: true };
   }
 

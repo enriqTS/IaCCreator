@@ -74,7 +74,7 @@ async def generate_zip(arch: ArchitectureDescription) -> Response:
             validate_config_against_schema(resource.service_type, resource.config)
         project_ir = _ir_builder.build(arch)
         file_tree = _code_gen.generate(project_ir)
-        zip_bytes = _serializer.to_zip(file_tree)
+        zip_bytes = _serializer.to_zip(file_tree, strip_prefix=arch.project_name)
         return Response(
             content=zip_bytes,
             media_type="application/zip",
