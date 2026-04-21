@@ -124,7 +124,7 @@ export default function DiagramEditorPage() {
       const store = useDiagramStore.getState();
       const result = await exportToTerraform(
         store.serializeToArchitectureDescription,
-        store.elements,
+        store.canvasObjects,
       );
       if (result.success) {
         addToast('Terraform export downloaded successfully!', 'success');

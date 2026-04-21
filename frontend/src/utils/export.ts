@@ -23,22 +23,33 @@ const REQUIRED_FIELDS: Record<string, string[]> = {
 };
 
 /**
- * Validate that every element has its required config fields populated.
- * Returns a map of `elementName.fieldName` → error message for any violations.
+ * Extract architecture blocks from the canvas objects map.
+ */
+function getArchitectureBlocks(
+  canvasObjects: Map<string, CanvasObject>,
+): ArchitectureBlock[] {
+  return Array.from(canvasObjects.values()).filter(
+    (obj): obj is ArchitectureBlock => obj.objectType === 'architecture-block',
+  );
+}
+
+/**
+ * Validate that every architecture block has its required config fields populated.
+ * Returns a map of `blockName.fieldName` → error message for any violations.
  */
 function validateRequiredFields(
-  elements: Map<string, DiagramElement>,
+  blocks: ArchitectureBlock[],
 ): Record<string, string> | null {
   const errors: Record<string, string> = {};
 
-  for (const el of elements.values()) {
-    const required = REQUIRED_FIELDS[el.serviceType];
+  for (const block of blocks) {
+    const required = REQUIRED_FIELDS[block.serviceType];
     if (!required) continue;
 
     for (const field of required) {
-      const value = (el.config as Record<string, unknown>)[field];
+      const value = (block.config as Record<string, unknown>)[field];
       if (value === undefined || value === null || value === '') {
-        errors[`${el.name}.${field}`] = `${el.name}: "${field}" is required for ${el.serviceType}`;
+        errors[`${block.name}.${field}`] = `${block.name}: "${field}" is required for ${block.serviceType}`;
       }
     }
   }
@@ -72,15 +83,16 @@ function triggerDownload(blob: Blob, filename: string): void {
  */
 export async function exportToTerraform(
   serializeToArchitectureDescription: () => ArchitectureDescription,
-  elements: Map<string, DiagramElement>,
+  canvasObjects: Map<string, CanvasObject>,
 ): Promise<ExportResult> {
-  // 1. Reject empty diagrams
-  if (elements.size === 0) {
+  // 1. Extract architecture blocks and reject empty diagrams
+  const blocks = getArchitectureBlocks(canvasObjects);
+  if (blocks.length === 0) {
     return { success: false, error: 'No elements in diagram' };
   }
 
   // 2. Validate required config fields
-  const fieldErrors = validateRequiredFields(elements);
+  const fieldErrors = validateRequiredFields(blocks);
   if (fieldErrors) {
     return { success: false, error: 'Validation failed', fieldErrors };
   }
