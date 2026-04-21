@@ -23,22 +23,27 @@ export default function DiagramEditorPage() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target as HTMLElement)?.isContentEditable;
 
       const store = useDiagramStore.getState();
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && e.shiftKey) {
-        e.preventDefault();
-        store.redo();
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        store.undo();
-        return;
+      if (!isTyping) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && e.shiftKey) {
+          e.preventDefault();
+          store.redo();
+          return;
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          store.undo();
+          return;
+        }
       }
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
+        // Allow normal delete/backspace behavior inside text inputs
+        if (isTyping) return;
+
         e.preventDefault();
         if (store.selectedObjectIds.size > 0) {
           for (const id of store.selectedObjectIds) {
@@ -56,7 +61,7 @@ export default function DiagramEditorPage() {
         return;
       }
 
-      if (e.key === 'Escape') {
+      if (!isTyping && e.key === 'Escape') {
         e.preventDefault();
         store.selectElement(null);
         store.selectConnector(null);
