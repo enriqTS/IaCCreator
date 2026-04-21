@@ -13,9 +13,9 @@ interface AnchorIndicatorsProps {
 }
 
 /** Screen-pixel size for the visible clickable anchor zone */
-const ANCHOR_ZONE_SCREEN = 16;
+const ANCHOR_ZONE_SCREEN = 20;
 /** Screen-pixel size for the center dot */
-const DOT_SIZE_SCREEN = 8;
+const DOT_SIZE_SCREEN = 10;
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
