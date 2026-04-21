@@ -132,6 +132,8 @@ class FileTreeAssembler:
         self, tree: FileTree, root: str, module: ServiceModuleIR
     ) -> None:
         """Generate module-level main.tf, variables.tf, outputs.tf and per-instance files."""
+        if module.service_type not in GENERATOR_REGISTRY:
+            return
         stype_name = module.service_type.value
         mod_base = f"{root}/modules/{stype_name}"
 

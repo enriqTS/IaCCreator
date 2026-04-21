@@ -13,7 +13,50 @@ export type ServiceType =
   | 'iam'
   | 'cloudwatch'
   | 'sns'
-  | 'sqs';
+  | 'sqs'
+  // Compute — full-generator services
+  | 'ec2'
+  | 'elastic-beanstalk'
+  | 'app-runner'
+  | 'batch'
+  | 'ec2-image-builder'
+  | 'lightsail'
+  // Containers — full-generator services
+  | 'ecs'
+  | 'eks'
+  | 'ecr'
+  // Compute — icon-only services
+  | 'application-auto-scaling'
+  | 'bottlerocket'
+  | 'compute-optimizer'
+  | 'ec2-auto-scaling'
+  | 'elastic-fabric-adapter'
+  | 'fargate'
+  | 'genomics-cli'
+  | 'local-zones'
+  | 'nice-dcv'
+  | 'nice-enginframe'
+  | 'nitro-enclaves'
+  | 'outposts-family'
+  | 'outposts-rack'
+  | 'outposts-servers'
+  | 'parallelcluster'
+  | 'serverless-application-repository'
+  | 'simspace-weaver'
+  | 'thinkbox-deadline'
+  | 'thinkbox-frost'
+  | 'thinkbox-krakatoa'
+  | 'thinkbox-sequoia'
+  | 'thinkbox-stoke'
+  | 'thinkbox-xmesh'
+  | 'vmware-cloud-on-aws'
+  | 'wavelength'
+  // Containers — icon-only services
+  | 'ecs-anywhere'
+  | 'eks-anywhere'
+  | 'eks-cloud'
+  | 'eks-distro'
+  | 'red-hat-openshift';
 
 export interface Point {
   x: number;
@@ -103,6 +146,37 @@ export interface ResourceConfig {
   fifo_queue?: boolean;
   delay_seconds?: number;
   max_message_size?: number;
+  // EC2
+  instance_type?: string;
+  ami?: string;
+  key_name?: string;
+  // ECS
+  ecs_launch_type?: string;
+  ecs_desired_count?: number;
+  ecs_cpu?: string;
+  ecs_memory?: string;
+  // EKS
+  eks_version?: string;
+  eks_endpoint_public_access?: boolean;
+  // Elastic Beanstalk
+  eb_solution_stack_name?: string;
+  eb_tier?: string;
+  // App Runner
+  apprunner_source_type?: string;
+  apprunner_image_identifier?: string;
+  // Batch
+  batch_compute_environment_type?: string;
+  batch_max_vcpus?: number;
+  // EC2 Image Builder
+  imagebuilder_image_recipe_arn?: string;
+  imagebuilder_infrastructure_configuration_arn?: string;
+  // Lightsail
+  lightsail_blueprint_id?: string;
+  lightsail_bundle_id?: string;
+  lightsail_availability_zone?: string;
+  // ECR
+  ecr_image_tag_mutability?: string;
+  ecr_scan_on_push?: boolean;
 }
 
 export interface EnvironmentConfig {

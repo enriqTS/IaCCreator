@@ -168,4 +168,46 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     },
     { name: 'tags', type: 'map', description: 'Tags to apply to the CloudWatch log group', group: 'Metadata' },
   ],
+  ec2: [
+    { name: 'instance_name', type: 'string', description: 'Name tag for the EC2 instance', group: 'General' },
+    { name: 'ami', type: 'string', description: 'AMI ID for the instance', group: 'General' },
+    { name: 'instance_type', type: 'string', description: 'EC2 instance type', default: 't3.micro', group: 'General' },
+  ],
+  ecs: [
+    { name: 'cluster_name', type: 'string', description: 'Name of the ECS cluster', group: 'General' },
+    { name: 'task_family', type: 'string', description: 'Family name for the ECS task definition', group: 'General' },
+    { name: 'ecs_cpu', type: 'string', description: 'CPU units for the ECS task', default: '256', group: 'Performance' },
+    { name: 'ecs_memory', type: 'string', description: 'Memory (MiB) for the ECS task', default: '512', group: 'Performance' },
+  ],
+  eks: [
+    { name: 'cluster_name', type: 'string', description: 'Name of the EKS cluster', group: 'General' },
+    { name: 'cluster_role_arn', type: 'string', description: 'ARN of the IAM role for the EKS cluster', group: 'General' },
+    { name: 'subnet_ids', type: 'list', description: 'List of subnet IDs for the EKS cluster VPC config', group: 'Networking' },
+  ],
+  'elastic-beanstalk': [
+    { name: 'application_name', type: 'string', description: 'Name of the Elastic Beanstalk application', group: 'General' },
+    { name: 'environment_name', type: 'string', description: 'Name of the Elastic Beanstalk environment', group: 'General' },
+  ],
+  'app-runner': [
+    { name: 'service_name', type: 'string', description: 'Name of the App Runner service', group: 'General' },
+    { name: 'image_identifier', type: 'string', description: 'Container image identifier for the App Runner service', group: 'General' },
+  ],
+  batch: [
+    { name: 'compute_environment_name', type: 'string', description: 'Name of the Batch compute environment', group: 'General' },
+    { name: 'service_role_arn', type: 'string', description: 'ARN of the IAM service role for Batch', group: 'General' },
+  ],
+  'ec2-image-builder': [
+    { name: 'pipeline_name', type: 'string', description: 'Name of the Image Builder pipeline', group: 'General' },
+    { name: 'image_recipe_arn', type: 'string', description: 'ARN of the image recipe', group: 'General' },
+    { name: 'infrastructure_configuration_arn', type: 'string', description: 'ARN of the infrastructure configuration', group: 'General' },
+  ],
+  lightsail: [
+    { name: 'instance_name', type: 'string', description: 'Name of the Lightsail instance', group: 'General' },
+    { name: 'blueprint_id', type: 'string', description: 'Blueprint ID for the Lightsail instance', group: 'General' },
+    { name: 'bundle_id', type: 'string', description: 'Bundle ID for the Lightsail instance', group: 'General' },
+    { name: 'availability_zone', type: 'string', description: 'Availability zone for the Lightsail instance', group: 'General' },
+  ],
+  ecr: [
+    { name: 'repository_name', type: 'string', description: 'Name of the ECR repository', group: 'General' },
+  ],
 };

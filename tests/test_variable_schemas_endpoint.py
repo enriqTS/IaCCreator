@@ -32,7 +32,11 @@ def client(tmp_path, monkeypatch):
     temp_repo._db.close()
 
 
-EXPECTED_SERVICE_TYPES = {"lambda", "s3", "dynamodb", "api-gateway", "cloudwatch"}
+EXPECTED_SERVICE_TYPES = {
+    "lambda", "s3", "dynamodb", "api-gateway", "cloudwatch",
+    "ec2", "ecs", "eks", "elastic-beanstalk", "app-runner",
+    "batch", "ec2-image-builder", "lightsail", "ecr",
+}
 
 
 class TestVariableSchemasEndpoint:

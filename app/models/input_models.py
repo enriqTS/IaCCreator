@@ -18,6 +18,51 @@ class ServiceType(str, Enum):
     SNS = "sns"
     SQS = "sqs"
 
+    # Compute – full-generator services
+    EC2 = "ec2"
+    ECS = "ecs"
+    EKS = "eks"
+    ELASTIC_BEANSTALK = "elastic-beanstalk"
+    APP_RUNNER = "app-runner"
+    BATCH = "batch"
+    EC2_IMAGE_BUILDER = "ec2-image-builder"
+    LIGHTSAIL = "lightsail"
+    ECR = "ecr"
+
+    # Compute – icon-only services
+    APPLICATION_AUTO_SCALING = "application-auto-scaling"
+    BOTTLEROCKET = "bottlerocket"
+    COMPUTE_OPTIMIZER = "compute-optimizer"
+    EC2_AUTO_SCALING = "ec2-auto-scaling"
+    ELASTIC_FABRIC_ADAPTER = "elastic-fabric-adapter"
+    FARGATE = "fargate"
+    GENOMICS_CLI = "genomics-cli"
+    LOCAL_ZONES = "local-zones"
+    NICE_DCV = "nice-dcv"
+    NICE_ENGINFRAME = "nice-enginframe"
+    NITRO_ENCLAVES = "nitro-enclaves"
+    OUTPOSTS_FAMILY = "outposts-family"
+    OUTPOSTS_RACK = "outposts-rack"
+    OUTPOSTS_SERVERS = "outposts-servers"
+    PARALLELCLUSTER = "parallelcluster"
+    SERVERLESS_APPLICATION_REPOSITORY = "serverless-application-repository"
+    SIMSPACE_WEAVER = "simspace-weaver"
+    THINKBOX_DEADLINE = "thinkbox-deadline"
+    THINKBOX_FROST = "thinkbox-frost"
+    THINKBOX_KRAKATOA = "thinkbox-krakatoa"
+    THINKBOX_SEQUOIA = "thinkbox-sequoia"
+    THINKBOX_STOKE = "thinkbox-stoke"
+    THINKBOX_XMESH = "thinkbox-xmesh"
+    VMWARE_CLOUD_ON_AWS = "vmware-cloud-on-aws"
+    WAVELENGTH = "wavelength"
+
+    # Containers – icon-only services
+    ECS_ANYWHERE = "ecs-anywhere"
+    EKS_ANYWHERE = "eks-anywhere"
+    EKS_CLOUD = "eks-cloud"
+    EKS_DISTRO = "eks-distro"
+    RED_HAT_OPENSHIFT = "red-hat-openshift"
+
 
 class ResourceConfig(BaseModel):
     """Service-specific configuration for a resource instance."""
@@ -72,6 +117,37 @@ class ResourceConfig(BaseModel):
     fifo_queue: Optional[bool] = None
     delay_seconds: Optional[int] = None
     max_message_size: Optional[int] = None
+    # EC2
+    instance_type: Optional[str] = None
+    ami: Optional[str] = None
+    key_name: Optional[str] = None
+    # ECS
+    ecs_launch_type: Optional[str] = None
+    ecs_desired_count: Optional[int] = None
+    ecs_cpu: Optional[str] = None
+    ecs_memory: Optional[str] = None
+    # EKS
+    eks_version: Optional[str] = None
+    eks_endpoint_public_access: Optional[bool] = None
+    # Elastic Beanstalk
+    eb_solution_stack_name: Optional[str] = None
+    eb_tier: Optional[str] = None
+    # App Runner
+    apprunner_source_type: Optional[str] = None
+    apprunner_image_identifier: Optional[str] = None
+    # Batch
+    batch_compute_environment_type: Optional[str] = None
+    batch_max_vcpus: Optional[int] = None
+    # EC2 Image Builder
+    imagebuilder_image_recipe_arn: Optional[str] = None
+    imagebuilder_infrastructure_configuration_arn: Optional[str] = None
+    # Lightsail
+    lightsail_blueprint_id: Optional[str] = None
+    lightsail_bundle_id: Optional[str] = None
+    lightsail_availability_zone: Optional[str] = None
+    # ECR
+    ecr_image_tag_mutability: Optional[str] = None
+    ecr_scan_on_push: Optional[bool] = None
 
 
 class ResourceInstance(BaseModel):

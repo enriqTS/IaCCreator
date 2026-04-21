@@ -449,4 +449,178 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             group="Metadata",
         ),
     ],
+    # ── EC2 (3 variables) ─────────────────────────────────────────────
+    ServiceType.EC2: [
+        VariableSchemaEntry(
+            name="instance_name",
+            type="string",
+            description="Name tag for the EC2 instance",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="ami",
+            type="string",
+            description="AMI ID for the instance",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="instance_type",
+            type="string",
+            description="EC2 instance type",
+            default="t3.micro",
+            group="General",
+        ),
+    ],
+    # ── ECS (4 variables) ─────────────────────────────────────────────
+    ServiceType.ECS: [
+        VariableSchemaEntry(
+            name="cluster_name",
+            type="string",
+            description="Name of the ECS cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="task_family",
+            type="string",
+            description="Family name for the ECS task definition",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="ecs_cpu",
+            type="string",
+            description="CPU units for the ECS task",
+            default="256",
+            group="Performance",
+        ),
+        VariableSchemaEntry(
+            name="ecs_memory",
+            type="string",
+            description="Memory (MiB) for the ECS task",
+            default="512",
+            group="Performance",
+        ),
+    ],
+    # ── EKS (3 variables) ─────────────────────────────────────────────
+    ServiceType.EKS: [
+        VariableSchemaEntry(
+            name="cluster_name",
+            type="string",
+            description="Name of the EKS cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="cluster_role_arn",
+            type="string",
+            description="ARN of the IAM role for the EKS cluster",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="subnet_ids",
+            type="list",
+            description="List of subnet IDs for the EKS cluster VPC config",
+            group="Networking",
+        ),
+    ],
+    # ── Elastic Beanstalk (2 variables) ───────────────────────────────
+    ServiceType.ELASTIC_BEANSTALK: [
+        VariableSchemaEntry(
+            name="application_name",
+            type="string",
+            description="Name of the Elastic Beanstalk application",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="environment_name",
+            type="string",
+            description="Name of the Elastic Beanstalk environment",
+            group="General",
+        ),
+    ],
+    # ── App Runner (2 variables) ──────────────────────────────────────
+    ServiceType.APP_RUNNER: [
+        VariableSchemaEntry(
+            name="service_name",
+            type="string",
+            description="Name of the App Runner service",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="image_identifier",
+            type="string",
+            description="Container image identifier for the App Runner service",
+            group="General",
+        ),
+    ],
+    # ── Batch (2 variables) ───────────────────────────────────────────
+    ServiceType.BATCH: [
+        VariableSchemaEntry(
+            name="compute_environment_name",
+            type="string",
+            description="Name of the Batch compute environment",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="service_role_arn",
+            type="string",
+            description="ARN of the IAM service role for Batch",
+            group="General",
+        ),
+    ],
+    # ── EC2 Image Builder (3 variables) ───────────────────────────────
+    ServiceType.EC2_IMAGE_BUILDER: [
+        VariableSchemaEntry(
+            name="pipeline_name",
+            type="string",
+            description="Name of the Image Builder pipeline",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="image_recipe_arn",
+            type="string",
+            description="ARN of the image recipe",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="infrastructure_configuration_arn",
+            type="string",
+            description="ARN of the infrastructure configuration",
+            group="General",
+        ),
+    ],
+    # ── Lightsail (4 variables) ───────────────────────────────────────
+    ServiceType.LIGHTSAIL: [
+        VariableSchemaEntry(
+            name="instance_name",
+            type="string",
+            description="Name of the Lightsail instance",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="blueprint_id",
+            type="string",
+            description="Blueprint ID for the Lightsail instance",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="bundle_id",
+            type="string",
+            description="Bundle ID for the Lightsail instance",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="availability_zone",
+            type="string",
+            description="Availability zone for the Lightsail instance",
+            group="General",
+        ),
+    ],
+    # ── ECR (1 variable) ──────────────────────────────────────────────
+    ServiceType.ECR: [
+        VariableSchemaEntry(
+            name="repository_name",
+            type="string",
+            description="Name of the ECR repository",
+            group="General",
+        ),
+    ],
 }
