@@ -1762,9 +1762,14 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         connection_type: c.connectionType,
       }));
 
+      // Fall back to a default "dev" environment if none are configured
+      const envList = environments.length > 0
+        ? environments
+        : [{ name: 'dev', variables: {} }];
+
       return {
-        project_name: projectName,
-        environments: environments.map((e) => ({
+        project_name: projectName || 'my-project',
+        environments: envList.map((e) => ({
           name: e.name,
           variables: { ...e.variables },
         })),
