@@ -58,31 +58,43 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
               position: 'absolute',
               left: 0,
               top: 0,
-              transform: `translate(${point.x - zoneSize / 2}px, ${point.y - zoneSize / 2}px)`,
-              width: zoneSize,
-              height: zoneSize,
-              borderRadius: `${3 / scale}px`,
-              cursor: 'crosshair',
+              transform: `translate(${point.x - hitSize / 2}px, ${point.y - hitSize / 2}px)`,
+              width: hitSize,
+              height: hitSize,
               pointerEvents: 'auto',
               zIndex: 10,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(34, 197, 94, 0.25)',
-              border: `${borderWidth}px solid rgba(34, 197, 94, 0.6)`,
-              boxSizing: 'border-box',
+              cursor: 'crosshair',
             }}
           >
-            {/* Center dot */}
+            {/* Visible anchor zone */}
             <div
               style={{
-                width: dotSize,
-                height: dotSize,
-                borderRadius: '50%',
-                backgroundColor: 'rgba(34, 197, 94, 0.9)',
+                width: zoneSize,
+                height: zoneSize,
+                borderRadius: `${3 / scale}px`,
+                backgroundColor: 'rgba(34, 197, 94, 0.25)',
+                border: `${borderWidth}px solid rgba(34, 197, 94, 0.6)`,
+                boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 pointerEvents: 'none',
               }}
-            />
+            >
+              {/* Center dot */}
+              <div
+                style={{
+                  width: dotSize,
+                  height: dotSize,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(34, 197, 94, 0.9)',
+                  pointerEvents: 'none',
+                }}
+              />
+            </div>
           </div>
         );
       })}

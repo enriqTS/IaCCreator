@@ -11,7 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { PanelLeftOpen, PanelRightOpen, PanelLeftClose, PanelRightClose } from 'lucide-react';
+import { PanelLeftOpen, PanelRightOpen, PanelLeftClose, PanelRightClose, Trash2 } from 'lucide-react';
 import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
 import SchemaConfigForm from './SchemaConfigForm';
 import VisualTab from './VisualTab';
@@ -273,6 +273,7 @@ function MultiSelectionView({
   groupSelectedObjects: () => string | null;
   ungroupObjects: (groupId: string) => void;
 }) {
+  const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
   const selectedObjects = Array.from(selectedObjectIds)
     .map((id) => canvasObjects.get(id))
     .filter(Boolean) as CanvasObject[];
