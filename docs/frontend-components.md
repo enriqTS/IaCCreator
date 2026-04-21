@@ -27,7 +27,6 @@ DOM overlay layer that renders interactive canvas object components positioned i
 | `GeometricObjectComponent.tsx`     | `geometric`          | SVG shapes (rectangle, ellipse, diamond, etc.) |
 | `TextObjectComponent.tsx`          | `text`               | Editable text label on the canvas              |
 | `UMLObjectComponent.tsx`           | `uml`                | UML diagrams (class, interface, actor, etc.)   |
-| `DiagramElement.tsx`               | (legacy)             | Legacy service node for backward compatibility |
 
 ### Canvas Interaction Components
 

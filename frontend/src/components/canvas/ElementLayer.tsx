@@ -3,7 +3,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
-import DiagramElementComponent from './DiagramElement';
 import ArchitectureBlockComponent from './ArchitectureBlockComponent';
 import LineObjectComponent from './LineObjectComponent';
 import GeometricObjectComponent from './GeometricObjectComponent';
@@ -21,7 +20,6 @@ import type { Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
 
 export default function ElementLayer() {
-  const elements = useDiagramStore((s) => s.elements);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const objectGroups = useDiagramStore((s) => s.objectGroups);
@@ -148,11 +146,6 @@ export default function ElementLayer() {
         pointerEvents: 'none',
       }}
     >
-      {/* Legacy DiagramElement rendering — hidden when canvas objects handle rendering */}
-      {canvasObjects.size === 0 && Array.from(elements.values()).map((element) => (
-        <DiagramElementComponent key={element.id} element={element} />
-      ))}
-
       {/* Canvas objects: architecture blocks and geometric objects (DOM elements) */}
       {nonLineObjects.map((obj) => {
         const isSelected = selectedObjectIds.has(obj.id);

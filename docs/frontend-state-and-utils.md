@@ -8,10 +8,11 @@ Zustand stores, utility modules, and TypeScript type definitions in the frontend
 
 The primary application store managing all diagram state. Created with Zustand's `create()`.
 
-**Element State (legacy):**
-- `elements: Map<string, DiagramElement>` — diagram nodes keyed by ID
-- `addElement(serviceType, position)` — creates a new element with UUID
+**Element State (legacy — kept for backward compatibility):**
+- `elements: Map<string, DiagramElement>` — legacy diagram nodes keyed by ID (superseded by `canvasObjects`)
+- `addElement(serviceType, position)` — creates a new legacy element with UUID
 - `updateElementPosition / updateElementConfig / updateElementName / removeElement`
+- Note: All runtime usage now goes through `canvasObjects` with `architecture-block` type. The `elements` map is retained only for serialization backward compatibility.
 
 **Canvas Object State:**
 - `canvasObjects: Map<string, CanvasObject>` — all canvas objects (architecture blocks, lines, geometric shapes, text, UML)
@@ -149,7 +150,7 @@ All requests include `credentials: 'include'` for cookie-based sessions. Base UR
 ### `export.ts`
 
 Export utility for Terraform generation:
-- `exportToTerraform(serializeFn, elements)` — validates non-empty diagram, checks required config fields (e.g., `hash_key` for DynamoDB), calls `apiClient.generateTerraform()`, triggers browser download of `terraform.zip`
+- `exportToTerraform(serializeFn, canvasObjects)` — validates non-empty diagram (requires at least one `architecture-block`), checks required config fields (e.g., `hash_key` for DynamoDB), calls `apiClient.generateTerraform()`, triggers browser download of `terraform.zip`
 - Returns `ExportResult` with `success`, optional `error`, and optional `fieldErrors`
 
 ### `storage.ts`
@@ -198,7 +199,7 @@ SVG path registry for geometric shapes. `SHAPE_PATH_REGISTRY` maps each `Geometr
 Core diagram types:
 - `ServiceType` — union: `'lambda' | 's3' | 'api-gateway' | 'dynamodb' | 'iam' | 'cloudwatch'`
 - `Point` — `{x, y}`
-- `DiagramElement` — `{id, serviceType, name, position, config}`
+- `DiagramElement` — `{id, serviceType, name, position, config}` (legacy, superseded by `ArchitectureBlock`)
 - `Connector` — `{id, sourceId, targetId, connectionType}`
 - `Viewport` — `{offsetX, offsetY, scale}` (scale range 0.1–5.0)
 - `Tool` — `'pointer' | 'connector' | 'line' | 'text' | {type: 'place-service', serviceType} | {type: 'place-shape', shape} | {type: 'place-uml', umlKind}`

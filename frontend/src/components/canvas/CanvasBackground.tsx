@@ -3,8 +3,8 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
-import { canvasToScreen } from '@/utils/viewport';
-import type { Viewport, DiagramElement, Connector } from '@/types/diagram';
+import type { Viewport, CanvasObject } from '@/types/diagram';
+import { getObjectBounds } from '@/types/diagram';
 
 const DOT_RADIUS = 1;
 const DOT_COLOR_ACTIVE = 'rgba(255, 255, 255, 0.15)';
@@ -15,7 +15,6 @@ const CONNECTOR_SELECTED_COLOR = 'rgba(59, 130, 246, 0.8)';
 const CONNECTOR_LINE_WIDTH = 2;
 const CONNECTOR_SELECTED_LINE_WIDTH = 3;
 const ARROWHEAD_SIZE = 10;
-const ELEMENT_CENTER_OFFSET = 32; // elements are ~64px wide
 const CLICK_TOLERANCE = 8;
 
 /**
@@ -52,16 +51,18 @@ function pointToSegmentDistance(
 }
 
 /**
- * Get the screen-space center of an element.
+ * Get the screen-space center of a canvas object.
  */
-function getElementScreenCenter(
-  element: DiagramElement,
+function getObjectScreenCenter(
+  obj: CanvasObject,
   viewport: Viewport,
 ): { x: number; y: number } {
-  const screenPos = canvasToScreen(element.position, viewport);
+  const bounds = getObjectBounds(obj);
+  const centerX = bounds.x + bounds.width / 2;
+  const centerY = bounds.y + bounds.height / 2;
   return {
-    x: screenPos.x + ELEMENT_CENTER_OFFSET * viewport.scale,
-    y: screenPos.y + ELEMENT_CENTER_OFFSET * viewport.scale,
+    x: centerX * viewport.scale + viewport.offsetX,
+    y: centerY * viewport.scale + viewport.offsetY,
   };
 }
 
@@ -99,7 +100,7 @@ export default function CanvasBackground() {
   const rafRef = useRef<number>(0);
 
   const viewport = useDiagramStore((s) => s.viewport);
-  const elements = useDiagramStore((s) => s.elements);
+  const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const connectors = useDiagramStore((s) => s.connectors);
   const selectedConnectorId = useDiagramStore((s) => s.selectedConnectorId);
   const selectConnector = useDiagramStore((s) => s.selectConnector);
@@ -136,12 +137,12 @@ export default function CanvasBackground() {
 
     // --- Draw connectors ---
     for (const connector of connectors.values()) {
-      const sourceEl = elements.get(connector.sourceId);
-      const targetEl = elements.get(connector.targetId);
-      if (!sourceEl || !targetEl) continue;
+      const sourceObj = canvasObjects.get(connector.sourceId);
+      const targetObj = canvasObjects.get(connector.targetId);
+      if (!sourceObj || !targetObj) continue;
 
-      const source = getElementScreenCenter(sourceEl, viewport);
-      const target = getElementScreenCenter(targetEl, viewport);
+      const source = getObjectScreenCenter(sourceObj, viewport);
+      const target = getObjectScreenCenter(targetObj, viewport);
 
       const isSelected = connector.id === selectedConnectorId;
       const color = isSelected ? CONNECTOR_SELECTED_COLOR : CONNECTOR_COLOR;
@@ -158,7 +159,7 @@ export default function CanvasBackground() {
       // Draw arrowhead at target end
       drawArrowhead(ctx, source.x, source.y, target.x, target.y, ARROWHEAD_SIZE, color);
     }
-  }, [viewport, elements, connectors, selectedConnectorId, gridCellSize, snapToGridEnabled]);
+  }, [viewport, canvasObjects, connectors, selectedConnectorId, gridCellSize, snapToGridEnabled]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -171,12 +172,12 @@ export default function CanvasBackground() {
 
       // Check if click is near any connector line
       for (const connector of connectors.values()) {
-        const sourceEl = elements.get(connector.sourceId);
-        const targetEl = elements.get(connector.targetId);
-        if (!sourceEl || !targetEl) continue;
+        const sourceObj = canvasObjects.get(connector.sourceId);
+        const targetObj = canvasObjects.get(connector.targetId);
+        if (!sourceObj || !targetObj) continue;
 
-        const source = getElementScreenCenter(sourceEl, viewport);
-        const target = getElementScreenCenter(targetEl, viewport);
+        const source = getObjectScreenCenter(sourceObj, viewport);
+        const target = getObjectScreenCenter(targetObj, viewport);
 
         const dist = pointToSegmentDistance(
           clickX,
@@ -193,7 +194,7 @@ export default function CanvasBackground() {
         }
       }
     },
-    [connectors, elements, viewport, selectConnector],
+    [connectors, canvasObjects, viewport, selectConnector],
   );
 
   // Resize canvas to match its CSS size (keep 1:1 pixel ratio)

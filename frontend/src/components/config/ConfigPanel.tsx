@@ -2,7 +2,7 @@
 
 import { useDiagramStore } from '@/store/diagram-store';
 import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
-import type { ServiceType } from '@/types/diagram';
+import type { ServiceType, ArchitectureBlock } from '@/types/diagram';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -30,7 +30,7 @@ const CONNECTION_TYPE_OPTIONS = ['triggers', 'reads_from', 'writes_to', 'invokes
 export default function ConfigPanel() {
   const selectedElementId = useDiagramStore((s) => s.selectedElementId);
   const selectedConnectorId = useDiagramStore((s) => s.selectedConnectorId);
-  const elements = useDiagramStore((s) => s.elements);
+  const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const connectors = useDiagramStore((s) => s.connectors);
   const updateElementName = useDiagramStore((s) => s.updateElementName);
   const removeElement = useDiagramStore((s) => s.removeElement);
@@ -47,8 +47,8 @@ export default function ConfigPanel() {
     const connector = connectors.get(selectedConnectorId);
     if (!connector) return null;
 
-    const sourceEl = elements.get(connector.sourceId);
-    const targetEl = elements.get(connector.targetId);
+    const sourceObj = canvasObjects.get(connector.sourceId);
+    const targetObj = canvasObjects.get(connector.targetId);
 
     return (
       <div
@@ -58,7 +58,7 @@ export default function ConfigPanel() {
         <div className="flex items-center gap-4">
           {/* Source → Target label */}
           <span className="text-sm font-semibold">
-            {sourceEl?.name ?? 'Unknown'} → {targetEl?.name ?? 'Unknown'}
+            {sourceObj?.name ?? 'Unknown'} → {targetObj?.name ?? 'Unknown'}
           </span>
 
           {/* Connection type dropdown */}
@@ -102,10 +102,10 @@ export default function ConfigPanel() {
   }
 
   // --- Element selected ---
-  const element = elements.get(selectedElementId!);
-  if (!element) return null;
+  const block = canvasObjects.get(selectedElementId!) as ArchitectureBlock | undefined;
+  if (!block || block.objectType !== 'architecture-block') return null;
 
-  const iconPath = getIconPath(element.serviceType);
+  const iconPath = getIconPath(block.serviceType);
 
   return (
     <div
@@ -117,7 +117,7 @@ export default function ConfigPanel() {
         {iconPath && (
           <img
             src={iconPath}
-            alt={element.serviceType}
+            alt={block.serviceType}
             width={32}
             height={32}
             draggable={false}
@@ -128,8 +128,8 @@ export default function ConfigPanel() {
         <Input
           data-testid="element-name-input"
           type="text"
-          value={element.name}
-          onChange={(e) => updateElementName(element.id, e.target.value)}
+          value={block.name}
+          onChange={(e) => updateElementName(block.id, e.target.value)}
           className="w-[200px] text-sm font-semibold"
         />
 
@@ -152,7 +152,7 @@ export default function ConfigPanel() {
 
       {/* Service-specific config form */}
       <div data-testid="config-form-slot" className="mt-3">
-        <SchemaConfigForm elementId={element.id} serviceType={element.serviceType} />
+        <SchemaConfigForm elementId={block.id} serviceType={block.serviceType} />
       </div>
     </div>
   );
