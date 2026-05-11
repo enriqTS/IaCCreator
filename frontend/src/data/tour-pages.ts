@@ -6,6 +6,8 @@ export interface TourPageData {
   title: string;
   description: string;
   icon: LucideIcon;
+  /** Path to screenshot image in /public. When set, replaces the placeholder icon. */
+  image?: string;
 }
 
 export const TOUR_PAGES: TourPageData[] = [
@@ -13,6 +15,7 @@ export const TOUR_PAGES: TourPageData[] = [
     id: 'welcome',
     title: 'Welcome to Diagram Editor',
     icon: Sparkles,
+    image: '/tour-images/site.png',
     description:
       'Design AWS architecture diagrams visually. This quick tour will show you around the main areas of the editor.',
   },
@@ -20,6 +23,7 @@ export const TOUR_PAGES: TourPageData[] = [
     id: 'toolbar',
     title: 'The Toolbar',
     icon: MousePointer2,
+    image: '/tour-images/toolbar.png',
     description:
       'Select tools here to draw on the canvas. Pick a service from the toolbar, then click on the canvas to place it.',
   },
@@ -27,6 +31,7 @@ export const TOUR_PAGES: TourPageData[] = [
     id: 'canvas',
     title: 'The Canvas',
     icon: Move,
+    image: '/tour-images/canvas.png',
     description:
       'Your infinite drawing area. Pan by dragging, zoom with the scroll wheel, and drag elements to reposition them.',
   },
@@ -34,6 +39,7 @@ export const TOUR_PAGES: TourPageData[] = [
     id: 'menu',
     title: 'The Menu',
     icon: Menu,
+    image: '/tour-images/menu.png',
     description:
       'Access save, load, export to Terraform, project settings, and preferences from the hamburger menu.',
   },
@@ -41,6 +47,7 @@ export const TOUR_PAGES: TourPageData[] = [
     id: 'sidebar',
     title: 'The Sidebar',
     icon: PanelRight,
+    image: '/tour-images/sidebar.png',
     description:
       'Configure selected elements here. Set service properties, visual styles, and Terraform variables.',
   },

@@ -46,10 +46,20 @@ export default function WelcomeDialog() {
         aria-label="Welcome Tour"
         onEscapeKeyDown={handleEscape}
       >
-        {/* Placeholder image area — 16:9 aspect ratio */}
-        <div className="flex aspect-video w-full items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 bg-muted/20">
-          <Icon className="size-12 text-muted-foreground/50" />
-        </div>
+        {/* Tour image or placeholder */}
+        {page.image ? (
+          <div className="w-full overflow-hidden rounded-md border border-muted-foreground/20">
+            <img
+              src={page.image}
+              alt={page.title}
+              className="aspect-video w-full object-cover object-top"
+            />
+          </div>
+        ) : (
+          <div className="flex aspect-video w-full items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 bg-muted/20">
+            <Icon className="size-12 text-muted-foreground/50" />
+          </div>
+        )}
 
         <DialogHeader>
           <DialogTitle>{page.title}</DialogTitle>
