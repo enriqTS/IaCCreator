@@ -7,16 +7,19 @@
  * menu, sidebar) using their data-testid attributes. Steps through each area
  * with Next/Back/Skip controls.
  *
+ * Each step renders a fresh tooltip instance (via React key) so there's no
+ * flash of content at the old position when navigating between steps.
+ *
  * This replaces the dialog-based WelcomeDialog approach. To reactivate the
  * dialog version (with screenshots), see the comments in data/tour-pages.ts.
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTourStore } from '@/store/tour-store';
-import { TOUR_STEPS } from '@/data/tour-pages';
+import { TOUR_STEPS, type TourStepData } from '@/data/tour-pages';
 
 interface TooltipPosition {
   top: number;
@@ -63,77 +66,131 @@ function clampToViewport(pos: TooltipPosition, width: number, height: number): T
   };
 }
 
+function getTargetInfo(step: TourStepData): { testId: string; placement: 'top' | 'bottom' | 'left' | 'right' } {
+  if (step.id === 'sidebar') {
+    const expandedPanel = document.querySelector('[data-testid="sidebar-panel"]');
+    if (!expandedPanel) {
+      return { testId: 'sidebar-toggle-collapsed', placement: 'left' };
+    }
+  }
+  return { testId: step.targetTestId, placement: step.placement };
+}
+
+// ─── Individual tooltip instance (keyed per step, so it mounts fresh) ────────
+
+interface StepTooltipProps {
+  step: TourStepData;
+  stepIndex: number;
+  totalSteps: number;
+  isFirst: boolean;
+  isLast: boolean;
+  onNext: () => void;
+  onPrev: () => void;
+  onComplete: () => void;
+}
+
+function StepTooltip({ step, stepIndex, totalSteps, isFirst, isLast, onNext, onPrev, onComplete }: StepTooltipProps) {
+  const [position, setPosition] = useState<TooltipPosition | null>(null);
+
+  const updatePosition = useCallback(() => {
+    const { testId, placement } = getTargetInfo(step);
+    const target = document.querySelector(`[data-testid="${testId}"]`);
+
+    if (!target) {
+      setPosition({
+        top: window.innerHeight / 2 - 50,
+        left: window.innerWidth / 2 - 140,
+      });
+      return;
+    }
+
+    const targetRect = target.getBoundingClientRect();
+    const tooltipWidth = 280;
+    const tooltipHeight = 120;
+
+    const raw = computePosition(targetRect, placement, tooltipWidth, tooltipHeight);
+    const clamped = clampToViewport(raw, tooltipWidth, tooltipHeight);
+    setPosition(clamped);
+  }, [step]);
+
+  useEffect(() => {
+    // Compute position immediately on mount
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    return () => window.removeEventListener('resize', updatePosition);
+  }, [updatePosition]);
+
+  // Don't render until position is computed
+  if (!position) return null;
+
+  const Icon = step.icon;
+
+  return (
+    <div
+      role="dialog"
+      aria-label="Onboarding Tour"
+      data-testid="onboarding-tour-tooltip"
+      className="fixed z-[9999] w-[280px] rounded-lg border border-border bg-popover p-4 shadow-lg"
+      style={{ top: position.top, left: position.left }}
+    >
+      {/* Message */}
+      <div className="mb-3 flex items-start gap-2">
+        <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
+        <p className="text-sm text-popover-foreground">{step.message}</p>
+      </div>
+
+      {/* Dot indicators */}
+      <div className="mb-3 flex items-center justify-center gap-1.5">
+        {Array.from({ length: totalSteps }, (_, i) => (
+          <span
+            key={i}
+            className={cn(
+              'size-1.5 rounded-full',
+              i === stepIndex ? 'bg-primary' : 'bg-muted-foreground/30',
+            )}
+          />
+        ))}
+      </div>
+
+      {/* Navigation */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2 text-xs text-muted-foreground"
+          onClick={onComplete}
+        >
+          Skip
+        </Button>
+        <div className="flex gap-1.5">
+          {!isFirst && (
+            <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={onPrev}>
+              Back
+            </Button>
+          )}
+          {isLast ? (
+            <Button size="sm" className="h-7 px-3 text-xs" onClick={onComplete}>
+              Done
+            </Button>
+          ) : (
+            <Button size="sm" className="h-7 px-3 text-xs" onClick={onNext}>
+              Next
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main tour controller ────────────────────────────────────────────────────
+
 export default function OnboardingTour() {
   const isActive = useTourStore((s) => s.isActive);
   const currentStep = useTourStore((s) => s.currentStep);
   const nextStep = useTourStore((s) => s.nextStep);
   const prevStep = useTourStore((s) => s.prevStep);
   const completeTour = useTourStore((s) => s.completeTour);
-
-  const [position, setPosition] = useState<TooltipPosition>({ top: 0, left: 0 });
-  const [visible, setVisible] = useState(false);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-
-  const step = TOUR_STEPS[currentStep];
-  const isFirst = currentStep === 0;
-  const isLast = currentStep === TOUR_STEPS.length - 1;
-
-  const updatePosition = useCallback(() => {
-    if (!step) return;
-
-    // For the sidebar step, try the expanded panel first, then fall back to the collapsed toggle
-    let targetTestId = step.targetTestId;
-    let placement = step.placement;
-    if (step.id === 'sidebar') {
-      const expandedPanel = document.querySelector('[data-testid="sidebar-panel"]');
-      if (!expandedPanel) {
-        targetTestId = 'sidebar-toggle-collapsed';
-        placement = 'left';
-      }
-    }
-
-    const target = document.querySelector(`[data-testid="${targetTestId}"]`);
-    if (!target) {
-      // Fallback: center of viewport
-      setPosition({
-        top: window.innerHeight / 2 - 40,
-        left: window.innerWidth / 2 - 140,
-      });
-      setVisible(true);
-      return;
-    }
-
-    const targetRect = target.getBoundingClientRect();
-    const tooltipWidth = 280;
-    const tooltipHeight = 100;
-
-    const raw = computePosition(targetRect, placement, tooltipWidth, tooltipHeight);
-    const clamped = clampToViewport(raw, tooltipWidth, tooltipHeight);
-    setPosition(clamped);
-    setVisible(true);
-  }, [step]);
-
-  // Hide immediately when step changes, then recompute position
-  useEffect(() => {
-    setVisible(false);
-  }, [currentStep]);
-
-  // Recompute position when step changes or window resizes
-  useEffect(() => {
-    if (!isActive) {
-      setVisible(false);
-      return;
-    }
-
-    // Small delay to let layout settle and ensure hidden state is painted first
-    const timer = setTimeout(updatePosition, 80);
-    window.addEventListener('resize', updatePosition);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', updatePosition);
-    };
-  }, [isActive, currentStep, updatePosition]);
 
   // Escape key to dismiss
   useEffect(() => {
@@ -151,70 +208,22 @@ export default function OnboardingTour() {
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [isActive, completeTour]);
 
+  const step = TOUR_STEPS[currentStep];
   if (!isActive || !step) return null;
 
-  const Icon = step.icon;
-
-  const tooltip = (
-    <div
-      ref={tooltipRef}
-      role="dialog"
-      aria-label="Onboarding Tour"
-      data-testid="onboarding-tour-tooltip"
-      className={cn(
-        'fixed z-[9999] w-[280px] rounded-lg border border-border bg-popover p-4 shadow-lg transition-opacity duration-200',
-        visible ? 'opacity-100' : 'opacity-0',
-      )}
-      style={{ top: position.top, left: position.left }}
-    >
-      {/* Message */}
-      <div className="mb-3 flex items-start gap-2">
-        <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
-        <p className="text-sm text-popover-foreground">{step.message}</p>
-      </div>
-
-      {/* Dot indicators */}
-      <div className="mb-3 flex items-center justify-center gap-1.5">
-        {TOUR_STEPS.map((_, i) => (
-          <span
-            key={i}
-            className={cn(
-              'size-1.5 rounded-full transition-colors',
-              i === currentStep ? 'bg-primary' : 'bg-muted-foreground/30',
-            )}
-          />
-        ))}
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2 text-xs text-muted-foreground"
-          onClick={completeTour}
-        >
-          Skip
-        </Button>
-        <div className="flex gap-1.5">
-          {!isFirst && (
-            <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={prevStep}>
-              Back
-            </Button>
-          )}
-          {isLast ? (
-            <Button size="sm" className="h-7 px-3 text-xs" onClick={completeTour}>
-              Done
-            </Button>
-          ) : (
-            <Button size="sm" className="h-7 px-3 text-xs" onClick={nextStep}>
-              Next
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
+  // Key forces React to unmount the old tooltip and mount a new one at the correct position
+  return createPortal(
+    <StepTooltip
+      key={`tour-step-${currentStep}`}
+      step={step}
+      stepIndex={currentStep}
+      totalSteps={TOUR_STEPS.length}
+      isFirst={currentStep === 0}
+      isLast={currentStep === TOUR_STEPS.length - 1}
+      onNext={nextStep}
+      onPrev={prevStep}
+      onComplete={completeTour}
+    />,
+    document.body,
   );
-
-  return createPortal(tooltip, document.body);
 }
