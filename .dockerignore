@@ -1,0 +1,31 @@
+# Git
+.git/
+.gitattributes
+
+# IDE / workspace
+.vscode/
+.kiro/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.hypothesis/
+
+# Node
+frontend/node_modules/
+frontend/.next/
+
+# Test files
+tests/
+frontend/__tests__/
+
+# Data (will be mounted as volume)
+data/
+
+# Docs
+docs/
+
+# AWS icons source
+aws-icons/

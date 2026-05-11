@@ -125,8 +125,8 @@ export default function Canvas() {
           (umlPayload as Record<string, unknown>).classData = { ...DEFAULT_UML_CLASS_DATA };
         }
         if (payload.width > 0 && payload.height > 0) {
-          (umlPayload.visualConfig as Record<string, unknown>).width = payload.width;
-          (umlPayload.visualConfig as Record<string, unknown>).height = payload.height;
+          (umlPayload.visualConfig as unknown as Record<string, unknown>).width = payload.width;
+          (umlPayload.visualConfig as unknown as Record<string, unknown>).height = payload.height;
         }
         addCanvasObject(umlPayload);
         setActiveTool('pointer');

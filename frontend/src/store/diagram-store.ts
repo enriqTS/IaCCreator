@@ -829,16 +829,16 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           };
           nextObjects.set(newId, pasted);
         } else {
-          // geometric
+          // geometric / text / uml
           const offsetX = position.x - centroidX;
           const offsetY = position.y - centroidY;
-          const pasted: GeometricObject = {
+          const pasted: CanvasObject = {
             ...obj,
             id: newId,
             zIndex: maxZ,
             groupId: undefined,
             position: { x: obj.position.x + offsetX, y: obj.position.y + offsetY },
-          };
+          } as CanvasObject;
           nextObjects.set(newId, pasted);
         }
       }
