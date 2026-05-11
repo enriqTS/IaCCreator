@@ -28,13 +28,18 @@ interface TooltipPosition {
 
 function computePosition(
   targetRect: DOMRect,
-  placement: 'top' | 'bottom' | 'left' | 'right',
+  placement: 'top' | 'bottom' | 'left' | 'right' | 'center',
   tooltipWidth: number,
   tooltipHeight: number,
 ): TooltipPosition {
   const gap = 12;
 
   switch (placement) {
+    case 'center':
+      return {
+        top: window.innerHeight / 2 - tooltipHeight / 2,
+        left: window.innerWidth / 2 - tooltipWidth / 2,
+      };
     case 'bottom':
       return {
         top: targetRect.bottom + gap,
@@ -66,7 +71,7 @@ function clampToViewport(pos: TooltipPosition, width: number, height: number): T
   };
 }
 
-function getTargetInfo(step: TourStepData): { testId: string; placement: 'top' | 'bottom' | 'left' | 'right' } {
+function getTargetInfo(step: TourStepData): { testId: string; placement: 'top' | 'bottom' | 'left' | 'right' | 'center' } {
   if (step.id === 'sidebar') {
     const expandedPanel = document.querySelector('[data-testid="sidebar-panel"]');
     if (!expandedPanel) {

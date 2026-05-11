@@ -8,7 +8,7 @@ export interface TourStepData {
   /** data-testid of the target element to anchor the tooltip to */
   targetTestId: string;
   /** Preferred tooltip placement relative to the target */
-  placement: 'top' | 'bottom' | 'left' | 'right';
+  placement: 'top' | 'bottom' | 'left' | 'right' | 'center';
   /** Icon shown alongside the message */
   icon: LucideIcon;
 }
@@ -25,7 +25,7 @@ export const TOUR_STEPS: TourStepData[] = [
     id: 'canvas',
     message: 'Your drawing area — pan, zoom, and place elements here.',
     targetTestId: 'viewport-transform-container',
-    placement: 'top',
+    placement: 'center',
     icon: Move,
   },
   {
