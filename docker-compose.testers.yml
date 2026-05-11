@@ -1,0 +1,30 @@
+# For testers — pulls pre-built images from GitHub Container Registry.
+# Usage:
+#   docker compose -f docker-compose.testers.yml up
+#
+# To pull the latest version:
+#   docker compose -f docker-compose.testers.yml pull
+#   docker compose -f docker-compose.testers.yml up
+
+services:
+  backend:
+    image: ghcr.io/enriqts/iacreator-backend:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - CORS_ORIGIN=http://localhost:3000
+      - PERSISTENCE_BACKEND=tinydb
+    volumes:
+      - backend-data:/app/data
+
+  frontend:
+    image: ghcr.io/enriqts/iacreator-frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  backend-data:
