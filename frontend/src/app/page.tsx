@@ -208,7 +208,7 @@ export default function DiagramEditorPage() {
         onClose={() => setPreferencesOpen(false)}
       />
       <ToastProvider />
-      <WelcomeDialog />
+      <OnboardingTour />
     </div>
   );
 }
