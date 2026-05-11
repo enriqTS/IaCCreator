@@ -12,7 +12,7 @@ import PreferencesDialog from '@/components/menu/PreferencesDialog';
 import NewDiagramDialog from '@/components/menu/NewDiagramDialog';
 import ProjectSettingsDialog from '@/components/menu/ProjectSettingsDialog';
 import ToastProvider from '@/components/toast/ToastProvider';
-import WelcomeDialog from '@/components/tour/WelcomeDialog';
+import OnboardingTour from '@/components/tour/OnboardingTour';
 import { saveDiagram, listSavedDiagrams, loadDiagram } from '@/utils/storage';
 import { exportToTerraform } from '@/utils/export';
 
