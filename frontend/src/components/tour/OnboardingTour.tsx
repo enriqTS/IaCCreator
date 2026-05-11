@@ -81,7 +81,18 @@ export default function OnboardingTour() {
   const updatePosition = useCallback(() => {
     if (!step) return;
 
-    const target = document.querySelector(`[data-testid="${step.targetTestId}"]`);
+    // For the sidebar step, try the expanded panel first, then fall back to the collapsed toggle
+    let targetTestId = step.targetTestId;
+    let placement = step.placement;
+    if (step.id === 'sidebar') {
+      const expandedPanel = document.querySelector('[data-testid="sidebar-panel"]');
+      if (!expandedPanel) {
+        targetTestId = 'sidebar-toggle-collapsed';
+        placement = 'left';
+      }
+    }
+
+    const target = document.querySelector(`[data-testid="${targetTestId}"]`);
     if (!target) {
       // Fallback: center of viewport
       setPosition({
@@ -93,11 +104,10 @@ export default function OnboardingTour() {
     }
 
     const targetRect = target.getBoundingClientRect();
-    // Estimate tooltip size (will refine after render)
     const tooltipWidth = 280;
     const tooltipHeight = 100;
 
-    const raw = computePosition(targetRect, step.placement, tooltipWidth, tooltipHeight);
+    const raw = computePosition(targetRect, placement, tooltipWidth, tooltipHeight);
     const clamped = clampToViewport(raw, tooltipWidth, tooltipHeight);
     setPosition(clamped);
     setVisible(true);
