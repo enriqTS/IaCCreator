@@ -27,5 +27,5 @@ data/
 # Docs
 docs/
 
-# AWS icons source
-aws-icons/
+# AWS icons source (root level only, not frontend/public/aws-icons)
+/aws-icons/
