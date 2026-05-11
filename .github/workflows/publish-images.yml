@@ -30,7 +30,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.backend
+          file: build/Dockerfile.backend
           push: true
           tags: ${{ env.IMAGE_PREFIX }}-backend:latest
 
@@ -38,6 +38,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.frontend
+          file: build/Dockerfile.frontend
           push: true
           tags: ${{ env.IMAGE_PREFIX }}-frontend:latest
