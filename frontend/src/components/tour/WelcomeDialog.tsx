@@ -48,15 +48,15 @@ export default function WelcomeDialog() {
       >
         {/* Tour image or placeholder */}
         {page.image ? (
-          <div className="w-full overflow-hidden rounded-md border border-muted-foreground/20">
+          <div className="flex h-48 w-full items-center justify-center overflow-hidden rounded-md border border-muted-foreground/20 bg-muted/10">
             <img
               src={page.image}
               alt={page.title}
-              className="aspect-video w-full object-cover object-top"
+              className="max-h-full max-w-full object-contain"
             />
           </div>
         ) : (
-          <div className="flex aspect-video w-full items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 bg-muted/20">
+          <div className="flex h-48 w-full items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 bg-muted/20">
             <Icon className="size-12 text-muted-foreground/50" />
           </div>
         )}
