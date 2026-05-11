@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useToastStore } from '@/store/toast-store';
+import { useTourStore } from '@/store/tour-store';
 import Canvas from '@/components/canvas/Canvas';
 import Toolbar from '@/components/toolbar/Toolbar';
 import HamburgerMenu from '@/components/menu/HamburgerMenu';
@@ -11,6 +12,7 @@ import PreferencesDialog from '@/components/menu/PreferencesDialog';
 import NewDiagramDialog from '@/components/menu/NewDiagramDialog';
 import ProjectSettingsDialog from '@/components/menu/ProjectSettingsDialog';
 import ToastProvider from '@/components/toast/ToastProvider';
+import WelcomeDialog from '@/components/tour/WelcomeDialog';
 import { saveDiagram, listSavedDiagrams, loadDiagram } from '@/utils/storage';
 import { exportToTerraform } from '@/utils/export';
 
@@ -94,6 +96,11 @@ export default function DiagramEditorPage() {
   }, []);
 
   const addToast = useToastStore((s) => s.addToast);
+  const startTour = useTourStore((s) => s.startTour);
+
+  const handleReplayTour = useCallback(() => {
+    startTour();
+  }, [startTour]);
 
   // HamburgerMenu callbacks
   const handleNewDiagram = useCallback(() => {
@@ -185,6 +192,7 @@ export default function DiagramEditorPage() {
         onExport={handleExport}
         onProjectSettings={handleProjectSettings}
         onPreferences={() => setPreferencesOpen(true)}
+        onReplayTour={handleReplayTour}
       />
       <SidebarPanel />
       <NewDiagramDialog
@@ -200,6 +208,7 @@ export default function DiagramEditorPage() {
         onClose={() => setPreferencesOpen(false)}
       />
       <ToastProvider />
+      <WelcomeDialog />
     </div>
   );
 }

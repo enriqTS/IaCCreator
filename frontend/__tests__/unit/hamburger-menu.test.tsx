@@ -12,6 +12,7 @@ function makeProps(overrides: Partial<Record<string, () => void>> = {}) {
     onExport: vi.fn(),
     onProjectSettings: vi.fn(),
     onPreferences: vi.fn(),
+    onReplayTour: vi.fn(),
     ...overrides,
   };
 }

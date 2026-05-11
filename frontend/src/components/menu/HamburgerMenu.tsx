@@ -8,6 +8,7 @@ import {
   FileOutput,
   Settings,
   Wrench,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +27,7 @@ export interface HamburgerMenuProps {
   onExport: () => void;
   onProjectSettings: () => void;
   onPreferences: () => void;
+  onReplayTour: () => void;
 }
 
 export default function HamburgerMenu(props: HamburgerMenuProps) {
@@ -93,6 +95,14 @@ export default function HamburgerMenu(props: HamburgerMenuProps) {
           >
             <Settings />
             Preferences
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            data-testid="menu-item-onReplayTour"
+            onSelect={props.onReplayTour}
+          >
+            <HelpCircle />
+            Replay Tour
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
