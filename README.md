@@ -60,10 +60,52 @@ my-project/
 
 ### Prerequisites
 
-- Python 3.11+
-- Node.js 20.9+
+- Docker and Docker Compose
 
-### Backend
+### Running with Docker (recommended)
+
+```bash
+docker compose up --build
+```
+
+This starts both the frontend and backend. Open `http://localhost:3000` in your browser.
+
+To run in the background:
+
+```bash
+docker compose up --build -d
+```
+
+To stop:
+
+```bash
+docker compose down
+```
+
+Diagram data is persisted in a Docker volume, so it survives container restarts.
+
+### Pulling the latest version (testers)
+
+If you received the `docker-compose.testers.yml` file:
+
+```bash
+docker compose -f docker-compose.testers.yml pull
+docker compose -f docker-compose.testers.yml up
+```
+
+This pulls pre-built images from the container registry — no source code or build step needed.
+
+### Running without Docker (manual setup)
+
+<details>
+<summary>Click to expand</summary>
+
+#### Prerequisites
+
+- Python 3.14+
+- Node.js 24+
+
+#### Backend
 
 ```bash
 pip install -r requirements.txt
@@ -84,7 +126,7 @@ To configure the allowed frontend origin for CORS:
 CORS_ORIGIN=http://localhost:3000  # default
 ```
 
-### Frontend
+#### Frontend
 
 ```bash
 cd frontend
@@ -101,6 +143,8 @@ NEXT_PUBLIC_API_URL=http://localhost:8000  # default
 ```
 
 Next.js rewrites automatically proxy `/api/*` and `/generate/*` requests to the backend.
+
+</details>
 
 ### Run Tests
 
