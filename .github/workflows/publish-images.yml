@@ -1,4 +1,4 @@
-name: Build and Publish Docker Images
+name: Build and Publish Docker Image
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/enriqts/iacreator
+  IMAGE_NAME: ghcr.io/enriqts/iacreator
 
 jobs:
   build-and-push:
@@ -26,18 +26,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push backend
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: build/Dockerfile.backend
+          file: build/Dockerfile
           push: true
-          tags: ${{ env.IMAGE_PREFIX }}-backend:latest
-
-      - name: Build and push frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: build/Dockerfile.frontend
-          push: true
-          tags: ${{ env.IMAGE_PREFIX }}-frontend:latest
+          tags: ${{ env.IMAGE_NAME }}:latest
