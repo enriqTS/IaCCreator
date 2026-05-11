@@ -1,22 +1,20 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-/** Total number of tour pages. Must match TOUR_PAGES.length in data/tour-pages.ts */
-const TOUR_PAGES_COUNT = 5;
+import { TOUR_STEP_COUNT } from '@/data/tour-pages';
 
 export interface TourState {
-  /** Whether the welcome dialog is currently visible */
+  /** Whether the tour is currently visible */
   isActive: boolean;
   /** Whether the user has completed or skipped the tour */
   completed: boolean;
-  /** Current page index (0-based) */
-  currentPage: number;
-  /** Start or restart the tour from page 0 */
+  /** Current step index (0-based) */
+  currentStep: number;
+  /** Start or restart the tour from step 0 */
   startTour: () => void;
-  /** Advance to the next page (clamped to last page index) */
-  nextPage: () => void;
-  /** Go back to the previous page (clamped to 0) */
-  prevPage: () => void;
+  /** Advance to the next step (clamped to last step index) */
+  nextStep: () => void;
+  /** Go back to the previous step (clamped to 0) */
+  prevStep: () => void;
   /** Complete or skip the tour — sets completed=true, isActive=false */
   completeTour: () => void;
 }
@@ -26,15 +24,15 @@ export const useTourStore = create<TourState>()(
     (set, get) => ({
       isActive: false,
       completed: false,
-      currentPage: 0,
-      startTour: () => set({ isActive: true, currentPage: 0 }),
-      nextPage: () => {
-        const { currentPage } = get();
-        set({ currentPage: Math.min(currentPage + 1, TOUR_PAGES_COUNT - 1) });
+      currentStep: 0,
+      startTour: () => set({ isActive: true, currentStep: 0 }),
+      nextStep: () => {
+        const { currentStep } = get();
+        set({ currentStep: Math.min(currentStep + 1, TOUR_STEP_COUNT - 1) });
       },
-      prevPage: () => {
-        const { currentPage } = get();
-        set({ currentPage: Math.max(0, currentPage - 1) });
+      prevStep: () => {
+        const { currentStep } = get();
+        set({ currentStep: Math.max(0, currentStep - 1) });
       },
       completeTour: () => set({ isActive: false, completed: true }),
     }),
@@ -50,14 +48,14 @@ export const useTourStore = create<TourState>()(
           );
           if (state) {
             state.isActive = true;
-            state.currentPage = 0;
+            state.currentStep = 0;
           }
           return;
         }
         if (state && !state.completed) {
           // First visit — activate tour after hydration
           state.isActive = true;
-          state.currentPage = 0;
+          state.currentStep = 0;
         }
       },
     },
