@@ -113,6 +113,11 @@ export default function OnboardingTour() {
     setVisible(true);
   }, [step]);
 
+  // Hide immediately when step changes, then recompute position
+  useEffect(() => {
+    setVisible(false);
+  }, [currentStep]);
+
   // Recompute position when step changes or window resizes
   useEffect(() => {
     if (!isActive) {
@@ -120,8 +125,8 @@ export default function OnboardingTour() {
       return;
     }
 
-    // Small delay to let layout settle
-    const timer = setTimeout(updatePosition, 50);
+    // Small delay to let layout settle and ensure hidden state is painted first
+    const timer = setTimeout(updatePosition, 80);
     window.addEventListener('resize', updatePosition);
 
     return () => {
