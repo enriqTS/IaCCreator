@@ -41,6 +41,8 @@ COPY --from=frontend-builder /app/.next/static ./frontend/.next/static
 COPY build/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
+ENV HOSTNAME=0.0.0.0
+
 EXPOSE 3000 8000
 
 CMD ["/app/entrypoint.sh"]
