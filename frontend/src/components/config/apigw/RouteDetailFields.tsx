@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -10,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useApigwConfigStore } from '@/store/apigw-config-store';
 import type { RouteItem } from '@/types/apigw-config';
 
 interface RouteDetailFieldsProps {
@@ -17,23 +19,33 @@ interface RouteDetailFieldsProps {
   onUpdate: (updates: Partial<RouteItem>) => void;
 }
 
-const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'ANY'] as const;
-const INTEGRATION_TYPES = ['AWS_PROXY', 'HTTP_PROXY', 'HTTP', 'MOCK'] as const;
+// ANY first since it's the default, then common methods first
+const HTTP_METHODS = ['ANY', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] as const;
+
+const INTEGRATION_TYPES = [
+  { value: 'AWS_PROXY', label: 'Lambda (AWS_PROXY)' },
+  { value: 'HTTP_PROXY', label: 'HTTP Proxy' },
+  { value: 'HTTP', label: 'HTTP Custom' },
+  { value: 'MOCK', label: 'Mock' },
+] as const;
+
 const PAYLOAD_FORMAT_VERSIONS = ['1.0', '2.0'] as const;
 
 export default function RouteDetailFields({ route, onUpdate }: RouteDetailFieldsProps) {
-  // Debounced path state
-  const [pathValue, setPathValue] = useState(route.path);
-  const [integrationMethodValue, setIntegrationMethodValue] = useState(route.integration_method ?? '');
+  const authorizers = useApigwConfigStore((s) => s.authorizers);
 
-  // Sync local state when route prop changes (e.g. switching selected item)
+  // Debounced text states
+  const [pathValue, setPathValue] = useState(route.path);
+  const [targetUriValue, setTargetUriValue] = useState(route.target_service_uri ?? '');
+
+  // Sync local state when route prop changes
   useEffect(() => {
     setPathValue(route.path);
   }, [route.id, route.path]);
 
   useEffect(() => {
-    setIntegrationMethodValue(route.integration_method ?? '');
-  }, [route.id, route.integration_method]);
+    setTargetUriValue(route.target_service_uri ?? '');
+  }, [route.id, route.target_service_uri]);
 
   // Debounce path input
   useEffect(() => {
@@ -44,18 +56,19 @@ export default function RouteDetailFields({ route, onUpdate }: RouteDetailFields
     return () => clearTimeout(timer);
   }, [pathValue]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Debounce integration_method input
+  // Debounce target URI input
   useEffect(() => {
-    if (integrationMethodValue === (route.integration_method ?? '')) return;
+    if (targetUriValue === (route.target_service_uri ?? '')) return;
     const timer = setTimeout(() => {
-      onUpdate({ integration_method: integrationMethodValue });
+      onUpdate({ target_service_uri: targetUriValue });
     }, 300);
     return () => clearTimeout(timer);
-  }, [integrationMethodValue]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [targetUriValue]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showIntegrationMethod =
     route.integration_type === 'HTTP_PROXY' || route.integration_type === 'HTTP';
   const showPayloadFormatVersion = route.integration_type === 'AWS_PROXY';
+  const showTargetUri = route.integration_type && route.integration_type !== 'MOCK';
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -99,36 +112,64 @@ export default function RouteDetailFields({ route, onUpdate }: RouteDetailFields
           onValueChange={(value) =>
             onUpdate({
               integration_type: (value || undefined) as RouteItem['integration_type'],
-              // Clear dependent fields when type changes
               ...(value !== 'HTTP_PROXY' && value !== 'HTTP' ? { integration_method: undefined } : {}),
               ...(value !== 'AWS_PROXY' ? { payload_format_version: undefined } : {}),
+              ...(value === 'MOCK' ? { target_service_uri: undefined } : {}),
             })
           }
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="None" />
+            <SelectValue placeholder="Select integration..." />
           </SelectTrigger>
           <SelectContent>
             {INTEGRATION_TYPES.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Integration Method (shown for HTTP_PROXY / HTTP) */}
+      {/* Target Service URI (shown for non-MOCK integrations) */}
+      {showTargetUri && (
+        <div className="flex flex-col gap-1.5">
+          <Label>
+            {route.integration_type === 'AWS_PROXY' ? 'Lambda Function ARN / Service URI' : 'Target URL'}
+          </Label>
+          <Input
+            type="text"
+            value={targetUriValue}
+            onChange={(e) => setTargetUriValue(e.target.value)}
+            placeholder={
+              route.integration_type === 'AWS_PROXY'
+                ? 'arn:aws:lambda:us-east-1:123456789:function:my-fn'
+                : 'https://api.example.com/endpoint'
+            }
+            className="w-full"
+          />
+        </div>
+      )}
+
+      {/* Integration Method — dropdown (shown for HTTP_PROXY / HTTP) */}
       {showIntegrationMethod && (
         <div className="flex flex-col gap-1.5">
           <Label>Integration Method</Label>
-          <Input
-            type="text"
-            value={integrationMethodValue}
-            onChange={(e) => setIntegrationMethodValue(e.target.value)}
-            placeholder="GET"
-            className="w-full"
-          />
+          <Select
+            value={route.integration_method ?? 'ANY'}
+            onValueChange={(value) => onUpdate({ integration_method: value as RouteItem['integration_method'] })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select method" />
+            </SelectTrigger>
+            <SelectContent>
+              {HTTP_METHODS.map((method) => (
+                <SelectItem key={method} value={method}>
+                  {method}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
@@ -155,6 +196,44 @@ export default function RouteDetailFields({ route, onUpdate }: RouteDetailFields
           </Select>
         </div>
       )}
+
+      {/* Authorizer */}
+      <div className="flex flex-col gap-1.5">
+        <Label>Authorizer</Label>
+        <Select
+          value={route.authorizer_name ?? ''}
+          onValueChange={(value) => onUpdate({ authorizer_name: value || undefined })}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="None (public)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">None (public)</SelectItem>
+            {authorizers.map((auth) => (
+              <SelectItem key={auth.id} value={auth.name}>
+                {auth.name} ({auth.type})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {authorizers.length === 0 && (
+          <span className="text-xs text-muted-foreground">
+            Add authorizers in the Authorizers tab first.
+          </span>
+        )}
+      </div>
+
+      {/* API Key Required */}
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={`route-api-key-${route.id}`}
+          checked={route.api_key_required ?? false}
+          onCheckedChange={(checked) => onUpdate({ api_key_required: checked === true })}
+        />
+        <Label htmlFor={`route-api-key-${route.id}`} className="cursor-pointer">
+          Require API Key
+        </Label>
+      </div>
     </div>
   );
 }

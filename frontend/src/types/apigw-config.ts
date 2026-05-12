@@ -25,11 +25,17 @@ export interface RouteItem {
   /** Reference to the integration ID or empty string if unset. */
   integration_ref: string;
   /** The type of backend integration for this route. */
-  integration_type?: 'HTTP_PROXY' | 'HTTP' | 'AWS_PROXY' | 'MOCK';
+  integration_type?: 'AWS_PROXY' | 'HTTP_PROXY' | 'HTTP' | 'MOCK';
   /** HTTP method used for the backend integration (shown for HTTP_PROXY/HTTP). */
-  integration_method?: string;
+  integration_method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'ANY';
   /** Payload format version for Lambda proxy integrations (shown for AWS_PROXY). */
   payload_format_version?: '1.0' | '2.0';
+  /** Target service URI (Lambda ARN, HTTP URL, SQS URL, etc.). */
+  target_service_uri?: string;
+  /** Name of the authorizer attached to this route (references an AuthorizerItem name). */
+  authorizer_name?: string;
+  /** Whether this route requires an API key. */
+  api_key_required?: boolean;
 }
 
 /**
