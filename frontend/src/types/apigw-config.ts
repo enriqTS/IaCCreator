@@ -36,6 +36,8 @@ export interface RouteItem {
   authorizer_name?: string;
   /** Whether this route requires an API key. */
   api_key_required?: boolean;
+  /** Tag from OpenAPI spec for grouping (optional, set during import). */
+  tag?: string;
 }
 
 /**

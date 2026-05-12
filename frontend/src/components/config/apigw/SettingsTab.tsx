@@ -1,6 +1,9 @@
 'use client';
 
+import { useState } from 'react';
+import { Upload } from 'lucide-react';
 import { useApigwConfigStore } from '@/store/apigw-config-store';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,9 +16,12 @@ import {
 } from '@/components/ui/select';
 import KeyValueEditor from '@/components/config/KeyValueEditor';
 import ListEditor from '@/components/config/ListEditor';
+import { ImportOpenApiDialog } from './ImportOpenApiDialog';
 import type { ProtocolType } from '@/types/apigw-config';
 
 export default function SettingsTab() {
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+
   const protocolType = useApigwConfigStore((s) => s.protocol_type);
   const apiName = useApigwConfigStore((s) => s.api_name);
   const description = useApigwConfigStore((s) => s.description);
@@ -32,6 +38,18 @@ export default function SettingsTab() {
 
   return (
     <div className="flex w-full flex-col gap-4">
+      {/* Import OpenAPI */}
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() => setImportDialogOpen(true)}
+      >
+        <Upload className="size-4" />
+        Import OpenAPI Spec
+      </Button>
+
+      <ImportOpenApiDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
+
       {/* Protocol Type */}
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="protocol-type">Protocol Type</Label>
