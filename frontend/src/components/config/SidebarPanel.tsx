@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PanelLeftOpen, PanelRightOpen, PanelLeftClose, PanelRightClose, Trash2 } from 'lucide-react';
 import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
 import SchemaConfigForm from './SchemaConfigForm';
+import ApigwDynamicConfigUI from './apigw/ApigwDynamicConfigUI';
 import VisualTab from './VisualTab';
 
 /** Determine available tabs for a given canvas object type. */
@@ -368,7 +369,9 @@ function SingleSelectionView({
         {tabs.includes('Variables') && (
           <TabsContent value="Variables" data-testid="variables-tab-content">
             {selectedObject.objectType === 'architecture-block' && (
-              <SchemaConfigForm elementId={selectedObjectId} serviceType={selectedObject.serviceType} />
+              selectedObject.serviceType === 'api-gateway'
+                ? <ApigwDynamicConfigUI elementId={selectedObjectId} />
+                : <SchemaConfigForm elementId={selectedObjectId} serviceType={selectedObject.serviceType} />
             )}
           </TabsContent>
         )}
