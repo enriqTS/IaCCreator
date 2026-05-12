@@ -5,6 +5,7 @@ import { useApigwConfigStore } from '@/store/apigw-config-store';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import type { ProtocolType } from '@/types/apigw-config';
 import type { ArchitectureBlock } from '@/types/diagram';
 
@@ -26,9 +27,9 @@ interface ApigwDynamicConfigUIProps {
 }
 
 const TABS_BY_PROTOCOL: Record<ProtocolType, string[]> = {
-  HTTP: ['Routes', 'Stages', 'Authorizers', 'Domain', 'Settings'],
-  REST: ['Routes', 'Stages', 'Authorizers', 'Domain', 'Settings'],
-  WEBSOCKET: ['Expressions', 'Stages', 'Authorizers', 'Settings'],
+  HTTP: ['Settings', 'Routes', 'Stages', 'Authorizers', 'Domain'],
+  REST: ['Settings', 'Routes', 'Stages', 'Authorizers', 'Domain'],
+  WEBSOCKET: ['Settings', 'Expressions', 'Stages', 'Authorizers'],
 };
 
 export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUIProps) {
@@ -145,12 +146,13 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
   return (
     <>
       <Tabs value={effectiveTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList data-testid="apigw-tab-bar" className="w-full flex-wrap">
+        <TabsList data-testid="apigw-tab-bar" className={cn('w-full h-auto grid gap-0', tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5')}>
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab}
               value={tab}
               data-testid={`apigw-tab-${tab.toLowerCase()}`}
+              className="text-xs px-2"
             >
               {tab}
             </TabsTrigger>
