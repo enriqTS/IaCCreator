@@ -73,11 +73,19 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
   }, [tabs, activeTab]);
 
   // When protocol changes and current tab is unavailable, switch to first tab
+  // Also close the detail panel since the context has changed
   useEffect(() => {
+    selectItem(null, null);
     if (activeTab && !tabs.includes(activeTab)) {
       setActiveTab(tabs[0]);
     }
   }, [protocolType]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Close detail panel when switching tabs
+  const handleTabChange = (tab: string) => {
+    selectItem(null, null);
+    setActiveTab(tab);
+  };
 
   // Build detail panel title and content
   const detailPanelContent = useMemo(() => {
@@ -145,7 +153,7 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
 
   return (
     <>
-      <Tabs value={effectiveTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={effectiveTab} onValueChange={handleTabChange} className="w-full">
         <TabsList data-testid="apigw-tab-bar" className={cn('w-full h-auto grid gap-0', tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5')}>
           {tabs.map((tab) => (
             <TabsTrigger
