@@ -108,13 +108,13 @@ export default function RouteDetailFields({ route, onUpdate }: RouteDetailFields
       <div className="flex flex-col gap-1.5">
         <Label>Integration Type</Label>
         <Select
-          value={route.integration_type ?? ''}
+          value={route.integration_type ?? '__none__'}
           onValueChange={(value) =>
             onUpdate({
-              integration_type: (value || undefined) as RouteItem['integration_type'],
+              integration_type: value === '__none__' ? undefined : value as RouteItem['integration_type'],
               ...(value !== 'HTTP_PROXY' && value !== 'HTTP' ? { integration_method: undefined } : {}),
               ...(value !== 'AWS_PROXY' ? { payload_format_version: undefined } : {}),
-              ...(value === 'MOCK' ? { target_service_uri: undefined } : {}),
+              ...(value === 'MOCK' || value === '__none__' ? { target_service_uri: undefined } : {}),
             })
           }
         >
@@ -122,6 +122,7 @@ export default function RouteDetailFields({ route, onUpdate }: RouteDetailFields
             <SelectValue placeholder="Select integration..." />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="__none__">None</SelectItem>
             {INTEGRATION_TYPES.map((type) => (
               <SelectItem key={type.value} value={type.value}>
                 {type.label}
@@ -201,14 +202,14 @@ export default function RouteDetailFields({ route, onUpdate }: RouteDetailFields
       <div className="flex flex-col gap-1.5">
         <Label>Authorizer</Label>
         <Select
-          value={route.authorizer_name ?? ''}
-          onValueChange={(value) => onUpdate({ authorizer_name: value || undefined })}
+          value={route.authorizer_name ?? '__none__'}
+          onValueChange={(value) => onUpdate({ authorizer_name: value === '__none__' ? undefined : value })}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="None (public)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">None (public)</SelectItem>
+            <SelectItem value="__none__">None (public)</SelectItem>
             {authorizers.map((auth) => (
               <SelectItem key={auth.id} value={auth.name}>
                 {auth.name} ({auth.type})
