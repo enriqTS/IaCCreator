@@ -224,6 +224,18 @@ class ResourceConfig(BaseModel):
     cors_configuration: Optional[dict] = None
     disable_execute_api_endpoint: Optional[bool] = None
     route_selection_expression: Optional[str] = None
+    # API Gateway — new fields
+    routes: Optional[list[dict]] = None
+    stages: Optional[list[dict]] = None
+    authorizers: Optional[list[dict]] = None
+    custom_domain: Optional[dict] = None
+    vpc_links: Optional[list[dict]] = None
+    integrations: Optional[list[dict]] = None
+    api_key_required: Optional[bool] = None
+    throttling_burst_limit: Optional[int] = None
+    throttling_rate_limit: Optional[float] = None
+    access_log_retention_days: Optional[int] = None
+    access_log_format: Optional[str] = None
     # CloudWatch
     retention_in_days: Optional[int] = None
     kms_key_id: Optional[str] = None

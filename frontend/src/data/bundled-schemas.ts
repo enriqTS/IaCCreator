@@ -110,6 +110,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     { name: 'deletion_protection_enabled', type: 'bool', description: 'Enable deletion protection for the table', default: false, group: 'Metadata' },
   ],
   'api-gateway': [
+    // ─── General ───────────────────────────────────────────────────
     { name: 'api_name', type: 'string', description: 'Name of the API Gateway', group: 'General' },
     {
       name: 'protocol_type', type: 'string', description: 'API protocol type', default: 'HTTP', group: 'General',
@@ -120,9 +121,73 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       ],
     },
     { name: 'description', type: 'string', description: 'Description of the API', group: 'General' },
-    { name: 'cors_configuration', type: 'map', description: 'CORS configuration for the API', group: 'Configuration' },
-    { name: 'disable_execute_api_endpoint', type: 'bool', description: 'Disable the default execute-api endpoint', default: false, group: 'Configuration' },
-    { name: 'route_selection_expression', type: 'string', description: 'Route selection expression for WebSocket APIs', group: 'Configuration', visible_when: { field: 'protocol_type', equals: 'WEBSOCKET' } },
+    // ─── Routes ───────────────────────────────────────────────────
+    {
+      name: 'route_method', type: 'string', description: 'HTTP method for the route', default: 'ANY', group: 'Routes',
+      options: [
+        { value: 'GET', label: 'GET' },
+        { value: 'POST', label: 'POST' },
+        { value: 'PUT', label: 'PUT' },
+        { value: 'DELETE', label: 'DELETE' },
+        { value: 'PATCH', label: 'PATCH' },
+        { value: 'HEAD', label: 'HEAD' },
+        { value: 'OPTIONS', label: 'OPTIONS' },
+        { value: 'ANY', label: 'ANY' },
+      ],
+    },
+    { name: 'route_path', type: 'string', description: 'Route path (e.g., /users/{id})', group: 'Routes' },
+    { name: 'route_selection_expression', type: 'string', description: 'Route selection expression for WebSocket APIs', group: 'Routes', visible_when: { field: 'protocol_type', equals: 'WEBSOCKET' } },
+    // ─── Stages ───────────────────────────────────────────────────
+    { name: 'stage_name', type: 'string', description: 'Name of the deployment stage (e.g., $default, dev, prod)', group: 'Stages' },
+    { name: 'auto_deploy', type: 'bool', description: 'Whether to auto-deploy changes to this stage', default: true, group: 'Stages' },
+    { name: 'stage_variables', type: 'map', description: 'Stage variables as key-value pairs (max 50 entries)', group: 'Stages' },
+    // ─── Authorizers ──────────────────────────────────────────────
+    {
+      name: 'authorizer_type', type: 'string', description: 'Type of authorizer to attach to the API', group: 'Authorizers',
+      options: [
+        { value: 'JWT', label: 'JWT' },
+        { value: 'REQUEST', label: 'Lambda (REQUEST)' },
+        { value: 'COGNITO_USER_POOLS', label: 'Cognito User Pools' },
+      ],
+    },
+    { name: 'jwt_issuer', type: 'string', description: 'Issuer URL for the JWT authorizer', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'JWT' } },
+    { name: 'jwt_audience', type: 'string', description: 'Audience value(s) for the JWT authorizer', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'JWT' } },
+    { name: 'lambda_authorizer_uri', type: 'string', description: 'Lambda function invoke ARN for the REQUEST authorizer', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'REQUEST' } },
+    {
+      name: 'authorizer_payload_format_version', type: 'string', description: 'Payload format version for the Lambda authorizer', group: 'Authorizers',
+      visible_when: { field: 'authorizer_type', equals: 'REQUEST' },
+      options: [
+        { value: '1.0', label: '1.0' },
+        { value: '2.0', label: '2.0' },
+      ],
+    },
+    { name: 'cognito_user_pool_endpoint', type: 'string', description: 'Cognito User Pool endpoint URL', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'COGNITO_USER_POOLS' } },
+    { name: 'cognito_client_ids', type: 'list', description: 'List of Cognito User Pool client IDs', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'COGNITO_USER_POOLS' } },
+    // ─── Custom Domain ────────────────────────────────────────────
+    { name: 'custom_domain_name', type: 'string', description: 'Custom domain name for the API (e.g., api.example.com)', group: 'Custom Domain' },
+    { name: 'certificate_arn', type: 'string', description: 'ARN of the ACM certificate for the custom domain', group: 'Custom Domain' },
+    // ─── Integrations ─────────────────────────────────────────────
+    {
+      name: 'integration_type', type: 'string', description: 'Type of backend integration', group: 'Integrations',
+      options: [
+        { value: 'AWS_PROXY', label: 'AWS Lambda (AWS_PROXY)' },
+        { value: 'HTTP_PROXY', label: 'HTTP Proxy (HTTP_PROXY)' },
+        { value: 'HTTP', label: 'HTTP Custom (HTTP)' },
+      ],
+    },
+    { name: 'integration_uri', type: 'string', description: 'URI of the integration target', group: 'Integrations' },
+    { name: 'integration_method', type: 'string', description: 'HTTP method for the integration (required for HTTP_PROXY and HTTP)', group: 'Integrations', visible_when: { field: 'integration_type', equals: 'HTTP_PROXY' } },
+    // ─── Rate Limiting ────────────────────────────────────────────
+    { name: 'throttling_burst_limit', type: 'number', description: 'Maximum number of concurrent requests (burst)', group: 'Rate Limiting', validation: { min: 1, max: 5000 } },
+    { name: 'throttling_rate_limit', type: 'number', description: 'Maximum number of requests per second (steady-state)', group: 'Rate Limiting', validation: { min: 1, max: 10000 } },
+    // ─── VPC Link ─────────────────────────────────────────────────
+    { name: 'vpc_link_name', type: 'string', description: 'Name of the VPC link for private integrations', group: 'VPC Link' },
+    { name: 'vpc_link_subnet_ids', type: 'list', description: 'List of subnet IDs for the VPC link (1-3 entries)', group: 'VPC Link' },
+    { name: 'vpc_link_security_group_ids', type: 'list', description: 'List of security group IDs for the VPC link (1-5 entries)', group: 'VPC Link' },
+    // ─── Metadata ─────────────────────────────────────────────────
+    { name: 'cors_configuration', type: 'map', description: 'CORS configuration for the API', group: 'Metadata' },
+    { name: 'disable_execute_api_endpoint', type: 'bool', description: 'Disable the default execute-api endpoint', default: false, group: 'Metadata' },
+    { name: 'api_key_required', type: 'bool', description: 'Whether API key is required for routes', default: false, group: 'Metadata' },
     { name: 'tags', type: 'map', description: 'Tags to apply to the API Gateway', group: 'Metadata' },
   ],
   cloudwatch: [

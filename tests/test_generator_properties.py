@@ -130,6 +130,20 @@ _VAR_REF_OVERRIDES: dict[str, str] = {
 _SKIP_VAR_REF_FIELDS: dict[ServiceType, set[str]] = {
     ServiceType.DYNAMODB: {"hash_key_type", "range_key_type"},
     ServiceType.S3: {"versioning"},
+    # New API Gateway schema variables added by the overhaul — generator support
+    # for these fields is implemented in later tasks.
+    ServiceType.API_GATEWAY: {
+        "route_method", "route_path", "route_selection_expression",
+        "stage_name", "auto_deploy", "stage_variables",
+        "authorizer_type", "jwt_issuer", "jwt_audience",
+        "lambda_authorizer_uri", "authorizer_payload_format_version",
+        "cognito_user_pool_endpoint", "cognito_client_ids",
+        "custom_domain_name", "certificate_arn",
+        "integration_type", "integration_uri", "integration_method",
+        "throttling_burst_limit", "throttling_rate_limit",
+        "vpc_link_name", "vpc_link_subnet_ids", "vpc_link_security_group_ids",
+        "api_key_required",
+    },
 }
 
 

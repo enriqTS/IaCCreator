@@ -82,18 +82,37 @@ class ConnectionProcessor:
     def _handle_apigw_lambda(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> list[GeneratedFile]:
-        """API Gateway → Lambda: generate integration, route, and permission resources."""
+        """API Gateway → Lambda: generate integration, route, and permission resources.
+
+        Supports enhanced integration configuration via connection_config:
+        - integration_type: defaults to "AWS_PROXY"
+        - payload_format_version: defaults to "2.0"
+        - vpc_link_name: when present, adds connection_type="VPC_LINK" and connection_id
+        """
         source = connection.source_name
         target = connection.target_name
         integration_name = f"{source}_{target}_integration"
 
-        # --- Integration (existing) ---
+        # Read enhanced integration settings from connection_config (with backward-compatible defaults)
+        integration_type = connection.connection_config.get("integration_type", "AWS_PROXY")
+        payload_format_version = connection.connection_config.get("payload_format_version", "2.0")
+        vpc_link_name = connection.connection_config.get("vpc_link_name")
+
+        # --- Integration ---
         integration_attrs = {
             "api_id": f"aws_apigatewayv2_api.{source}.id",
-            "integration_type": "AWS_PROXY",
+            "integration_type": integration_type,
             "integration_uri": f"aws_lambda_function.{target}.invoke_arn",
-            "payload_format_version": "2.0",
+            "payload_format_version": payload_format_version,
         }
+
+        # Add VPC link attributes when vpc_link_name is specified
+        if vpc_link_name:
+            integration_attrs["connection_type"] = "VPC_LINK"
+            integration_attrs["connection_id"] = (
+                f"aws_apigatewayv2_vpc_link.{vpc_link_name}.id"
+            )
+
         integration_content = self._renderer.render_resource(
             "aws_apigatewayv2_integration", integration_name, integration_attrs
         )
