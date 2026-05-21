@@ -7,6 +7,14 @@ import type { AnchorPosition } from '@/utils/anchor';
 import { getObjectBounds } from '@/types/diagram';
 import { DEFAULT_LINE_VISUAL } from '@/types/diagram';
 import type { Point } from '@/types/diagram';
+import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
+
+/** Build an SVG path `d` attribute from an array of points using M and L commands */
+export function buildPathD(points: Point[]): string {
+  if (points.length === 0) return '';
+  const [first, ...rest] = points;
+  return `M ${first.x} ${first.y}` + rest.map((p) => ` L ${p.x} ${p.y}`).join('');
+}
 
 export default function PullToConnectOverlay() {
   const pullConnectState = useDiagramStore((s) => s.pullConnectState);
@@ -100,6 +108,95 @@ export default function PullToConnectOverlay() {
 
   if (!pullConnectState || !mousePos) return null;
 
+  const sourcePoint = pullConnectState.sourceAnchorPoint;
+
+  // --- Snap-target detection ---
+  // Iterate over all canvas objects excluding the source object and line objects.
+  // For each eligible object, check if the cursor is within snap threshold of an anchor.
+  // Track the closest snap result (smallest Euclidean distance) across all eligible objects.
+  let closestSnap: { point: Point; position: AnchorPosition } | null = null;
+  let closestSnapDistSq = Infinity;
+
+  for (const [objId, obj] of canvasObjects) {
+    if (objId === pullConnectState.sourceObjectId) continue;
+    if (obj.objectType === 'line') continue;
+
+    const bounds = getObjectBounds(obj);
+    const snap = findSnapAnchorWithPosition(mousePos, bounds);
+    if (snap) {
+      const dx = snap.point.x - mousePos.x;
+      const dy = snap.point.y - mousePos.y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq < closestSnapDistSq) {
+        closestSnapDistSq = distSq;
+        closestSnap = snap;
+      }
+    }
+  }
+
+  // Determine endpoint and end direction based on snap state
+  const endpoint: Point = closestSnap ? closestSnap.point : mousePos;
+  const endDirection: AnchorPosition = closestSnap
+    ? closestSnap.position
+    : inferAnchorPosition(mousePos, sourcePoint);
+
+  // Determine the rendering element based on routing mode
+  let previewElement: React.ReactNode;
+
+  if (globalRoutingMode === 'orthogonal') {
+    const waypoints = computeOrthogonalWaypoints(
+      sourcePoint,
+      pullConnectState.sourceAnchorPosition,
+      endpoint,
+      endDirection,
+    );
+    const pathPoints = [sourcePoint, ...waypoints, endpoint];
+
+    if (pathPoints.length >= 2) {
+      previewElement = (
+        <path
+          data-testid="pull-to-connect-preview-line"
+          d={buildPathD(pathPoints)}
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth={2}
+          strokeDasharray="6 4"
+          opacity={0.8}
+        />
+      );
+    } else {
+      // Fallback to line when fewer than 2 total path points
+      previewElement = (
+        <line
+          data-testid="pull-to-connect-preview-line"
+          x1={sourcePoint.x}
+          y1={sourcePoint.y}
+          x2={endpoint.x}
+          y2={endpoint.y}
+          stroke="#3b82f6"
+          strokeWidth={2}
+          strokeDasharray="6 4"
+          opacity={0.8}
+        />
+      );
+    }
+  } else {
+    // Diagonal mode: preserve existing <line> rendering behavior
+    previewElement = (
+      <line
+        data-testid="pull-to-connect-preview-line"
+        x1={sourcePoint.x}
+        y1={sourcePoint.y}
+        x2={endpoint.x}
+        y2={endpoint.y}
+        stroke="#3b82f6"
+        strokeWidth={2}
+        strokeDasharray="6 4"
+        opacity={0.8}
+      />
+    );
+  }
+
   return (
     <svg
       data-testid="pull-to-connect-overlay"
@@ -112,17 +209,7 @@ export default function PullToConnectOverlay() {
         overflow: 'visible',
       }}
     >
-      <line
-        data-testid="pull-to-connect-preview-line"
-        x1={pullConnectState.sourceAnchorPoint.x}
-        y1={pullConnectState.sourceAnchorPoint.y}
-        x2={mousePos.x}
-        y2={mousePos.y}
-        stroke="#3b82f6"
-        strokeWidth={2}
-        strokeDasharray="6 4"
-        opacity={0.8}
-      />
+      {previewElement}
     </svg>
   );
 }
