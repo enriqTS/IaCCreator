@@ -12,12 +12,8 @@ interface AnchorIndicatorsProps {
   locked?: boolean;
 }
 
-/** Screen-pixel size for the invisible clickable hit area */
-const HIT_ZONE_SCREEN = 24;
-/** Screen-pixel size for the visible anchor zone */
+/** Screen-pixel size for the unified anchor indicator (visual + interactive) */
 const ANCHOR_ZONE_SCREEN = 20;
-/** Screen-pixel size for the center dot */
-const DOT_SIZE_SCREEN = 8;
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
@@ -27,11 +23,8 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
 
   const anchors = getAnchorPoints(bounds);
 
-  // Scale-compensated sizes so they stay constant in screen pixels
-  const hitSize = HIT_ZONE_SCREEN / scale;
+  // Scale-compensated size so it stays constant in screen pixels
   const zoneSize = ANCHOR_ZONE_SCREEN / scale;
-  const dotSize = DOT_SIZE_SCREEN / scale;
-  const borderWidth = 1.5 / scale;
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, anchorPoint: Point, anchorPos: AnchorPosition) => {
@@ -58,44 +51,18 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
               position: 'absolute',
               left: 0,
               top: 0,
-              transform: `translate(${point.x - hitSize / 2}px, ${point.y - hitSize / 2}px)`,
-              width: hitSize,
-              height: hitSize,
+              transform: `translate(${point.x - zoneSize / 2}px, ${point.y - zoneSize / 2}px)`,
+              width: zoneSize,
+              height: zoneSize,
               pointerEvents: 'auto',
               zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               cursor: 'crosshair',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(34, 197, 94, 0.25)',
+              border: `${1.5 / scale}px solid rgba(34, 197, 94, 0.6)`,
+              boxSizing: 'border-box',
             }}
-          >
-            {/* Visible anchor zone */}
-            <div
-              style={{
-                width: zoneSize,
-                height: zoneSize,
-                borderRadius: `${3 / scale}px`,
-                backgroundColor: 'rgba(34, 197, 94, 0.25)',
-                border: `${borderWidth}px solid rgba(34, 197, 94, 0.6)`,
-                boxSizing: 'border-box',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pointerEvents: 'none',
-              }}
-            >
-              {/* Center dot */}
-              <div
-                style={{
-                  width: dotSize,
-                  height: dotSize,
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(34, 197, 94, 0.9)',
-                  pointerEvents: 'none',
-                }}
-              />
-            </div>
-          </div>
+          />
         );
       })}
     </>
