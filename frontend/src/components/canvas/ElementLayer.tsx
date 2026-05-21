@@ -156,7 +156,7 @@ export default function ElementLayer() {
         const objBounds = getObjectBounds(obj);
         const anchors = getAnchorPoints(objBounds);
         const smallerSide = Math.min(objBounds.width, objBounds.height);
-        const zoneSize = Math.max(4, Math.min(24, smallerSide * 0.3));
+        const zoneSize = Math.max(4, Math.min(24, smallerSide * 0.2));
         return ANCHOR_POSITIONS_LIST.map((pos) => {
           const point = anchors[pos];
           return (

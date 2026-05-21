@@ -13,7 +13,7 @@ interface AnchorIndicatorsProps {
 }
 
 /** Fraction of the object's smaller side used for the anchor indicator diameter */
-const ANCHOR_ZONE_RATIO = 0.3;
+const ANCHOR_ZONE_RATIO = 0.2;
 /** Minimum anchor indicator size in canvas pixels (prevents it from becoming too tiny) */
 const ANCHOR_ZONE_MIN = 4;
 /** Maximum anchor indicator size in canvas pixels (prevents it from becoming too large) */

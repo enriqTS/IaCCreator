@@ -37,7 +37,7 @@ import type { AnchorPosition } from '@/utils/anchor';
  */
 
 /** Fraction of the object's smaller side used for the anchor indicator diameter */
-const ANCHOR_ZONE_RATIO = 0.3;
+const ANCHOR_ZONE_RATIO = 0.2;
 /** Minimum anchor indicator size in canvas pixels */
 const ANCHOR_ZONE_MIN = 4;
 /** Maximum anchor indicator size in canvas pixels */

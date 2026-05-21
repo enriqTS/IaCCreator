@@ -24,7 +24,7 @@ import type { AnchorPosition } from '@/utils/anchor';
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
 /** Fraction of the object's smaller side used for the anchor indicator diameter */
-const ANCHOR_ZONE_RATIO = 0.3;
+const ANCHOR_ZONE_RATIO = 0.2;
 /** Minimum anchor indicator size in canvas pixels */
 const ANCHOR_ZONE_MIN = 4;
 /** Maximum anchor indicator size in canvas pixels */
@@ -172,7 +172,7 @@ describe('Property 2: Preservation — Non-Anchor Clicks and Display Behavior Un
 
           // Compute expected size: proportional to smaller side, clamped
           const smallerSide = Math.min(bounds.width, bounds.height);
-          const expectedSize = Math.max(4, Math.min(24, smallerSide * 0.3));
+          const expectedSize = Math.max(4, Math.min(24, smallerSide * 0.2));
 
           // Check that all 4 anchor indicators are rendered with correct proportional sizes
           for (const pos of ANCHOR_POSITIONS) {
