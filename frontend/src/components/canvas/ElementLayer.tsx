@@ -15,15 +15,19 @@ import AnchorIndicators from './AnchorIndicators';
 import AlignmentGuides from './AlignmentGuides';
 import { getObjectBounds } from '@/types/diagram';
 import { getAnchorPoints } from '@/utils/anchor';
+import type { AnchorPosition } from '@/utils/anchor';
 import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
 import type { Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
+
+const ANCHOR_POSITIONS_LIST: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
 export default function ElementLayer() {
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const objectGroups = useDiagramStore((s) => s.objectGroups);
   const activeTool = useDiagramStore((s) => s.activeTool);
+  const viewportScale = useDiagramStore((s) => s.viewport.scale);
 
   const [hoveredObjectId, setHoveredObjectId] = useState<string | null>(null);
 
@@ -146,6 +150,34 @@ export default function ElementLayer() {
         pointerEvents: 'none',
       }}
     >
+      {/* Invisible hover-trigger zones at anchor positions for all non-line, non-locked objects.
+          These extend the hover detection area so anchors appear when approaching from outside. */}
+      {activeTool === 'pointer' && nonLineObjects.map((obj) => {
+        if (obj.locked) return null;
+        const objBounds = getObjectBounds(obj);
+        const anchors = getAnchorPoints(objBounds);
+        const zoneSize = 20 / viewportScale;
+        return ANCHOR_POSITIONS_LIST.map((pos) => {
+          const point = anchors[pos];
+          return (
+            <div
+              key={`hover-zone-${obj.id}-${pos}`}
+              data-object-id={obj.id}
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                transform: `translate(${point.x - zoneSize / 2}px, ${point.y - zoneSize / 2}px)`,
+                width: zoneSize,
+                height: zoneSize,
+                pointerEvents: 'auto',
+                borderRadius: '50%',
+              }}
+            />
+          );
+        });
+      })}
+
       {/* Canvas objects: architecture blocks and geometric objects (DOM elements) */}
       {nonLineObjects.map((obj) => {
         const isSelected = selectedObjectIds.has(obj.id);
