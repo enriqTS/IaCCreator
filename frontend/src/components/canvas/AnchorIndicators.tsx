@@ -46,6 +46,7 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
           <div
             key={pos}
             data-testid={`anchor-indicator-${objectId}-${pos}`}
+            data-object-id={objectId}
             onMouseDown={(e) => handleMouseDown(e, point, pos)}
             style={{
               position: 'absolute',
