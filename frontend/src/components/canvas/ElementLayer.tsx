@@ -27,7 +27,6 @@ export default function ElementLayer() {
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const objectGroups = useDiagramStore((s) => s.objectGroups);
   const activeTool = useDiagramStore((s) => s.activeTool);
-  const viewportScale = useDiagramStore((s) => s.viewport.scale);
 
   const [hoveredObjectId, setHoveredObjectId] = useState<string | null>(null);
 
@@ -156,7 +155,8 @@ export default function ElementLayer() {
         if (obj.locked) return null;
         const objBounds = getObjectBounds(obj);
         const anchors = getAnchorPoints(objBounds);
-        const zoneSize = 20 / viewportScale;
+        const smallerSide = Math.min(objBounds.width, objBounds.height);
+        const zoneSize = Math.max(4, Math.min(24, smallerSide * 0.3));
         return ANCHOR_POSITIONS_LIST.map((pos) => {
           const point = anchors[pos];
           return (

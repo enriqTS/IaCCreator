@@ -23,8 +23,12 @@ import type { AnchorPosition } from '@/utils/anchor';
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
-/** The visible anchor zone size in screen pixels (matches AnchorIndicators.tsx) */
-const ANCHOR_ZONE_SCREEN = 20;
+/** Fraction of the object's smaller side used for the anchor indicator diameter */
+const ANCHOR_ZONE_RATIO = 0.3;
+/** Minimum anchor indicator size in canvas pixels */
+const ANCHOR_ZONE_MIN = 4;
+/** Maximum anchor indicator size in canvas pixels */
+const ANCHOR_ZONE_MAX = 24;
 
 /**
  * Renders AnchorIndicators and returns the container for inspection.
@@ -112,8 +116,9 @@ describe('Property 2: Preservation — Non-Anchor Clicks and Display Behavior Un
           const clickY = cy + fracY * bounds.height;
 
           // Only test cases where click is OUTSIDE all anchor circles
-          // The anchor visible radius is (ANCHOR_ZONE_SCREEN / 2) / scale = 10 / scale
-          const anchorRadius = 10 / scale;
+          // The anchor radius is proportional to the object's smaller side
+          const smallerSide = Math.min(bounds.width, bounds.height);
+          const anchorRadius = Math.max(ANCHOR_ZONE_MIN, Math.min(ANCHOR_ZONE_MAX, smallerSide * ANCHOR_ZONE_RATIO)) / 2;
           const dist = minDistanceToAnyAnchor(clickX, clickY, bounds);
           if (dist <= anchorRadius) return; // Skip — this click is within an anchor circle
 
@@ -138,13 +143,13 @@ describe('Property 2: Preservation — Non-Anchor Clicks and Display Behavior Un
     );
   });
 
-  test('Property-based: for all random viewport scales (0.25–4.0), anchor indicators render with correct scale-compensated dimensions', () => {
+  test('Property-based: for all random viewport scales (0.25–4.0), anchor indicators render with correct proportional dimensions', () => {
     /**
      * **Validates: Requirements 3.6**
      *
      * For all random viewport scales, verify anchor indicators render with
-     * correct scale-compensated dimensions. The visible zone should be
-     * ANCHOR_ZONE_SCREEN / scale canvas-pixels.
+     * correct proportional dimensions. The zone size should be proportional
+     * to the object's smaller side (30% clamped to [4, 24]).
      */
     fc.assert(
       fc.property(
@@ -165,56 +170,27 @@ describe('Property 2: Preservation — Non-Anchor Clicks and Display Behavior Un
 
           const { unmount } = renderAnchorIndicators('obj-scale', bounds, scale);
 
-          // Check that all 4 anchor indicators are rendered with scale-compensated sizes
+          // Compute expected size: proportional to smaller side, clamped
+          const smallerSide = Math.min(bounds.width, bounds.height);
+          const expectedSize = Math.max(4, Math.min(24, smallerSide * 0.3));
+
+          // Check that all 4 anchor indicators are rendered with correct proportional sizes
           for (const pos of ANCHOR_POSITIONS) {
             const el = document.querySelector(
               `[data-testid="anchor-indicator-obj-scale-${pos}"]`,
             ) as HTMLElement;
             expect(el).not.toBeNull();
 
-            // The outermost element (hit zone) should have dimensions that are
-            // scale-compensated. On unfixed code, this is HIT_ZONE_SCREEN (24) / scale.
-            // The key preservation property is that the element EXISTS and has
-            // scale-compensated dimensions (size decreases as scale increases).
             const width = parseFloat(el.style.width);
             const height = parseFloat(el.style.height);
 
-            // Dimensions should be positive and scale-compensated
+            // Dimensions should be positive and proportional to object size
             expect(width).toBeGreaterThan(0);
             expect(height).toBeGreaterThan(0);
 
-            // The visible zone (inner element or the element itself after fix)
-            // should be ANCHOR_ZONE_SCREEN / scale
-            const expectedVisibleSize = ANCHOR_ZONE_SCREEN / scale;
-
-            // Find the visible zone — on unfixed code it's the child div;
-            // after fix it will be the element itself.
-            // We check that a visible zone of the correct size exists somewhere in the structure.
-            const children = el.querySelectorAll('div');
-            let foundVisibleZone = false;
-
-            if (children.length > 0) {
-              // Unfixed code: visible zone is the first child div
-              const visibleChild = children[0] as HTMLElement;
-              const childWidth = parseFloat(visibleChild.style.width);
-              const childHeight = parseFloat(visibleChild.style.height);
-              if (
-                Math.abs(childWidth - expectedVisibleSize) < 0.01 &&
-                Math.abs(childHeight - expectedVisibleSize) < 0.01
-              ) {
-                foundVisibleZone = true;
-              }
-            }
-
-            // After fix: the element itself is the visible zone
-            if (
-              Math.abs(width - expectedVisibleSize) < 0.01 &&
-              Math.abs(height - expectedVisibleSize) < 0.01
-            ) {
-              foundVisibleZone = true;
-            }
-
-            expect(foundVisibleZone).toBe(true);
+            // Size should match the proportional formula
+            expect(width).toBeCloseTo(expectedSize, 1);
+            expect(height).toBeCloseTo(expectedSize, 1);
           }
 
           unmount();

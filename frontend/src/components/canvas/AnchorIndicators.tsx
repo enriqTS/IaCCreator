@@ -12,8 +12,12 @@ interface AnchorIndicatorsProps {
   locked?: boolean;
 }
 
-/** Screen-pixel size for the unified anchor indicator (visual + interactive) */
-const ANCHOR_ZONE_SCREEN = 20;
+/** Fraction of the object's smaller side used for the anchor indicator diameter */
+const ANCHOR_ZONE_RATIO = 0.3;
+/** Minimum anchor indicator size in canvas pixels (prevents it from becoming too tiny) */
+const ANCHOR_ZONE_MIN = 4;
+/** Maximum anchor indicator size in canvas pixels (prevents it from becoming too large) */
+const ANCHOR_ZONE_MAX = 24;
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
@@ -23,8 +27,9 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
 
   const anchors = getAnchorPoints(bounds);
 
-  // Scale-compensated size so it stays constant in screen pixels
-  const zoneSize = ANCHOR_ZONE_SCREEN / scale;
+  // Size proportional to the object's smaller side, clamped to min/max
+  const smallerSide = Math.min(bounds.width, bounds.height);
+  const zoneSize = Math.max(ANCHOR_ZONE_MIN, Math.min(ANCHOR_ZONE_MAX, smallerSide * ANCHOR_ZONE_RATIO));
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, anchorPoint: Point, anchorPos: AnchorPosition) => {
@@ -60,7 +65,7 @@ export default function AnchorIndicators({ objectId, bounds, locked }: AnchorInd
               cursor: 'crosshair',
               borderRadius: '50%',
               backgroundColor: 'rgba(34, 197, 94, 0.25)',
-              border: `${1.5 / scale}px solid rgba(34, 197, 94, 0.6)`,
+              border: `${Math.max(1, zoneSize * 0.08)}px solid rgba(34, 197, 94, 0.6)`,
               boxSizing: 'border-box',
             }}
           />

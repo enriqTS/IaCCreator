@@ -36,25 +36,33 @@ import type { AnchorPosition } from '@/utils/anchor';
  * - The structural assertions verify the fix requirements
  */
 
-/** Screen-pixel size for the visible anchor zone (matches AnchorIndicators.tsx) */
-const ANCHOR_ZONE_SCREEN = 20;
-
-/** Screen-pixel size for the invisible hit zone (matches AnchorIndicators.tsx) */
-const HIT_ZONE_SCREEN = 24;
+/** Fraction of the object's smaller side used for the anchor indicator diameter */
+const ANCHOR_ZONE_RATIO = 0.3;
+/** Minimum anchor indicator size in canvas pixels */
+const ANCHOR_ZONE_MIN = 4;
+/** Maximum anchor indicator size in canvas pixels */
+const ANCHOR_ZONE_MAX = 24;
 
 /**
- * Check if a point is within the visible anchor square (ANCHOR_ZONE_SCREEN / scale centered on anchor).
+ * Compute the expected anchor zone size for given object bounds.
  */
-function isWithinVisibleAnchorSquare(
+function computeExpectedZoneSize(bounds: Rect): number {
+  const smallerSide = Math.min(bounds.width, bounds.height);
+  return Math.max(ANCHOR_ZONE_MIN, Math.min(ANCHOR_ZONE_MAX, smallerSide * ANCHOR_ZONE_RATIO));
+}
+
+/**
+ * Check if a point is within the visible anchor circle (proportional to object size, centered on anchor).
+ */
+function isWithinVisibleAnchorCircle(
   clickPoint: Point,
   anchorPoint: Point,
-  scale: number,
+  bounds: Rect,
 ): boolean {
-  const halfSize = (ANCHOR_ZONE_SCREEN / scale) / 2;
-  return (
-    Math.abs(clickPoint.x - anchorPoint.x) <= halfSize &&
-    Math.abs(clickPoint.y - anchorPoint.y) <= halfSize
-  );
+  const radius = computeExpectedZoneSize(bounds) / 2;
+  const dx = clickPoint.x - anchorPoint.x;
+  const dy = clickPoint.y - anchorPoint.y;
+  return (dx * dx + dy * dy) <= radius * radius;
 }
 
 /**
@@ -115,8 +123,8 @@ describe('Property 1: Bug Condition — Anchor Overlap Click Triggers Object Dra
     // Click at (162, 132) — within visible square AND within object bounds
     const clickPoint: Point = { x: 162, y: 132 };
 
-    // Verify preconditions: click is within visible anchor square
-    expect(isWithinVisibleAnchorSquare(clickPoint, rightAnchor, 1.0)).toBe(true);
+    // Verify preconditions: click is within visible anchor circle
+    expect(isWithinVisibleAnchorCircle(clickPoint, rightAnchor, bounds)).toBe(true);
     // Verify preconditions: click is within object bounds
     expect(isWithinObjectBounds(clickPoint, bounds)).toBe(true);
 
@@ -149,7 +157,7 @@ describe('Property 1: Bug Condition — Anchor Overlap Click Triggers Object Dra
     const clickPoint: Point = { x: 224, y: 201 };
 
     // Verify preconditions
-    expect(isWithinVisibleAnchorSquare(clickPoint, topAnchor, 1.0)).toBe(true);
+    expect(isWithinVisibleAnchorCircle(clickPoint, topAnchor, bounds)).toBe(true);
     expect(isWithinObjectBounds(clickPoint, bounds)).toBe(true);
 
     const anchorEl = document.querySelector(`[data-testid="anchor-indicator-obj-2-top"]`);
@@ -185,12 +193,11 @@ describe('Property 1: Bug Condition — Anchor Overlap Click Triggers Object Dra
     const interactiveWidth = parseFloat(anchorEl.style.width);
     const interactiveHeight = parseFloat(anchorEl.style.height);
 
-    // Expected: the interactive element should be exactly ANCHOR_ZONE_SCREEN / scale = 20px
-    // On UNFIXED code: the interactive element is HIT_ZONE_SCREEN / scale = 24px
-    // This assertion FAILS on unfixed code, proving the visual/interactive mismatch (Req 1.2, 1.3)
-    const expectedSize = ANCHOR_ZONE_SCREEN; // 20px at scale=1
-    expect(interactiveWidth).toBe(expectedSize);
-    expect(interactiveHeight).toBe(expectedSize);
+    // Expected: the interactive element should be proportional to the object's smaller side
+    // For a 64x64 object: min(64,64) * 0.3 = 19.2, clamped to [4, 24] = 19.2
+    const expectedSize = computeExpectedZoneSize(bounds);
+    expect(interactiveWidth).toBeCloseTo(expectedSize, 1);
+    expect(interactiveHeight).toBeCloseTo(expectedSize, 1);
   });
 
   test('Concrete case 3b: Anchor element uses circular shape (borderRadius 50%) for unified visual/interactive region', () => {
@@ -228,14 +235,14 @@ describe('Property 1: Bug Condition — Anchor Overlap Click Triggers Object Dra
           const anchors = getAnchorPoints(bounds);
           const anchorPoint = anchors[anchorPos];
 
-          // Compute click point within visible anchor square
+          // Compute click point within visible anchor circle
           const clickPoint: Point = {
             x: anchorPoint.x + offsetX,
             y: anchorPoint.y + offsetY,
           };
 
-          // Only test cases where click is within BOTH the visible anchor square AND the object bounds
-          if (!isWithinVisibleAnchorSquare(clickPoint, anchorPoint, 1.0)) return;
+          // Only test cases where click is within BOTH the visible anchor circle AND the object bounds
+          if (!isWithinVisibleAnchorCircle(clickPoint, anchorPoint, bounds)) return;
           if (!isWithinObjectBounds(clickPoint, bounds)) return;
 
           // Reset state
