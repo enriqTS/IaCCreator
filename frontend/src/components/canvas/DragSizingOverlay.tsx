@@ -11,6 +11,9 @@ import type { Point, GeometricShape } from '@/types/diagram';
 /** Minimum drag distance (px) in either axis to count as a drag vs. a click */
 const DRAG_THRESHOLD = 5;
 
+/** Delay (ms) after mousedown before drag-to-resize becomes active */
+const DRAG_ACTIVATION_DELAY = 100;
+
 interface PlaceObjectPayload {
   canvasPosition: Point;
   width: number;
@@ -33,6 +36,8 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
 
   // Drag state stored in refs for performance (avoid re-renders on every mousemove)
   const isDragging = useRef(false);
+  const dragActivated = useRef(false);
+  const activationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const originScreen = useRef<Point | null>(null);
 
   // We use state for the current mouse position so the rectangle re-renders
@@ -54,6 +59,11 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
     if (!isPlacement) {
       // Reset state when leaving placement mode
       isDragging.current = false;
+      dragActivated.current = false;
+      if (activationTimer.current) {
+        clearTimeout(activationTimer.current);
+        activationTimer.current = null;
+      }
       originScreen.current = null;
       setDragRect(null);
       return;
@@ -70,15 +80,21 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
 
       const screenPt: Point = { x: e.clientX - offset.x, y: e.clientY - offset.y };
       isDragging.current = true;
+      dragActivated.current = false;
       originScreen.current = screenPt;
       setDragRect({ originScreen: screenPt, currentScreen: screenPt });
+
+      // Start activation timer — drag-to-resize only kicks in after the delay
+      activationTimer.current = setTimeout(() => {
+        dragActivated.current = true;
+      }, DRAG_ACTIVATION_DELAY);
 
       // Prevent default to avoid text selection during drag
       e.preventDefault();
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging.current || !originScreen.current) return;
+      if (!isDragging.current || !originScreen.current || !dragActivated.current) return;
 
       const offset = getContainerOffset();
       if (!offset) return;
@@ -89,6 +105,12 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
 
     const handleMouseUp = (e: MouseEvent) => {
       if (e.button !== 0 || !isDragging.current || !originScreen.current) return;
+
+      // Clear the activation timer
+      if (activationTimer.current) {
+        clearTimeout(activationTimer.current);
+        activationTimer.current = null;
+      }
 
       const offset = getContainerOffset();
       if (!offset) return;
@@ -106,7 +128,8 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
       const rawWidth = Math.abs(endCanvas.x - originCanvas.x);
       const rawHeight = Math.abs(endCanvas.y - originCanvas.y);
 
-      const isDrag = rawWidth >= DRAG_THRESHOLD || rawHeight >= DRAG_THRESHOLD;
+      // Only count as a drag if the activation delay elapsed AND distance exceeds threshold
+      const isDrag = dragActivated.current && (rawWidth >= DRAG_THRESHOLD || rawHeight >= DRAG_THRESHOLD);
 
       if (isDrag) {
         // Enforce minimum dimensions
@@ -150,6 +173,7 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
 
       // Reset
       isDragging.current = false;
+      dragActivated.current = false;
       originScreen.current = null;
       setDragRect(null);
     };

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import DragSizingOverlay from '@/components/canvas/DragSizingOverlay';
 import { useDiagramStore } from '@/store/diagram-store';
@@ -23,12 +23,17 @@ function makeContainerRef() {
 
 describe('DragSizingOverlay', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     useDiagramStore.setState({
       viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
       activeTool: 'pointer',
     });
     // Disable snap-to-grid so tests verify raw drag-sizing behavior
     useLayoutPreferencesStore.setState({ snapToGridEnabled: false });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders nothing when activeTool is pointer', () => {
@@ -62,6 +67,8 @@ describe('DragSizingOverlay', () => {
 
     // mousedown at (100, 100)
     fireEvent.mouseDown(ref.current, { clientX: 100, clientY: 100, button: 0 });
+    // Advance past the activation delay
+    act(() => { vi.advanceTimersByTime(100); });
     // mousemove to (250, 200) — drag of 150x100, well above threshold
     fireEvent.mouseMove(window, { clientX: 250, clientY: 200 });
 
@@ -87,6 +94,8 @@ describe('DragSizingOverlay', () => {
     );
 
     fireEvent.mouseDown(ref.current, { clientX: 100, clientY: 100, button: 0 });
+    // Advance past the activation delay
+    act(() => { vi.advanceTimersByTime(100); });
     // Move only 2px — below 5px threshold
     fireEvent.mouseMove(window, { clientX: 102, clientY: 101 });
 
@@ -102,6 +111,7 @@ describe('DragSizingOverlay', () => {
     render(<DragSizingOverlay containerRef={ref} onPlaceObject={onPlace} />);
 
     fireEvent.mouseDown(ref.current, { clientX: 100, clientY: 100, button: 0 });
+    act(() => { vi.advanceTimersByTime(100); });
     fireEvent.mouseMove(window, { clientX: 300, clientY: 250 });
     fireEvent.mouseUp(window, { clientX: 300, clientY: 250, button: 0 });
 
@@ -147,6 +157,7 @@ describe('DragSizingOverlay', () => {
 
     // Drag 20px wide, 10px tall — above 5px threshold but below 40px minimum
     fireEvent.mouseDown(ref.current, { clientX: 100, clientY: 100, button: 0 });
+    act(() => { vi.advanceTimersByTime(100); });
     fireEvent.mouseMove(window, { clientX: 120, clientY: 110 });
     fireEvent.mouseUp(window, { clientX: 120, clientY: 110, button: 0 });
 
@@ -166,6 +177,7 @@ describe('DragSizingOverlay', () => {
 
     // Drag 15px wide, 8px tall — above threshold, below minimum
     fireEvent.mouseDown(ref.current, { clientX: 100, clientY: 100, button: 0 });
+    act(() => { vi.advanceTimersByTime(100); });
     fireEvent.mouseMove(window, { clientX: 115, clientY: 108 });
 
     const tooltip = screen.getByTestId('drag-sizing-tooltip');
@@ -184,6 +196,7 @@ describe('DragSizingOverlay', () => {
 
     // Drag 200px on screen at scale 2.0 → 100px in canvas coords
     fireEvent.mouseDown(ref.current, { clientX: 100, clientY: 100, button: 0 });
+    act(() => { vi.advanceTimersByTime(100); });
     fireEvent.mouseMove(window, { clientX: 300, clientY: 300 });
     fireEvent.mouseUp(window, { clientX: 300, clientY: 300, button: 0 });
 
@@ -205,6 +218,7 @@ describe('DragSizingOverlay', () => {
 
     // Start a drag
     fireEvent.mouseDown(ref.current, { clientX: 100, clientY: 100, button: 0 });
+    act(() => { vi.advanceTimersByTime(100); });
     fireEvent.mouseMove(window, { clientX: 250, clientY: 200 });
     expect(screen.getByTestId('drag-sizing-rect')).toBeDefined();
 
@@ -228,8 +242,30 @@ describe('DragSizingOverlay', () => {
     );
 
     fireEvent.mouseDown(ref.current, { clientX: 100, clientY: 100, button: 2 });
+    act(() => { vi.advanceTimersByTime(100); });
     fireEvent.mouseMove(window, { clientX: 250, clientY: 200 });
 
     expect(container.querySelector('[data-testid="drag-sizing-rect"]')).toBeNull();
+  });
+
+  it('treats mouseup before activation delay as a click even with large movement', () => {
+    useDiagramStore.setState({
+      activeTool: { type: 'place-shape', shape: 'rectangle' },
+    });
+    const ref = makeContainerRef();
+    const onPlace = vi.fn();
+    render(<DragSizingOverlay containerRef={ref} onPlaceObject={onPlace} />);
+
+    // mousedown, move far, but release before the 100ms delay
+    fireEvent.mouseDown(ref.current, { clientX: 100, clientY: 100, button: 0 });
+    act(() => { vi.advanceTimersByTime(50); }); // only 50ms — not yet activated
+    fireEvent.mouseMove(window, { clientX: 300, clientY: 300 });
+    fireEvent.mouseUp(window, { clientX: 300, clientY: 300, button: 0 });
+
+    expect(onPlace).toHaveBeenCalledTimes(1);
+    const payload = onPlace.mock.calls[0][0];
+    // Should be treated as a click (width/height = 0), not a drag
+    expect(payload.width).toBe(0);
+    expect(payload.height).toBe(0);
   });
 });
