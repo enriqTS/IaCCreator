@@ -1,4 +1,4 @@
-# IaCreator
+# IaCCreator
 
 A visual AWS architecture diagram editor with Terraform IaC generation.
 
