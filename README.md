@@ -219,13 +219,35 @@ The diagram editor is a Next.js 16 (App Router) + Tailwind CSS single-page appli
 ### Tech Stack
 
 - Next.js 16 with React 19 and TypeScript
+- Tailwind CSS 4 with shadcn/ui and Radix UI primitives
 - Zustand for state management
+- Lucide React for icons
 - HTML5 Canvas for grid/connectors, DOM overlay for interactive service nodes and canvas objects
 - Vitest + fast-check for unit and property-based testing
+
+### Architecture
+
+The frontend is a single-page application organized into clear layers:
+
+- **App** — Next.js App Router entry point (single route serving the diagram editor)
+- **Components** — React components for the canvas, service nodes, config panels, toolbars, and UI primitives
+- **Store** — Zustand stores managing diagram state (nodes, connections, selection, viewport transforms)
+- **Hooks** — Custom React hooks for canvas interactions (pan, zoom, drag-and-drop, resize)
+- **Utils** — Pure utility functions for geometry, HCL formatting, coordinate transforms, and hit-testing
+- **Types** — Shared TypeScript interfaces for nodes, connections, service configs, and canvas objects
+- **Data** — Static AWS service definitions, icon mappings, and default configurations
 
 
 
 ## Backend
+
+### Tech Stack
+
+- Python 3.14+ with FastAPI and Uvicorn
+- Pydantic v2 for request/response validation
+- TinyDB for local persistence, DynamoDB (via Boto3) for production
+- Pytest + Hypothesis for unit and property-based testing
+- HTTPX for async test client
 
 ### Architecture
 
