@@ -1,6 +1,6 @@
 # Frontend Components
 
-The Next.js frontend components in `frontend/src/components/` are organized into six groups: canvas, config, menu, toast, toolbar, and ui.
+The Next.js frontend components in `frontend/src/components/` are organized into seven groups: canvas, config, menu, toast, toolbar, tour, and ui.
 
 ## Canvas (`frontend/src/components/canvas/`)
 
@@ -23,7 +23,7 @@ DOM overlay layer that renders interactive canvas object components positioned i
 | Component                          | Object Type          | Description                                    |
 |------------------------------------|----------------------|------------------------------------------------|
 | `ArchitectureBlockComponent.tsx`   | `architecture-block` | AWS service node with icon, name, config       |
-| `LineObjectComponent.tsx`          | `line`               | Line/arrow with optional anchoring to objects  |
+| `LineObjectComponent.tsx`          | `line`               | Line/arrow with optional anchoring to objects, orthogonal/diagonal routing |
 | `GeometricObjectComponent.tsx`     | `geometric`          | SVG shapes (rectangle, ellipse, diamond, etc.) |
 | `TextObjectComponent.tsx`          | `text`               | Editable text label on the canvas              |
 | `UMLObjectComponent.tsx`           | `uml`                | UML diagrams (class, interface, actor, etc.)   |
@@ -32,20 +32,22 @@ DOM overlay layer that renders interactive canvas object components positioned i
 
 | Component                    | Purpose                                                    |
 |------------------------------|------------------------------------------------------------|
+| `AlignmentGuides.tsx`        | Snap alignment guides shown during drag operations         |
+| `AnchorIndicators.tsx`       | Circular anchor points shown on objects for line drawing. Single unified 20px circle per anchor (visual = interactive region) |
 | `CanvasContextMenu.tsx`      | Right-click context menu on empty canvas                   |
 | `CanvasObjectContextMenu.tsx`| Right-click context menu on selected objects               |
 | `DragSizingOverlay.tsx`      | Resize handles overlay during drag-to-resize               |
+| `GroupBoundingBox.tsx`       | Bounding box rendered around grouped objects               |
 | `InlineRenameOverlay.tsx`    | Double-click-to-rename overlay for objects                 |
 | `MarqueeSelection.tsx`       | Rectangular selection box for multi-select                 |
 | `PlacementPreview.tsx`       | Ghost preview when placing a new object                    |
-| `PullToConnectOverlay.tsx`   | Visual feedback when dragging to create a connection       |
+| `PullToConnectOverlay.tsx`   | Visual feedback when dragging to create a connection. Supports orthogonal preview routing |
 | `ResizeHandles.tsx`          | Corner/edge resize handles for selected objects            |
-| `AnchorIndicators.tsx`       | Visual anchor points shown on objects during line drawing   |
-| `GroupBoundingBox.tsx`       | Bounding box rendered around grouped objects               |
+| `SegmentHandles.tsx`         | Draggable handles on orthogonal line segments for manual waypoint adjustment |
 
 ## Config (`frontend/src/components/config/`)
 
-Configuration panels for selected objects. The primary UI uses a sidebar panel; a legacy bottom panel existed previously but has been removed from the codebase.
+Configuration panels for selected objects. The primary UI uses a sidebar panel.
 
 ### `SidebarPanel.tsx`
 
@@ -57,7 +59,7 @@ Router component that renders the appropriate config form based on the selected 
 
 ### `SchemaConfigForm.tsx`
 
-Schema-driven config form that dynamically renders fields based on `VARIABLE_SCHEMAS` fetched from the backend. Handles conditional visibility (`visible_when`), validation rules, grouped field layout, and option dropdowns. Replaces the individual per-service config forms (LambdaConfigForm, S3ConfigForm, etc.) with a single data-driven component.
+Schema-driven config form that dynamically renders fields based on `VARIABLE_SCHEMAS` fetched from the backend. Handles conditional visibility (`visible_when`), validation rules, grouped field layout, and option dropdowns. Replaces the individual per-service config forms with a single data-driven component.
 
 ### Visual Config Panels
 
@@ -76,6 +78,10 @@ Schema-driven config form that dynamically renders fields based on `VARIABLE_SCH
 |----------------------------------|------------------------------------------------------|
 | `KeyValueEditor.tsx`             | Generic key-value pair editor for `map` type variables (environment variables, tags) |
 | `ListEditor.tsx`                 | Generic list editor for `list` type variables (Lambda layers) |
+
+### API Gateway Config (`frontend/src/components/config/apigw/`)
+
+Dedicated sub-components for the enhanced API Gateway configuration (routes, stages, authorizers, custom domains, VPC links).
 
 ### Other Config Components
 
@@ -121,6 +127,16 @@ Main toolbar with tool selection (pointer, connector) and action buttons (undo, 
 
 Unified object picker organized into categories: AWS Services (with search, abbreviation expansion, and recently-used tracking), Geometric Shapes (25+ shapes), and UML Diagrams (class, interface, actor, use-case, component, package, node). Selecting an item switches to the appropriate placement tool mode.
 
+## Tour (`frontend/src/components/tour/`)
+
+### `OnboardingTour.tsx`
+
+Step-by-step onboarding tour highlighting key UI features for new users.
+
+### `WelcomeDialog.tsx`
+
+Welcome dialog shown on first visit with options to start the tour or dismiss.
+
 ## UI (`frontend/src/components/ui/`)
 
-Shared shadcn/ui primitives: `button`, `card`, `checkbox`, `dialog`, `dropdown-menu`, `input`, `label`, `radio-group`, `select`, `sheet`, `tabs`.
+Shared shadcn/ui primitives: `button`, `card`, `checkbox`, `dialog`, `dropdown-menu`, `input`, `label`, `radio-group`, `select`, `sheet`, `tabs`, `tooltip`.

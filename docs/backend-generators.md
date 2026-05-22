@@ -17,7 +17,9 @@ Each method returns a string of valid HCL content for the corresponding `.tf` fi
 
 ## Generator Registry (`app/generators/registry.py`)
 
-`GENERATOR_REGISTRY` is a `dict[ServiceType, ServiceGenerator]` mapping each service type to a singleton generator instance:
+`GENERATOR_REGISTRY` is a `dict[ServiceType, ServiceGenerator]` mapping each service type to a singleton generator instance. Used by `FileTreeAssembler` to look up the correct generator when producing per-instance files.
+
+### Core Services
 
 | ServiceType    | Generator Class        |
 |----------------|------------------------|
@@ -27,8 +29,72 @@ Each method returns a string of valid HCL content for the corresponding `.tf` fi
 | `api-gateway`  | `APIGatewayGenerator`  |
 | `cloudwatch`   | `CloudWatchGenerator`  |
 | `iam`          | `IAMGenerator`         |
+| `sns`          | `SNSGenerator`         |
+| `sqs`          | `SQSGenerator`         |
 
-Used by `FileTreeAssembler` to look up the correct generator when producing per-instance files.
+### Compute Services
+
+| ServiceType          | Generator Class              |
+|----------------------|------------------------------|
+| `ec2`               | `EC2Generator`               |
+| `ecs`               | `ECSGenerator`               |
+| `eks`               | `EKSGenerator`               |
+| `elastic-beanstalk` | `ElasticBeanstalkGenerator`  |
+| `app-runner`        | `AppRunnerGenerator`         |
+| `batch`             | `BatchGenerator`             |
+| `ec2-image-builder` | `EC2ImageBuilderGenerator`   |
+| `lightsail`         | `LightsailGenerator`         |
+| `ecr`               | `ECRGenerator`               |
+
+### Analytics Services
+
+| ServiceType        | Generator Class            |
+|--------------------|----------------------------|
+| `athena`           | `AthenaGenerator`          |
+| `cloudsearch`      | `CloudSearchGenerator`     |
+| `emr`             | `EMRGenerator`             |
+| `glue`            | `GlueGenerator`            |
+| `kinesis`         | `KinesisGenerator`         |
+| `kinesis-firehose` | `KinesisFirehoseGenerator` |
+| `msk`             | `MSKGenerator`             |
+| `opensearch`      | `OpenSearchGenerator`      |
+| `redshift`        | `RedshiftGenerator`        |
+
+### Business Applications
+
+| ServiceType | Generator Class    |
+|-------------|--------------------|
+| `connect`   | `ConnectGenerator` |
+| `ses`       | `SESGenerator`     |
+| `pinpoint`  | `PinpointGenerator`|
+
+### Database Services
+
+| ServiceType    | Generator Class          |
+|----------------|--------------------------|
+| `aurora`       | `AuroraGenerator`        |
+| `documentdb`   | `DocumentDBGenerator`    |
+| `elasticache`  | `ElastiCacheGenerator`   |
+| `neptune`      | `NeptuneGenerator`       |
+| `rds`          | `RDSGenerator`           |
+| `timestream`   | `TimestreamGenerator`    |
+
+### Developer Tools
+
+| ServiceType    | Generator Class          |
+|----------------|--------------------------|
+| `codebuild`    | `CodeBuildGenerator`     |
+| `codecommit`   | `CodeCommitGenerator`    |
+| `codedeploy`   | `CodeDeployGenerator`    |
+| `codepipeline` | `CodePipelineGenerator`  |
+
+### Other Services
+
+| ServiceType  | Generator Class        |
+|--------------|------------------------|
+| `appstream`  | `AppStreamGenerator`   |
+| `amplify`    | `AmplifyGenerator`     |
+| `gamelift`   | `GameLiftGenerator`    |
 
 ## HCL Renderer (`app/generators/hcl_renderer.py`)
 
@@ -53,8 +119,8 @@ Value formatting rules:
 
 Generates files for `aws_lambda_function` resources.
 
-- `generate_resource_tf()` — `lambda.tf` with function_name, role, handler, runtime, optional memory_size/timeout
-- `generate_variables_tf()` — variables for function_name, handler, runtime, optional memory_size/timeout with defaults
+- `generate_resource_tf()` — `lambda.tf` with function_name, role, handler, runtime, optional memory_size/timeout/description/architectures/ephemeral_storage/environment_variables/layers/tags
+- `generate_variables_tf()` — variables for all configured fields with defaults
 - `generate_outputs_tf()` — outputs for function_arn and function_name
 - `generate_iam_tf()` — `iam.tf` with `aws_iam_role` (Lambda assume-role policy) and `aws_iam_role_policy` referencing `iam-policies/{name}-policy.json` via `file()`
 
@@ -76,9 +142,9 @@ Generates files for `aws_dynamodb_table` resources.
 
 ### APIGatewayGenerator (`app/generators/api_gateway_generator.py`)
 
-Generates files for `aws_apigatewayv2_api` resources.
+Generates files for `aws_apigatewayv2_api` resources. Supports enhanced configuration including routes, stages, authorizers, custom domains, VPC links, and throttling.
 
-- `generate_resource_tf()` — `api-gateway.tf` with api_name and protocol_type
+- `generate_resource_tf()` — `api-gateway.tf` with api_name, protocol_type, optional CORS, routes, stages, authorizers
 - `generate_variables_tf()` — variables for api_name and protocol_type (default `HTTP`)
 - `generate_outputs_tf()` — outputs for api_id and api_endpoint
 
@@ -86,7 +152,7 @@ Generates files for `aws_apigatewayv2_api` resources.
 
 Generates files for `aws_cloudwatch_log_group` resources.
 
-- `generate_resource_tf()` — `cloudwatch.tf` with log_group_name, optional retention_in_days
+- `generate_resource_tf()` — `cloudwatch.tf` with log_group_name, optional retention_in_days, kms_key_id, log_group_class
 - `generate_variables_tf()` — variable for log_group_name, optional retention_in_days with default
 - `generate_outputs_tf()` — output for log_group_arn
 
@@ -97,6 +163,22 @@ Generates files for standalone IAM role and policy resources.
 - `generate_resource_tf()` — `iam.tf` with `aws_iam_role` and `aws_iam_role_policy`
 - `generate_variables_tf()` — variables for role_name, assume_role_policy, policy_name, policy_document
 - `generate_outputs_tf()` — outputs for role_arn and role_name
+
+### SNSGenerator (`app/generators/sns_generator.py`)
+
+Generates files for `aws_sns_topic` resources.
+
+- `generate_resource_tf()` — `sns.tf` with topic name, optional display_name, fifo_topic, content_based_deduplication, kms_master_key_id
+- `generate_variables_tf()` — variables for topic configuration
+- `generate_outputs_tf()` — outputs for topic_arn
+
+### SQSGenerator (`app/generators/sqs_generator.py`)
+
+Generates files for `aws_sqs_queue` resources.
+
+- `generate_resource_tf()` — `sqs.tf` with queue name, optional visibility_timeout, message_retention, fifo_queue, delay_seconds, max_message_size
+- `generate_variables_tf()` — variables for queue configuration
+- `generate_outputs_tf()` — outputs for queue_arn and queue_url
 
 ## IAM Policy Generator (`app/generators/iam_policy_generator.py`)
 
@@ -135,15 +217,15 @@ Generates project-level Terraform configuration files from `GlobalTerraformConfi
 | `OptionEntry`          | Predefined selectable option: `value`, `label`, `group`                 |
 | `VisibleWhen`          | Conditional visibility: show variable only when `field` equals `equals` |
 
-### Variables Per Service
+### Variables Per Service (Core)
 
-| Service      | Count | Variables (with defaults where set)                                                    |
-|--------------|-------|----------------------------------------------------------------------------------------|
-| Lambda       | 13    | function_name, handler (`lambda_function.lambda_handler`), runtime (`python3.12`), description, memory_size (128), timeout (3), ephemeral_storage_size (512), reserved_concurrent_executions, architectures (`x86_64`), publish (false), layers, environment_variables, tags |
-| S3           | 6     | bucket_name, versioning (`Enabled`), force_destroy (false), object_lock_enabled (false), acceleration_status, tags |
-| DynamoDB     | 12    | table_name, billing_mode (`PAY_PER_REQUEST`), table_class (`STANDARD`), hash_key, hash_key_type (`S`), range_key, range_key_type (`S`), read_capacity (5, visible when PROVISIONED), write_capacity (5, visible when PROVISIONED), tags, point_in_time_recovery_enabled (false), deletion_protection_enabled (false) |
-| API Gateway  | 7     | api_name, protocol_type (`HTTP`), description, cors_configuration, disable_execute_api_endpoint (false), route_selection_expression (visible when WEBSOCKET), tags |
-| CloudWatch   | 5     | log_group_name, retention_in_days (30), kms_key_id, log_group_class (`STANDARD`), tags |
+| Service      | Count | Key Variables                                                          |
+|--------------|-------|------------------------------------------------------------------------|
+| Lambda       | 13    | function_name, handler, runtime, description, memory_size (128), timeout (3), ephemeral_storage_size (512), reserved_concurrent_executions, architectures, publish, layers, environment_variables, tags |
+| S3           | 6     | bucket_name, versioning, force_destroy, object_lock_enabled, acceleration_status, tags |
+| DynamoDB     | 12    | table_name, billing_mode, table_class, hash_key, hash_key_type, range_key, range_key_type, read_capacity, write_capacity, tags, point_in_time_recovery_enabled, deletion_protection_enabled |
+| API Gateway  | 7     | api_name, protocol_type, description, cors_configuration, disable_execute_api_endpoint, route_selection_expression, tags |
+| CloudWatch   | 5     | log_group_name, retention_in_days (30), kms_key_id, log_group_class, tags |
 
 ## Schema Validator (`app/generators/schema_validator.py`)
 

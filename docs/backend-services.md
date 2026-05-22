@@ -20,6 +20,11 @@ Compatible connection pairs (defined in `COMPATIBLE_CONNECTIONS`):
 - Lambda → DynamoDB
 - Lambda → S3
 - Lambda → CloudWatch
+- Lambda → SNS
+- Lambda → SQS
+- SQS → Lambda
+- SNS → SQS
+- SNS → Lambda
 
 Invalid connections (unknown resources, incompatible pairs) raise `HTTPException(422)`.
 
@@ -27,6 +32,8 @@ IAM action mappings per target service (defined in `IAM_ACTIONS`):
 - DynamoDB: GetItem, PutItem, Query, Scan, UpdateItem, DeleteItem
 - S3: GetObject, PutObject, DeleteObject, ListBucket
 - CloudWatch: CreateLogGroup, CreateLogStream, PutLogEvents
+- SNS: Publish
+- SQS: SendMessage
 
 ## CodeGenerator (`app/services/code_generator.py`)
 
@@ -47,10 +54,15 @@ Connection handlers:
 
 | Source → Target          | Action                                                                 |
 |--------------------------|------------------------------------------------------------------------|
-| API Gateway → Lambda     | Generates `aws_apigatewayv2_integration` HCL file                     |
-| Lambda → DynamoDB        | Attaches DynamoDB IAM statements to the Lambda instance (no files)     |
-| Lambda → S3              | Attaches S3 IAM statements to the Lambda instance (no files)           |
+| API Gateway → Lambda     | Generates integration, route, and permission HCL files. Supports enhanced config: `integration_type` (default `AWS_PROXY`), `payload_format_version` (default `2.0`), `vpc_link_name`, `route_path`, `http_method` |
+| Lambda → DynamoDB        | Attaches DynamoDB read/write IAM statements to the Lambda instance (no files) |
+| Lambda → S3              | Attaches S3 access IAM statements to the Lambda instance (no files)    |
 | Lambda → CloudWatch      | Generates `aws_cloudwatch_log_group` HCL + attaches CloudWatch IAM    |
+| Lambda → SNS             | Attaches `sns:Publish` IAM statement to the Lambda instance (no files) |
+| Lambda → SQS             | Attaches `sqs:SendMessage` IAM statement to the Lambda instance (no files) |
+| SQS → Lambda             | Generates event source mapping + Lambda permission HCL files. Attaches `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes` IAM to the Lambda. Supports `batch_size` and `maximum_batching_window_in_seconds` config |
+| SNS → SQS                | Generates SNS topic subscription + SQS queue policy HCL files         |
+| SNS → Lambda             | Generates SNS topic subscription + Lambda permission HCL files        |
 
 IAM statements are mutated in-place on `ResourceInstanceIR.iam_statements`.
 
@@ -98,7 +110,8 @@ ArchitectureDescription
         │
         ├── ConnectionProcessor.process_all()
         │       │
-        │       ├── Integration HCL files (API GW integrations, log groups)
+        │       ├── Integration HCL files (API GW integrations, routes,
+        │       │     permissions, event source mappings, subscriptions, policies)
         │       └── IAM statement enrichment (mutates ProjectIR)
         │
         └── FileTreeAssembler.assemble()

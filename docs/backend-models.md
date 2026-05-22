@@ -8,7 +8,23 @@ These are the Pydantic schemas for incoming API requests (Terraform generation).
 
 ### `ServiceType` (Enum)
 
-Supported AWS service types: `lambda`, `s3`, `api-gateway`, `dynamodb`, `iam`, `cloudwatch`.
+Supported AWS service types. The enum covers 150+ services organized into categories:
+
+**Core services (with full generators):** `lambda`, `s3`, `api-gateway`, `dynamodb`, `iam`, `cloudwatch`, `sns`, `sqs`
+
+**Compute (full generators):** `ec2`, `ecs`, `eks`, `elastic-beanstalk`, `app-runner`, `batch`, `ec2-image-builder`, `lightsail`, `ecr`
+
+**Analytics (full generators):** `athena`, `cloudsearch`, `emr`, `glue`, `kinesis`, `kinesis-firehose`, `msk`, `opensearch`, `redshift`
+
+**Business Applications (full generators):** `connect`, `ses`, `pinpoint`
+
+**Database (full generators):** `aurora`, `documentdb`, `elasticache`, `neptune`, `rds`, `timestream`
+
+**Developer Tools (full generators):** `codebuild`, `codecommit`, `codedeploy`, `codepipeline`
+
+**Other (full generators):** `appstream`, `amplify`, `gamelift`
+
+**Icon-only services:** 80+ additional service types that appear in the diagram editor but do not have Terraform generators (e.g., `fargate`, `quicksight`, `lake-formation`, `managed-blockchain`).
 
 ### `ResourceConfig`
 
@@ -21,14 +37,45 @@ Service-specific configuration fields (all optional, used per service type):
 | `memory_size`      | `int`         | Lambda       |
 | `timeout`          | `int`         | Lambda       |
 | `is_layer`         | `bool`        | Lambda       |
+| `description`      | `str`         | Lambda       |
+| `environment_variables` | `dict`   | Lambda       |
+| `tags`             | `dict`        | Lambda, S3, DynamoDB |
+| `layers`           | `list[str]`   | Lambda       |
+| `architectures`    | `str`         | Lambda       |
+| `ephemeral_storage_size` | `int`   | Lambda       |
+| `reserved_concurrent_executions` | `int` | Lambda |
+| `publish`          | `bool`        | Lambda       |
 | `versioning`       | `bool`        | S3           |
+| `force_destroy`    | `bool`        | S3           |
+| `object_lock_enabled` | `bool`     | S3           |
+| `acceleration_status` | `str`      | S3           |
 | `billing_mode`     | `str`         | DynamoDB     |
 | `hash_key`         | `str`         | DynamoDB     |
 | `hash_key_type`    | `str`         | DynamoDB     |
 | `range_key`        | `str`         | DynamoDB     |
 | `range_key_type`   | `str`         | DynamoDB     |
+| `read_capacity`    | `int`         | DynamoDB     |
+| `write_capacity`   | `int`         | DynamoDB     |
 | `protocol_type`    | `str`         | API Gateway  |
+| `cors_configuration` | `dict`      | API Gateway  |
+| `routes`           | `list[dict]`  | API Gateway  |
+| `stages`           | `list[dict]`  | API Gateway  |
+| `authorizers`      | `list[dict]`  | API Gateway  |
 | `retention_in_days`| `int`         | CloudWatch   |
+| `kms_key_id`       | `str`         | CloudWatch   |
+| `display_name`     | `str`         | SNS          |
+| `fifo_topic`       | `bool`        | SNS          |
+| `fifo_queue`       | `bool`        | SQS          |
+| `visibility_timeout_seconds` | `int` | SQS       |
+| `message_retention_seconds` | `int`  | SQS        |
+| `instance_type`    | `str`         | EC2          |
+| `ami`              | `str`         | EC2          |
+| `ecs_launch_type`  | `str`         | ECS          |
+| `eks_version`      | `str`         | EKS          |
+| `rds_engine`       | `str`         | RDS          |
+| `rds_instance_class` | `str`       | RDS          |
+
+(Plus 30+ additional fields for other service types — see source for full list.)
 
 ### `ResourceInstance`
 
@@ -36,7 +83,7 @@ A named resource with `name`, `service_type`, `config`, and `terraform_variables
 
 ### `Connection`
 
-A connection between two resources: `source`, `target`, `connection_type` (e.g., `triggers`, `reads_from`, `writes_to`).
+A connection between two resources: `source`, `target`, `connection_type` (e.g., `triggers`, `reads_from`, `writes_to`), and `connection_config` (optional dict for integration-specific settings like `batch_size`, `vpc_link_name`, `route_path`).
 
 ### `EnvironmentConfig`
 
@@ -67,7 +114,7 @@ A single IAM policy statement: `effect` (default `"Allow"`), `actions` (list of 
 
 ### `ConnectionIR`
 
-Normalized connection: `source_name`, `target_name`, `source_service`, `target_service`, `connection_type`.
+Normalized connection: `source_name`, `target_name`, `source_service`, `target_service`, `connection_type`, `connection_config` (dict for integration-specific settings).
 
 ### `ResourceInstanceIR`
 
@@ -120,3 +167,7 @@ Viewport state: `x`, `y`, `zoom` (all floats).
 ### `EnvironmentConfigInput`
 
 Environment: `name`, `variables` (dict, default empty).
+
+## API Gateway Models (`app/models/api_gateway_models.py`)
+
+Additional Pydantic models for enhanced API Gateway configuration (routes, stages, authorizers, custom domains, VPC links, integrations).

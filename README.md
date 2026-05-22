@@ -12,12 +12,65 @@ The frontend and backend communicate via a RESTful API with cookie-based anonymo
 
 ## Supported AWS Services
 
+Full Terraform generation (with service-specific config panels and HCL output):
+
+**Core:**
 - Lambda (including Lambda Layers)
 - S3
 - API Gateway (v2)
 - DynamoDB
 - IAM
 - CloudWatch
+- SNS
+- SQS
+
+**Compute:**
+- EC2
+- ECS
+- EKS
+- Elastic Beanstalk
+- App Runner
+- Batch
+- EC2 Image Builder
+- Lightsail
+- ECR
+
+**Analytics:**
+- Athena
+- CloudSearch
+- EMR
+- Glue
+- Kinesis
+- Kinesis Firehose
+- MSK
+- OpenSearch
+- Redshift
+
+**Database:**
+- Aurora
+- DocumentDB
+- ElastiCache
+- Neptune
+- RDS
+- Timestream
+
+**Developer Tools:**
+- CodeBuild
+- CodeCommit
+- CodeDeploy
+- CodePipeline
+
+**Business Applications:**
+- Connect
+- SES
+- Pinpoint
+
+**Other:**
+- AppStream
+- Amplify
+- GameLift
+
+Additionally, 270+ AWS services are available as icon-only diagram nodes (no Terraform generation) for visual architecture documentation.
 
 ## Generated Output Structure
 
@@ -50,7 +103,9 @@ my-project/
 │   │   └── ...
 │   ├── api-gateway/
 │   │   └── ...
-│   └── cloudwatch/
+│   ├── cloudwatch/
+│   │   └── ...
+│   └── <service-type>/
 │       └── ...
 └── iam-policies/
     └── my-function-policy.json
@@ -171,7 +226,7 @@ The diagram editor is a Next.js 16 (App Router) + Tailwind CSS single-page appli
 ### Features
 
 - Infinite pan/zoom canvas with dot grid background
-- Place AWS service nodes from a categorized picker with search (200+ services, 26 categories) and recently-used tracking
+- Place AWS service nodes from a categorized picker with search (310+ services, 26 categories) and recently-used tracking
 - Place geometric shapes (26 types: rectangle, ellipse, diamond, hexagon, cylinder, cloud, flowchart shapes, etc.)
 - Place UML elements (class, interface, actor, use case, component, package, node)
 - Place text labels and freeform line/connector objects with anchor snapping
@@ -200,9 +255,9 @@ The diagram editor is a Next.js 16 (App Router) + Tailwind CSS single-page appli
 
 ### Testing
 
-129 test files covering:
-- 97 property-based test files (fast-check) validating viewport math, element/connector operations, state consistency, undo/redo round-trips, serialization, canvas object CRUD, context menu actions, z-order, grouping, locking, marquee selection, drag sizing, anchor snapping, sidebar/bottom panel behavior, layout preferences, architecture search panel, connection routing, and variable configuration
-- 31 unit test files for the Zustand store, viewport utilities, icon registry, storage, export, config forms, tool state, hamburger menu, dialogs, bottom panel, element layer, placement preview, visual config, z-order controls, Terraform variables, connection routing, and more
+154 test files covering:
+- 120 property-based test files (fast-check) validating viewport math, element/connector operations, state consistency, undo/redo round-trips, serialization, canvas object CRUD, context menu actions, z-order, grouping, locking, marquee selection, drag sizing, anchor snapping, sidebar/bottom panel behavior, layout preferences, architecture search panel, connection routing, variable configuration, orthogonal line preview, and anchor hit zone behavior
+- 33 unit test files for the Zustand store, viewport utilities, icon registry, storage, export, config forms, tool state, hamburger menu, dialogs, bottom panel, element layer, placement preview, visual config, z-order controls, Terraform variables, connection routing, and more
 - 1 integration test for Next.js config
 
 ## Backend
