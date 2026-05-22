@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/enriqts/iacreator
+  IMAGE_NAME: ghcr.io/enriqts/iaccreator
 
 jobs:
   build-and-push:
