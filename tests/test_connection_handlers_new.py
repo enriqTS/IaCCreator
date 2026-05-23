@@ -187,6 +187,142 @@ class TestHandleApigwLambda:
 
 
 # ===========================================================================
+# 1b. _handle_apigw_lambda_authorizer (connection_role = "authorizer")
+# ===========================================================================
+
+class TestHandleApigwLambdaAuthorizer:
+    """Test API Gateway → Lambda authorizer handler generates authorizer + permission only."""
+
+    def setup_method(self):
+        self.processor = ConnectionProcessor()
+
+    def _process_apigw_lambda_authorizer(self, connection_config=None):
+        """Helper: create APIGW→Lambda connection with authorizer role and process it."""
+        config = connection_config or {"connection_role": "authorizer"}
+        apigw = _apigw_ir("my-api")
+        func = _lambda_ir("my-func")
+        conn = ConnectionIR(
+            source_name="my-api",
+            target_name="my-func",
+            source_service=ServiceType.API_GATEWAY,
+            target_service=ServiceType.LAMBDA,
+            connection_type="triggers",
+            connection_config=config,
+        )
+        project = _make_project([apigw, func], [conn])
+        return self.processor.process(conn, project)
+
+    def test_generates_two_files(self):
+        """Authorizer role produces exactly 2 files: authorizer + permission."""
+        files = self._process_apigw_lambda_authorizer()
+        assert len(files) == 2
+
+    def test_authorizer_file_path(self):
+        """Authorizer file is placed at the correct path."""
+        files = self._process_apigw_lambda_authorizer()
+        paths = [f.path for f in files]
+        assert "test-project/modules/api-gateway/my-api/authorizer_my-func.tf" in paths
+
+    def test_permission_file_path(self):
+        """Authorizer permission file is placed at the correct path."""
+        files = self._process_apigw_lambda_authorizer()
+        paths = [f.path for f in files]
+        assert "test-project/modules/api-gateway/my-api/authorizer_permission_my-func.tf" in paths
+
+    def test_authorizer_contains_authorizer_resource(self):
+        """Authorizer file contains aws_apigatewayv2_authorizer resource."""
+        files = self._process_apigw_lambda_authorizer()
+        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        assert "aws_apigatewayv2_authorizer" in auth_file.content
+
+    def test_authorizer_has_request_type(self):
+        """Authorizer resource has authorizer_type = REQUEST."""
+        files = self._process_apigw_lambda_authorizer()
+        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        assert "REQUEST" in auth_file.content
+
+    def test_authorizer_references_lambda_invoke_arn(self):
+        """Authorizer resource references the Lambda invoke_arn."""
+        files = self._process_apigw_lambda_authorizer()
+        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        assert "aws_lambda_function.my-func.invoke_arn" in auth_file.content
+
+    def test_authorizer_default_payload_format_version(self):
+        """Authorizer defaults payload_format_version to 2.0."""
+        files = self._process_apigw_lambda_authorizer()
+        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        assert "2.0" in auth_file.content
+
+    def test_authorizer_custom_payload_format_version(self):
+        """Authorizer uses custom payload_format_version from config."""
+        files = self._process_apigw_lambda_authorizer(
+            connection_config={"connection_role": "authorizer", "payload_format_version": "1.0"}
+        )
+        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        assert "1.0" in auth_file.content
+
+    def test_authorizer_uses_target_name_as_default_name(self):
+        """Authorizer uses target Lambda name as default authorizer name."""
+        files = self._process_apigw_lambda_authorizer()
+        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        assert "my-func" in auth_file.content
+
+    def test_authorizer_uses_custom_name(self):
+        """Authorizer uses authorizer_name from config when provided."""
+        files = self._process_apigw_lambda_authorizer(
+            connection_config={"connection_role": "authorizer", "authorizer_name": "custom-auth"}
+        )
+        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        assert "custom-auth" in auth_file.content
+
+    def test_permission_contains_lambda_permission_resource(self):
+        """Permission file contains aws_lambda_permission resource."""
+        files = self._process_apigw_lambda_authorizer()
+        perm_file = next(f for f in files if "permission" in f.path)
+        assert "aws_lambda_permission" in perm_file.content
+
+    def test_permission_has_apigateway_principal(self):
+        """Permission resource has principal = apigateway.amazonaws.com."""
+        files = self._process_apigw_lambda_authorizer()
+        perm_file = next(f for f in files if "permission" in f.path)
+        assert "apigateway.amazonaws.com" in perm_file.content
+
+    def test_permission_has_invoke_function_action(self):
+        """Permission resource has action = lambda:InvokeFunction."""
+        files = self._process_apigw_lambda_authorizer()
+        perm_file = next(f for f in files if "permission" in f.path)
+        assert "lambda:InvokeFunction" in perm_file.content
+
+    def test_no_integration_resource_generated(self):
+        """Authorizer role does NOT generate integration resources."""
+        files = self._process_apigw_lambda_authorizer()
+        for f in files:
+            assert "aws_apigatewayv2_integration" not in f.content
+
+    def test_no_route_resource_generated(self):
+        """Authorizer role does NOT generate route resources."""
+        files = self._process_apigw_lambda_authorizer()
+        for f in files:
+            assert "aws_apigatewayv2_route" not in f.content
+
+    def test_route_handler_still_generates_three_files(self):
+        """Explicit route_handler role still produces 3 files (backward compat)."""
+        apigw = _apigw_ir("my-api")
+        func = _lambda_ir("my-func")
+        conn = ConnectionIR(
+            source_name="my-api",
+            target_name="my-func",
+            source_service=ServiceType.API_GATEWAY,
+            target_service=ServiceType.LAMBDA,
+            connection_type="triggers",
+            connection_config={"connection_role": "route_handler"},
+        )
+        project = _make_project([apigw, func], [conn])
+        files = self.processor.process(conn, project)
+        assert len(files) == 3
+
+
+# ===========================================================================
 # 2. _handle_lambda_sns
 # ===========================================================================
 
@@ -677,3 +813,188 @@ class TestTerraformReferenceConsistency:
             assert resource.startswith("${aws_sqs_queue."), (
                 f"IAM resource '{resource}' is not a Terraform reference"
             )
+
+
+# ===========================================================================
+# 8. Lambda → DynamoDB access_pattern handling
+# ===========================================================================
+
+
+def _dynamodb_ir(name: str = "my-table") -> ResourceInstanceIR:
+    return ResourceInstanceIR(
+        name=name,
+        service_type=ServiceType.DYNAMODB,
+        config=ResourceConfig(hash_key="id", billing_mode="PAY_PER_REQUEST"),
+    )
+
+
+class TestHandleLambdaDynamoDBAccessPattern:
+    """Test Lambda → DynamoDB handler respects access_pattern config."""
+
+    def setup_method(self):
+        self.processor = ConnectionProcessor()
+
+    def _process_lambda_dynamodb(self, connection_config=None):
+        func = _lambda_ir("my-func")
+        table = _dynamodb_ir("my-table")
+        conn = ConnectionIR(
+            source_name="my-func",
+            target_name="my-table",
+            source_service=ServiceType.LAMBDA,
+            target_service=ServiceType.DYNAMODB,
+            connection_type="reads_from",
+            connection_config=connection_config or {},
+        )
+        project = _make_project([func, table], [conn])
+        self.processor.process(conn, project)
+        return func
+
+    def test_default_access_pattern_uses_all_actions(self):
+        """No access_pattern specified → all 6 DynamoDB actions (full access)."""
+        func = self._process_lambda_dynamodb()
+        assert len(func.iam_statements) == 1
+        actions = func.iam_statements[0].actions
+        assert "dynamodb:GetItem" in actions
+        assert "dynamodb:Query" in actions
+        assert "dynamodb:Scan" in actions
+        assert "dynamodb:PutItem" in actions
+        assert "dynamodb:UpdateItem" in actions
+        assert "dynamodb:DeleteItem" in actions
+
+    def test_full_access_pattern_uses_all_actions(self):
+        """access_pattern="full" → all 6 DynamoDB actions."""
+        func = self._process_lambda_dynamodb({"access_pattern": "full"})
+        assert len(func.iam_statements) == 1
+        actions = func.iam_statements[0].actions
+        assert "dynamodb:GetItem" in actions
+        assert "dynamodb:Query" in actions
+        assert "dynamodb:Scan" in actions
+        assert "dynamodb:PutItem" in actions
+        assert "dynamodb:UpdateItem" in actions
+        assert "dynamodb:DeleteItem" in actions
+
+    def test_read_access_pattern_uses_only_read_actions(self):
+        """access_pattern="read" → only GetItem, Query, Scan."""
+        func = self._process_lambda_dynamodb({"access_pattern": "read"})
+        assert len(func.iam_statements) == 1
+        actions = func.iam_statements[0].actions
+        assert actions == ["dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan"]
+
+    def test_write_access_pattern_uses_only_write_actions(self):
+        """access_pattern="write" → only PutItem, UpdateItem, DeleteItem."""
+        func = self._process_lambda_dynamodb({"access_pattern": "write"})
+        assert len(func.iam_statements) == 1
+        actions = func.iam_statements[0].actions
+        assert actions == ["dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"]
+
+    def test_read_access_pattern_excludes_write_actions(self):
+        """access_pattern="read" must NOT include write actions."""
+        func = self._process_lambda_dynamodb({"access_pattern": "read"})
+        actions = func.iam_statements[0].actions
+        assert "dynamodb:PutItem" not in actions
+        assert "dynamodb:UpdateItem" not in actions
+        assert "dynamodb:DeleteItem" not in actions
+
+    def test_write_access_pattern_excludes_read_actions(self):
+        """access_pattern="write" must NOT include read actions."""
+        func = self._process_lambda_dynamodb({"access_pattern": "write"})
+        actions = func.iam_statements[0].actions
+        assert "dynamodb:GetItem" not in actions
+        assert "dynamodb:Query" not in actions
+        assert "dynamodb:Scan" not in actions
+
+    def test_iam_resource_references_dynamodb_table(self):
+        """IAM statement resource references the DynamoDB table ARN via Terraform."""
+        func = self._process_lambda_dynamodb({"access_pattern": "read"})
+        stmt = func.iam_statements[0]
+        assert "${aws_dynamodb_table.my-table.arn}" in stmt.resources
+
+
+# ===========================================================================
+# 9. Lambda → S3 access_pattern
+# ===========================================================================
+
+
+def _s3_ir(name: str = "my-bucket") -> ResourceInstanceIR:
+    return ResourceInstanceIR(
+        name=name,
+        service_type=ServiceType.S3,
+        config=ResourceConfig(),
+    )
+
+
+class TestHandleLambdaS3AccessPattern:
+    """Test Lambda → S3 handler respects access_pattern config."""
+
+    def setup_method(self):
+        self.processor = ConnectionProcessor()
+
+    def _process_lambda_s3(self, connection_config=None):
+        func = _lambda_ir("my-func")
+        bucket = _s3_ir("my-bucket")
+        conn = ConnectionIR(
+            source_name="my-func",
+            target_name="my-bucket",
+            source_service=ServiceType.LAMBDA,
+            target_service=ServiceType.S3,
+            connection_type="writes_to",
+            connection_config=connection_config or {},
+        )
+        project = _make_project([func, bucket], [conn])
+        self.processor.process(conn, project)
+        return func
+
+    def test_default_access_pattern_uses_all_actions(self):
+        """No access_pattern specified → all 4 S3 actions (full access)."""
+        func = self._process_lambda_s3()
+        assert len(func.iam_statements) == 1
+        actions = func.iam_statements[0].actions
+        assert "s3:GetObject" in actions
+        assert "s3:PutObject" in actions
+        assert "s3:DeleteObject" in actions
+        assert "s3:ListBucket" in actions
+
+    def test_full_access_pattern_uses_all_actions(self):
+        """access_pattern="full" → all 4 S3 actions."""
+        func = self._process_lambda_s3({"access_pattern": "full"})
+        assert len(func.iam_statements) == 1
+        actions = func.iam_statements[0].actions
+        assert "s3:GetObject" in actions
+        assert "s3:PutObject" in actions
+        assert "s3:DeleteObject" in actions
+        assert "s3:ListBucket" in actions
+
+    def test_read_access_pattern_uses_only_read_actions(self):
+        """access_pattern="read" → only GetObject, ListBucket."""
+        func = self._process_lambda_s3({"access_pattern": "read"})
+        assert len(func.iam_statements) == 1
+        actions = func.iam_statements[0].actions
+        assert actions == ["s3:GetObject", "s3:ListBucket"]
+
+    def test_write_access_pattern_uses_only_write_actions(self):
+        """access_pattern="write" → only PutObject, DeleteObject."""
+        func = self._process_lambda_s3({"access_pattern": "write"})
+        assert len(func.iam_statements) == 1
+        actions = func.iam_statements[0].actions
+        assert actions == ["s3:PutObject", "s3:DeleteObject"]
+
+    def test_read_access_pattern_excludes_write_actions(self):
+        """access_pattern="read" must NOT include write actions."""
+        func = self._process_lambda_s3({"access_pattern": "read"})
+        actions = func.iam_statements[0].actions
+        assert "s3:PutObject" not in actions
+        assert "s3:DeleteObject" not in actions
+
+    def test_write_access_pattern_excludes_read_actions(self):
+        """access_pattern="write" must NOT include read actions."""
+        func = self._process_lambda_s3({"access_pattern": "write"})
+        actions = func.iam_statements[0].actions
+        assert "s3:GetObject" not in actions
+        assert "s3:ListBucket" not in actions
+
+    def test_iam_resources_include_bucket_and_objects(self):
+        """IAM statement resources include both bucket ARN and bucket/* ARN."""
+        func = self._process_lambda_s3({"access_pattern": "read"})
+        stmt = func.iam_statements[0]
+        assert "${aws_s3_bucket.my-bucket.arn}" in stmt.resources
+        assert "${aws_s3_bucket.my-bucket.arn}/*" in stmt.resources

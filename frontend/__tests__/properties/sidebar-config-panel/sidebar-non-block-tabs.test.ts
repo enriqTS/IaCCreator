@@ -42,11 +42,11 @@ describe('Property 12: Non-architecture-block tab set', () => {
     groupId: fc.option(fc.string({ minLength: 1, maxLength: 20 }), { nil: undefined }),
   });
 
-  test('getTabsForObject returns ["Visual"] for any line object', () => {
+  test('getTabsForObject returns ["Connection", "Visual"] for any line object', () => {
     fc.assert(
       fc.property(arbLineObject, (line) => {
         const tabs = getTabsForObject(line);
-        expect(tabs).toEqual(['Visual']);
+        expect(tabs).toEqual(['Connection', 'Visual']);
       }),
       { numRuns: 100 },
     );

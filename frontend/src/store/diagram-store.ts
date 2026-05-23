@@ -160,6 +160,9 @@ export interface DiagramStore {
   addConnector: (sourceId: string, targetId: string, connectionType?: string) => string;
   updateConnectorType: (id: string, connectionType: string) => void;
   removeConnector: (id: string) => void;
+  updateConnectorConfig: (id: string, key: string, value: string | number | boolean) => void;
+  removeConnectorConfigKeys: (id: string, keys: string[]) => void;
+  updateConnectorConfigBatch: (id: string, updates: Record<string, string | number | boolean>) => void;
 
   // Viewport state
   viewport: Viewport;
@@ -1235,11 +1238,16 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         throw new Error('Cannot create a connector from an element to itself');
       }
 
-      const { elements } = get();
-      if (!elements.has(sourceId)) {
+      const { elements, canvasObjects } = get();
+      const sourceExists = elements.has(sourceId) ||
+        (canvasObjects.has(sourceId) && canvasObjects.get(sourceId)!.objectType === 'architecture-block');
+      const targetExists = elements.has(targetId) ||
+        (canvasObjects.has(targetId) && canvasObjects.get(targetId)!.objectType === 'architecture-block');
+
+      if (!sourceExists) {
         throw new Error(`Source element ${sourceId} does not exist`);
       }
-      if (!elements.has(targetId)) {
+      if (!targetExists) {
         throw new Error(`Target element ${targetId} does not exist`);
       }
 
@@ -1279,6 +1287,52 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       set((state) => {
         const next = new Map(state.connectors);
         next.delete(id);
+        return { connectors: next };
+      });
+    },
+
+    updateConnectorConfig: (id: string, key: string, value: string | number | boolean): void => {
+      const conn = get().connectors.get(id);
+      if (!conn) return;
+      pushHistory();
+      set((state) => {
+        const current = state.connectors.get(id)!;
+        const next = new Map(state.connectors);
+        next.set(id, {
+          ...current,
+          connectionConfig: { ...current.connectionConfig, [key]: value },
+        });
+        return { connectors: next };
+      });
+    },
+
+    removeConnectorConfigKeys: (id: string, keys: string[]): void => {
+      const conn = get().connectors.get(id);
+      if (!conn) return;
+      pushHistory();
+      set((state) => {
+        const current = state.connectors.get(id)!;
+        const next = new Map(state.connectors);
+        const updatedConfig = { ...current.connectionConfig };
+        for (const key of keys) {
+          delete updatedConfig[key];
+        }
+        next.set(id, { ...current, connectionConfig: updatedConfig });
+        return { connectors: next };
+      });
+    },
+
+    updateConnectorConfigBatch: (id: string, updates: Record<string, string | number | boolean>): void => {
+      const conn = get().connectors.get(id);
+      if (!conn) return;
+      pushHistory();
+      set((state) => {
+        const current = state.connectors.get(id)!;
+        const next = new Map(state.connectors);
+        next.set(id, {
+          ...current,
+          connectionConfig: { ...current.connectionConfig, ...updates },
+        });
         return { connectors: next };
       });
     },
@@ -1498,6 +1552,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           sourceId: c.sourceId,
           targetId: c.targetId,
           connectionType: c.connectionType,
+          ...(c.connectionConfig !== undefined && { connection_config: { ...c.connectionConfig } }),
         })),
         viewport: { ...viewport },
         ...(serializedGroups.length > 0 && { objectGroups: serializedGroups }),
@@ -1525,6 +1580,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           sourceId: c.sourceId,
           targetId: c.targetId,
           connectionType: c.connectionType,
+          ...(c.connection_config !== undefined && { connectionConfig: { ...c.connection_config } }),
         });
       }
 
@@ -1760,6 +1816,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         source: nameById.get(c.sourceId) ?? '',
         target: nameById.get(c.targetId) ?? '',
         connection_type: c.connectionType,
+        ...(c.connectionConfig !== undefined && Object.keys(c.connectionConfig).length > 0 && { connection_config: { ...c.connectionConfig } }),
       }));
 
       // Fall back to a default "dev" environment if none are configured

@@ -82,7 +82,21 @@ class ConnectionProcessor:
     def _handle_apigw_lambda(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> list[GeneratedFile]:
-        """API Gateway → Lambda: generate integration, route, and permission resources.
+        """API Gateway → Lambda: dispatch based on connection_role.
+
+        When role is "authorizer", generates authorizer + permission resources.
+        When role is "route_handler" (default), generates integration, route, and permission.
+        """
+        role = connection.connection_config.get("connection_role", "route_handler")
+
+        if role == "authorizer":
+            return self._handle_apigw_lambda_authorizer(connection, project)
+        return self._handle_apigw_lambda_route_handler(connection, project)
+
+    def _handle_apigw_lambda_route_handler(
+        self, connection: ConnectionIR, project: ProjectIR
+    ) -> list[GeneratedFile]:
+        """API Gateway → Lambda (route_handler): generate integration, route, and permission.
 
         Supports enhanced integration configuration via connection_config:
         - integration_type: defaults to "AWS_PROXY"
@@ -120,7 +134,7 @@ class ConnectionProcessor:
             f"{project.project_name}/modules/api-gateway/{source}/integration_{target}.tf"
         )
 
-        # --- Route (new) ---
+        # --- Route ---
         route_path = connection.connection_config.get("route_path", "/$default")
         http_method = connection.connection_config.get("http_method", "ANY")
         route_key = f"{http_method} {route_path}"
@@ -138,7 +152,7 @@ class ConnectionProcessor:
             f"{project.project_name}/modules/api-gateway/{source}/route_{target}.tf"
         )
 
-        # --- Lambda Permission (new) ---
+        # --- Lambda Permission ---
         permission_name = f"{source}_{target}_permission"
 
         permission_attrs = {
@@ -161,14 +175,80 @@ class ConnectionProcessor:
             GeneratedFile(path=permission_file_path, content=permission_content),
         ]
 
+    def _handle_apigw_lambda_authorizer(
+        self, connection: ConnectionIR, project: ProjectIR
+    ) -> list[GeneratedFile]:
+        """API Gateway → Lambda (authorizer): generate authorizer and permission resources.
+
+        Generates:
+        - aws_apigatewayv2_authorizer with type "REQUEST"
+        - aws_lambda_permission for authorizer invocation
+
+        Does NOT generate integration or route resources.
+        """
+        source = connection.source_name
+        target = connection.target_name
+        authorizer_name = f"{source}_{target}_authorizer"
+        permission_name = f"{source}_{target}_authorizer_permission"
+
+        # Read authorizer settings from connection_config
+        authorizer_display_name = connection.connection_config.get("authorizer_name", target)
+        payload_format_version = connection.connection_config.get(
+            "payload_format_version", "2.0"
+        )
+
+        # --- Authorizer ---
+        authorizer_attrs = {
+            "api_id": f"aws_apigatewayv2_api.{source}.id",
+            "name": authorizer_display_name,
+            "authorizer_type": "REQUEST",
+            "authorizer_uri": f"aws_lambda_function.{target}.invoke_arn",
+            "authorizer_payload_format_version": payload_format_version,
+        }
+        authorizer_content = self._renderer.render_resource(
+            "aws_apigatewayv2_authorizer", authorizer_name, authorizer_attrs
+        )
+        authorizer_path = (
+            f"{project.project_name}/modules/api-gateway/{source}/authorizer_{target}.tf"
+        )
+
+        # --- Lambda Permission for authorizer ---
+        permission_attrs = {
+            "statement_id": f"AllowAPIGatewayAuthorizer_{source}_{target}",
+            "action": "lambda:InvokeFunction",
+            "function_name": f"aws_lambda_function.{target}.function_name",
+            "principal": "apigateway.amazonaws.com",
+            "source_arn": f"${{aws_apigatewayv2_api.{source}.execution_arn}}/authorizers/*",
+        }
+        permission_content = self._renderer.render_resource(
+            "aws_lambda_permission", permission_name, permission_attrs
+        )
+        permission_path = (
+            f"{project.project_name}/modules/api-gateway/{source}/authorizer_permission_{target}.tf"
+        )
+
+        return [
+            GeneratedFile(path=authorizer_path, content=authorizer_content),
+            GeneratedFile(path=permission_path, content=permission_content),
+        ]
+
     def _handle_lambda_dynamodb(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> list[GeneratedFile]:
-        """Lambda → DynamoDB: add read/write IAM statements to the Lambda instance."""
+        """Lambda → DynamoDB: add IAM statements based on access_pattern config."""
         target = connection.target_name
+        access_pattern = connection.connection_config.get("access_pattern", "full")
+
+        if access_pattern == "read":
+            actions = ["dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan"]
+        elif access_pattern == "write":
+            actions = ["dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"]
+        else:  # "full" or not specified
+            actions = _DYNAMODB_ACTIONS
+
         statement = IAMStatement(
             effect="Allow",
-            actions=_DYNAMODB_ACTIONS,
+            actions=actions,
             resources=[f"${{aws_dynamodb_table.{target}.arn}}"],
         )
         self._attach_iam_statement(connection.source_name, statement, project)
@@ -177,11 +257,20 @@ class ConnectionProcessor:
     def _handle_lambda_s3(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> list[GeneratedFile]:
-        """Lambda → S3: add S3 access IAM statements to the Lambda instance."""
+        """Lambda → S3: add IAM statements based on access_pattern config."""
         target = connection.target_name
+        access_pattern = connection.connection_config.get("access_pattern", "full")
+
+        if access_pattern == "read":
+            actions = ["s3:GetObject", "s3:ListBucket"]
+        elif access_pattern == "write":
+            actions = ["s3:PutObject", "s3:DeleteObject"]
+        else:  # "full" or not specified
+            actions = _S3_ACTIONS
+
         statement = IAMStatement(
             effect="Allow",
-            actions=_S3_ACTIONS,
+            actions=actions,
             resources=[
                 f"${{aws_s3_bucket.{target}.arn}}",
                 f"${{aws_s3_bucket.{target}.arn}}/*",

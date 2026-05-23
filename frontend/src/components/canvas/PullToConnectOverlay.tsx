@@ -20,7 +20,9 @@ export default function PullToConnectOverlay() {
   const pullConnectState = useDiagramStore((s) => s.pullConnectState);
   const setPullConnectState = useDiagramStore((s) => s.setPullConnectState);
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
+  const addConnector = useDiagramStore((s) => s.addConnector);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
+  const connectors = useDiagramStore((s) => s.connectors);
   const viewport = useDiagramStore((s) => s.viewport);
   const globalRoutingMode = useDiagramStore((s) => s.globalRoutingMode);
 
@@ -76,6 +78,26 @@ export default function PullToConnectOverlay() {
           targetAnchor: { objectId: targetObjectId, anchorPosition: snapResult.position },
           visualConfig: { ...DEFAULT_LINE_VISUAL, routingMode: globalRoutingMode },
         });
+
+        // Auto-create a Connector if both source and target are architecture blocks
+        const sourceObj = canvasObjects.get(pullConnectState.sourceObjectId);
+        const targetObj = canvasObjects.get(targetObjectId);
+        if (
+          sourceObj && sourceObj.objectType === 'architecture-block' &&
+          targetObj && targetObj.objectType === 'architecture-block'
+        ) {
+          // Only create if a connector doesn't already exist for this pair
+          let connectorExists = false;
+          for (const conn of connectors.values()) {
+            if (conn.sourceId === pullConnectState.sourceObjectId && conn.targetId === targetObjectId) {
+              connectorExists = true;
+              break;
+            }
+          }
+          if (!connectorExists) {
+            addConnector(pullConnectState.sourceObjectId, targetObjectId, 'triggers');
+          }
+        }
       } else {
         // Create a free-floating line
         addCanvasObject({
@@ -92,7 +114,7 @@ export default function PullToConnectOverlay() {
       setPullConnectState(null);
       setMousePos(null);
     },
-    [pullConnectState, viewport, canvasObjects, addCanvasObject, setPullConnectState, globalRoutingMode],
+    [pullConnectState, viewport, canvasObjects, addCanvasObject, addConnector, connectors, setPullConnectState, globalRoutingMode],
   );
 
   useEffect(() => {

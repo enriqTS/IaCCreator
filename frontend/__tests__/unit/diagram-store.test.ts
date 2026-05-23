@@ -167,6 +167,198 @@ describe('DiagramStore - Connector Operations', () => {
   });
 });
 
+describe('DiagramStore - Connector Config Management', () => {
+  beforeEach(() => {
+    useDiagramStore.setState({
+      elements: new Map(),
+      connectors: new Map(),
+      _undoStack: [],
+      _redoStack: [],
+      canUndo: false,
+      canRedo: false,
+    });
+  });
+
+  it('updateConnectorConfig sets a single key in connectionConfig', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'access_pattern', 'read');
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig).toEqual({ access_pattern: 'read' });
+  });
+
+  it('updateConnectorConfig preserves existing config keys', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'connection_role', 'route_handler');
+    useDiagramStore.getState().updateConnectorConfig(cid, 'http_method', 'GET');
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig).toEqual({ connection_role: 'route_handler', http_method: 'GET' });
+  });
+
+  it('updateConnectorConfig overwrites an existing key', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'batch_size', 10);
+    useDiagramStore.getState().updateConnectorConfig(cid, 'batch_size', 50);
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig!.batch_size).toBe(50);
+  });
+
+  it('updateConnectorConfig is no-op for non-existent connector', () => {
+    const before = new Map(useDiagramStore.getState().connectors);
+    useDiagramStore.getState().updateConnectorConfig('nonexistent', 'key', 'value');
+    expect(useDiagramStore.getState().connectors).toEqual(before);
+  });
+
+  it('updateConnectorConfig pushes history for undo support', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'access_pattern', 'write');
+
+    expect(useDiagramStore.getState().canUndo).toBe(true);
+    useDiagramStore.getState().undo();
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig).toBeUndefined();
+  });
+
+  it('removeConnectorConfigKeys removes specified keys', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'connection_role', 'route_handler');
+    useDiagramStore.getState().updateConnectorConfig(cid, 'http_method', 'GET');
+    useDiagramStore.getState().updateConnectorConfig(cid, 'route_path', '/users');
+
+    useDiagramStore.getState().removeConnectorConfigKeys(cid, ['http_method', 'route_path']);
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig).toEqual({ connection_role: 'route_handler' });
+  });
+
+  it('removeConnectorConfigKeys is no-op for non-existent connector', () => {
+    const before = new Map(useDiagramStore.getState().connectors);
+    useDiagramStore.getState().removeConnectorConfigKeys('nonexistent', ['key']);
+    expect(useDiagramStore.getState().connectors).toEqual(before);
+  });
+
+  it('removeConnectorConfigKeys pushes history for undo support', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'http_method', 'POST');
+    useDiagramStore.getState().removeConnectorConfigKeys(cid, ['http_method']);
+
+    expect(useDiagramStore.getState().connectors.get(cid)!.connectionConfig).toEqual({});
+
+    useDiagramStore.getState().undo();
+    expect(useDiagramStore.getState().connectors.get(cid)!.connectionConfig).toEqual({ http_method: 'POST' });
+  });
+
+  it('removeConnectorConfigKeys handles keys that do not exist gracefully', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'access_pattern', 'full');
+    useDiagramStore.getState().removeConnectorConfigKeys(cid, ['nonexistent_key']);
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig).toEqual({ access_pattern: 'full' });
+  });
+
+  it('updateConnectorConfigBatch sets multiple keys at once', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfigBatch(cid, {
+      connection_role: 'route_handler',
+      http_method: 'POST',
+      route_path: '/api/users',
+    });
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig).toEqual({
+      connection_role: 'route_handler',
+      http_method: 'POST',
+      route_path: '/api/users',
+    });
+  });
+
+  it('updateConnectorConfigBatch preserves existing keys not in updates', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'connection_role', 'route_handler');
+    useDiagramStore.getState().updateConnectorConfigBatch(cid, { http_method: 'GET', route_path: '/items' });
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig).toEqual({
+      connection_role: 'route_handler',
+      http_method: 'GET',
+      route_path: '/items',
+    });
+  });
+
+  it('updateConnectorConfigBatch is no-op for non-existent connector', () => {
+    const before = new Map(useDiagramStore.getState().connectors);
+    useDiagramStore.getState().updateConnectorConfigBatch('nonexistent', { key: 'value' });
+    expect(useDiagramStore.getState().connectors).toEqual(before);
+  });
+
+  it('updateConnectorConfigBatch pushes history for undo support', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfigBatch(cid, { batch_size: 100, maximum_batching_window_in_seconds: 60 });
+
+    expect(useDiagramStore.getState().canUndo).toBe(true);
+    useDiagramStore.getState().undo();
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig).toBeUndefined();
+  });
+
+  it('updateConnectorConfig supports boolean values', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'enabled', true);
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig!.enabled).toBe(true);
+  });
+
+  it('updateConnectorConfig supports numeric values', () => {
+    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const cid = useDiagramStore.getState().addConnector(id1, id2);
+
+    useDiagramStore.getState().updateConnectorConfig(cid, 'batch_size', 250);
+
+    const conn = useDiagramStore.getState().connectors.get(cid)!;
+    expect(conn.connectionConfig!.batch_size).toBe(250);
+  });
+});
+
 describe('DiagramStore - Viewport State', () => {
   beforeEach(() => {
     useDiagramStore.setState({

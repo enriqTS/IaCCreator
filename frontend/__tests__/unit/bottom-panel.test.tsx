@@ -51,8 +51,8 @@ describe('getTabsForObject (from SidebarPanel)', () => {
     expect(getTabsForObject(makeBlock())).toEqual(['Variables', 'Visual']);
   });
 
-  it('returns only Visual tab for line objects', () => {
-    expect(getTabsForObject(makeLine())).toEqual(['Visual']);
+  it('returns Connection and Visual tabs for line objects', () => {
+    expect(getTabsForObject(makeLine())).toEqual(['Connection', 'Visual']);
   });
 
   it('returns only Visual tab for geometric objects', () => {

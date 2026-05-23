@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
-import type { CanvasObject } from '@/types/diagram';
+import type { CanvasObject, ArchitectureBlock } from '@/types/diagram';
 import {
   MIN_SIDEBAR_WIDTH,
   MAX_SIDEBAR_WIDTH_RATIO,
@@ -16,11 +16,17 @@ import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
 import SchemaConfigForm from './SchemaConfigForm';
 import ApigwDynamicConfigUI from './apigw/ApigwDynamicConfigUI';
 import VisualTab from './VisualTab';
+import ConnectionConfigPanel from './ConnectionConfigPanel';
+import { findConnectorForLine, getSchemaForConnector } from '@/utils/connector-utils';
+import { Label } from '@/components/ui/label';
 
 /** Determine available tabs for a given canvas object type. */
 export function getTabsForObject(obj: CanvasObject): string[] {
   if (obj.objectType === 'architecture-block') {
     return ['Variables', 'Visual'];
+  }
+  if (obj.objectType === 'line') {
+    return ['Connection', 'Visual'];
   }
   return ['Visual'];
 }
@@ -345,8 +351,21 @@ function SingleSelectionView({
   setActiveTab: (tab: string) => void;
 }) {
   const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
+  const connectors = useDiagramStore((s) => s.connectors);
+  const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   // Ensure activeTab is valid for current tabs
   const effectiveTab = tabs.includes(activeTab) ? activeTab : tabs[0] ?? '';
+
+  // Resolve connector and schema for line objects
+  const lineConnectorData = (() => {
+    if (selectedObject.objectType !== 'line') return null;
+    const connector = findConnectorForLine(selectedObject, connectors, canvasObjects);
+    if (!connector) return { connector: null, schema: null, sourceBlock: null, targetBlock: null };
+    const schema = getSchemaForConnector(connector, canvasObjects);
+    const sourceBlock = canvasObjects.get(connector.sourceId) as ArchitectureBlock | undefined;
+    const targetBlock = canvasObjects.get(connector.targetId) as ArchitectureBlock | undefined;
+    return { connector, schema, sourceBlock: sourceBlock ?? null, targetBlock: targetBlock ?? null };
+  })();
 
   return (
     <div className="flex flex-col gap-3">
@@ -375,6 +394,11 @@ function SingleSelectionView({
             )}
           </TabsContent>
         )}
+        {tabs.includes('Connection') && (
+          <TabsContent value="Connection" data-testid="connection-tab-content">
+            <ConnectionTabContent lineConnectorData={lineConnectorData} />
+          </TabsContent>
+        )}
         <TabsContent value="Visual" data-testid="visual-tab-content">
           <VisualTab object={selectedObject} />
         </TabsContent>
@@ -389,5 +413,62 @@ function SingleSelectionView({
         <Trash2 className="size-4" /> Delete
       </Button>
     </div>
+  );
+}
+
+/** Renders the Connection tab content for a selected line object */
+function ConnectionTabContent({
+  lineConnectorData,
+}: {
+  lineConnectorData: {
+    connector: import('@/types/diagram').Connector | null;
+    schema: import('@/config/connection-schemas').ConnectionSchema | null;
+    sourceBlock: ArchitectureBlock | null;
+    targetBlock: ArchitectureBlock | null;
+  } | null;
+}) {
+  // No connector found — line is a standalone drawing line
+  if (!lineConnectorData || !lineConnectorData.connector) {
+    return (
+      <div data-testid="connection-no-connector" className="flex flex-col gap-2 py-2">
+        <Label className="text-sm text-muted-foreground">
+          This line is not connected to any services.
+        </Label>
+      </div>
+    );
+  }
+
+  const { connector, schema, sourceBlock, targetBlock } = lineConnectorData;
+
+  // Connector exists but no schema for this service pair
+  if (!schema || !sourceBlock || !targetBlock) {
+    return (
+      <div data-testid="connection-no-schema" className="flex flex-col gap-2 py-2">
+        {sourceBlock && targetBlock && (
+          <div className="flex items-center gap-2">
+            <Label className="text-sm font-semibold text-foreground">
+              {sourceBlock.name}
+            </Label>
+            <span className="text-muted-foreground text-sm">→</span>
+            <Label className="text-sm font-semibold text-foreground">
+              {targetBlock.name}
+            </Label>
+          </div>
+        )}
+        <span className="text-xs text-muted-foreground">
+          No additional configuration available for this connection type.
+        </span>
+      </div>
+    );
+  }
+
+  // Full connection config panel
+  return (
+    <ConnectionConfigPanel
+      connector={connector}
+      sourceBlock={sourceBlock}
+      targetBlock={targetBlock}
+      schema={schema}
+    />
   );
 }
