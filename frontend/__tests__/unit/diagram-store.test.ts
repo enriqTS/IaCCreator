@@ -1603,3 +1603,167 @@ describe('DiagramStore - Serialization of zIndex, groupId, and objectGroups', ()
     expect(group.memberIds).toContain(id2);
   });
 });
+
+describe('DiagramStore - removeLinkedEntry', () => {
+  beforeEach(() => {
+    useDiagramStore.setState({
+      elements: new Map(),
+      connectors: new Map(),
+      canvasObjects: new Map(),
+      _undoStack: [],
+      _redoStack: [],
+      canUndo: false,
+      canRedo: false,
+    });
+  });
+
+  function setupBlockAndConnectors() {
+    // Create an API Gateway block with routes
+    const blockId = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'api-gateway',
+      name: 'api-gw-1',
+      position: { x: 0, y: 0 },
+      config: {
+        routes: [
+          { method: 'GET', path: '/users', integration_name: 'lambda-1' },
+          { method: 'POST', path: '/orders', integration_name: 'lambda-2' },
+        ],
+      },
+      terraformVariables: {},
+      visualConfig: { width: 80, height: 80 },
+    });
+
+    // Create a Lambda block
+    const lambdaId = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'lambda',
+      name: 'lambda-1',
+      position: { x: 200, y: 0 },
+      config: {},
+      terraformVariables: {},
+      visualConfig: { width: 80, height: 80 },
+    });
+
+    // Create connectors referencing the routes
+    const conn1Id = useDiagramStore.getState().addConnector(blockId, lambdaId);
+    useDiagramStore.getState().updateConnectorConfig(conn1Id, 'route_path', '/users');
+
+    const conn2Id = useDiagramStore.getState().addConnector(blockId, lambdaId);
+    useDiagramStore.getState().updateConnectorConfig(conn2Id, 'route_path', '/orders');
+
+    return { blockId, lambdaId, conn1Id, conn2Id };
+  }
+
+  it('removes the entry from the block config array', () => {
+    const { blockId } = setupBlockAndConnectors();
+
+    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/users', 'route_path');
+
+    const block = useDiagramStore.getState().canvasObjects.get(blockId) as { config: Record<string, unknown> };
+    const routes = block.config.routes as { path: string }[];
+    expect(routes).toHaveLength(1);
+    expect(routes[0].path).toBe('/orders');
+  });
+
+  it('clears connectionConfig on connectors referencing the removed value', () => {
+    const { blockId, conn1Id, conn2Id } = setupBlockAndConnectors();
+
+    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/users', 'route_path');
+
+    const conn1 = useDiagramStore.getState().connectors.get(conn1Id)!;
+    expect(conn1.connectionConfig!.route_path).toBe('');
+
+    // conn2 should be unaffected
+    const conn2 = useDiagramStore.getState().connectors.get(conn2Id)!;
+    expect(conn2.connectionConfig!.route_path).toBe('/orders');
+  });
+
+  it('does not affect connectors for other blocks', () => {
+    const { blockId, lambdaId } = setupBlockAndConnectors();
+
+    // Create another block with a connector that has the same route_path value
+    const otherBlockId = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'api-gateway',
+      name: 'api-gw-2',
+      position: { x: 400, y: 0 },
+      config: { routes: [{ method: 'GET', path: '/users', integration_name: 'lambda-3' }] },
+      terraformVariables: {},
+      visualConfig: { width: 80, height: 80 },
+    });
+    const otherConnId = useDiagramStore.getState().addConnector(otherBlockId, lambdaId);
+    useDiagramStore.getState().updateConnectorConfig(otherConnId, 'route_path', '/users');
+
+    // Remove from the first block only
+    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/users', 'route_path');
+
+    // The other block's connector should be unaffected
+    const otherConn = useDiagramStore.getState().connectors.get(otherConnId)!;
+    expect(otherConn.connectionConfig!.route_path).toBe('/users');
+  });
+
+  it('pushes history for undo support', () => {
+    const { blockId, conn1Id } = setupBlockAndConnectors();
+
+    // Clear undo stack from setup
+    useDiagramStore.setState({ _undoStack: [], _redoStack: [], canUndo: false, canRedo: false });
+
+    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/users', 'route_path');
+
+    expect(useDiagramStore.getState().canUndo).toBe(true);
+
+    useDiagramStore.getState().undo();
+
+    // After undo, the route should be back
+    const block = useDiagramStore.getState().canvasObjects.get(blockId) as { config: Record<string, unknown> };
+    const routes = block.config.routes as { path: string }[];
+    expect(routes).toHaveLength(2);
+
+    // And the connector should have its original value
+    const conn1 = useDiagramStore.getState().connectors.get(conn1Id)!;
+    expect(conn1.connectionConfig!.route_path).toBe('/users');
+  });
+
+  it('is no-op for non-existent block', () => {
+    const { conn1Id } = setupBlockAndConnectors();
+    const connBefore = useDiagramStore.getState().connectors.get(conn1Id)!;
+
+    useDiagramStore.getState().removeLinkedEntry('nonexistent', 'routes', 'path', '/users', 'route_path');
+
+    const connAfter = useDiagramStore.getState().connectors.get(conn1Id)!;
+    expect(connAfter.connectionConfig!.route_path).toBe(connBefore.connectionConfig!.route_path);
+  });
+
+  it('is no-op for non-architecture-block objects', () => {
+    const lineId = useDiagramStore.getState().addCanvasObject({
+      objectType: 'line',
+      start: { x: 0, y: 0 },
+      end: { x: 100, y: 100 },
+      visualConfig: { strokeColor: '#000', strokeWidth: 2, strokeStyle: 'solid', arrowEnd: 'none', arrowStart: 'none' },
+    } as never);
+
+    // Should not throw
+    useDiagramStore.getState().removeLinkedEntry(lineId, 'routes', 'path', '/users', 'route_path');
+  });
+
+  it('handles removing a value that no connector references', () => {
+    const { blockId, conn1Id, conn2Id } = setupBlockAndConnectors();
+
+    // Remove a route that exists in the block but no connector references
+    // First add a route that no connector uses
+    const block = useDiagramStore.getState().canvasObjects.get(blockId) as { config: Record<string, unknown> };
+    const routes = block.config.routes as { path: string; method: string; integration_name: string }[];
+    useDiagramStore.getState().updateCanvasObject(blockId, {
+      config: { routes: [...routes, { method: 'DELETE', path: '/admin', integration_name: 'lambda-3' }] },
+    } as never);
+
+    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/admin', 'route_path');
+
+    // Connectors should be unaffected
+    const c1 = useDiagramStore.getState().connectors.get(conn1Id)!;
+    const c2 = useDiagramStore.getState().connectors.get(conn2Id)!;
+    expect(c1.connectionConfig!.route_path).toBe('/users');
+    expect(c2.connectionConfig!.route_path).toBe('/orders');
+  });
+});

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import type { SchemaField } from '@/config/connection-schemas';
+import type { ArchitectureBlock } from '@/types/diagram';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,6 +14,8 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { isFieldVisible, validateField } from './schema-field-utils';
+import MultiSelectFieldRenderer from './MultiSelectFieldRenderer';
+import LinkedSelectFieldRenderer from './LinkedSelectFieldRenderer';
 
 export { isFieldVisible, validateField } from './schema-field-utils';
 
@@ -22,6 +25,12 @@ export interface SchemaFieldRendererProps {
   /** Current values of all fields — used for visibleWhen evaluation */
   allValues: Record<string, string | number | boolean>;
   onChange: (key: string, value: string | number | boolean) => void;
+  /** The source block of the connection (used by linkedSelect) */
+  sourceBlock?: ArchitectureBlock;
+  /** The target block of the connection (used by linkedSelect) */
+  targetBlock?: ArchitectureBlock;
+  /** The connector ID (used by linkedSelect for atomic sync) */
+  connectorId?: string;
 }
 
 /**
@@ -34,6 +43,9 @@ export default function SchemaFieldRenderer({
   value,
   allValues,
   onChange,
+  sourceBlock,
+  targetBlock,
+  connectorId,
 }: SchemaFieldRendererProps) {
   const [touched, setTouched] = useState(false);
 
@@ -55,6 +67,36 @@ export default function SchemaFieldRenderer({
         field={field}
         value={value}
         onChange={onChange}
+      />
+    );
+  }
+
+  // --- MultiSelect field ---
+  if (field.type === 'multiSelect') {
+    return (
+      <MultiSelectFieldRenderer
+        field={field}
+        value={value as string | undefined}
+        allValues={allValues}
+        onChange={onChange}
+      />
+    );
+  }
+
+  // --- LinkedSelect field ---
+  if (field.type === 'linkedSelect') {
+    if (!sourceBlock || !targetBlock || !connectorId) {
+      return null;
+    }
+    return (
+      <LinkedSelectFieldRenderer
+        field={field}
+        value={value as string | undefined}
+        allValues={allValues}
+        onChange={onChange}
+        sourceBlock={sourceBlock}
+        targetBlock={targetBlock}
+        connectorId={connectorId}
       />
     );
   }

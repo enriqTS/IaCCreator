@@ -96,12 +96,15 @@ class ConnectionProcessor:
     def _handle_apigw_lambda_route_handler(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> list[GeneratedFile]:
-        """API Gateway → Lambda (route_handler): generate integration, route, and permission.
+        """API Gateway → Lambda (route_handler): generate integration, route(s), and permission.
 
         Supports enhanced integration configuration via connection_config:
         - integration_type: defaults to "AWS_PROXY"
         - payload_format_version: defaults to "2.0"
         - vpc_link_name: when present, adds connection_type="VPC_LINK" and connection_id
+
+        When http_method contains comma-separated values (e.g., "GET,POST"), generates
+        one route resource per method sharing the same integration.
         """
         source = connection.source_name
         target = connection.target_name
@@ -134,23 +137,38 @@ class ConnectionProcessor:
             f"{project.project_name}/modules/api-gateway/{source}/integration_{target}.tf"
         )
 
-        # --- Route ---
+        # --- Route(s) ---
         route_path = connection.connection_config.get("route_path", "/$default")
         http_method = connection.connection_config.get("http_method", "ANY")
-        route_key = f"{http_method} {route_path}"
-        route_name = f"{source}_{target}_route"
 
-        route_attrs = {
-            "api_id": f"aws_apigatewayv2_api.{source}.id",
-            "route_key": route_key,
-            "target": f"integrations/${{aws_apigatewayv2_integration.{integration_name}.id}}",
-        }
-        route_content = self._renderer.render_resource(
-            "aws_apigatewayv2_route", route_name, route_attrs
-        )
-        route_file_path = (
-            f"{project.project_name}/modules/api-gateway/{source}/route_{target}.tf"
-        )
+        # Split comma-separated methods and generate one route per method
+        methods = [m.strip() for m in str(http_method).split(",") if m.strip()]
+        if not methods:
+            methods = ["ANY"]
+
+        route_files: list[GeneratedFile] = []
+        for method in methods:
+            route_key = f"{method} {route_path}"
+            # Use method suffix in resource name only when multiple methods exist
+            if len(methods) == 1:
+                route_name = f"{source}_{target}_route"
+                route_file_name = f"route_{target}.tf"
+            else:
+                route_name = f"{source}_{target}_route_{method.lower()}"
+                route_file_name = f"route_{target}_{method.lower()}.tf"
+
+            route_attrs = {
+                "api_id": f"aws_apigatewayv2_api.{source}.id",
+                "route_key": route_key,
+                "target": f"integrations/${{aws_apigatewayv2_integration.{integration_name}.id}}",
+            }
+            route_content = self._renderer.render_resource(
+                "aws_apigatewayv2_route", route_name, route_attrs
+            )
+            route_file_path = (
+                f"{project.project_name}/modules/api-gateway/{source}/{route_file_name}"
+            )
+            route_files.append(GeneratedFile(path=route_file_path, content=route_content))
 
         # --- Lambda Permission ---
         permission_name = f"{source}_{target}_permission"
@@ -171,7 +189,7 @@ class ConnectionProcessor:
 
         return [
             GeneratedFile(path=integration_path, content=integration_content),
-            GeneratedFile(path=route_file_path, content=route_content),
+            *route_files,
             GeneratedFile(path=permission_file_path, content=permission_content),
         ]
 

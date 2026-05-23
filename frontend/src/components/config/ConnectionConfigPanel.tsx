@@ -96,6 +96,9 @@ export default function ConnectionConfigPanel({
               value={config[field.key]}
               allValues={config}
               onChange={handleFieldChange}
+              sourceBlock={sourceBlock}
+              targetBlock={targetBlock}
+              connectorId={connector.id}
             />
           ))}
         </div>

@@ -236,6 +236,7 @@ export interface ResourceConfig {
   cors_configuration?: Record<string, unknown>;
   disable_execute_api_endpoint?: boolean;
   route_selection_expression?: string;
+  routes?: Record<string, unknown>[];
   // CloudWatch
   retention_in_days?: number;
   kms_key_id?: string;

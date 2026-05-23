@@ -241,13 +241,29 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
     },
 
     removeRoute: (id: string) => {
-      set((state) => ({
-        routes: state.routes.filter((r) => r.id !== id),
-        // Clear selection if removed item was selected
-        selectedItemId: state.selectedItemId === id ? null : state.selectedItemId,
-        selectedItemType: state.selectedItemId === id ? null : state.selectedItemType,
+      const state = get();
+      const route = state.routes.find((r) => r.id === id);
+
+      // Update local state
+      set((s) => ({
+        routes: s.routes.filter((r) => r.id !== id),
+        selectedItemId: s.selectedItemId === id ? null : s.selectedItemId,
+        selectedItemType: s.selectedItemId === id ? null : s.selectedItemType,
       }));
-      _syncToCanvas();
+
+      // Use removeLinkedEntry to atomically update the block config and clear
+      // stale connector references that point to the deleted route's path
+      if (route && route.path && state.elementId) {
+        useDiagramStore.getState().removeLinkedEntry(
+          state.elementId,
+          'routes',
+          'path',
+          route.path,
+          'route_path',
+        );
+      } else {
+        _syncToCanvas();
+      }
     },
 
     // -----------------------------------------------------------------------

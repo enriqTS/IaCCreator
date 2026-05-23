@@ -164,6 +164,23 @@ export interface DiagramStore {
   removeConnectorConfigKeys: (id: string, keys: string[]) => void;
   updateConnectorConfigBatch: (id: string, updates: Record<string, string | number | boolean>) => void;
 
+  // Linked entry actions (atomic block + connector updates)
+  createLinkedEntry: (
+    blockId: string,
+    configPath: string,
+    newEntry: Record<string, unknown>,
+    connectorId: string,
+    connectorConfigKey: string,
+    connectorConfigValue: string,
+  ) => void;
+  removeLinkedEntry: (
+    blockId: string,
+    configPath: string,
+    displayKey: string,
+    removedValue: string,
+    connectorConfigKey: string,
+  ) => void;
+
   // Viewport state
   viewport: Viewport;
   pan: (dx: number, dy: number) => void;
@@ -1334,6 +1351,93 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           connectionConfig: { ...current.connectionConfig, ...updates },
         });
         return { connectors: next };
+      });
+    },
+
+    // --- Linked entry actions ---
+    createLinkedEntry: (
+      blockId: string,
+      configPath: string,
+      newEntry: Record<string, unknown>,
+      connectorId: string,
+      connectorConfigKey: string,
+      connectorConfigValue: string,
+    ): void => {
+      const block = get().canvasObjects.get(blockId);
+      if (!block || block.objectType !== 'architecture-block') return;
+      const connector = get().connectors.get(connectorId);
+      if (!connector) return;
+
+      pushHistory();
+
+      set((state) => {
+        // Update block config: read existing array at configPath, append newEntry
+        const currentBlock = state.canvasObjects.get(blockId) as ArchitectureBlock;
+        const existingArray = (currentBlock.config[configPath as keyof ResourceConfig] as unknown as Record<string, unknown>[] | undefined) ?? [];
+        const updatedArray = [...existingArray, newEntry];
+        const updatedBlock: ArchitectureBlock = {
+          ...currentBlock,
+          config: { ...currentBlock.config, [configPath]: updatedArray },
+        };
+
+        const nextCanvasObjects = new Map(state.canvasObjects);
+        nextCanvasObjects.set(blockId, updatedBlock);
+
+        // Update connector connectionConfig
+        const currentConnector = state.connectors.get(connectorId)!;
+        const nextConnectors = new Map(state.connectors);
+        nextConnectors.set(connectorId, {
+          ...currentConnector,
+          connectionConfig: { ...currentConnector.connectionConfig, [connectorConfigKey]: connectorConfigValue },
+        });
+
+        return { canvasObjects: nextCanvasObjects, connectors: nextConnectors };
+      });
+    },
+
+    removeLinkedEntry: (
+      blockId: string,
+      configPath: string,
+      displayKey: string,
+      removedValue: string,
+      connectorConfigKey: string,
+    ): void => {
+      const block = get().canvasObjects.get(blockId);
+      if (!block || block.objectType !== 'architecture-block') return;
+
+      pushHistory();
+
+      set((state) => {
+        // Remove the entry from the block's config array
+        const currentBlock = state.canvasObjects.get(blockId) as ArchitectureBlock;
+        const existingArray = (currentBlock.config[configPath as keyof ResourceConfig] as unknown as Record<string, unknown>[] | undefined) ?? [];
+        const updatedArray = existingArray.filter(
+          (entry) => entry[displayKey] !== removedValue
+        );
+        const updatedBlock: ArchitectureBlock = {
+          ...currentBlock,
+          config: { ...currentBlock.config, [configPath]: updatedArray },
+        };
+
+        const nextCanvasObjects = new Map(state.canvasObjects);
+        nextCanvasObjects.set(blockId, updatedBlock);
+
+        // Clear stale connector references: find all connectors where sourceId or targetId
+        // matches the block and their connectionConfig has the removed value
+        const nextConnectors = new Map(state.connectors);
+        for (const [connId, connector] of state.connectors) {
+          if (connector.sourceId === blockId || connector.targetId === blockId) {
+            const configValue = connector.connectionConfig?.[connectorConfigKey];
+            if (configValue === removedValue) {
+              nextConnectors.set(connId, {
+                ...connector,
+                connectionConfig: { ...connector.connectionConfig, [connectorConfigKey]: '' },
+              });
+            }
+          }
+        }
+
+        return { canvasObjects: nextCanvasObjects, connectors: nextConnectors };
       });
     },
 

@@ -9,7 +9,7 @@
 import type { ServiceType } from '@/types/diagram';
 
 /** Field types supported by the schema renderer */
-export type SchemaFieldType = 'text' | 'number' | 'select' | 'radio';
+export type SchemaFieldType = 'text' | 'number' | 'select' | 'radio' | 'multiSelect' | 'linkedSelect';
 
 /** A single configurable field in a connection schema */
 export interface SchemaField {
@@ -29,6 +29,18 @@ export interface SchemaField {
   };
   /** Show this field only when another field has a specific value */
   visibleWhen?: { field: string; value: string | number | boolean };
+
+  // --- multiSelect properties ---
+  /** Values that are mutually exclusive with all others (e.g., ["ANY"]) */
+  multiSelectExclusive?: string[];
+
+  // --- linkedSelect properties ---
+  /** Dot-path to the array field on the source block's config (e.g., "routes") */
+  linkedConfigPath?: string;
+  /** Property name within each array entry to display as option label (e.g., "path") */
+  displayKey?: string;
+  /** Template object for creating new entries (displayKey is overwritten with user input) */
+  createTemplate?: Record<string, unknown>;
 }
 
 /** Schema for a specific service pair */
@@ -63,8 +75,8 @@ const apiGatewayLambdaSchema: ConnectionSchema = {
     },
     {
       key: 'http_method',
-      label: 'HTTP Method',
-      type: 'select',
+      label: 'HTTP Methods',
+      type: 'multiSelect',
       defaultValue: 'ANY',
       options: [
         { value: 'GET', label: 'GET' },
@@ -76,14 +88,16 @@ const apiGatewayLambdaSchema: ConnectionSchema = {
         { value: 'HEAD', label: 'HEAD' },
         { value: 'ANY', label: 'ANY' },
       ],
+      multiSelectExclusive: ['ANY'],
       visibleWhen: { field: 'connection_role', value: 'route_handler' },
     },
     {
       key: 'route_path',
-      label: 'Route Path',
-      type: 'text',
-      defaultValue: '/$default',
-      placeholder: '/users/{id}',
+      label: 'Route',
+      type: 'linkedSelect',
+      linkedConfigPath: 'routes',
+      displayKey: 'path',
+      createTemplate: { method: 'ANY', path: '', integration_name: '' },
       validation: {
         required: true,
         pattern: /^\/[\w\-/{}\$]*$/,
@@ -123,9 +137,9 @@ const apiGatewayLambdaSchema: ConnectionSchema = {
       return `Authorizer: ${name}`;
     }
     if (role === 'route_handler' || !role) {
-      const method = config.http_method || 'ANY';
+      const methods = config.http_method || 'ANY';
       const path = config.route_path || '/$default';
-      const label = `${method} ${path}`;
+      const label = `${methods} ${path}`;
       return label.length > 30 ? label.slice(0, 27) + '...' : label;
     }
     return null;
