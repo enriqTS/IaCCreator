@@ -236,7 +236,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           />
         )}
 
-        {/* Main visible path */}
+        {/* Main visible path — masked to create knockout behind label */}
         <path
           d={visiblePathD}
           stroke={color}
@@ -248,7 +248,28 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           pointerEvents="none"
           markerStart={startArrow ? `url(#${startMarkerId})` : undefined}
           markerEnd={endArrow ? `url(#${endMarkerId})` : undefined}
+          mask={connectionLabel ? `url(#label-mask-${line.id})` : undefined}
         />
+
+        {/* Knockout mask: hides the line behind the label area */}
+        {connectionLabel && (
+          <defs>
+            <mask id={`label-mask-${line.id}`} maskUnits="userSpaceOnUse" x="-99999" y="-99999" width="199998" height="199998">
+              {/* White = show everything */}
+              <rect x="-99999" y="-99999" width="199998" height="199998" fill="white" />
+              {/* Black rect at label position = hide line there */}
+              <rect
+                x={midPt.x - (connectionLabel.length * 3.5 + 6)}
+                y={midPt.y - 10}
+                width={connectionLabel.length * 7 + 12}
+                height={16}
+                rx={3}
+                ry={3}
+                fill="black"
+              />
+            </mask>
+          </defs>
+        )}
 
         {/* Lock indicator */}
         {line.locked && (
@@ -264,31 +285,19 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           </text>
         )}
 
-        {/* Connection label */}
+        {/* Connection label — text only, line is knocked out behind it via mask */}
         {connectionLabel && (
-          <g transform={`translate(${midPt.x}, ${midPt.y})`} style={{ pointerEvents: 'none' }}>
-            <rect
-              x={-(connectionLabel.length * 3.5 + 6)}
-              y={-10}
-              width={connectionLabel.length * 7 + 12}
-              height={16}
-              rx={3}
-              ry={3}
-              fill="rgba(0, 0, 0, 0.6)"
-              stroke="none"
-            />
-            <text
-              x={0}
-              y={2}
-              textAnchor="middle"
-              fontSize="11"
-              fontFamily="sans-serif"
-              fill="#ffffff"
-              style={{ userSelect: 'none' }}
-            >
-              {connectionLabel}
-            </text>
-          </g>
+          <text
+            x={midPt.x}
+            y={midPt.y + 3}
+            textAnchor="middle"
+            fontSize="11"
+            fontFamily="sans-serif"
+            fill="#ffffff"
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            {connectionLabel}
+          </text>
         )}
       </g>
     );
@@ -364,7 +373,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         />
       )}
 
-      {/* Main visible line — shortened to make room for arrows */}
+      {/* Main visible line — shortened to make room for arrows, masked for label knockout */}
       <line
         x1={diagShortened[0].x}
         y1={diagShortened[0].y}
@@ -377,7 +386,26 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         pointerEvents="none"
         markerStart={startArrow ? `url(#${startMarkerId})` : undefined}
         markerEnd={endArrow ? `url(#${endMarkerId})` : undefined}
+        mask={connectionLabel ? `url(#label-mask-${line.id})` : undefined}
       />
+
+      {/* Knockout mask for diagonal line */}
+      {connectionLabel && (
+        <defs>
+          <mask id={`label-mask-${line.id}`} maskUnits="userSpaceOnUse" x="-99999" y="-99999" width="199998" height="199998">
+            <rect x="-99999" y="-99999" width="199998" height="199998" fill="white" />
+            <rect
+              x={midPt.x - (connectionLabel.length * 3.5 + 6)}
+              y={midPt.y - 10}
+              width={connectionLabel.length * 7 + 12}
+              height={16}
+              rx={3}
+              ry={3}
+              fill="black"
+            />
+          </mask>
+        </defs>
+      )}
 
       {/* Lock indicator at midpoint */}
       {line.locked && (
@@ -393,31 +421,19 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         </text>
       )}
 
-      {/* Connection label */}
+      {/* Connection label — text only, line is knocked out behind it via mask */}
       {connectionLabel && (
-        <g transform={`translate(${midPt.x}, ${midPt.y})`} style={{ pointerEvents: 'none' }}>
-          <rect
-            x={-(connectionLabel.length * 3.5 + 6)}
-            y={-10}
-            width={connectionLabel.length * 7 + 12}
-            height={16}
-            rx={3}
-            ry={3}
-            fill="rgba(0, 0, 0, 0.6)"
-            stroke="none"
-          />
-          <text
-            x={0}
-            y={2}
-            textAnchor="middle"
-            fontSize="11"
-            fontFamily="sans-serif"
-            fill="#ffffff"
-            style={{ userSelect: 'none' }}
-          >
-            {connectionLabel}
-          </text>
-        </g>
+        <text
+          x={midPt.x}
+          y={midPt.y + 3}
+          textAnchor="middle"
+          fontSize="11"
+          fontFamily="sans-serif"
+          fill="#ffffff"
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          {connectionLabel}
+        </text>
       )}
     </g>
   );
