@@ -289,6 +289,21 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         {/* Connection label — text only, line and glow are knocked out behind it via mask */}
         {connectionLabel && (
           <>
+            {/* Selection border around label */}
+            {isSelected && (
+              <rect
+                x={midPt.x - (connectionLabel.length * 3.5 + 8)}
+                y={midPt.y - 12}
+                width={connectionLabel.length * 7 + 16}
+                height={20}
+                rx={4}
+                ry={4}
+                fill="none"
+                stroke="rgba(59, 130, 246, 0.7)"
+                strokeWidth={1.5}
+                pointerEvents="none"
+              />
+            )}
             {/* Invisible hit area for clicking the label to select the line */}
             <rect
               x={midPt.x - (connectionLabel.length * 3.5 + 6)}
@@ -440,6 +455,21 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
       {/* Connection label — text only, line and glow are knocked out behind it via mask */}
       {connectionLabel && (
         <>
+          {/* Selection border around label */}
+          {isSelected && (
+            <rect
+              x={midPt.x - (connectionLabel.length * 3.5 + 8)}
+              y={midPt.y - 12}
+              width={connectionLabel.length * 7 + 16}
+              height={20}
+              rx={4}
+              ry={4}
+              fill="none"
+              stroke="rgba(59, 130, 246, 0.7)"
+              strokeWidth={1.5}
+              pointerEvents="none"
+            />
+          )}
           {/* Invisible hit area for clicking the label to select the line */}
           <rect
             x={midPt.x - (connectionLabel.length * 3.5 + 6)}
