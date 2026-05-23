@@ -36,6 +36,17 @@ export default function ConnectionConfigPanel({
 
   const config = connector.connectionConfig ?? {};
 
+  // Build allValues with defaults applied — ensures visibleWhen conditions work
+  // even when the connectionConfig is empty (e.g., freshly created connector)
+  const allValues: Record<string, string | number | boolean> = {};
+  for (const field of schema.fields) {
+    if (field.defaultValue !== undefined) {
+      allValues[field.key] = field.defaultValue;
+    }
+  }
+  // Overlay actual config values on top of defaults
+  Object.assign(allValues, config);
+
   const handleFieldChange = useCallback(
     (key: string, value: string | number | boolean) => {
       // Handle role change — clear stale fields from previous role
@@ -64,8 +75,7 @@ export default function ConnectionConfigPanel({
   const isFieldVisible = (field: SchemaField): boolean => {
     if (!field.visibleWhen) return true;
     const { field: condField, value: condValue } = field.visibleWhen;
-    const currentValue = config[condField] ?? schema.fields.find((f) => f.key === condField)?.defaultValue;
-    return currentValue === condValue;
+    return allValues[condField] === condValue;
   };
 
   const visibleFields = schema.fields.filter(isFieldVisible);
@@ -93,8 +103,8 @@ export default function ConnectionConfigPanel({
             <SchemaFieldRenderer
               key={field.key}
               field={field}
-              value={config[field.key]}
-              allValues={config}
+              value={allValues[field.key]}
+              allValues={allValues}
               onChange={handleFieldChange}
               sourceBlock={sourceBlock}
               targetBlock={targetBlock}
