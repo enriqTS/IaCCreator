@@ -223,7 +223,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           onMouseDown={handleMouseDown}
         />
 
-        {/* Selection highlight glow — follows full path */}
+        {/* Selection highlight glow — follows full path, masked behind label */}
         {isSelected && (
           <path
             d={pathD}
@@ -233,6 +233,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
             strokeLinejoin="round"
             fill="none"
             pointerEvents="none"
+            mask={connectionLabel ? `url(#label-mask-${line.id})` : undefined}
           />
         )}
 
@@ -285,23 +286,9 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           </text>
         )}
 
-        {/* Connection label — text only, line is knocked out behind it via mask */}
+        {/* Connection label — text only, line and glow are knocked out behind it via mask */}
         {connectionLabel && (
           <>
-            {/* Selection glow around label — same style as line glow to appear integrated */}
-            {isSelected && (
-              <rect
-                x={midPt.x - (connectionLabel.length * 3.5 + 8)}
-                y={midPt.y - 12}
-                width={connectionLabel.length * 7 + 16}
-                height={20}
-                rx={10}
-                ry={10}
-                fill="rgba(59, 130, 246, 0.5)"
-                stroke="none"
-                pointerEvents="none"
-              />
-            )}
             {/* Invisible hit area for clicking the label to select the line */}
             <rect
               x={midPt.x - (connectionLabel.length * 3.5 + 6)}
@@ -387,7 +374,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         onMouseDown={handleMouseDown}
       />
 
-      {/* Selection highlight glow */}
+      {/* Selection highlight glow — masked behind label */}
       {isSelected && (
         <line
           x1={startPt.x}
@@ -398,6 +385,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           strokeWidth={borderWidth + 6}
           strokeLinecap="round"
           pointerEvents="none"
+          mask={connectionLabel ? `url(#label-mask-${line.id})` : undefined}
         />
       )}
 
@@ -449,23 +437,9 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         </text>
       )}
 
-      {/* Connection label — text only, line is knocked out behind it via mask */}
+      {/* Connection label — text only, line and glow are knocked out behind it via mask */}
       {connectionLabel && (
         <>
-          {/* Selection glow around label — same style as line glow to appear integrated */}
-          {isSelected && (
-            <rect
-              x={midPt.x - (connectionLabel.length * 3.5 + 8)}
-              y={midPt.y - 12}
-              width={connectionLabel.length * 7 + 16}
-              height={20}
-              rx={10}
-              ry={10}
-              fill="rgba(59, 130, 246, 0.5)"
-              stroke="none"
-              pointerEvents="none"
-            />
-          )}
           {/* Invisible hit area for clicking the label to select the line */}
           <rect
             x={midPt.x - (connectionLabel.length * 3.5 + 6)}
