@@ -135,30 +135,8 @@ export default function CanvasBackground() {
       }
     }
 
-    // --- Draw connectors ---
-    for (const connector of connectors.values()) {
-      const sourceObj = canvasObjects.get(connector.sourceId);
-      const targetObj = canvasObjects.get(connector.targetId);
-      if (!sourceObj || !targetObj) continue;
-
-      const source = getObjectScreenCenter(sourceObj, viewport);
-      const target = getObjectScreenCenter(targetObj, viewport);
-
-      const isSelected = connector.id === selectedConnectorId;
-      const color = isSelected ? CONNECTOR_SELECTED_COLOR : CONNECTOR_COLOR;
-      const lineWidth = isSelected ? CONNECTOR_SELECTED_LINE_WIDTH : CONNECTOR_LINE_WIDTH;
-
-      // Draw line
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
-      ctx.beginPath();
-      ctx.moveTo(source.x, source.y);
-      ctx.lineTo(target.x, target.y);
-      ctx.stroke();
-
-      // Draw arrowhead at target end
-      drawArrowhead(ctx, source.x, source.y, target.x, target.y, ARROWHEAD_SIZE, color);
-    }
+    // --- Connectors are now rendered via LineObject + labels in the SVG layer ---
+    // Legacy connector drawing removed — visual representation is handled by LineObjectComponent.
   }, [viewport, canvasObjects, connectors, selectedConnectorId, gridCellSize, snapToGridEnabled]);
 
   const handleClick = useCallback(
