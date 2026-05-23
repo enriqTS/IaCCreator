@@ -320,6 +320,7 @@ export default function Canvas() {
 
       // If typing inside the sidebar, blur and delete the selected objects
       if (isTyping && target.closest('[data-testid="sidebar-panel"]')) {
+        if (e.key === 'Backspace') return; // Let browser handle normal text editing
         const currentSelectedIds = useDiagramStore.getState().selectedObjectIds;
         if (currentSelectedIds.size > 0) {
           e.preventDefault();

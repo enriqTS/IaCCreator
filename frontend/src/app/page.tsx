@@ -48,6 +48,7 @@ export default function DiagramEditorPage() {
 
         // If typing inside the sidebar config panel, blur the input and delete the object
         if (isTyping && (e.target as HTMLElement)?.closest('[data-testid="sidebar-panel"]')) {
+          if (e.key === 'Backspace') return; // Let browser handle normal text editing
           if (store.selectedObjectIds.size > 0) {
             e.preventDefault();
             (document.activeElement as HTMLElement)?.blur();
