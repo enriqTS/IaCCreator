@@ -223,12 +223,12 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           onMouseDown={handleMouseDown}
         />
 
-        {/* Selection highlight glow — follows full path, masked behind label */}
+        {/* Selection indicator — border-only outline matching text box style */}
         {isSelected && (
           <path
             d={pathD}
-            stroke="rgba(59, 130, 246, 0.5)"
-            strokeWidth={borderWidth + 6}
+            stroke="rgba(59, 130, 246, 0.7)"
+            strokeWidth={borderWidth + 3}
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
@@ -389,15 +389,15 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         onMouseDown={handleMouseDown}
       />
 
-      {/* Selection highlight glow — masked behind label */}
+      {/* Selection indicator — border-only outline matching text box style */}
       {isSelected && (
         <line
           x1={startPt.x}
           y1={startPt.y}
           x2={endPt.x}
           y2={endPt.y}
-          stroke="rgba(59, 130, 246, 0.5)"
-          strokeWidth={borderWidth + 6}
+          stroke="rgba(59, 130, 246, 0.7)"
+          strokeWidth={borderWidth + 3}
           strokeLinecap="round"
           pointerEvents="none"
           mask={connectionLabel ? `url(#label-mask-${line.id})` : undefined}
