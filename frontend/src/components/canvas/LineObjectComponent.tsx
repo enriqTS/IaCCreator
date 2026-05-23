@@ -258,14 +258,14 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
             <mask id={`label-mask-${line.id}`} maskUnits="userSpaceOnUse" x="-99999" y="-99999" width="199998" height="199998">
               {/* White = show everything */}
               <rect x="-99999" y="-99999" width="199998" height="199998" fill="white" />
-              {/* Black rect at label position = hide line there */}
+              {/* Black rect at label position = hide line there — matches selection border dimensions */}
               <rect
-                x={midPt.x - (connectionLabel.length * 3.5 + 6)}
-                y={midPt.y - 10}
-                width={connectionLabel.length * 7 + 12}
-                height={16}
-                rx={3}
-                ry={3}
+                x={midPt.x - (connectionLabel.length * 3.5 + 8)}
+                y={midPt.y - 12}
+                width={connectionLabel.length * 7 + 16}
+                height={20}
+                rx={4}
+                ry={4}
                 fill="black"
               />
             </mask>
@@ -426,12 +426,12 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           <mask id={`label-mask-${line.id}`} maskUnits="userSpaceOnUse" x="-99999" y="-99999" width="199998" height="199998">
             <rect x="-99999" y="-99999" width="199998" height="199998" fill="white" />
             <rect
-              x={midPt.x - (connectionLabel.length * 3.5 + 6)}
-              y={midPt.y - 10}
-              width={connectionLabel.length * 7 + 12}
-              height={16}
-              rx={3}
-              ry={3}
+              x={midPt.x - (connectionLabel.length * 3.5 + 8)}
+              y={midPt.y - 12}
+              width={connectionLabel.length * 7 + 16}
+              height={20}
+              rx={4}
+              ry={4}
               fill="black"
             />
           </mask>
