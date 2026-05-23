@@ -173,21 +173,6 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         y: (pathPoints[midIdx - 1].y + pathPoints[midIdx].y) / 2,
       };
 
-  // Compute text rotation angle for connection label — keep text readable (never upside-down)
-  const labelAngle = useMemo(() => {
-    if (!connectionLabel) return 0;
-    // Use the segment at the midpoint to determine direction
-    const segStart = pathPoints[midIdx - 1] ?? pathPoints[0];
-    const segEnd = pathPoints[midIdx] ?? pathPoints[pathPoints.length - 1];
-    const dx = segEnd.x - segStart.x;
-    const dy = segEnd.y - segStart.y;
-    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    // Flip if text would be upside-down
-    if (angle > 90) angle -= 180;
-    if (angle < -90) angle += 180;
-    return angle;
-  }, [connectionLabel, pathPoints, midIdx]);
-
   // Render orthogonal path (SVG <path>) or diagonal line (SVG <line>)
   if (useOrthogonal) {
     return (
@@ -281,26 +266,24 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
 
         {/* Connection label */}
         {connectionLabel && (
-          <g transform={`translate(${midPt.x}, ${midPt.y}) rotate(${labelAngle})`} style={{ pointerEvents: 'none' }}>
+          <g transform={`translate(${midPt.x}, ${midPt.y})`} style={{ pointerEvents: 'none' }}>
             <rect
               x={-(connectionLabel.length * 3.5 + 6)}
-              y={-20}
+              y={-10}
               width={connectionLabel.length * 7 + 12}
               height={16}
               rx={3}
               ry={3}
-              fill="white"
-              fillOpacity={0.9}
-              stroke={color}
-              strokeWidth={0.5}
+              fill="rgba(0, 0, 0, 0.6)"
+              stroke="none"
             />
             <text
               x={0}
-              y={-9}
+              y={2}
               textAnchor="middle"
               fontSize="11"
               fontFamily="sans-serif"
-              fill={color}
+              fill="#ffffff"
               style={{ userSelect: 'none' }}
             >
               {connectionLabel}
@@ -412,26 +395,24 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
 
       {/* Connection label */}
       {connectionLabel && (
-        <g transform={`translate(${midPt.x}, ${midPt.y}) rotate(${labelAngle})`} style={{ pointerEvents: 'none' }}>
+        <g transform={`translate(${midPt.x}, ${midPt.y})`} style={{ pointerEvents: 'none' }}>
           <rect
             x={-(connectionLabel.length * 3.5 + 6)}
-            y={-20}
+            y={-10}
             width={connectionLabel.length * 7 + 12}
             height={16}
             rx={3}
             ry={3}
-            fill="white"
-            fillOpacity={0.9}
-            stroke={color}
-            strokeWidth={0.5}
+            fill="rgba(0, 0, 0, 0.6)"
+            stroke="none"
           />
           <text
             x={0}
-            y={-9}
+            y={2}
             textAnchor="middle"
             fontSize="11"
             fontFamily="sans-serif"
-            fill={color}
+            fill="#ffffff"
             style={{ userSelect: 'none' }}
           >
             {connectionLabel}
