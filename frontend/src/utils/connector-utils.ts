@@ -49,9 +49,12 @@ export function findConnectorForLine(
     return null;
   }
 
-  // Find a connector that matches this source/target pair
+  // Find a connector that matches this source/target pair (check both directions)
   for (const connector of connectors.values()) {
-    if (connector.sourceId === sourceObjectId && connector.targetId === targetObjectId) {
+    if (
+      (connector.sourceId === sourceObjectId && connector.targetId === targetObjectId) ||
+      (connector.sourceId === targetObjectId && connector.targetId === sourceObjectId)
+    ) {
       return connector;
     }
   }
@@ -84,7 +87,13 @@ export function getSchemaForConnector(
   const key: SchemaRegistryKey =
     `${sourceObj.serviceType}::${targetObj.serviceType}` as SchemaRegistryKey;
 
-  return CONNECTION_SCHEMA_REGISTRY.get(key) ?? null;
+  // Try the direct key first, then the reverse direction
+  const schema = CONNECTION_SCHEMA_REGISTRY.get(key);
+  if (schema) return schema;
+
+  const reverseKey: SchemaRegistryKey =
+    `${targetObj.serviceType}::${sourceObj.serviceType}` as SchemaRegistryKey;
+  return CONNECTION_SCHEMA_REGISTRY.get(reverseKey) ?? null;
 }
 
 /**
