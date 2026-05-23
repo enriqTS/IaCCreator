@@ -287,17 +287,31 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
 
         {/* Connection label — text only, line is knocked out behind it via mask */}
         {connectionLabel && (
-          <text
-            x={midPt.x}
-            y={midPt.y + 3}
-            textAnchor="middle"
-            fontSize="11"
-            fontFamily="sans-serif"
-            fill="#ffffff"
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            {connectionLabel}
-          </text>
+          <>
+            {/* Invisible hit area for clicking the label to select the line */}
+            <rect
+              x={midPt.x - (connectionLabel.length * 3.5 + 6)}
+              y={midPt.y - 10}
+              width={connectionLabel.length * 7 + 12}
+              height={16}
+              fill="transparent"
+              className="cursor-pointer"
+              onMouseDown={handleMouseDown}
+            />
+            <text
+              x={midPt.x}
+              y={midPt.y + 3}
+              textAnchor="middle"
+              fontSize="11"
+              fontFamily="sans-serif"
+              fill="#ffffff"
+              className="cursor-pointer"
+              onMouseDown={handleMouseDown}
+              style={{ userSelect: 'none' }}
+            >
+              {connectionLabel}
+            </text>
+          </>
         )}
       </g>
     );
@@ -423,17 +437,31 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
 
       {/* Connection label — text only, line is knocked out behind it via mask */}
       {connectionLabel && (
-        <text
-          x={midPt.x}
-          y={midPt.y + 3}
-          textAnchor="middle"
-          fontSize="11"
-          fontFamily="sans-serif"
-          fill="#ffffff"
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          {connectionLabel}
-        </text>
+        <>
+          {/* Invisible hit area for clicking the label to select the line */}
+          <rect
+            x={midPt.x - (connectionLabel.length * 3.5 + 6)}
+            y={midPt.y - 10}
+            width={connectionLabel.length * 7 + 12}
+            height={16}
+            fill="transparent"
+            className="cursor-pointer"
+            onMouseDown={handleMouseDown}
+          />
+          <text
+            x={midPt.x}
+            y={midPt.y + 3}
+            textAnchor="middle"
+            fontSize="11"
+            fontFamily="sans-serif"
+            fill="#ffffff"
+            className="cursor-pointer"
+            onMouseDown={handleMouseDown}
+            style={{ userSelect: 'none' }}
+          >
+            {connectionLabel}
+          </text>
+        </>
       )}
     </g>
   );
