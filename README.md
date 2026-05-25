@@ -85,28 +85,52 @@ my-project/
 │   └── prod/
 │       └── ...
 ├── modules/
-│   ├── lambda/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   ├── outputs.tf
-│   │   └── my-function/
-│   │       ├── lambda.tf
-│   │       ├── iam.tf
+│   ├── compute/
+│   │   └── lambda/
+│   │       ├── main.tf
 │   │       ├── variables.tf
-│   │       └── outputs.tf
-│   ├── s3/
-│   │   └── my-bucket/
-│   │       ├── s3.tf
-│   │       ├── variables.tf
-│   │       └── outputs.tf
-│   ├── dynamodb/
-│   │   └── ...
-│   ├── api-gateway/
-│   │   └── ...
-│   ├── cloudwatch/
-│   │   └── ...
-│   └── <service-type>/
-│       └── ...
+│   │       ├── outputs.tf
+│   │       ├── layer.tf          (aggregated Lambda layers, if any)
+│   │       └── my-function/
+│   │           ├── lambda.tf
+│   │           ├── iam.tf
+│   │           ├── variables.tf
+│   │           └── outputs.tf
+│   ├── storage/
+│   │   └── s3/
+│   │       └── my-bucket/
+│   │           ├── s3.tf
+│   │           ├── variables.tf
+│   │           └── outputs.tf
+│   ├── database/
+│   │   └── dynamodb/
+│   │       └── ...
+│   ├── networking/
+│   │   └── api-gateway/
+│   │       └── ...
+│   ├── log/
+│   │   └── cloudwatch/
+│   │       └── ...
+│   ├── messaging/
+│   │   ├── sns/
+│   │   │   └── ...
+│   │   └── sqs/
+│   │       └── ...
+│   ├── analytics/
+│   │   └── <analytics-service>/
+│   │       └── ...
+│   ├── developer-tools/
+│   │   └── <devtools-service>/
+│   │       └── ...
+│   ├── business-applications/
+│   │   └── <biz-service>/
+│   │       └── ...
+│   ├── security/
+│   │   └── iam/
+│   │       └── ...
+│   └── other/
+│       └── <uncategorized-service>/
+│           └── ...
 └── iam-policies/
     └── my-function-policy.json
 ```
