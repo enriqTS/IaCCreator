@@ -1,6 +1,7 @@
 """ConnectionProcessor — processes resource connections and generates integration resources."""
 
 from app.generators.hcl_renderer import HCLRenderer
+from app.generators.service_category_map import get_category
 from app.models.input_models import ServiceType
 from app.models.ir_models import (
     ConnectionIR,
@@ -134,7 +135,7 @@ class ConnectionProcessor:
             "aws_apigatewayv2_integration", integration_name, integration_attrs
         )
         integration_path = (
-            f"{project.project_name}/modules/api-gateway/{source}/integration_{target}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/integration_{target}.tf"
         )
 
         # --- Route(s) ---
@@ -166,7 +167,7 @@ class ConnectionProcessor:
                 "aws_apigatewayv2_route", route_name, route_attrs
             )
             route_file_path = (
-                f"{project.project_name}/modules/api-gateway/{source}/{route_file_name}"
+                f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/{route_file_name}"
             )
             route_files.append(GeneratedFile(path=route_file_path, content=route_content))
 
@@ -184,7 +185,7 @@ class ConnectionProcessor:
             "aws_lambda_permission", permission_name, permission_attrs
         )
         permission_file_path = (
-            f"{project.project_name}/modules/api-gateway/{source}/permission_{target}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/permission_{target}.tf"
         )
 
         return [
@@ -227,7 +228,7 @@ class ConnectionProcessor:
             "aws_apigatewayv2_authorizer", authorizer_name, authorizer_attrs
         )
         authorizer_path = (
-            f"{project.project_name}/modules/api-gateway/{source}/authorizer_{target}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/authorizer_{target}.tf"
         )
 
         # --- Lambda Permission for authorizer ---
@@ -242,7 +243,7 @@ class ConnectionProcessor:
             "aws_lambda_permission", permission_name, permission_attrs
         )
         permission_path = (
-            f"{project.project_name}/modules/api-gateway/{source}/authorizer_permission_{target}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/authorizer_permission_{target}.tf"
         )
 
         return [
@@ -320,7 +321,7 @@ class ConnectionProcessor:
         )
         self._attach_iam_statement(source, statement, project)
 
-        path = f"{project.project_name}/modules/cloudwatch/{target}/log_group_{source}.tf"
+        path = f"{project.project_name}/modules/{get_category(ServiceType.CLOUDWATCH)}/cloudwatch/{target}/log_group_{source}.tf"
         return [GeneratedFile(path=path, content=content)]
 
     # ------------------------------------------------------------------
@@ -383,7 +384,7 @@ class ConnectionProcessor:
             "aws_lambda_event_source_mapping", mapping_name, mapping_attrs
         )
         mapping_path = (
-            f"{project.project_name}/modules/sqs/{sqs_name}/event_source_{lambda_name}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.SQS)}/sqs/{sqs_name}/event_source_{lambda_name}.tf"
         )
 
         # --- Lambda Permission ---
@@ -399,7 +400,7 @@ class ConnectionProcessor:
             "aws_lambda_permission", permission_name, permission_attrs
         )
         permission_path = (
-            f"{project.project_name}/modules/sqs/{sqs_name}/permission_{lambda_name}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.SQS)}/sqs/{sqs_name}/permission_{lambda_name}.tf"
         )
 
         # --- IAM statements for the Lambda to receive from SQS ---
@@ -437,7 +438,7 @@ class ConnectionProcessor:
             "aws_sns_topic_subscription", subscription_name, subscription_attrs
         )
         subscription_path = (
-            f"{project.project_name}/modules/sns/{sns_name}/subscription_{sqs_name}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.SNS)}/sns/{sns_name}/subscription_{sqs_name}.tf"
         )
 
         # --- SQS Queue Policy ---
@@ -469,7 +470,7 @@ class ConnectionProcessor:
             "aws_sqs_queue_policy", policy_name, policy_attrs
         )
         policy_path = (
-            f"{project.project_name}/modules/sqs/{sqs_name}/policy_{sns_name}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.SQS)}/sqs/{sqs_name}/policy_{sns_name}.tf"
         )
 
         return [
@@ -499,7 +500,7 @@ class ConnectionProcessor:
             "aws_sns_topic_subscription", subscription_name, subscription_attrs
         )
         subscription_path = (
-            f"{project.project_name}/modules/sns/{sns_name}/subscription_{lambda_name}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.SNS)}/sns/{sns_name}/subscription_{lambda_name}.tf"
         )
 
         # --- Lambda Permission ---
@@ -515,7 +516,7 @@ class ConnectionProcessor:
             "aws_lambda_permission", permission_name, permission_attrs
         )
         permission_path = (
-            f"{project.project_name}/modules/sns/{sns_name}/permission_{lambda_name}.tf"
+            f"{project.project_name}/modules/{get_category(ServiceType.SNS)}/sns/{sns_name}/permission_{lambda_name}.tf"
         )
 
         return [
