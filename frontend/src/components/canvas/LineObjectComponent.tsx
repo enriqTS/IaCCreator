@@ -5,6 +5,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { useSnapDrag } from '@/hooks/useSnapDrag';
 import { useConnectionLabel } from '@/hooks/useConnectionLabel';
+import { useServiceNameLabels } from '@/hooks/useServiceNameLabels';
 import { getAnchorPoints } from '@/utils/anchor';
 import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
 import { getObjectBounds } from '@/types/diagram';
@@ -77,6 +78,12 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
 
   // Resolve connection label and dashed override from connector config
   const { label: connectionLabel, dashed: connectionDashed } = useConnectionLabel(line);
+
+  // Get service name label bounding boxes for knockout masks
+  const serviceNameLabels = useServiceNameLabels();
+
+  // Determine if the knockout mask should be applied
+  const hasMask = !!(connectionLabel || serviceNameLabels.length > 0);
 
   const { color, borderWidth, strokeStyle, startArrow, endArrow, routingMode } = line.visualConfig;
 
@@ -233,7 +240,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
             strokeLinejoin="round"
             fill="none"
             pointerEvents="none"
-            mask={connectionLabel ? `url(#label-mask-${line.id})` : undefined}
+            mask={hasMask ? `url(#label-mask-${line.id})` : undefined}
           />
         )}
 
@@ -249,25 +256,38 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           pointerEvents="none"
           markerStart={startArrow ? `url(#${startMarkerId})` : undefined}
           markerEnd={endArrow ? `url(#${endMarkerId})` : undefined}
-          mask={connectionLabel ? `url(#label-mask-${line.id})` : undefined}
+          mask={hasMask ? `url(#label-mask-${line.id})` : undefined}
         />
 
         {/* Knockout mask: hides the line behind the label area */}
-        {connectionLabel && (
+        {hasMask && (
           <defs>
             <mask id={`label-mask-${line.id}`} maskUnits="userSpaceOnUse" x="-99999" y="-99999" width="199998" height="199998">
               {/* White = show everything */}
               <rect x="-99999" y="-99999" width="199998" height="199998" fill="white" />
-              {/* Black rect at label position = hide line there — matches selection border dimensions */}
-              <rect
-                x={midPt.x - (connectionLabel.length * 3.5 + 8)}
-                y={midPt.y - 12}
-                width={connectionLabel.length * 7 + 16}
-                height={20}
-                rx={4}
-                ry={4}
-                fill="black"
-              />
+              {/* Black rect at connection label position = hide line there */}
+              {connectionLabel && (
+                <rect
+                  x={midPt.x - (connectionLabel.length * 3.5 + 8)}
+                  y={midPt.y - 12}
+                  width={connectionLabel.length * 7 + 16}
+                  height={20}
+                  rx={4}
+                  ry={4}
+                  fill="black"
+                />
+              )}
+              {/* Service name label knockouts */}
+              {serviceNameLabels.map((rect) => (
+                <rect
+                  key={rect.id}
+                  x={rect.x}
+                  y={rect.y}
+                  width={rect.width}
+                  height={rect.height}
+                  fill="black"
+                />
+              ))}
             </mask>
           </defs>
         )}
@@ -400,7 +420,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           strokeWidth={borderWidth + 3}
           strokeLinecap="round"
           pointerEvents="none"
-          mask={connectionLabel ? `url(#label-mask-${line.id})` : undefined}
+          mask={hasMask ? `url(#label-mask-${line.id})` : undefined}
         />
       )}
 
@@ -417,23 +437,36 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         pointerEvents="none"
         markerStart={startArrow ? `url(#${startMarkerId})` : undefined}
         markerEnd={endArrow ? `url(#${endMarkerId})` : undefined}
-        mask={connectionLabel ? `url(#label-mask-${line.id})` : undefined}
+        mask={hasMask ? `url(#label-mask-${line.id})` : undefined}
       />
 
       {/* Knockout mask for diagonal line */}
-      {connectionLabel && (
+      {hasMask && (
         <defs>
           <mask id={`label-mask-${line.id}`} maskUnits="userSpaceOnUse" x="-99999" y="-99999" width="199998" height="199998">
             <rect x="-99999" y="-99999" width="199998" height="199998" fill="white" />
-            <rect
-              x={midPt.x - (connectionLabel.length * 3.5 + 8)}
-              y={midPt.y - 12}
-              width={connectionLabel.length * 7 + 16}
-              height={20}
-              rx={4}
-              ry={4}
-              fill="black"
-            />
+            {connectionLabel && (
+              <rect
+                x={midPt.x - (connectionLabel.length * 3.5 + 8)}
+                y={midPt.y - 12}
+                width={connectionLabel.length * 7 + 16}
+                height={20}
+                rx={4}
+                ry={4}
+                fill="black"
+              />
+            )}
+            {/* Service name label knockouts */}
+            {serviceNameLabels.map((rect) => (
+              <rect
+                key={rect.id}
+                x={rect.x}
+                y={rect.y}
+                width={rect.width}
+                height={rect.height}
+                fill="black"
+              />
+            ))}
           </mask>
         </defs>
       )}
