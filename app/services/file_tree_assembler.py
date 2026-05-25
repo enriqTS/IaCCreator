@@ -4,6 +4,7 @@ from app.generators.global_config_generator import GlobalConfigGenerator
 from app.generators.hcl_renderer import HCLRenderer
 from app.generators.iam_policy_generator import IAMPolicyGenerator
 from app.generators.registry import GENERATOR_REGISTRY
+from app.generators.service_category_map import get_category
 from app.generators.tfvars_generator import TfvarsGenerator
 from app.models.input_models import ServiceType
 from app.models.ir_models import (
@@ -135,18 +136,22 @@ class FileTreeAssembler:
         if module.service_type not in GENERATOR_REGISTRY:
             return
         stype_name = module.service_type.value
-        mod_base = f"{root}/modules/{stype_name}"
+        mod_base = f"{root}/modules/{get_category(module.service_type)}/{stype_name}"
 
-        # Module root main.tf — one module block per instance
+        # Separate layer instances from regular instances
+        regular_instances = [i for i in module.instances if not i.config.is_layer]
+        layer_instances = [i for i in module.instances if i.config.is_layer]
+
+        # Module root main.tf — one module block per regular instance
         main_parts = []
-        for inst in module.instances:
+        for inst in regular_instances:
             source = f"./{inst.name}"
             main_parts.append(self._renderer.render_module(inst.name, source, {}))
         tree[f"{mod_base}/main.tf"] = "\n".join(main_parts)
 
         # Module root variables.tf
         var_parts = []
-        for inst in module.instances:
+        for inst in regular_instances:
             generator = GENERATOR_REGISTRY.get(module.service_type)
             if generator:
                 # Collect variable names from the instance generator
@@ -159,9 +164,9 @@ class FileTreeAssembler:
                 )
         tree[f"{mod_base}/variables.tf"] = "\n".join(var_parts)
 
-        # Module root outputs.tf — aggregate outputs from instances
+        # Module root outputs.tf — aggregate outputs from regular instances
         out_parts = []
-        for inst in module.instances:
+        for inst in regular_instances:
             out_parts.append(
                 self._renderer.render_output(
                     f"{inst.name}_outputs",
@@ -171,9 +176,26 @@ class FileTreeAssembler:
             )
         tree[f"{mod_base}/outputs.tf"] = "\n".join(out_parts)
 
-        # Per-instance subfolders
-        for inst in module.instances:
+        # Per-instance subfolders (regular instances only)
+        for inst in regular_instances:
             self._add_resource_instance_files(tree, mod_base, inst)
+
+        # Lambda layer aggregation (handled in task 2.2)
+        if layer_instances:
+            self._add_layer_file(tree, mod_base, layer_instances)
+
+    # ------------------------------------------------------------------
+    # Lambda layer aggregation
+    # ------------------------------------------------------------------
+
+    def _add_layer_file(
+        self, tree: FileTree, mod_base: str, layer_instances: list[ResourceInstanceIR]
+    ) -> None:
+        """Generate a single layer.tf aggregating all layer instance definitions.
+
+        Full implementation in task 2.2.
+        """
+        pass
 
     # ------------------------------------------------------------------
     # Resource instance files
