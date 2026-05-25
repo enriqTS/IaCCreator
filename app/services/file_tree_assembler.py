@@ -81,7 +81,7 @@ class FileTreeAssembler:
         parts = [self._renderer.render_provider("aws", "var.aws_region")]
         for stype in env.module_refs:
             mod_name = stype.value
-            source = f"../../modules/{mod_name}"
+            source = f"../../modules/{get_category(stype)}/{mod_name}"
             parts.append(self._renderer.render_module(mod_name, source, {}))
         tree[f"{base}/main.tf"] = "\n".join(parts)
 
@@ -191,11 +191,23 @@ class FileTreeAssembler:
     def _add_layer_file(
         self, tree: FileTree, mod_base: str, layer_instances: list[ResourceInstanceIR]
     ) -> None:
-        """Generate a single layer.tf aggregating all layer instance definitions.
+        """Generate a single layer.tf aggregating all layer instance definitions."""
+        from app.generators.lambda_generator import LambdaGenerator
 
-        Full implementation in task 2.2.
-        """
-        pass
+        generator = GENERATOR_REGISTRY.get(ServiceType.LAMBDA)
+        if not isinstance(generator, LambdaGenerator):
+            return
+
+        parts: list[str] = []
+        for inst in layer_instances:
+            resource_tf = generator.generate_resource_tf(inst)
+            variables_tf = generator.generate_variables_tf(inst)
+            outputs_tf = generator.generate_outputs_tf(inst)
+            parts.append(resource_tf)
+            parts.append(variables_tf)
+            parts.append(outputs_tf)
+
+        tree[f"{mod_base}/layer.tf"] = "\n\n".join(parts)
 
     # ------------------------------------------------------------------
     # Resource instance files
