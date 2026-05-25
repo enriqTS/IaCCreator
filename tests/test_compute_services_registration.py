@@ -268,11 +268,11 @@ class TestFileTreeAssemblerSkipBehavior:
         tree = assembler.assemble(project)
 
         # EC2 module files should exist
-        ec2_files = [p for p in tree if "modules/ec2" in p]
+        ec2_files = [p for p in tree if "modules/compute/ec2" in p]
         assert len(ec2_files) > 0, "Expected files for EC2 full-generator service"
 
         # Fargate module files should NOT exist
-        fargate_files = [p for p in tree if "modules/fargate" in p]
+        fargate_files = [p for p in tree if "modules/fargate" in p or "modules/other/fargate" in p]
         assert fargate_files == [], (
             f"Expected no files for icon-only Fargate service, got: {fargate_files}"
         )

@@ -365,16 +365,16 @@ class TestConnectionProcessorBackwardCompat:
         assert any("permission_my_func.tf" in p for p in paths)
 
     def test_original_keys_file_paths_unchanged(self):
-        """File paths follow the original pattern: modules/api-gateway/{source}/..."""
+        """File paths follow the categorized pattern: modules/networking/api-gateway/{source}/..."""
         conn, project = self._make_apigw_lambda_project(
             {"route_path": "/data", "http_method": "DELETE"}
         )
         files = self.processor.process(conn, project)
 
         paths = [f.path for f in files]
-        assert "test-project/modules/api-gateway/my_api/integration_my_func.tf" in paths
-        assert "test-project/modules/api-gateway/my_api/route_my_func.tf" in paths
-        assert "test-project/modules/api-gateway/my_api/permission_my_func.tf" in paths
+        assert "test-project/modules/networking/api-gateway/my_api/integration_my_func.tf" in paths
+        assert "test-project/modules/networking/api-gateway/my_api/route_my_func.tf" in paths
+        assert "test-project/modules/networking/api-gateway/my_api/permission_my_func.tf" in paths
 
     def test_permission_file_content_unchanged(self):
         """Permission file has the same structure with original keys."""

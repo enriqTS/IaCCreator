@@ -8,6 +8,7 @@ new analytics-to-games generators and the pipeline skip behavior.
 from hypothesis import given, settings, strategies as st
 
 from app.generators.registry import GENERATOR_REGISTRY
+from app.generators.service_category_map import get_category
 from app.models.input_models import ResourceConfig, ServiceType
 from app.models.ir_models import (
     EnvironmentIR,
@@ -603,7 +604,8 @@ def test_property_5_pipeline_skip_behavior_for_mixed_service_types(project):
 
     for module in project.modules:
         stype_name = module.service_type.value
-        module_prefix = f"{project.project_name}/modules/{stype_name}/"
+        category = get_category(module.service_type)
+        module_prefix = f"{project.project_name}/modules/{category}/{stype_name}/"
 
         module_files = [p for p in file_tree if p.startswith(module_prefix)]
 

@@ -121,19 +121,19 @@ class TestHandleApigwLambda:
         """Integration file is placed at the correct path."""
         files = self._process_apigw_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/api-gateway/my-api/integration_my-func.tf" in paths
+        assert "test-project/modules/networking/api-gateway/my-api/integration_my-func.tf" in paths
 
     def test_route_file_path(self):
         """Route file is placed at the correct path."""
         files = self._process_apigw_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/api-gateway/my-api/route_my-func.tf" in paths
+        assert "test-project/modules/networking/api-gateway/my-api/route_my-func.tf" in paths
 
     def test_permission_file_path(self):
         """Permission file is placed at the correct path."""
         files = self._process_apigw_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/api-gateway/my-api/permission_my-func.tf" in paths
+        assert "test-project/modules/networking/api-gateway/my-api/permission_my-func.tf" in paths
 
     def test_route_file_contains_route_resource(self):
         """Route file contains aws_apigatewayv2_route resource."""
@@ -221,13 +221,13 @@ class TestHandleApigwLambdaAuthorizer:
         """Authorizer file is placed at the correct path."""
         files = self._process_apigw_lambda_authorizer()
         paths = [f.path for f in files]
-        assert "test-project/modules/api-gateway/my-api/authorizer_my-func.tf" in paths
+        assert "test-project/modules/networking/api-gateway/my-api/authorizer_my-func.tf" in paths
 
     def test_permission_file_path(self):
         """Authorizer permission file is placed at the correct path."""
         files = self._process_apigw_lambda_authorizer()
         paths = [f.path for f in files]
-        assert "test-project/modules/api-gateway/my-api/authorizer_permission_my-func.tf" in paths
+        assert "test-project/modules/networking/api-gateway/my-api/authorizer_permission_my-func.tf" in paths
 
     def test_authorizer_contains_authorizer_resource(self):
         """Authorizer file contains aws_apigatewayv2_authorizer resource."""
@@ -462,13 +462,13 @@ class TestHandleSqsLambda:
         """Event source mapping file is placed at the correct path."""
         files, _ = self._process_sqs_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/sqs/my-queue/event_source_my-func.tf" in paths
+        assert "test-project/modules/messaging/sqs/my-queue/event_source_my-func.tf" in paths
 
     def test_permission_file_path(self):
         """Permission file is placed at the correct path."""
         files, _ = self._process_sqs_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/sqs/my-queue/permission_my-func.tf" in paths
+        assert "test-project/modules/messaging/sqs/my-queue/permission_my-func.tf" in paths
 
     def test_event_source_mapping_contains_resource(self):
         """Event source mapping file contains aws_lambda_event_source_mapping resource."""
@@ -558,13 +558,13 @@ class TestHandleSnsSqs:
         """Subscription file is placed at the correct path."""
         files = self._process_sns_sqs()
         paths = [f.path for f in files]
-        assert "test-project/modules/sns/my-topic/subscription_my-queue.tf" in paths
+        assert "test-project/modules/messaging/sns/my-topic/subscription_my-queue.tf" in paths
 
     def test_queue_policy_file_path(self):
         """Queue policy file is placed at the correct path."""
         files = self._process_sns_sqs()
         paths = [f.path for f in files]
-        assert "test-project/modules/sqs/my-queue/policy_my-topic.tf" in paths
+        assert "test-project/modules/messaging/sqs/my-queue/policy_my-topic.tf" in paths
 
     def test_subscription_contains_resource(self):
         """Subscription file contains aws_sns_topic_subscription resource."""
@@ -629,13 +629,13 @@ class TestHandleSnsLambda:
         """Subscription file is placed at the correct path."""
         files = self._process_sns_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/sns/my-topic/subscription_my-func.tf" in paths
+        assert "test-project/modules/messaging/sns/my-topic/subscription_my-func.tf" in paths
 
     def test_permission_file_path(self):
         """Permission file is placed at the correct path."""
         files = self._process_sns_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/sns/my-topic/permission_my-func.tf" in paths
+        assert "test-project/modules/messaging/sns/my-topic/permission_my-func.tf" in paths
 
     def test_subscription_contains_resource(self):
         """Subscription file contains aws_sns_topic_subscription resource."""

@@ -366,11 +366,11 @@ class TestFileTreeAssemblerSkipBehavior:
         tree = assembler.assemble(project)
 
         # Athena module files should exist
-        athena_files = [p for p in tree if "modules/athena" in p]
+        athena_files = [p for p in tree if "modules/analytics/athena" in p]
         assert len(athena_files) > 0, "Expected files for Athena full-generator service"
 
         # QuickSight module files should NOT exist
-        quicksight_files = [p for p in tree if "modules/quicksight" in p]
+        quicksight_files = [p for p in tree if "modules/quicksight" in p or "modules/other/quicksight" in p]
         assert quicksight_files == [], (
             f"Expected no files for icon-only QuickSight service, got: {quicksight_files}"
         )

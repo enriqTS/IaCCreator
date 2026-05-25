@@ -5,6 +5,7 @@ import re
 from hypothesis import given, settings, strategies as st
 
 from app.generators.hcl_renderer import HCLRenderer
+from app.generators.service_category_map import get_category
 
 
 # --- Hypothesis strategies for HCL renderer inputs ---
@@ -750,17 +751,19 @@ def test_property_3_project_level_folder_structure(arch):
     for env in arch.environments:
         assert env.name in env_dirs, f"Missing environment dir: {env.name}"
 
-    # Verify modules/ folder has exactly S subfolders (one per distinct service type)
-    module_dirs = {
-        path.split("/")[2]
-        for path in file_tree
-        if path.startswith(f"{root}/modules/")
-    }
-    assert len(module_dirs) == num_service_types, (
-        f"Expected {num_service_types} module dirs, got {len(module_dirs)}: {module_dirs}"
+    # Verify modules/ folder contains all distinct service types under their category
+    # New structure: {root}/modules/{category}/{service_type}/...
+    module_service_types = set()
+    for path in file_tree:
+        if path.startswith(f"{root}/modules/"):
+            parts = path.split("/")
+            if len(parts) >= 4:
+                module_service_types.add(parts[3])
+    assert len(module_service_types) == num_service_types, (
+        f"Expected {num_service_types} service type dirs, got {len(module_service_types)}: {module_service_types}"
     )
     for stype in distinct_service_types:
-        assert stype.value in module_dirs, f"Missing module dir for service type: {stype.value}"
+        assert stype.value in module_service_types, f"Missing module dir for service type: {stype.value}"
 
     # Verify iam-policies/ folder exists (at least as a prefix in some path)
     has_lambda = ServiceType.LAMBDA in distinct_service_types
@@ -1000,7 +1003,16 @@ def test_property_7_service_module_file_structure_and_content(arch):
         resources_by_type[r.service_type].append(r.name)
 
     for stype, instance_names in resources_by_type.items():
-        mod_base = f"{root}/modules/{stype.value}"
+        category = get_category(stype)
+        mod_base = f"{root}/modules/{category}/{stype.value}"
+
+        # Separate layer instances from regular instances for Lambda
+        regular_names = instance_names
+        if stype == ServiceType.LAMBDA:
+            regular_names = [
+                name for name, r in zip(instance_names, [res for res in arch.resources if res.service_type == stype])
+                if not r.config.is_layer
+            ]
 
         # Req 3.3: module root should contain main.tf, variables.tf, outputs.tf
         root_files = set()
@@ -1011,28 +1023,35 @@ def test_property_7_service_module_file_structure_and_content(arch):
                 if "/" not in remainder:
                     root_files.add(remainder)
 
-        assert root_files == EXPECTED_MODULE_ROOT_FILES, (
-            f"Module '{stype.value}' root files {root_files} != expected {EXPECTED_MODULE_ROOT_FILES}"
+        expected_root_files = set(EXPECTED_MODULE_ROOT_FILES)
+        # If there are layer instances, layer.tf should also be at the root
+        if stype == ServiceType.LAMBDA:
+            has_layers = any(r.config.is_layer for r in arch.resources if r.service_type == stype)
+            if has_layers:
+                expected_root_files.add("layer.tf")
+
+        assert expected_root_files.issubset(root_files), (
+            f"Module '{stype.value}' root files {root_files} missing expected {expected_root_files - root_files}"
         )
 
-        # Req 3.4: main.tf should have one module block per resource instance
+        # Req 3.4: main.tf should have one module block per regular (non-layer) resource instance
         main_tf = file_tree[f"{mod_base}/main.tf"]
         module_names = _parse_module_names(main_tf)
-        for inst_name in instance_names:
+        for inst_name in regular_names:
             assert inst_name in module_names, (
                 f"Module '{stype.value}' main.tf missing module block for instance '{inst_name}'"
             )
-        assert len(module_names) == len(instance_names), (
+        assert len(module_names) == len(regular_names), (
             f"Module '{stype.value}' main.tf has {len(module_names)} module blocks, "
-            f"expected {len(instance_names)}"
+            f"expected {len(regular_names)}"
         )
 
         # Req 3.5: variables.tf exists (already checked above)
 
-        # Req 3.6: outputs.tf should have output blocks aggregating from all instances
+        # Req 3.6: outputs.tf should have output blocks aggregating from regular instances
         outputs_tf = file_tree[f"{mod_base}/outputs.tf"]
         output_names = _parse_output_names(outputs_tf)
-        for inst_name in instance_names:
+        for inst_name in regular_names:
             expected_output = f"{inst_name}_outputs"
             assert expected_output in output_names, (
                 f"Module '{stype.value}' outputs.tf missing output '{expected_output}'"
@@ -1064,8 +1083,13 @@ def test_property_8_resource_instance_subfolder_structure(arch):
     root = arch.project_name
 
     for resource in arch.resources:
+        # Lambda layers are aggregated into layer.tf, not individual subfolders
+        if resource.service_type == ServiceType.LAMBDA and resource.config.is_layer:
+            continue
+
         stype_name = resource.service_type.value
-        inst_base = f"{root}/modules/{stype_name}/{resource.name}"
+        category = get_category(resource.service_type)
+        inst_base = f"{root}/modules/{category}/{stype_name}/{resource.name}"
 
         # Req 4.1 & 4.2: a subfolder named after the resource exists
         instance_files = {
@@ -1152,10 +1176,14 @@ def test_property_9_lambda_iam_tf_with_file_references(arch):
     lambda_resources = [r for r in arch.resources if r.service_type == ServiceType.LAMBDA]
 
     for resource in lambda_resources:
-        inst_base = f"{root}/modules/lambda/{resource.name}"
+        # Lambda layers are aggregated into layer.tf, not individual subfolders
+        if resource.config.is_layer:
+            continue
+
+        inst_base = f"{root}/modules/compute/lambda/{resource.name}"
         iam_tf_path = f"{inst_base}/iam.tf"
 
-        # Req 4.5 / 4.6: iam.tf must exist for every Lambda (including layers)
+        # Req 4.5 / 4.6: iam.tf must exist for every non-layer Lambda
         assert iam_tf_path in file_tree, (
             f"Lambda '{resource.name}' (is_layer={resource.config.is_layer}) missing iam.tf"
         )
