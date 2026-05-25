@@ -26,7 +26,7 @@ export function shouldShowLabel(name: string): boolean {
 }
 
 /**
- * Get the display name for a block from its terraform variables.
+ * Get the display name for a block from its config.
  * Uses the first variable in the schema (which is always the resource name field).
  * Returns the value if set and non-empty, otherwise null.
  */
@@ -35,7 +35,7 @@ export function getBlockDisplayName(block: ArchitectureBlock): string | null {
   if (!schema || schema.length === 0) return null;
 
   const nameField = schema[0].name;
-  const value = block.terraformVariables[nameField];
+  const value = (block.config as Record<string, unknown>)[nameField];
 
   if (value === undefined || value === null || value === '') return null;
   return String(value).trim() || null;
@@ -120,15 +120,18 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
       </div>
       {/* Service name label rendered as sibling below the block */}
       {displayName && (
-        <span
+        <div
           data-testid={`service-label-${block.id}`}
           style={{
             position: 'absolute',
-            left: block.position.x - width / 2,
-            top: block.position.y + height / 2 + GAP,
+            left: 0,
+            top: 0,
+            transform: `translate(${block.position.x - width / 2}px, ${block.position.y + height / 2 + GAP}px)`,
             width: `${width}px`,
+            height: '16px',
             fontSize: '11px',
-            color: 'rgba(255, 255, 255, 0.9)',
+            lineHeight: '16px',
+            color: '#ffffff',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -137,7 +140,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
           }}
         >
           {displayName}
-        </span>
+        </div>
       )}
       {alignmentGuides.length > 0 && <AlignmentGuides guides={alignmentGuides} />}
     </>
