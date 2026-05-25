@@ -68,25 +68,32 @@ describe('ArchitectureBlockComponent', () => {
     render(<ArchitectureBlockComponent block={block} isSelected={true} />);
 
     const el = screen.getByTestId('architecture-block-block-1');
-    expect(el.style.border).toContain('rgba(59, 130, 246, 0.8)');
+    // Selection border is rendered as a child div with absolute positioning
+    const borderDiv = el.querySelector('div');
+    expect(borderDiv).not.toBeNull();
+    expect(borderDiv!.style.border).toContain('rgba(59, 130, 246, 0.8)');
   });
 
-  it('shows default border when isSelected is false', () => {
+  it('does not show selection border when isSelected is false', () => {
     const block = makeBlock();
     render(<ArchitectureBlockComponent block={block} isSelected={false} />);
 
     const el = screen.getByTestId('architecture-block-block-1');
-    expect(el.style.border).toContain('transparent');
+    // No selection border child div when not selected
+    const borderDiv = el.querySelector('div[style*="border"]');
+    expect(borderDiv).toBeNull();
   });
 
-  it('centers icon and label within the block', () => {
+  it('renders label as a sibling below the block container', () => {
     const block = makeBlock();
     render(<ArchitectureBlockComponent block={block} isSelected={false} />);
 
-    const el = screen.getByTestId('architecture-block-block-1');
-    expect(el.style.display).toBe('flex');
-    expect(el.style.alignItems).toBe('center');
-    expect(el.style.justifyContent).toBe('center');
+    const label = screen.getByTestId('service-label-block-1');
+    expect(label).toBeDefined();
+    expect(label.textContent).toBe('lambda-1');
+    expect(label.style.position).toBe('absolute');
+    expect(label.style.textAlign).toBe('center');
+    expect(label.style.pointerEvents).toBe('none');
   });
 
   it('positions block using raw canvas coordinates centered on position (viewport handled by container)', () => {

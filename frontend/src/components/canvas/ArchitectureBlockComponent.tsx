@@ -3,6 +3,7 @@
 import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
 import { useSnapDrag } from '@/hooks/useSnapDrag';
 import AlignmentGuides from '@/components/canvas/AlignmentGuides';
+import { GAP } from '@/hooks/useServiceNameLabels';
 import type { ArchitectureBlock } from '@/types/diagram';
 import type { ServiceType } from '@/types/diagram';
 
@@ -67,31 +68,10 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
             src={iconPath}
             alt={block.serviceType}
             width={width}
-            height={showLabel ? height - 18 : height}
+            height={height}
             draggable={false}
             style={{ pointerEvents: 'none', display: 'block', objectFit: 'contain' }}
           />
-        )}
-        {/* Label at the bottom, overlaid on the icon */}
-        {showLabel && (
-          <span
-            style={{
-              position: 'absolute',
-              bottom: 2,
-              left: 0,
-              right: 0,
-              fontSize: '11px',
-              color: 'rgba(255, 255, 255, 0.9)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              textAlign: 'center',
-              textShadow: '0 1px 3px rgba(0,0,0,0.7)',
-              pointerEvents: 'none',
-            }}
-          >
-            {block.name}
-          </span>
         )}
         {/* Selection border drawn on top of the image */}
         {isSelected && (
@@ -121,6 +101,27 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
           </span>
         )}
       </div>
+      {/* Service name label rendered as sibling below the block */}
+      {showLabel && (
+        <span
+          data-testid={`service-label-${block.id}`}
+          style={{
+            position: 'absolute',
+            left: block.position.x - width / 2,
+            top: block.position.y + height / 2 + GAP,
+            width: `${width}px`,
+            fontSize: '11px',
+            color: 'rgba(255, 255, 255, 0.9)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            textAlign: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          {block.name}
+        </span>
+      )}
       {alignmentGuides.length > 0 && <AlignmentGuides guides={alignmentGuides} />}
     </>
   );
