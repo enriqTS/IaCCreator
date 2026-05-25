@@ -4,6 +4,7 @@ import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
 import { useSnapDrag } from '@/hooks/useSnapDrag';
 import AlignmentGuides from '@/components/canvas/AlignmentGuides';
 import { GAP } from '@/hooks/useServiceNameLabels';
+import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
 import type { ArchitectureBlock } from '@/types/diagram';
 import type { ServiceType } from '@/types/diagram';
 
@@ -24,6 +25,22 @@ export function shouldShowLabel(name: string): boolean {
   return name.trim() !== '' && name.trim() !== 'Service';
 }
 
+/**
+ * Get the display name for a block from its terraform variables.
+ * Uses the first variable in the schema (which is always the resource name field).
+ * Returns the value if set and non-empty, otherwise null.
+ */
+export function getBlockDisplayName(block: ArchitectureBlock): string | null {
+  const schema = BUNDLED_SCHEMAS[block.serviceType];
+  if (!schema || schema.length === 0) return null;
+
+  const nameField = schema[0].name;
+  const value = block.terraformVariables[nameField];
+
+  if (value === undefined || value === null || value === '') return null;
+  return String(value).trim() || null;
+}
+
 interface ArchitectureBlockComponentProps {
   block: ArchitectureBlock;
   isSelected: boolean;
@@ -34,7 +51,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
 
   const { width, height } = block.visualConfig;
 
-  const showLabel = shouldShowLabel(block.name);
+  const displayName = getBlockDisplayName(block);
 
   const { handleMouseDown, alignmentGuides } = useSnapDrag({
     objectId: block.id,
@@ -102,7 +119,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
         )}
       </div>
       {/* Service name label rendered as sibling below the block */}
-      {showLabel && (
+      {displayName && (
         <span
           data-testid={`service-label-${block.id}`}
           style={{
@@ -119,7 +136,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
             pointerEvents: 'none',
           }}
         >
-          {block.name}
+          {displayName}
         </span>
       )}
       {alignmentGuides.length > 0 && <AlignmentGuides guides={alignmentGuides} />}

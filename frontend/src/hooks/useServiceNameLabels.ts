@@ -7,7 +7,8 @@
 
 import { useMemo } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { shouldShowLabel } from '@/components/canvas/ArchitectureBlockComponent';
+import { getBlockDisplayName } from '@/components/canvas/ArchitectureBlockComponent';
+import type { ArchitectureBlock } from '@/types/diagram';
 
 /** Vertical gap between block bottom edge and label top (px) */
 export const GAP = 6;
@@ -46,7 +47,7 @@ export function useServiceNameLabels(): LabelRect[] {
 
     for (const obj of canvasObjects.values()) {
       if (obj.objectType !== 'architecture-block') continue;
-      if (!shouldShowLabel(obj.name)) continue;
+      if (!getBlockDisplayName(obj as ArchitectureBlock)) continue;
 
       const { width, height } = obj.visualConfig;
 
