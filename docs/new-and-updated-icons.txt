@@ -1,0 +1,90 @@
+New and Updated AWS Service Icons (July 2025 Migration)
+========================================================
+
+NEW SERVICES (icons added, not yet wired in registry/generators)
+----------------------------------------------------------------
+
+Machine Learning / AI:
+  - Bedrock                    → Machine-Learning/Bedrock.svg
+  - Bedrock Agent              → Machine-Learning/Bedrock-Agent.svg
+  - Bedrock Guardrail          → Machine-Learning/Bedrock-Guardrail.svg
+  - Bedrock Knowledge Base     → Machine-Learning/Bedrock-Knowledge-Base.svg
+  - Amazon Q                   → Machine-Learning/Amazon-Q.svg
+  - Amazon Nova                → Machine-Learning/Amazon-Nova.svg
+  - App Studio                 → Machine-Learning/App-Studio.svg
+  - HealthScribe               → Machine-Learning/HealthScribe.svg
+  - HealthImaging              → Machine-Learning/HealthImaging.svg
+  - PyTorch on AWS             → Machine-Learning/PyTorch-on-AWS.svg
+
+Analytics:
+  - Data Firehose              → Analytics/Data-Firehose.svg
+  - Entity Resolution          → Analytics/Entity-Resolution.svg
+  - Managed Service for Flink  → Analytics/Managed-Service-for-Apache-Flink.svg
+
+App Integration:
+  - B2B Data Interchange       → App-Integration/B2B-Data-Interchange.svg
+
+Business Applications:
+  - AppFabric                  → Business-Applications/AppFabric.svg
+  - End User Messaging         → Business-Applications/End-User-Messaging.svg
+
+Compute:
+  - DCV                        → Compute/DCV.svg
+  - Elastic VMware Service     → Compute/Elastic-VMware-Service.svg
+  - Lightsail for Research     → Compute/Lightsail-for-Research.svg
+  - Parallel Cluster           → Compute/Parallel-Cluster.svg
+  - Parallel Computing Service → Compute/Parallel-Computing-Service.svg
+
+Customer Enablement:
+  - rePost Private             → Customer-Enablement/rePost-Private.svg
+
+Database:
+  - MemoryDB                   → Database/MemoryDB.svg
+  - Oracle Database at AWS     → Database/Oracle-Database-at-AWS.svg
+
+Developer Tools:
+  - Fault Injection Service    → Developer-Tools/Fault-Injection-Service.svg
+  - Infrastructure Composer    → Developer-Tools/Infrastructure-Composer.svg
+
+End User Computing:
+  - AppStream 2                → End-User-Computing/AppStream-2.svg
+
+Games:
+  - GameLift Servers           → Games/GameLift-Servers.svg
+  - GameLift Streams           → Games/GameLift-Streams.svg
+
+Management & Governance:
+  - Compute Optimizer          → Management-Governance/Compute-Optimizer.svg
+  - Console Mobile Application → Management-Governance/Console-Mobile-Application.svg
+  - Health Dashboard           → Management-Governance/Health-Dashboard.svg
+  - Telco Network Builder      → Management-Governance/Telco-Network-Builder.svg
+  - User Notifications         → Management-Governance/User-Notifications.svg
+
+Media Services:
+  - Deadline Cloud             → Media-Services/Deadline-Cloud.svg
+  - Thinkbox Deadline          → Media-Services/Thinkbox-Deadline.svg
+  - Thinkbox Frost             → Media-Services/Thinkbox-Frost.svg
+  - Thinkbox Krakatoa          → Media-Services/Thinkbox-Krakatoa.svg
+  - Thinkbox Sequoia           → Media-Services/Thinkbox-Sequoia.svg
+  - Thinkbox Stoke             → Media-Services/Thinkbox-Stoke.svg
+  - Thinkbox XMesh             → Media-Services/Thinkbox-XMesh.svg
+
+Migration & Transfer:
+  - Data Transfer Terminal     → Migration-Transfer/Data-Transfer-Terminal.svg
+  - Transform                  → Migration-Transfer/Transform.svg
+
+Networking & Content Delivery:
+  - API Gateway                → Networking-Content-Delivery/API-Gateway.svg
+  - Application Recovery Ctrl  → Networking-Content-Delivery/Application-Recovery-Controller.svg
+
+Security, Identity & Compliance:
+  - Payment Cryptography       → Security-Identity-Compliance/Payment-Cryptography.svg
+  - Security Incident Response → Security-Identity-Compliance/Security-Incident-Response.svg
+
+
+UPDATED SERVICES (existing icons refreshed with July 2025 versions)
+-------------------------------------------------------------------
+
+All existing icons across all 24 categories were updated in place with the
+latest SVGs from the AWS Architecture Icons asset package (July 2025 release).
+No filename changes — same paths, newer artwork.
