@@ -185,6 +185,14 @@ class ServiceType(str, Enum):
     LUMBERYARD = "lumberyard"
     OPEN_3D_ENGINE = "open-3d-engine"
 
+    # Machine Learning — full-generator services
+    BEDROCK = "bedrock"
+    SAGEMAKER = "sagemaker"
+    AMAZON_Q = "amazon-q"
+    BEDROCK_AGENT = "bedrock-agent"
+    BEDROCK_GUARDRAIL = "bedrock-guardrail"
+    BEDROCK_KNOWLEDGE_BASE = "bedrock-knowledge-base"
+
 
 class ResourceConfig(BaseModel):
     """Service-specific configuration for a resource instance."""
@@ -326,6 +334,18 @@ class ResourceConfig(BaseModel):
     amplify_name: Optional[str] = None
     # Games
     gamelift_ec2_instance_type: Optional[str] = None
+    # Machine Learning / AI
+    bedrock_model_name: Optional[str] = None
+    bedrock_base_model_identifier: Optional[str] = None
+    sagemaker_notebook_instance_name: Optional[str] = None
+    sagemaker_instance_type: Optional[str] = None
+    amazon_q_application_name: Optional[str] = None
+    bedrock_agent_name: Optional[str] = None
+    bedrock_agent_foundation_model: Optional[str] = None
+    bedrock_agent_instruction: Optional[str] = None
+    bedrock_knowledge_base_name: Optional[str] = None
+    bedrock_knowledge_base_embedding_model_arn: Optional[str] = None
+    bedrock_guardrail_name: Optional[str] = None
 
 
 class ResourceInstance(BaseModel):
