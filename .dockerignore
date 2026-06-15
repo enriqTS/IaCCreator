@@ -29,3 +29,9 @@ docs/
 
 # AWS icons source (root level only, not frontend/public/aws-icons)
 /aws-icons/
+
+# Extra AWS icon packs not used by the app (avoids Podman permission issues)
+frontend/public/aws-icons/Architecture-Group-Icons_07312025/
+frontend/public/aws-icons/Architecture-Service-Icons_07312025/
+frontend/public/aws-icons/Category-Icons_07312025/
+frontend/public/aws-icons/Resource-Icons_07312025/
