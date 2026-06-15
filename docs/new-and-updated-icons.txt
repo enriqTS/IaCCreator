@@ -1,6 +1,55 @@
 New and Updated AWS Service Icons (July 2025 Migration)
 ========================================================
 
+FULLY WIRED AI SERVICES (icons + registry + generators)
+-------------------------------------------------------
+
+The following AI services have been fully wired with icon registry entries,
+ServiceType enum values, backend Terraform generators, variable schemas,
+and service category mappings:
+
+  - Bedrock                    → Machine-Learning/Bedrock.svg
+  - SageMaker                  → Machine-Learning/SageMaker.svg
+  - Amazon Q                   → Machine-Learning/Amazon-Q.svg
+  - Bedrock Agent              → Machine-Learning/Bedrock-Agent.svg
+  - Bedrock Knowledge Base     → Machine-Learning/Bedrock-Knowledge-Base.svg
+  - Bedrock Guardrail          → Machine-Learning/Bedrock-Guardrail.svg
+
+
+ICON SOURCING & PLACEMENT INSTRUCTIONS
+--------------------------------------
+
+Source:
+  All SVG icons are sourced from the official AWS Architecture Icons asset
+  package available at: https://aws.amazon.com/architecture/icons/
+
+Naming Convention:
+  Icon files use PascalCase words separated by hyphens with a .svg extension.
+  Each logical word starts with an uppercase letter.
+  Examples:
+    - SageMaker.svg
+    - Bedrock-Agent.svg
+    - Bedrock-Knowledge-Base.svg
+    - Deep-Learning-AMIs.svg
+    - SageMaker-Ground-Truth.svg
+
+Placement:
+  Icons must be placed under frontend/public/aws-icons/{Category}/ where
+  {Category} matches the folderName field of the corresponding category in
+  frontend/src/data/aws-icon-registry.ts.
+  Example: frontend/public/aws-icons/Machine-Learning/Bedrock.svg
+
+Registry Wiring:
+  After placing an SVG file, a corresponding entry must be added to the
+  `services` array of the matching category in:
+    frontend/src/data/aws-icon-registry.ts
+
+  Each entry requires:
+    - name: Display name of the service (e.g., "Bedrock")
+    - iconPath: Path relative to public root (e.g., "/aws-icons/Machine-Learning/Bedrock.svg")
+    - serviceType: The ServiceType value (e.g., "bedrock") or null if display-only
+
+
 NEW SERVICES (icons added, not yet wired in registry/generators)
 ----------------------------------------------------------------
 
