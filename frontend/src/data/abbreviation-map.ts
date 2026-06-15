@@ -15,4 +15,7 @@ export const ABBREVIATION_MAP: Record<string, string[]> = {
   sqs: ['Simple Queue Service'],
   iam: ['Identity and Access Management'],
   cfn: ['CloudFormation'],
+  bedrock: ['Bedrock', 'Bedrock Agent', 'Bedrock Guardrail', 'Bedrock Knowledge Base'],
+  sagemaker: ['SageMaker'],
+  q: ['Amazon Q'],
 };
