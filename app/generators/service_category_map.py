@@ -52,6 +52,13 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.PINPOINT: "business-applications",
     # Security
     ServiceType.IAM: "security",
+    # Machine Learning
+    ServiceType.BEDROCK: "machine-learning",
+    ServiceType.SAGEMAKER: "machine-learning",
+    ServiceType.AMAZON_Q: "machine-learning",
+    ServiceType.BEDROCK_AGENT: "machine-learning",
+    ServiceType.BEDROCK_GUARDRAIL: "machine-learning",
+    ServiceType.BEDROCK_KNOWLEDGE_BASE: "machine-learning",
     # Other
     ServiceType.APPSTREAM: "other",
     ServiceType.AMPLIFY: "other",

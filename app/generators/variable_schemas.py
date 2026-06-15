@@ -1186,4 +1186,160 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             group="General",
         ),
     ],
+    # ── Machine Learning ───────────────────────────────────────────────
+    ServiceType.BEDROCK: [
+        VariableSchemaEntry(
+            name="model_name",
+            type="string",
+            description="Name of the custom model",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="base_model_identifier",
+            type="string",
+            description="Base model identifier for customization",
+            group="General",
+            options=[
+                OptionEntry(value="amazon.titan-text-express-v1", label="Amazon Titan Text Express"),
+                OptionEntry(value="amazon.titan-embed-text-v1", label="Amazon Titan Embed Text"),
+                OptionEntry(value="anthropic.claude-v2", label="Anthropic Claude v2"),
+                OptionEntry(value="meta.llama2-13b-chat-v1", label="Meta Llama 2 13B Chat"),
+            ],
+        ),
+        VariableSchemaEntry(
+            name="role_arn",
+            type="string",
+            description="IAM role ARN for Bedrock",
+            group="General",
+        ),
+    ],
+    ServiceType.SAGEMAKER: [
+        VariableSchemaEntry(
+            name="notebook_instance_name",
+            type="string",
+            description="Name of the SageMaker notebook instance",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="instance_type",
+            type="string",
+            description="Instance type for the notebook instance",
+            group="General",
+            options=[
+                OptionEntry(value="ml.t3.medium", label="ml.t3.medium"),
+                OptionEntry(value="ml.t3.large", label="ml.t3.large"),
+                OptionEntry(value="ml.m5.large", label="ml.m5.large"),
+                OptionEntry(value="ml.m5.xlarge", label="ml.m5.xlarge"),
+            ],
+        ),
+        VariableSchemaEntry(
+            name="role_arn",
+            type="string",
+            description="IAM role ARN for the notebook instance",
+            group="General",
+        ),
+    ],
+    ServiceType.AMAZON_Q: [
+        VariableSchemaEntry(
+            name="application_name",
+            type="string",
+            description="Name of the Amazon Q application",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="description",
+            type="string",
+            description="Description of the Amazon Q application",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="role_arn",
+            type="string",
+            description="IAM role ARN for the Amazon Q application",
+            group="General",
+        ),
+    ],
+    ServiceType.BEDROCK_AGENT: [
+        VariableSchemaEntry(
+            name="agent_name",
+            type="string",
+            description="Name of the Bedrock Agent",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="foundation_model",
+            type="string",
+            description="Foundation model identifier for the agent",
+            group="General",
+            options=[
+                OptionEntry(value="anthropic.claude-v2", label="Anthropic Claude v2"),
+                OptionEntry(value="anthropic.claude-3-sonnet-20240229-v1:0", label="Anthropic Claude 3 Sonnet"),
+                OptionEntry(value="amazon.titan-text-express-v1", label="Amazon Titan Text Express"),
+            ],
+        ),
+        VariableSchemaEntry(
+            name="instruction",
+            type="string",
+            description="Instruction for the Bedrock Agent",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="agent_resource_role_arn",
+            type="string",
+            description="IAM role ARN for the Bedrock Agent",
+            group="General",
+        ),
+    ],
+    ServiceType.BEDROCK_KNOWLEDGE_BASE: [
+        VariableSchemaEntry(
+            name="knowledge_base_name",
+            type="string",
+            description="Name of the knowledge base",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="description",
+            type="string",
+            description="Description of the knowledge base",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="role_arn",
+            type="string",
+            description="IAM role ARN for the knowledge base",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="embedding_model_arn",
+            type="string",
+            description="ARN of the embedding model for vector indexing",
+            group="General",
+        ),
+    ],
+    ServiceType.BEDROCK_GUARDRAIL: [
+        VariableSchemaEntry(
+            name="guardrail_name",
+            type="string",
+            description="Name of the Bedrock Guardrail",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="description",
+            type="string",
+            description="Description of the guardrail",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="blocked_input_messaging",
+            type="string",
+            description="Message to return when input is blocked",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="blocked_outputs_messaging",
+            type="string",
+            description="Message to return when output is blocked",
+            group="General",
+        ),
+    ],
 }

@@ -14,6 +14,7 @@ class BedrockKnowledgeBaseGenerator:
         """Generate resource.tf with aws_bedrockagent_knowledge_base resource."""
         attrs: dict = {
             "name": "var.knowledge_base_name",
+            "description": "var.description",
             "role_arn": "var.role_arn",
             "knowledge_base_configuration": {
                 "type": "VECTOR",

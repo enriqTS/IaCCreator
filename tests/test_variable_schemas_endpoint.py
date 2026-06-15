@@ -51,6 +51,9 @@ EXPECTED_SERVICE_TYPES = {
     "amplify",
     # Games
     "gamelift",
+    # Machine Learning
+    "bedrock", "sagemaker", "amazon-q", "bedrock-agent",
+    "bedrock-guardrail", "bedrock-knowledge-base",
 }
 
 
