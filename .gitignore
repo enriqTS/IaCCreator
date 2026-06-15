@@ -13,5 +13,5 @@ __pycache__/
 # Hypothesis
 .hypothesis/
 
-#aws-icons
-aws-icons/
+#aws-icons (root source only, not frontend/public/aws-icons)
+/aws-icons/
