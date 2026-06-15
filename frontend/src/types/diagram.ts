@@ -161,7 +161,14 @@ export type ServiceType =
   | 'gamekit'
   | 'gamesparks'
   | 'lumberyard'
-  | 'open-3d-engine';
+  | 'open-3d-engine'
+  // Machine Learning — full-generator services
+  | 'bedrock'
+  | 'sagemaker'
+  | 'amazon-q'
+  | 'bedrock-agent'
+  | 'bedrock-guardrail'
+  | 'bedrock-knowledge-base';
 
 export interface Point {
   x: number;
@@ -327,6 +334,18 @@ export interface ResourceConfig {
   amplify_name?: string;
   // Games
   gamelift_ec2_instance_type?: string;
+  // Machine Learning / AI
+  bedrock_model_name?: string;
+  bedrock_base_model_identifier?: string;
+  sagemaker_notebook_instance_name?: string;
+  sagemaker_instance_type?: string;
+  amazon_q_application_name?: string;
+  bedrock_agent_name?: string;
+  bedrock_agent_foundation_model?: string;
+  bedrock_agent_instruction?: string;
+  bedrock_knowledge_base_name?: string;
+  bedrock_knowledge_base_embedding_model_arn?: string;
+  bedrock_guardrail_name?: string;
 }
 
 export interface EnvironmentConfig {
