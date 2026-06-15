@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="80px" height="80px" viewBox="0 0 80 80" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Icon-Architecture/64/Arch_Amazon-AppFlow_64</title>
-    <defs>
-        <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="linearGradient-1">
-            <stop stop-color="#B0084D" offset="0%"></stop>
-            <stop stop-color="#FF4F8B" offset="100%"></stop>
-        </linearGradient>
-    </defs>
-    <g id="Icon-Architecture/64/Arch_Amazon-AppFlow_64" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Rectangle" fill="url(#linearGradient-1)">
-            <rect x="0" y="0" width="80" height="80"></rect>
+<svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Icon-Architecture/48/Arch_Amazon-AppFlow_48</title>
+    <g id="Icon-Architecture/48/Arch_Amazon-AppFlow_48" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icon-Architecture-BG/48/Application-Integration" fill="#E7157B">
+            <rect id="Rectangle" x="0" y="0" width="64" height="64"></rect>
         </g>
-        <g id="Icon-Service/64/AWS-AppFlow_64" transform="translate(8.000000, 8.000000)" fill="#FFFFFF">
-            <path d="M33.657,11 L17.963,37.387 L16.925,33.515 L14.994,34.033 L16.948,41.327 L24.242,39.372 L23.725,37.441 L19.6,38.545 L34.794,13.001 L49.809,13.001 L57.315,26 L49.809,39 L41.963,39 L41.963,41.001 L50.963,41.001 L59.624,26 L50.963,11 L33.657,11 Z M38.541,24.628 L39.059,26.56 L43.232,25.441 L28.815,51.001 L13.815,51.001 L6.309,38 L13.815,25 L19.964,25 L19.964,23.001 L12.661,23.001 L4,38 L12.661,53 L29.983,53 L44.837,26.669 L45.859,30.485 L47.791,29.967 L45.836,22.674 L38.541,24.628 Z" id="AWS-AppFlow_64"></path>
+        <g id="Icon-Service/48/Amazon-AppFlow_48" transform="translate(10.000000, 15.000000)" fill="#FFFFFF">
+            <path d="M37.219,0 L23.376,0 L11.249,20.387 L10.644,18.128 L8.712,18.646 L10.297,24.559 L16.21,22.975 L15.693,21.043 L12.711,21.842 L24.513,2 L36.065,2 L41.839,12 L36.065,22 L30.144,22 L30.144,24 L37.219,24 L44.148,12 L37.219,0 Z M32.254,13.671 L20.787,34 L6.928,34 L0,22 L6.928,10 L13.144,10 L13.144,12 L8.082,12 L2.309,22 L8.082,32 L19.619,32 L30.818,12.147 L27.795,12.957 L27.278,11.025 L33.192,9.441 L34.776,15.354 L32.844,15.872 L32.254,13.671 Z" id="Amazon-AppFlow_48"></path>
         </g>
     </g>
 </svg>
