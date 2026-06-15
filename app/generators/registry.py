@@ -59,6 +59,14 @@ from app.generators.amplify_generator import AmplifyGenerator
 # Games generators
 from app.generators.gamelift_generator import GameLiftGenerator
 
+# Machine Learning generators
+from app.generators.bedrock_generator import BedrockGenerator
+from app.generators.sagemaker_generator import SageMakerGenerator
+from app.generators.amazon_q_generator import AmazonQGenerator
+from app.generators.bedrock_agent_generator import BedrockAgentGenerator
+from app.generators.bedrock_guardrail_generator import BedrockGuardrailGenerator
+from app.generators.bedrock_knowledge_base_generator import BedrockKnowledgeBaseGenerator
+
 GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.LAMBDA: LambdaGenerator(),
     ServiceType.S3: S3Generator(),
@@ -109,4 +117,11 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.AMPLIFY: AmplifyGenerator(),
     # Games
     ServiceType.GAMELIFT: GameLiftGenerator(),
+    # Machine Learning
+    ServiceType.BEDROCK: BedrockGenerator(),
+    ServiceType.SAGEMAKER: SageMakerGenerator(),
+    ServiceType.AMAZON_Q: AmazonQGenerator(),
+    ServiceType.BEDROCK_AGENT: BedrockAgentGenerator(),
+    ServiceType.BEDROCK_GUARDRAIL: BedrockGuardrailGenerator(),
+    ServiceType.BEDROCK_KNOWLEDGE_BASE: BedrockKnowledgeBaseGenerator(),
 }
