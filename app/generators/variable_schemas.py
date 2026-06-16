@@ -1187,7 +1187,9 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
         ),
     ],
     # ── Machine Learning ───────────────────────────────────────────────
+    # ── Bedrock (7 variables, 3 groups) ────────────────────────────────
     ServiceType.BEDROCK: [
+        # General
         VariableSchemaEntry(
             name="model_name",
             type="string",
@@ -1212,8 +1214,38 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             description="IAM role ARN for Bedrock",
             group="General",
         ),
+        # Training
+        VariableSchemaEntry(
+            name="training_data_s3_uri",
+            type="string",
+            description="S3 URI of the training data",
+            group="Training",
+            validation=ValidationRule(pattern="^s3://", pattern_description="Must be an S3 URI starting with s3://"),
+        ),
+        VariableSchemaEntry(
+            name="output_data_s3_uri",
+            type="string",
+            description="S3 URI for the output data",
+            group="Training",
+            validation=ValidationRule(pattern="^s3://", pattern_description="Must be an S3 URI starting with s3://"),
+        ),
+        VariableSchemaEntry(
+            name="hyperparameters",
+            type="map",
+            description="Key-value pairs for training hyperparameters such as epoch count, batch size, and learning rate",
+            group="Training",
+        ),
+        # Metadata
+        VariableSchemaEntry(
+            name="tags",
+            type="map",
+            description="String key-value pairs for resource tagging",
+            group="Metadata",
+        ),
     ],
+    # ── SageMaker (7 variables, 3 groups) ──────────────────────────────
     ServiceType.SAGEMAKER: [
+        # General
         VariableSchemaEntry(
             name="notebook_instance_name",
             type="string",
@@ -1230,6 +1262,8 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
                 OptionEntry(value="ml.t3.large", label="ml.t3.large"),
                 OptionEntry(value="ml.m5.large", label="ml.m5.large"),
                 OptionEntry(value="ml.m5.xlarge", label="ml.m5.xlarge"),
+                OptionEntry(value="ml.c5.large", label="ml.c5.large"),
+                OptionEntry(value="ml.c5.xlarge", label="ml.c5.xlarge"),
             ],
         ),
         VariableSchemaEntry(
@@ -1238,8 +1272,40 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             description="IAM role ARN for the notebook instance",
             group="General",
         ),
+        # Configuration
+        VariableSchemaEntry(
+            name="volume_size",
+            type="number",
+            description="Volume size for the notebook instance in GB",
+            default=5,
+            group="Configuration",
+            validation=ValidationRule(min=5, max=16384),
+        ),
+        VariableSchemaEntry(
+            name="direct_internet_access",
+            type="bool",
+            description="Whether direct internet access is enabled for the notebook instance",
+            default=True,
+            group="Configuration",
+        ),
+        VariableSchemaEntry(
+            name="root_access",
+            type="bool",
+            description="Whether root access is enabled for the notebook instance",
+            default=True,
+            group="Configuration",
+        ),
+        # Metadata
+        VariableSchemaEntry(
+            name="tags",
+            type="map",
+            description="Tags to apply to the SageMaker notebook instance",
+            group="Metadata",
+        ),
     ],
+    # ── Amazon Q (5 variables, 2 groups) ───────────────────────────────
     ServiceType.AMAZON_Q: [
+        # General
         VariableSchemaEntry(
             name="application_name",
             type="string",
@@ -1253,13 +1319,33 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             group="General",
         ),
         VariableSchemaEntry(
+            name="identity_type",
+            type="string",
+            description="Identity provider type for the Amazon Q application",
+            group="General",
+            options=[
+                OptionEntry(value="AWS_IAM_IDP", label="AWS IAM Identity Provider"),
+                OptionEntry(value="AWS_IAM_IC", label="AWS IAM Identity Center"),
+                OptionEntry(value="AWS_QUICKSIGHT", label="Amazon QuickSight"),
+            ],
+        ),
+        VariableSchemaEntry(
             name="role_arn",
             type="string",
             description="IAM role ARN for the Amazon Q application",
             group="General",
         ),
+        # Metadata
+        VariableSchemaEntry(
+            name="tags",
+            type="map",
+            description="Tags to apply to the Amazon Q application",
+            group="Metadata",
+        ),
     ],
+    # ── Bedrock Agent (8 variables, 3 groups) ──────────────────────────
     ServiceType.BEDROCK_AGENT: [
+        # General
         VariableSchemaEntry(
             name="agent_name",
             type="string",
@@ -1274,8 +1360,16 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             options=[
                 OptionEntry(value="anthropic.claude-v2", label="Anthropic Claude v2"),
                 OptionEntry(value="anthropic.claude-3-sonnet-20240229-v1:0", label="Anthropic Claude 3 Sonnet"),
+                OptionEntry(value="anthropic.claude-3-haiku-20240307-v1:0", label="Anthropic Claude 3 Haiku"),
                 OptionEntry(value="amazon.titan-text-express-v1", label="Amazon Titan Text Express"),
+                OptionEntry(value="meta.llama3-8b-instruct-v1:0", label="Meta Llama 3 8B Instruct"),
             ],
+        ),
+        VariableSchemaEntry(
+            name="description",
+            type="string",
+            description="Description of the Bedrock Agent",
+            group="General",
         ),
         VariableSchemaEntry(
             name="instruction",
@@ -1289,8 +1383,26 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             description="IAM role ARN for the Bedrock Agent",
             group="General",
         ),
+        # Configuration
+        VariableSchemaEntry(
+            name="idle_session_ttl_in_seconds",
+            type="number",
+            description="Idle session timeout in seconds",
+            default=600,
+            group="Configuration",
+            validation=ValidationRule(min=60, max=3600),
+        ),
+        # Metadata
+        VariableSchemaEntry(
+            name="tags",
+            type="map",
+            description="Tags to apply to the Bedrock Agent",
+            group="Metadata",
+        ),
     ],
+    # ── Bedrock Knowledge Base (9 variables, 3 groups) ─────────────────
     ServiceType.BEDROCK_KNOWLEDGE_BASE: [
+        # General
         VariableSchemaEntry(
             name="knowledge_base_name",
             type="string",
@@ -1314,9 +1426,54 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             type="string",
             description="ARN of the embedding model for vector indexing",
             group="General",
+            options=[
+                OptionEntry(value="amazon.titan-embed-text-v1", label="Titan Embeddings G1 - Text"),
+                OptionEntry(value="amazon.titan-embed-text-v2:0", label="Titan Embeddings G1 - Text v2"),
+                OptionEntry(value="cohere.embed-english-v3", label="Cohere Embed English v3"),
+            ],
+        ),
+        # Storage Configuration
+        VariableSchemaEntry(
+            name="storage_type",
+            type="string",
+            description="Vector storage type for the knowledge base",
+            default="OPENSEARCH_SERVERLESS",
+            group="Storage Configuration",
+            options=[
+                OptionEntry(value="OPENSEARCH_SERVERLESS", label="OpenSearch Serverless"),
+                OptionEntry(value="PINECONE", label="Pinecone"),
+                OptionEntry(value="RDS", label="RDS Aurora PostgreSQL"),
+            ],
+        ),
+        VariableSchemaEntry(
+            name="vector_field",
+            type="string",
+            description="Name of the vector field in the storage",
+            group="Storage Configuration",
+        ),
+        VariableSchemaEntry(
+            name="text_field",
+            type="string",
+            description="Name of the text field in the storage",
+            group="Storage Configuration",
+        ),
+        VariableSchemaEntry(
+            name="metadata_field",
+            type="string",
+            description="Name of the metadata field in the storage",
+            group="Storage Configuration",
+        ),
+        # Metadata
+        VariableSchemaEntry(
+            name="tags",
+            type="map",
+            description="Tags to apply to the Bedrock Knowledge Base",
+            group="Metadata",
         ),
     ],
+    # ── Bedrock Guardrail (6 variables, 3 groups) ──────────────────────
     ServiceType.BEDROCK_GUARDRAIL: [
+        # General
         VariableSchemaEntry(
             name="guardrail_name",
             type="string",
@@ -1340,6 +1497,27 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             type="string",
             description="Message to return when output is blocked",
             group="General",
+        ),
+        # Content Policy
+        VariableSchemaEntry(
+            name="content_policy_strength",
+            type="string",
+            description="Content filtering strength level",
+            default="MEDIUM",
+            group="Content Policy",
+            options=[
+                OptionEntry(value="NONE", label="None"),
+                OptionEntry(value="LOW", label="Low"),
+                OptionEntry(value="MEDIUM", label="Medium"),
+                OptionEntry(value="HIGH", label="High"),
+            ],
+        ),
+        # Metadata
+        VariableSchemaEntry(
+            name="tags",
+            type="map",
+            description="Tags to apply to the Bedrock Guardrail",
+            group="Metadata",
         ),
     ],
 }
