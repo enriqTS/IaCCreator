@@ -13,5 +13,8 @@ __pycache__/
 # Hypothesis
 .hypothesis/
 
+# Temporary database
+db.json
+
 #aws-icons (root source only, not frontend/public/aws-icons)
 /aws-icons/
