@@ -21,6 +21,7 @@ class BedrockAgentCoreGenerator:
             "description": "var.description",
             "memory_id": "var.memory_id",
             "idle_session_ttl": "var.idle_session_ttl",
+            "tags": "var.tags",
         }
         return self._r.render_resource("aws_bedrockagent_agent_runtime", instance.name, attrs)
 

@@ -53,7 +53,7 @@ EXPECTED_SERVICE_TYPES = {
     "gamelift",
     # Machine Learning
     "bedrock", "sagemaker", "amazon-q", "bedrock-agent",
-    "bedrock-guardrail", "bedrock-knowledge-base",
+    "bedrock-guardrail", "bedrock-knowledge-base", "bedrock-agentcore",
 }
 
 

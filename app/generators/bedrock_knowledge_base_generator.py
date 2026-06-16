@@ -25,8 +25,17 @@ class BedrockKnowledgeBaseGenerator:
                 },
             },
             "storage_configuration": {
-                "type": "OPENSEARCH_SERVERLESS",
+                "type": "var.storage_type",
+                "opensearch_serverless_configuration": {
+                    "vector_index_name": "var.vector_field",
+                    "field_mapping": {
+                        "vector_field": "var.vector_field",
+                        "text_field": "var.text_field",
+                        "metadata_field": "var.metadata_field",
+                    },
+                },
             },
+            "tags": "var.tags",
         }
         return self._r.render_resource("aws_bedrockagent_knowledge_base", instance.name, attrs)
 

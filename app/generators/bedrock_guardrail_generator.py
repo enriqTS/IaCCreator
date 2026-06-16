@@ -19,6 +19,14 @@ class BedrockGuardrailGenerator:
             "description": "var.description",
             "blocked_input_messaging": "var.blocked_input_messaging",
             "blocked_outputs_messaging": "var.blocked_outputs_messaging",
+            "content_policy_config": {
+                "filters_config": {
+                    "type": "VIOLENCE",
+                    "input_strength": "var.content_policy_strength",
+                    "output_strength": "var.content_policy_strength",
+                },
+            },
+            "tags": "var.tags",
         }
         return self._r.render_resource("aws_bedrock_guardrail", instance.name, attrs)
 

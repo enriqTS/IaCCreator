@@ -19,10 +19,17 @@ from app.models.input_models import ResourceConfig, ServiceType
 
 # Each entry: (service_type, variable_name, validation_rule, visible_when)
 _VALIDATED_VARS: list[tuple[ServiceType, str, object, object]] = []
+# Get all valid field names from ResourceConfig to filter testable entries
+_RESOURCE_CONFIG_FIELDS = set(ResourceConfig.model_fields.keys())
 for _stype, _entries in VARIABLE_SCHEMAS.items():
     for _entry in _entries:
         if _entry.validation is not None:
-            _VALIDATED_VARS.append((_stype, _entry.name, _entry.validation, _entry.visible_when))
+            # Only include rules that have numeric bounds or allowed_values
+            rule = _entry.validation
+            if rule.min is not None or rule.max is not None or rule.allowed_values is not None:
+                # Only include if the variable maps to a real ResourceConfig field
+                if _entry.name in _RESOURCE_CONFIG_FIELDS:
+                    _VALIDATED_VARS.append((_stype, _entry.name, rule, _entry.visible_when))
 
 
 # ---------------------------------------------------------------------------

@@ -18,7 +18,10 @@ class BedrockAgentGenerator:
             "agent_name": "var.agent_name",
             "foundation_model": "var.foundation_model",
             "instruction": "var.instruction",
+            "description": "var.description",
             "agent_resource_role_arn": "var.agent_resource_role_arn",
+            "idle_session_ttl_in_seconds": "var.idle_session_ttl_in_seconds",
+            "tags": "var.tags",
         }
         return self._r.render_resource("aws_bedrockagent_agent", instance.name, attrs)
 
