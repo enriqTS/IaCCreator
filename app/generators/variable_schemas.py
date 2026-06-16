@@ -1520,4 +1520,61 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             group="Metadata",
         ),
     ],
+    # ── Bedrock AgentCore (7 variables, 3 groups) ─────────────────────
+    ServiceType.BEDROCK_AGENTCORE: [
+        # General
+        VariableSchemaEntry(
+            name="agent_runtime_name",
+            type="string",
+            description="Name of the AgentCore runtime",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="foundation_model",
+            type="string",
+            description="Foundation model for the agent runtime",
+            group="General",
+            options=[
+                OptionEntry(value="anthropic.claude-v2", label="Anthropic Claude v2"),
+                OptionEntry(value="anthropic.claude-3-sonnet-20240229-v1:0", label="Anthropic Claude 3 Sonnet"),
+                OptionEntry(value="anthropic.claude-3-haiku-20240307-v1:0", label="Anthropic Claude 3 Haiku"),
+                OptionEntry(value="amazon.titan-text-express-v1", label="Amazon Titan Text Express"),
+                OptionEntry(value="meta.llama3-8b-instruct-v1:0", label="Meta Llama 3 8B Instruct"),
+            ],
+        ),
+        VariableSchemaEntry(
+            name="role_arn",
+            type="string",
+            description="IAM role ARN for the AgentCore runtime",
+            group="General",
+        ),
+        VariableSchemaEntry(
+            name="description",
+            type="string",
+            description="Description of the agent runtime",
+            group="General",
+        ),
+        # Configuration
+        VariableSchemaEntry(
+            name="memory_id",
+            type="string",
+            description="Memory store identifier for session context",
+            group="Configuration",
+        ),
+        VariableSchemaEntry(
+            name="idle_session_ttl",
+            type="number",
+            description="Idle session timeout in seconds",
+            default=600,
+            group="Configuration",
+            validation=ValidationRule(min=60, max=3600),
+        ),
+        # Metadata
+        VariableSchemaEntry(
+            name="tags",
+            type="map",
+            description="Tags to apply to the AgentCore runtime",
+            group="Metadata",
+        ),
+    ],
 }

@@ -59,6 +59,7 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.BEDROCK_AGENT: "machine-learning",
     ServiceType.BEDROCK_GUARDRAIL: "machine-learning",
     ServiceType.BEDROCK_KNOWLEDGE_BASE: "machine-learning",
+    ServiceType.BEDROCK_AGENTCORE: "machine-learning",
     # Other
     ServiceType.APPSTREAM: "other",
     ServiceType.AMPLIFY: "other",

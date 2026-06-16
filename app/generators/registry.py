@@ -66,6 +66,7 @@ from app.generators.amazon_q_generator import AmazonQGenerator
 from app.generators.bedrock_agent_generator import BedrockAgentGenerator
 from app.generators.bedrock_guardrail_generator import BedrockGuardrailGenerator
 from app.generators.bedrock_knowledge_base_generator import BedrockKnowledgeBaseGenerator
+from app.generators.bedrock_agentcore_generator import BedrockAgentCoreGenerator
 
 GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.LAMBDA: LambdaGenerator(),
@@ -124,4 +125,5 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.BEDROCK_AGENT: BedrockAgentGenerator(),
     ServiceType.BEDROCK_GUARDRAIL: BedrockGuardrailGenerator(),
     ServiceType.BEDROCK_KNOWLEDGE_BASE: BedrockKnowledgeBaseGenerator(),
+    ServiceType.BEDROCK_AGENTCORE: BedrockAgentCoreGenerator(),
 }
