@@ -284,6 +284,7 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
       { name: 'Bedrock Agent', iconPath: '/aws-icons/Machine-Learning/Bedrock-Agent.svg', serviceType: 'bedrock-agent' },
       { name: 'Bedrock Guardrail', iconPath: '/aws-icons/Machine-Learning/Bedrock-Guardrail.svg', serviceType: 'bedrock-guardrail' },
       { name: 'Bedrock Knowledge Base', iconPath: '/aws-icons/Machine-Learning/Bedrock-Knowledge-Base.svg', serviceType: 'bedrock-knowledge-base' },
+      { name: 'Bedrock AgentCore', iconPath: '/aws-icons/Machine-Learning/Bedrock-AgentCore.svg', serviceType: 'bedrock-agentcore' },
       { name: 'Bedrock', iconPath: '/aws-icons/Machine-Learning/Bedrock.svg', serviceType: 'bedrock' },
       { name: 'CodeGuru', iconPath: '/aws-icons/Machine-Learning/CodeGuru.svg', serviceType: null },
       { name: 'CodeWhisperer', iconPath: '/aws-icons/Machine-Learning/CodeWhisperer.svg', serviceType: null },
