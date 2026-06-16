@@ -192,6 +192,7 @@ class ServiceType(str, Enum):
     BEDROCK_AGENT = "bedrock-agent"
     BEDROCK_GUARDRAIL = "bedrock-guardrail"
     BEDROCK_KNOWLEDGE_BASE = "bedrock-knowledge-base"
+    BEDROCK_AGENTCORE = "bedrock-agentcore"
 
 
 class ResourceConfig(BaseModel):

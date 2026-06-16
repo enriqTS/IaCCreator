@@ -168,7 +168,8 @@ export type ServiceType =
   | 'amazon-q'
   | 'bedrock-agent'
   | 'bedrock-guardrail'
-  | 'bedrock-knowledge-base';
+  | 'bedrock-knowledge-base'
+  | 'bedrock-agentcore';
 
 export interface Point {
   x: number;
