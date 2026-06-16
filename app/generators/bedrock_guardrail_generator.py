@@ -1,6 +1,8 @@
 """Bedrock Guardrail service generator — produces HCL for aws_bedrock_guardrail resources."""
 
 from app.generators.hcl_renderer import HCLRenderer
+from app.generators.variable_schemas import VARIABLE_SCHEMAS
+from app.models.input_models import ServiceType
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -21,13 +23,12 @@ class BedrockGuardrailGenerator:
         return self._r.render_resource("aws_bedrock_guardrail", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
-        """Generate variables.tf for a Bedrock Guardrail."""
-        parts = [
-            self._r.render_variable("guardrail_name", "string", "Name of the Bedrock Guardrail"),
-            self._r.render_variable("description", "string", "Description of the guardrail"),
-            self._r.render_variable("blocked_input_messaging", "string", "Message to return when input is blocked"),
-            self._r.render_variable("blocked_outputs_messaging", "string", "Message to return when output is blocked"),
-        ]
+        """Generate variables.tf dynamically from VARIABLE_SCHEMAS."""
+        schema = VARIABLE_SCHEMAS[ServiceType.BEDROCK_GUARDRAIL]
+        parts = []
+        for entry in schema:
+            tf_type = "map(string)" if entry.type == "map" else entry.type
+            parts.append(self._r.render_variable(entry.name, tf_type, entry.description, entry.default))
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
