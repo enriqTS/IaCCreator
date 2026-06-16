@@ -383,4 +383,152 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     { name: 'fleet_name', type: 'string', description: 'Name of the GameLift fleet', group: 'General' },
     { name: 'ec2_instance_type', type: 'string', description: 'EC2 instance type for the GameLift fleet', group: 'General' },
   ],
+  // Machine Learning
+  bedrock: [
+    // General
+    { name: 'model_name', type: 'string', description: 'Name of the custom model', group: 'General' },
+    {
+      name: 'base_model_identifier', type: 'string', description: 'Base model identifier for customization', group: 'General',
+      options: [
+        { value: 'amazon.titan-text-express-v1', label: 'Amazon Titan Text Express' },
+        { value: 'amazon.titan-embed-text-v1', label: 'Amazon Titan Embed Text' },
+        { value: 'anthropic.claude-v2', label: 'Anthropic Claude v2' },
+        { value: 'meta.llama2-13b-chat-v1', label: 'Meta Llama 2 13B Chat' },
+      ],
+    },
+    { name: 'role_arn', type: 'string', description: 'IAM role ARN for Bedrock', group: 'General' },
+    // Training
+    { name: 'training_data_s3_uri', type: 'string', description: 'S3 URI of the training data', group: 'Training', validation: { pattern: '^s3://', pattern_description: 'Must be an S3 URI starting with s3://' } },
+    { name: 'output_data_s3_uri', type: 'string', description: 'S3 URI for the output data', group: 'Training', validation: { pattern: '^s3://', pattern_description: 'Must be an S3 URI starting with s3://' } },
+    { name: 'hyperparameters', type: 'map', description: 'Key-value pairs for training hyperparameters such as epoch count, batch size, and learning rate', group: 'Training' },
+    // Metadata
+    { name: 'tags', type: 'map', description: 'String key-value pairs for resource tagging', group: 'Metadata' },
+  ],
+  sagemaker: [
+    // General
+    { name: 'notebook_instance_name', type: 'string', description: 'Name of the SageMaker notebook instance', group: 'General' },
+    {
+      name: 'instance_type', type: 'string', description: 'Instance type for the notebook instance', group: 'General',
+      options: [
+        { value: 'ml.t3.medium', label: 'ml.t3.medium' },
+        { value: 'ml.t3.large', label: 'ml.t3.large' },
+        { value: 'ml.m5.large', label: 'ml.m5.large' },
+        { value: 'ml.m5.xlarge', label: 'ml.m5.xlarge' },
+        { value: 'ml.c5.large', label: 'ml.c5.large' },
+        { value: 'ml.c5.xlarge', label: 'ml.c5.xlarge' },
+      ],
+    },
+    { name: 'role_arn', type: 'string', description: 'IAM role ARN for the notebook instance', group: 'General' },
+    // Configuration
+    { name: 'volume_size', type: 'number', description: 'Volume size for the notebook instance in GB', default: 5, group: 'Configuration', validation: { min: 5, max: 16384 } },
+    { name: 'direct_internet_access', type: 'bool', description: 'Whether direct internet access is enabled for the notebook instance', default: true, group: 'Configuration' },
+    { name: 'root_access', type: 'bool', description: 'Whether root access is enabled for the notebook instance', default: true, group: 'Configuration' },
+    // Metadata
+    { name: 'tags', type: 'map', description: 'Tags to apply to the SageMaker notebook instance', group: 'Metadata' },
+  ],
+  'amazon-q': [
+    // General
+    { name: 'application_name', type: 'string', description: 'Name of the Amazon Q application', group: 'General' },
+    { name: 'description', type: 'string', description: 'Description of the Amazon Q application', group: 'General' },
+    {
+      name: 'identity_type', type: 'string', description: 'Identity provider type for the Amazon Q application', group: 'General',
+      options: [
+        { value: 'AWS_IAM_IDP', label: 'AWS IAM Identity Provider' },
+        { value: 'AWS_IAM_IC', label: 'AWS IAM Identity Center' },
+        { value: 'AWS_QUICKSIGHT', label: 'Amazon QuickSight' },
+      ],
+    },
+    { name: 'role_arn', type: 'string', description: 'IAM role ARN for the Amazon Q application', group: 'General' },
+    // Metadata
+    { name: 'tags', type: 'map', description: 'Tags to apply to the Amazon Q application', group: 'Metadata' },
+  ],
+  'bedrock-agent': [
+    // General
+    { name: 'agent_name', type: 'string', description: 'Name of the Bedrock Agent', group: 'General' },
+    {
+      name: 'foundation_model', type: 'string', description: 'Foundation model identifier for the agent', group: 'General',
+      options: [
+        { value: 'anthropic.claude-v2', label: 'Anthropic Claude v2' },
+        { value: 'anthropic.claude-3-sonnet-20240229-v1:0', label: 'Anthropic Claude 3 Sonnet' },
+        { value: 'anthropic.claude-3-haiku-20240307-v1:0', label: 'Anthropic Claude 3 Haiku' },
+        { value: 'amazon.titan-text-express-v1', label: 'Amazon Titan Text Express' },
+        { value: 'meta.llama3-8b-instruct-v1:0', label: 'Meta Llama 3 8B Instruct' },
+      ],
+    },
+    { name: 'description', type: 'string', description: 'Description of the Bedrock Agent', group: 'General' },
+    { name: 'instruction', type: 'string', description: 'Instruction for the Bedrock Agent', group: 'General' },
+    { name: 'agent_resource_role_arn', type: 'string', description: 'IAM role ARN for the Bedrock Agent', group: 'General' },
+    // Configuration
+    { name: 'idle_session_ttl_in_seconds', type: 'number', description: 'Idle session timeout in seconds', default: 600, group: 'Configuration', validation: { min: 60, max: 3600 } },
+    // Metadata
+    { name: 'tags', type: 'map', description: 'Tags to apply to the Bedrock Agent', group: 'Metadata' },
+  ],
+  'bedrock-knowledge-base': [
+    // General
+    { name: 'knowledge_base_name', type: 'string', description: 'Name of the knowledge base', group: 'General' },
+    { name: 'description', type: 'string', description: 'Description of the knowledge base', group: 'General' },
+    { name: 'role_arn', type: 'string', description: 'IAM role ARN for the knowledge base', group: 'General' },
+    {
+      name: 'embedding_model_arn', type: 'string', description: 'ARN of the embedding model for vector indexing', group: 'General',
+      options: [
+        { value: 'amazon.titan-embed-text-v1', label: 'Titan Embeddings G1 - Text' },
+        { value: 'amazon.titan-embed-text-v2:0', label: 'Titan Embeddings G1 - Text v2' },
+        { value: 'cohere.embed-english-v3', label: 'Cohere Embed English v3' },
+      ],
+    },
+    // Storage Configuration
+    {
+      name: 'storage_type', type: 'string', description: 'Vector storage type for the knowledge base', default: 'OPENSEARCH_SERVERLESS', group: 'Storage Configuration',
+      options: [
+        { value: 'OPENSEARCH_SERVERLESS', label: 'OpenSearch Serverless' },
+        { value: 'PINECONE', label: 'Pinecone' },
+        { value: 'RDS', label: 'RDS Aurora PostgreSQL' },
+      ],
+    },
+    { name: 'vector_field', type: 'string', description: 'Name of the vector field in the storage', group: 'Storage Configuration' },
+    { name: 'text_field', type: 'string', description: 'Name of the text field in the storage', group: 'Storage Configuration' },
+    { name: 'metadata_field', type: 'string', description: 'Name of the metadata field in the storage', group: 'Storage Configuration' },
+    // Metadata
+    { name: 'tags', type: 'map', description: 'Tags to apply to the Bedrock Knowledge Base', group: 'Metadata' },
+  ],
+  'bedrock-guardrail': [
+    // General
+    { name: 'guardrail_name', type: 'string', description: 'Name of the Bedrock Guardrail', group: 'General' },
+    { name: 'description', type: 'string', description: 'Description of the guardrail', group: 'General' },
+    { name: 'blocked_input_messaging', type: 'string', description: 'Message to return when input is blocked', group: 'General' },
+    { name: 'blocked_outputs_messaging', type: 'string', description: 'Message to return when output is blocked', group: 'General' },
+    // Content Policy
+    {
+      name: 'content_policy_strength', type: 'string', description: 'Content filtering strength level', default: 'MEDIUM', group: 'Content Policy',
+      options: [
+        { value: 'NONE', label: 'None' },
+        { value: 'LOW', label: 'Low' },
+        { value: 'MEDIUM', label: 'Medium' },
+        { value: 'HIGH', label: 'High' },
+      ],
+    },
+    // Metadata
+    { name: 'tags', type: 'map', description: 'Tags to apply to the Bedrock Guardrail', group: 'Metadata' },
+  ],
+  'bedrock-agentcore': [
+    // General
+    { name: 'agent_runtime_name', type: 'string', description: 'Name of the AgentCore runtime', group: 'General' },
+    {
+      name: 'foundation_model', type: 'string', description: 'Foundation model for the agent runtime', group: 'General',
+      options: [
+        { value: 'anthropic.claude-v2', label: 'Anthropic Claude v2' },
+        { value: 'anthropic.claude-3-sonnet-20240229-v1:0', label: 'Anthropic Claude 3 Sonnet' },
+        { value: 'anthropic.claude-3-haiku-20240307-v1:0', label: 'Anthropic Claude 3 Haiku' },
+        { value: 'amazon.titan-text-express-v1', label: 'Amazon Titan Text Express' },
+        { value: 'meta.llama3-8b-instruct-v1:0', label: 'Meta Llama 3 8B Instruct' },
+      ],
+    },
+    { name: 'role_arn', type: 'string', description: 'IAM role ARN for the AgentCore runtime', group: 'General' },
+    { name: 'description', type: 'string', description: 'Description of the agent runtime', group: 'General' },
+    // Configuration
+    { name: 'memory_id', type: 'string', description: 'Memory store identifier for session context', group: 'Configuration' },
+    { name: 'idle_session_ttl', type: 'number', description: 'Idle session timeout in seconds', default: 600, group: 'Configuration', validation: { min: 60, max: 3600 } },
+    // Metadata
+    { name: 'tags', type: 'map', description: 'Tags to apply to the AgentCore runtime', group: 'Metadata' },
+  ],
 };
