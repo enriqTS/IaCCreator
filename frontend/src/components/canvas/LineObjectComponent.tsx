@@ -7,6 +7,7 @@ import { useSnapDrag } from '@/hooks/useSnapDrag';
 import { useConnectionLabel } from '@/hooks/useConnectionLabel';
 import { useServiceNameLabels } from '@/hooks/useServiceNameLabels';
 import { getAnchorPoints } from '@/utils/anchor';
+import type { AnchorPosition } from '@/utils/anchor';
 import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
 import { getConnectionBounds, computeShapeEdgePoint } from '@/utils/bounds-utils';
 import type { LineObject, Point, CanvasObject } from '@/types/diagram';
@@ -23,6 +24,16 @@ const RECTANGULAR_SHAPES = new Set(['rectangle', 'rounded-rectangle', 'process']
 
 function needsRayIntersection(obj: CanvasObject): boolean {
   return obj.objectType === 'geometric' && !RECTANGULAR_SHAPES.has(obj.visualConfig.shape);
+}
+
+function getAnchorDirectionPoint(center: Point, anchorPosition: AnchorPosition): Point {
+  const offset = 1000;
+  switch (anchorPosition) {
+    case 'top': return { x: center.x, y: center.y - offset };
+    case 'right': return { x: center.x + offset, y: center.y };
+    case 'bottom': return { x: center.x, y: center.y + offset };
+    case 'left': return { x: center.x - offset, y: center.y };
+  }
 }
 
 /** Build an SVG path `d` attribute from an array of points using M and L commands */
@@ -101,11 +112,8 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
     const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
     if (sourceObj) {
       if (needsRayIntersection(sourceObj)) {
-        // Use the other end (target) as external point for ray intersection
-        const otherEnd = line.targetAnchor
-          ? (() => { const t = canvasObjects.get(line.targetAnchor!.objectId); return t ? getAnchorPoints(getConnectionBounds(t))[line.targetAnchor!.anchorPosition] : line.end; })()
-          : line.end;
-        startPt = computeShapeEdgePoint(sourceObj, otherEnd);
+        const anchorDir = getAnchorDirectionPoint(sourceObj.position, line.sourceAnchor.anchorPosition);
+        startPt = computeShapeEdgePoint(sourceObj, anchorDir);
       } else {
         const bounds = getConnectionBounds(sourceObj);
         startPt = getAnchorPoints(bounds)[line.sourceAnchor.anchorPosition];
@@ -117,11 +125,8 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
     const targetObj = canvasObjects.get(line.targetAnchor.objectId);
     if (targetObj) {
       if (needsRayIntersection(targetObj)) {
-        // Use the other end (source) as external point for ray intersection
-        const otherEnd = line.sourceAnchor
-          ? (() => { const s = canvasObjects.get(line.sourceAnchor!.objectId); return s ? getAnchorPoints(getConnectionBounds(s))[line.sourceAnchor!.anchorPosition] : line.start; })()
-          : line.start;
-        endPt = computeShapeEdgePoint(targetObj, otherEnd);
+        const anchorDir = getAnchorDirectionPoint(targetObj.position, line.targetAnchor.anchorPosition);
+        endPt = computeShapeEdgePoint(targetObj, anchorDir);
       } else {
         const bounds = getConnectionBounds(targetObj);
         endPt = getAnchorPoints(bounds)[line.targetAnchor.anchorPosition];

@@ -57,14 +57,7 @@ export default function Toolbar() {
       >
         ↖
       </Button>
-      <Button
-        variant={isConnector ? 'secondary' : 'ghost'}
-        size="icon"
-        title="Connector (C)"
-        onClick={() => setActiveTool('connector')}
-      >
-        →
-      </Button>
+
       <Button
         variant={isLine ? 'secondary' : 'ghost'}
         size="icon"
