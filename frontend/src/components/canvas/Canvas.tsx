@@ -29,9 +29,19 @@ export default function Canvas() {
   const panStart = useRef<{ x: number; y: number } | null>(null);
   const isSpaceHeld = useRef(false);
 
-  // Line placement state
+  // Line placement state (two-click mode for toolbar 'line' tool)
   const [lineStart, setLineStart] = useState<Point | null>(null);
   const [linePreviewEnd, setLinePreviewEnd] = useState<Point | null>(null);
+
+  // Line placement state (drag mode for Object Picker 'place-line' tool)
+  const [lineDragPreviewEnd, setLineDragPreviewEnd] = useState<Point | null>(null);
+  const lineDragStartRef = useRef<Point | null>(null);
+  const isLineDragging = useRef(false);
+
+  // Arrow placement state (drag mode for Object Picker 'place-arrow' tool)
+  const [arrowDragPreviewEnd, setArrowDragPreviewEnd] = useState<Point | null>(null);
+  const arrowDragStartRef = useRef<Point | null>(null);
+  const isArrowDragging = useRef(false);
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
@@ -58,6 +68,18 @@ export default function Canvas() {
     if (activeTool !== 'line') {
       setLineStart(null);
       setLinePreviewEnd(null);
+    }
+    // Reset drag-mode line placement state when tool changes away from 'place-line'
+    if (!(typeof activeTool === 'object' && activeTool.type === 'place-line')) {
+      lineDragStartRef.current = null;
+      setLineDragPreviewEnd(null);
+      isLineDragging.current = false;
+    }
+    // Reset drag-mode arrow placement state when tool changes away from 'place-arrow'
+    if (!(typeof activeTool === 'object' && activeTool.type === 'place-arrow')) {
+      arrowDragStartRef.current = null;
+      setArrowDragPreviewEnd(null);
+      isArrowDragging.current = false;
     }
   }, [activeTool]);
 
@@ -176,6 +198,46 @@ export default function Canvas() {
       const target = e.target as HTMLElement;
       const isCanvasBackground = target === e.currentTarget || target.tagName === 'CANVAS';
       if (e.button === 0 && isCanvasBackground) {
+        // Place-line tool mode (from Object Picker): drag to define start/end
+        if (typeof activeTool === 'object' && activeTool.type === 'place-line') {
+          const rect = containerRef.current?.getBoundingClientRect();
+          if (!rect) return;
+          const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+          const canvasPoint = screenToCanvas(screenPoint, viewport);
+
+          // Snap position to grid when snap is enabled and Alt is not held
+          const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
+          const snappedCanvasPoint = (snapToGridEnabled && !e.altKey)
+            ? snapPointToGrid(canvasPoint, gridCellSize)
+            : canvasPoint;
+
+          lineDragStartRef.current = snappedCanvasPoint;
+          setLineDragPreviewEnd(snappedCanvasPoint);
+          isLineDragging.current = true;
+          e.preventDefault();
+          return;
+        }
+
+        // Place-arrow tool mode (from Object Picker): drag to define start/end
+        if (typeof activeTool === 'object' && activeTool.type === 'place-arrow') {
+          const rect = containerRef.current?.getBoundingClientRect();
+          if (!rect) return;
+          const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+          const canvasPoint = screenToCanvas(screenPoint, viewport);
+
+          // Snap position to grid when snap is enabled and Alt is not held
+          const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
+          const snappedCanvasPoint = (snapToGridEnabled && !e.altKey)
+            ? snapPointToGrid(canvasPoint, gridCellSize)
+            : canvasPoint;
+
+          arrowDragStartRef.current = snappedCanvasPoint;
+          setArrowDragPreviewEnd(snappedCanvasPoint);
+          isArrowDragging.current = true;
+          e.preventDefault();
+          return;
+        }
+
         // Line tool mode: first click records start, second click creates line
         if (activeTool === 'line') {
           const rect = containerRef.current?.getBoundingClientRect();
@@ -236,6 +298,24 @@ export default function Canvas() {
         const canvasPoint = screenToCanvas(screenPoint, viewport);
         setLinePreviewEnd(canvasPoint);
       }
+
+      // Update drag preview for place-line tool
+      if (typeof activeTool === 'object' && activeTool.type === 'place-line' && isLineDragging.current && lineDragStartRef.current) {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const canvasPoint = screenToCanvas(screenPoint, viewport);
+        setLineDragPreviewEnd(canvasPoint);
+      }
+
+      // Update drag preview for place-arrow tool
+      if (typeof activeTool === 'object' && activeTool.type === 'place-arrow' && isArrowDragging.current && arrowDragStartRef.current) {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const canvasPoint = screenToCanvas(screenPoint, viewport);
+        setArrowDragPreviewEnd(canvasPoint);
+      }
     },
     [activeTool, lineStart, viewport],
   );
@@ -264,6 +344,132 @@ export default function Canvas() {
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [pan]);
+
+  // Global mouseup for place-line drag mode (creates line on drag end)
+  useEffect(() => {
+    const handlePlaceLineMouseUp = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if (!isLineDragging.current) return;
+      if (!lineDragStartRef.current) return;
+
+      const tool = useDiagramStore.getState().activeTool;
+      if (!(typeof tool === 'object' && tool.type === 'place-line')) {
+        isLineDragging.current = false;
+        lineDragStartRef.current = null;
+        setLineDragPreviewEnd(null);
+        return;
+      }
+
+      isLineDragging.current = false;
+
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      const currentViewport = useDiagramStore.getState().viewport;
+      const endCanvasPoint = screenToCanvas(screenPoint, currentViewport);
+
+      // Snap end position to grid when snap is enabled
+      const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
+      const snappedEndPoint = snapToGridEnabled
+        ? snapPointToGrid(endCanvasPoint, gridCellSize)
+        : endCanvasPoint;
+
+      const startPoint = lineDragStartRef.current;
+
+      // Compute Euclidean distance between start and end
+      const dx = snappedEndPoint.x - startPoint.x;
+      const dy = snappedEndPoint.y - startPoint.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Minimum drag distance threshold: 10px for lines
+      if (distance >= 10) {
+        useDiagramStore.getState().addCanvasObject({
+          objectType: 'line',
+          name: 'Line',
+          start: startPoint,
+          end: snappedEndPoint,
+          sourceAnchor: null,
+          targetAnchor: null,
+          visualConfig: { ...DEFAULT_LINE_VISUAL, routingMode: 'diagonal' },
+        });
+        useDiagramStore.getState().setActiveTool('pointer');
+      }
+      // If distance < 10px, cancel placement (no line created)
+
+      // Reset drag state
+      lineDragStartRef.current = null;
+      setLineDragPreviewEnd(null);
+    };
+
+    window.addEventListener('mouseup', handlePlaceLineMouseUp);
+    return () => {
+      window.removeEventListener('mouseup', handlePlaceLineMouseUp);
+    };
+  }, []);
+
+  // Global mouseup for place-arrow drag mode (creates arrow on drag end)
+  useEffect(() => {
+    const handlePlaceArrowMouseUp = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if (!isArrowDragging.current) return;
+      if (!arrowDragStartRef.current) return;
+
+      const tool = useDiagramStore.getState().activeTool;
+      if (!(typeof tool === 'object' && tool.type === 'place-arrow')) {
+        isArrowDragging.current = false;
+        arrowDragStartRef.current = null;
+        setArrowDragPreviewEnd(null);
+        return;
+      }
+
+      isArrowDragging.current = false;
+
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      const currentViewport = useDiagramStore.getState().viewport;
+      const endCanvasPoint = screenToCanvas(screenPoint, currentViewport);
+
+      // Snap end position to grid when snap is enabled
+      const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
+      const snappedEndPoint = snapToGridEnabled
+        ? snapPointToGrid(endCanvasPoint, gridCellSize)
+        : endCanvasPoint;
+
+      const startPoint = arrowDragStartRef.current;
+
+      // Compute Euclidean distance between start and end
+      const dx = snappedEndPoint.x - startPoint.x;
+      const dy = snappedEndPoint.y - startPoint.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Minimum drag distance threshold: 5px for arrows
+      if (distance >= 5) {
+        useDiagramStore.getState().addCanvasObject({
+          objectType: 'line',
+          name: 'Arrow',
+          start: startPoint,
+          end: snappedEndPoint,
+          sourceAnchor: null,
+          targetAnchor: null,
+          visualConfig: { ...DEFAULT_LINE_VISUAL, routingMode: 'diagonal', endArrow: true, startArrow: false },
+        });
+        useDiagramStore.getState().setActiveTool('pointer');
+      }
+      // If distance < 5px, cancel placement (no arrow created)
+
+      // Reset drag state
+      arrowDragStartRef.current = null;
+      setArrowDragPreviewEnd(null);
+    };
+
+    window.addEventListener('mouseup', handlePlaceArrowMouseUp);
+    return () => {
+      window.removeEventListener('mouseup', handlePlaceArrowMouseUp);
+    };
+  }, []);
 
   // Space key tracking for space+drag pan
   useEffect(() => {
@@ -447,20 +653,42 @@ export default function Canvas() {
     cursor = 'grab';
   } else if (activeTool === 'line') {
     cursor = 'crosshair';
+  } else if (typeof activeTool === 'object' && activeTool.type === 'place-line') {
+    cursor = 'crosshair';
   } else if (typeof activeTool === 'object' && activeTool.type === 'place-service') {
     cursor = 'crosshair';
   } else if (typeof activeTool === 'object' && activeTool.type === 'place-shape') {
     cursor = 'crosshair';
   } else if (typeof activeTool === 'object' && activeTool.type === 'place-uml') {
     cursor = 'crosshair';
+  } else if (typeof activeTool === 'object' && activeTool.type === 'place-arrow') {
+    cursor = 'crosshair';
   }
 
-  // Compute preview line screen coordinates
+  // Compute preview line screen coordinates (two-click mode)
   const previewLineScreen =
     lineStart && linePreviewEnd
       ? {
           start: canvasToScreen(lineStart, viewport),
           end: canvasToScreen(linePreviewEnd, viewport),
+        }
+      : null;
+
+  // Compute preview line screen coordinates (drag mode for place-line)
+  const dragPreviewLineScreen =
+    lineDragStartRef.current && lineDragPreviewEnd
+      ? {
+          start: canvasToScreen(lineDragStartRef.current, viewport),
+          end: canvasToScreen(lineDragPreviewEnd, viewport),
+        }
+      : null;
+
+  // Compute preview arrow screen coordinates (drag mode for place-arrow)
+  const dragPreviewArrowScreen =
+    arrowDragStartRef.current && arrowDragPreviewEnd
+      ? {
+          start: canvasToScreen(arrowDragStartRef.current, viewport),
+          end: canvasToScreen(arrowDragPreviewEnd, viewport),
         }
       : null;
 
@@ -518,6 +746,71 @@ export default function Canvas() {
             strokeWidth={2}
             strokeDasharray="6 4"
             opacity={0.7}
+          />
+        </svg>
+      )}
+
+      {/* Preview line while drag-placing a line from Object Picker */}
+      {dragPreviewLineScreen && (
+        <svg
+          data-testid="line-drag-preview-svg"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            overflow: 'visible',
+          }}
+        >
+          <line
+            x1={dragPreviewLineScreen.start.x}
+            y1={dragPreviewLineScreen.start.y}
+            x2={dragPreviewLineScreen.end.x}
+            y2={dragPreviewLineScreen.end.y}
+            stroke="#ffffff"
+            strokeWidth={2}
+            strokeDasharray="6 4"
+            opacity={0.7}
+          />
+        </svg>
+      )}
+
+      {/* Preview arrow while drag-placing an arrow from Object Picker */}
+      {dragPreviewArrowScreen && (
+        <svg
+          data-testid="arrow-drag-preview-svg"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            overflow: 'visible',
+          }}
+        >
+          <defs>
+            <marker
+              id="arrow-preview-head"
+              markerWidth="10"
+              markerHeight="7"
+              refX="10"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill="#ffffff" opacity={0.7} />
+            </marker>
+          </defs>
+          <line
+            x1={dragPreviewArrowScreen.start.x}
+            y1={dragPreviewArrowScreen.start.y}
+            x2={dragPreviewArrowScreen.end.x}
+            y2={dragPreviewArrowScreen.end.y}
+            stroke="#ffffff"
+            strokeWidth={2}
+            strokeDasharray="6 4"
+            opacity={0.7}
+            markerEnd="url(#arrow-preview-head)"
           />
         </svg>
       )}

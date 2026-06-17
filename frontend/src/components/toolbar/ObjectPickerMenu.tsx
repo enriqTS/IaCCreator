@@ -106,8 +106,8 @@ function buildAllPickerItems(): { category: string; items: PickerItem[] }[] {
   categories.push({
     category: 'Lines & Arrows',
     items: [
-      { name: 'Line', category: 'Lines & Arrows', tool: 'line' as Tool },
-      { name: 'Arrow', category: 'Lines & Arrows', tool: 'connector' as Tool },
+      { name: 'Line', category: 'Lines & Arrows', tool: { type: 'place-line' } as Tool },
+      { name: 'Arrow', category: 'Lines & Arrows', tool: { type: 'place-arrow' } as Tool },
     ],
   });
 

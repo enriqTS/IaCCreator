@@ -206,7 +206,8 @@ export type Tool =
   | { type: 'place-service'; serviceType: ServiceType }
   | { type: 'place-shape'; shape: GeometricShape }
   | { type: 'place-uml'; umlKind: UMLKind }
-  | { type: 'place-line' };
+  | { type: 'place-line' }
+  | { type: 'place-arrow' };
 
 /** Service-specific configuration for a resource instance. Mirrors the backend ResourceConfig Pydantic schema. */
 export interface ResourceConfig {
