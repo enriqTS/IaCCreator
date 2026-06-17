@@ -19,7 +19,7 @@ describe('getObjectBounds', () => {
     expect(bounds).toEqual({ x: 60, y: 170, width: 80, height: 60 });
   });
 
-  it('computes bounds for geometric object (position is center)', () => {
+  it('computes bounds for geometric object (position is center, includes stroke width)', () => {
     const geo: GeometricObject = {
       id: 'g1',
       objectType: 'geometric',
@@ -29,7 +29,10 @@ describe('getObjectBounds', () => {
       zIndex: 1,
     };
     const bounds = getObjectBounds(geo);
-    expect(bounds).toEqual({ x: -10, y: 10, width: 120, height: 80 });
+    // Bounds include borderWidth/2 (1px) on each side:
+    // x = 50 - 120/2 + (-1) = -11, y = 50 - 80/2 + (-1) = 9
+    // width = 120 + 2 = 122, height = 80 + 2 = 82
+    expect(bounds).toEqual({ x: -11, y: 9, width: 122, height: 82 });
   });
 
   it('computes bounds for line object (min/max of start/end)', () => {
