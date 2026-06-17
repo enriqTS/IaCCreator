@@ -3,6 +3,7 @@
 import { useSnapDrag } from '@/hooks/useSnapDrag';
 import AlignmentGuides from '@/components/canvas/AlignmentGuides';
 import { SHAPE_PATH_REGISTRY } from '@/utils/shape-paths';
+import { getShapeTightBounds } from '@/utils/bounds-utils';
 import type { GeometricObject } from '@/types/diagram';
 
 interface GeometricObjectComponentProps {
@@ -26,6 +27,9 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
   const pathFn = SHAPE_PATH_REGISTRY[shape] ?? SHAPE_PATH_REGISTRY['rectangle'];
   const pathD = pathFn(width, height);
 
+  // Compute tight bounds for this shape (used for selection bounds positioning)
+  const tightBounds = getShapeTightBounds(shape, width, height, borderWidth);
+
   const strokeColor = isSelected ? 'rgba(59, 130, 246, 0.8)' : borderColor;
   const fillValue = fill ? fillColor : 'transparent';
   const strokeHitWidth = Math.max(borderWidth, MIN_STROKE_HIT_WIDTH);
@@ -35,6 +39,10 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
       <div
         data-testid={`geometric-object-${object.id}`}
         data-object-id={object.id}
+        data-tight-bounds-x={tightBounds.x}
+        data-tight-bounds-y={tightBounds.y}
+        data-tight-bounds-width={tightBounds.width}
+        data-tight-bounds-height={tightBounds.height}
         style={{
           position: 'absolute',
           left: 0,

@@ -4,6 +4,7 @@
  */
 
 import type { AnchorPosition } from '@/utils/anchor';
+import { getShapeTightBounds as getShapeTightBoundsForObject } from '@/utils/bounds-utils';
 
 export type ServiceType =
   | 'lambda'
@@ -597,7 +598,22 @@ export function getObjectBounds(obj: CanvasObject): Rect {
       height: Math.abs(obj.end.y - obj.start.y),
     };
   }
-  // architecture-block, geometric, text, and uml: position is center
+
+  // Geometric objects use tight path-derived bounds
+  if (obj.objectType === 'geometric') {
+    const { width, height, borderWidth, shape } = obj.visualConfig;
+    const tightBounds = getShapeTightBoundsForObject(shape, width, height, borderWidth);
+    // tightBounds is relative to the shape's local coordinate system (top-left origin)
+    // Convert to canvas coordinates (position is the center of the width×height area)
+    return {
+      x: obj.position.x - width / 2 + tightBounds.x,
+      y: obj.position.y - height / 2 + tightBounds.y,
+      width: tightBounds.width,
+      height: tightBounds.height,
+    };
+  }
+
+  // architecture-block, text, and uml: position is center
   const vc = obj.visualConfig as { width: number; height: number };
   return {
     x: obj.position.x - vc.width / 2,
