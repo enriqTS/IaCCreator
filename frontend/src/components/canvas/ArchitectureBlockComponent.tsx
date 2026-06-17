@@ -26,19 +26,46 @@ export function shouldShowLabel(name: string): boolean {
 }
 
 /**
- * Get the display name for a block from its config.
- * Uses the first variable in the schema (which is always the resource name field).
- * Returns the value if set and non-empty, otherwise null.
+ * Truncate a label to the specified max length, adding ellipsis if it exceeds the limit.
+ */
+export function truncateLabel(label: string, maxLength: number = 40): string {
+  if (label.length > maxLength) {
+    return label.slice(0, maxLength) + '...';
+  }
+  return label;
+}
+
+/**
+ * Get the display name for a block.
+ * Priority: custom name (block.name if non-empty) → block.defaultName (revert behavior).
+ * Config-driven name (first schema variable) takes highest priority if set.
+ * Truncates the displayed label at 40 characters with ellipsis.
+ * Returns null only if no name source provides a non-empty string.
  */
 export function getBlockDisplayName(block: ArchitectureBlock): string | null {
+  // Highest priority: config-driven name (first schema variable)
   const schema = BUNDLED_SCHEMAS[block.serviceType];
-  if (!schema || schema.length === 0) return null;
+  if (schema && schema.length > 0) {
+    const nameField = schema[0].name;
+    const value = (block.config as Record<string, unknown>)[nameField];
 
-  const nameField = schema[0].name;
-  const value = (block.config as Record<string, unknown>)[nameField];
+    if (value !== undefined && value !== null && value !== '') {
+      const trimmed = String(value).trim();
+      if (trimmed) return truncateLabel(trimmed);
+    }
+  }
 
-  if (value === undefined || value === null || value === '') return null;
-  return String(value).trim() || null;
+  // Custom name set via config panel (block.name)
+  if (block.name && block.name.trim()) {
+    return truncateLabel(block.name.trim());
+  }
+
+  // Revert to the originally assigned default name when custom name is cleared
+  if (block.defaultName && block.defaultName.trim()) {
+    return truncateLabel(block.defaultName.trim());
+  }
+
+  return null;
 }
 
 interface ArchitectureBlockComponentProps {
