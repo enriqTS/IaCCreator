@@ -309,7 +309,7 @@ export default function ObjectPickerMenu() {
             top: 44,
             left: '50%',
             transform: 'translateX(-50%)',
-            width: 320,
+            width: 420,
             maxHeight: 420,
             overflowY: 'auto',
             background: '#1e1e1e',
@@ -381,8 +381,8 @@ export default function ObjectPickerMenu() {
                   <div
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(36px, 1fr))',
-                      gap: 2,
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))',
+                      gap: 4,
                       padding: '4px 8px',
                     }}
                   >
@@ -402,17 +402,18 @@ export default function ObjectPickerMenu() {
                             }
                           }}
                           style={{
-                            width: 40,
-                            height: 40,
                             display: 'flex',
+                            flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            gap: 2,
                             background: 'transparent',
                             border: 'none',
                             borderRadius: 6,
                             cursor: disabled ? 'default' : 'pointer',
                             opacity: disabled ? 0.4 : 1,
-                            padding: 0,
+                            padding: '4px 2px',
+                            minWidth: 0,
                           }}
                           onMouseEnter={(e) => {
                             if (!disabled) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
@@ -421,24 +422,40 @@ export default function ObjectPickerMenu() {
                             e.currentTarget.style.background = 'transparent';
                           }}
                         >
-                          {item.icon ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={item.icon} alt={item.name} width={28} height={28} />
-                          ) : (
-                            getItemIcon(item.name) || (
-                              <span
-                                style={{
-                                  color: '#e5e5e5',
-                                  fontSize: 12,
-                                  fontWeight: 600,
-                                  lineHeight: 1,
-                                  userSelect: 'none',
-                                }}
-                              >
-                                {item.name.slice(0, 2)}
-                              </span>
-                            )
-                          )}
+                          <div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {item.icon ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={item.icon} alt={item.name} width={28} height={28} />
+                            ) : (
+                              getItemIcon(item.name) || (
+                                <span
+                                  style={{
+                                    color: '#e5e5e5',
+                                    fontSize: 12,
+                                    fontWeight: 600,
+                                    lineHeight: 1,
+                                    userSelect: 'none',
+                                  }}
+                                >
+                                  {item.name.slice(0, 2)}
+                                </span>
+                              )
+                            )}
+                          </div>
+                          <span
+                            style={{
+                              fontSize: 9,
+                              color: '#ccc',
+                              lineHeight: 1.2,
+                              width: '100%',
+                              textAlign: 'center',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {item.name}
+                          </span>
                         </button>
                       );
                     })}
