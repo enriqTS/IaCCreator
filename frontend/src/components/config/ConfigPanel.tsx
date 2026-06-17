@@ -130,6 +130,7 @@ export default function ConfigPanel() {
           type="text"
           value={block.name}
           onChange={(e) => updateElementName(block.id, e.target.value)}
+          placeholder={block.defaultName || ''}
           className="w-[200px] text-sm font-semibold"
         />
 
