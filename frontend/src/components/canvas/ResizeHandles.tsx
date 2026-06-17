@@ -5,6 +5,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
 import { findSnapAnchor, getAnchorPoints, findNearestAnchorPosition } from '@/utils/anchor';
 import { getObjectBounds } from '@/types/diagram';
+import { getShapeTightBounds, getConnectionBounds } from '@/utils/bounds-utils';
 import { snapDimension, snapPointToGrid } from '@/utils/snap';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import type { CanvasObject, Point } from '@/types/diagram';
@@ -89,8 +90,20 @@ export default function ResizeHandles({ object }: ResizeHandlesProps) {
   // Positions are in canvas coordinates (parent transform container handles viewport)
   const position = object.position;
   const { width, height } = object.visualConfig;
-  const halfW = width / 2;
-  const halfH = height / 2;
+
+  // For geometric objects, use tight path-derived bounds for handle positioning
+  let halfW: number;
+  let halfH: number;
+  if (object.objectType === 'geometric') {
+    const { borderWidth, shape } = object.visualConfig;
+    const tightBounds = getShapeTightBounds(shape, width, height, borderWidth);
+    halfW = tightBounds.width / 2;
+    halfH = tightBounds.height / 2;
+  } else {
+    halfW = width / 2;
+    halfH = height / 2;
+  }
+
   const handlePositions = getHandleCanvasPositions(position.x, position.y, halfW, halfH);
 
   // Inverse scale so handles remain a constant screen-pixel size
@@ -226,7 +239,7 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
   if (object.sourceAnchor) {
     const sourceObj = canvasObjects.get(object.sourceAnchor.objectId);
     if (sourceObj) {
-      const bounds = getObjectBounds(sourceObj);
+      const bounds = getConnectionBounds(sourceObj);
       canvasStart = getAnchorPoints(bounds)[object.sourceAnchor.anchorPosition];
     }
   }
@@ -234,7 +247,7 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
   if (object.targetAnchor) {
     const targetObj = canvasObjects.get(object.targetAnchor.objectId);
     if (targetObj) {
-      const bounds = getObjectBounds(targetObj);
+      const bounds = getConnectionBounds(targetObj);
       canvasEnd = getAnchorPoints(bounds)[object.targetAnchor.anchorPosition];
     }
   }

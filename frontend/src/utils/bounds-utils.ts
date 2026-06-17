@@ -1,4 +1,5 @@
-import type { GeometricShape, Rect } from '@/types/diagram';
+import type { GeometricShape, Rect, CanvasObject } from '@/types/diagram';
+import { getObjectBounds } from '@/types/diagram';
 import { SHAPE_PATH_REGISTRY } from '@/utils/shape-paths';
 
 /**
@@ -228,4 +229,31 @@ function getRectangleBounds(width: number, height: number, halfStroke: number): 
     width: width + 2 * halfStroke,
     height: height + 2 * halfStroke,
   };
+}
+
+
+/**
+ * Get the bounding rect to use for connection line termination.
+ * For geometric objects, returns tight shape bounds in canvas coordinates.
+ * For all other object types, falls back to the standard `getObjectBounds`.
+ *
+ * This ensures connection lines terminate at the visible edge of geometric shapes
+ * (circles, triangles, etc.) rather than at an oversized default rectangle.
+ */
+export function getConnectionBounds(obj: CanvasObject): Rect {
+  if (obj.objectType === 'geometric') {
+    const { width, height, borderWidth, shape } = obj.visualConfig;
+    const tightBounds = getShapeTightBounds(shape, width, height, borderWidth);
+
+    // Convert from local coordinates (0,0 = top-left of shape area)
+    // to canvas coordinates (position is center of shape)
+    return {
+      x: obj.position.x - width / 2 + tightBounds.x,
+      y: obj.position.y - height / 2 + tightBounds.y,
+      width: tightBounds.width,
+      height: tightBounds.height,
+    };
+  }
+
+  return getObjectBounds(obj);
 }

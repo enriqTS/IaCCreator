@@ -5,7 +5,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { snapToGrid } from '@/utils/snap';
 import { findNearestAnchorPosition } from '@/utils/anchor';
-import { getObjectBounds } from '@/types/diagram';
+import { getConnectionBounds } from '@/utils/bounds-utils';
 import type { LineObject, Point } from '@/types/diagram';
 
 const HANDLE_SIZE = 8;
@@ -128,7 +128,7 @@ function evaluateAdaptiveAnchors(
   if (line.sourceAnchor) {
     const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
     if (sourceObj) {
-      const sourceBounds = getObjectBounds(sourceObj);
+      const sourceBounds = getConnectionBounds(sourceObj);
       // Use the waypoint after the first turn (index 2) if available,
       // otherwise the first waypoint, otherwise the end
       const refIdx = Math.min(2, fullPath.length - 1);
@@ -145,7 +145,7 @@ function evaluateAdaptiveAnchors(
   if (line.targetAnchor) {
     const targetObj = canvasObjects.get(line.targetAnchor.objectId);
     if (targetObj) {
-      const targetBounds = getObjectBounds(targetObj);
+      const targetBounds = getConnectionBounds(targetObj);
       const refIdx = Math.max(0, fullPath.length - 3);
       const refPt = fullPath[refIdx];
       const nearest = findNearestAnchorPosition(refPt, targetBounds, line.targetAnchor.anchorPosition);

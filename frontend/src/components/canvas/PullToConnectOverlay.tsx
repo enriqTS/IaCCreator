@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { findSnapAnchorWithPosition } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
-import { getObjectBounds } from '@/types/diagram';
+import { getConnectionBounds } from '@/utils/bounds-utils';
 import { DEFAULT_LINE_VISUAL } from '@/types/diagram';
 import type { Point } from '@/types/diagram';
 import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
@@ -56,7 +56,7 @@ export default function PullToConnectOverlay() {
         if (objId === pullConnectState.sourceObjectId) continue;
         if (obj.objectType === 'line') continue;
 
-        const bounds = getObjectBounds(obj);
+        const bounds = getConnectionBounds(obj);
         const snap = findSnapAnchorWithPosition(dropPoint, bounds);
         if (snap) {
           targetObjectId = objId;
@@ -145,7 +145,7 @@ export default function PullToConnectOverlay() {
     if (objId === pullConnectState.sourceObjectId) continue;
     if (obj.objectType === 'line') continue;
 
-    const bounds = getObjectBounds(obj);
+    const bounds = getConnectionBounds(obj);
     const snap = findSnapAnchorWithPosition(mousePos, bounds);
     if (snap) {
       const dx = snap.point.x - mousePos.x;

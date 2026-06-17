@@ -8,7 +8,7 @@ import { useConnectionLabel } from '@/hooks/useConnectionLabel';
 import { useServiceNameLabels } from '@/hooks/useServiceNameLabels';
 import { getAnchorPoints } from '@/utils/anchor';
 import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
-import { getObjectBounds } from '@/types/diagram';
+import { getConnectionBounds } from '@/utils/bounds-utils';
 import type { LineObject, Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
 import { snapPointToGrid } from '@/utils/snap';
@@ -94,7 +94,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   if (line.sourceAnchor) {
     const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
     if (sourceObj) {
-      const bounds = getObjectBounds(sourceObj);
+      const bounds = getConnectionBounds(sourceObj);
       startPt = getAnchorPoints(bounds)[line.sourceAnchor.anchorPosition];
     }
   }
@@ -102,7 +102,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   if (line.targetAnchor) {
     const targetObj = canvasObjects.get(line.targetAnchor.objectId);
     if (targetObj) {
-      const bounds = getObjectBounds(targetObj);
+      const bounds = getConnectionBounds(targetObj);
       endPt = getAnchorPoints(bounds)[line.targetAnchor.anchorPosition];
     }
   }
