@@ -1,12 +1,18 @@
-import type { GeometricShape, Rect, CanvasObject } from '@/types/diagram';
+import type { GeometricShape, Rect, CanvasObject, Point } from '@/types/diagram';
 import { getObjectBounds } from '@/types/diagram';
 import { SHAPE_PATH_REGISTRY } from '@/utils/shape-paths';
+import { rayRectIntersection } from '@/utils/anchor';
 
 /**
  * Shapes that are inherently circular/elliptical and should use
  * ellipse-based bounding box calculations.
  */
 const ELLIPSE_SHAPES: Set<GeometricShape> = new Set(['circle', 'ellipse']);
+
+/**
+ * Shapes considered "rectangular" — use standard bounding-box anchor logic.
+ */
+const RECTANGULAR_SHAPES: Set<GeometricShape> = new Set(['rectangle', 'rounded-rectangle', 'process']);
 
 /**
  * Parse an SVG path string and extract sampled points along the path,
@@ -256,4 +262,171 @@ export function getConnectionBounds(obj: CanvasObject): Rect {
   }
 
   return getObjectBounds(obj);
+}
+
+
+
+/**
+ * Compute where a ray from the center of a geometric shape to an external point
+ * intersects the shape's visible edge. For non-rectangular shapes, this finds the
+ * actual perimeter point rather than a bounding-box cardinal midpoint.
+ *
+ * Falls back to rayRectIntersection for rectangular shapes or on failure.
+ */
+export function computeShapeEdgePoint(
+  obj: CanvasObject,
+  externalPoint: Point
+): Point {
+  if (obj.objectType !== 'geometric') {
+    return rayRectIntersection(getConnectionBounds(obj), externalPoint);
+  }
+
+  const { width, height, shape } = obj.visualConfig;
+
+  if (RECTANGULAR_SHAPES.has(shape)) {
+    return rayRectIntersection(getConnectionBounds(obj), externalPoint);
+  }
+
+  const cx = obj.position.x;
+  const cy = obj.position.y;
+  const dx = externalPoint.x - cx;
+  const dy = externalPoint.y - cy;
+
+  if (dx === 0 && dy === 0) {
+    return { x: cx, y: cy };
+  }
+
+  // For circles/ellipses: analytical ray-ellipse intersection
+  if (ELLIPSE_SHAPES.has(shape)) {
+    const rx = width / 2;
+    const ry = height / 2;
+    const angle = Math.atan2(dy, dx);
+    return {
+      x: cx + rx * Math.cos(angle),
+      y: cy + ry * Math.sin(angle),
+    };
+  }
+
+  // For polygon shapes: intersect ray with path line segments
+  const pathFn = SHAPE_PATH_REGISTRY[shape];
+  if (!pathFn) {
+    return rayRectIntersection(getConnectionBounds(obj), externalPoint);
+  }
+
+  const pathD = pathFn(width, height);
+  const segments = extractLineSegments(pathD, width, height);
+
+  if (segments.length === 0) {
+    return rayRectIntersection(getConnectionBounds(obj), externalPoint);
+  }
+
+  // Ray from center (in local coords: width/2, height/2) toward externalPoint
+  const localCx = width / 2;
+  const localCy = height / 2;
+  // Convert external point to local coordinates
+  const localExtX = externalPoint.x - (cx - width / 2);
+  const localExtY = externalPoint.y - (cy - height / 2);
+  const rdx = localExtX - localCx;
+  const rdy = localExtY - localCy;
+
+  let bestT = Infinity;
+
+  for (const seg of segments) {
+    const t = raySegmentIntersection(localCx, localCy, rdx, rdy, seg[0], seg[1], seg[2], seg[3]);
+    if (t !== null && t > 0 && t < bestT) {
+      bestT = t;
+    }
+  }
+
+  if (!isFinite(bestT)) {
+    return rayRectIntersection(getConnectionBounds(obj), externalPoint);
+  }
+
+  // Convert back to canvas coordinates
+  const localHitX = localCx + bestT * rdx;
+  const localHitY = localCy + bestT * rdy;
+  return {
+    x: cx - width / 2 + localHitX,
+    y: cy - height / 2 + localHitY,
+  };
+}
+
+/**
+ * Extract line segments from an SVG path string (M/L/Z commands only).
+ * Returns array of [x1, y1, x2, y2] segments.
+ */
+function extractLineSegments(pathD: string, _w: number, _h: number): Array<[number, number, number, number]> {
+  const segments: Array<[number, number, number, number]> = [];
+  const tokens = pathD.match(/[MLZAQC]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g);
+  if (!tokens) return segments;
+
+  let cmd = '';
+  let nums: number[] = [];
+  let curX = 0, curY = 0;
+  let startX = 0, startY = 0;
+  let prevX = 0, prevY = 0;
+
+  function flush() {
+    switch (cmd) {
+      case 'M':
+        for (let i = 0; i < nums.length - 1; i += 2) {
+          if (i > 0) {
+            segments.push([prevX, prevY, nums[i], nums[i + 1]]);
+          }
+          prevX = nums[i]; prevY = nums[i + 1];
+          if (i === 0) { startX = prevX; startY = prevY; }
+        }
+        curX = prevX; curY = prevY;
+        break;
+      case 'L':
+        for (let i = 0; i < nums.length - 1; i += 2) {
+          segments.push([curX, curY, nums[i], nums[i + 1]]);
+          curX = nums[i]; curY = nums[i + 1];
+        }
+        prevX = curX; prevY = curY;
+        break;
+      case 'Z':
+        if (curX !== startX || curY !== startY) {
+          segments.push([curX, curY, startX, startY]);
+        }
+        curX = startX; curY = startY;
+        prevX = curX; prevY = curY;
+        break;
+    }
+    nums = [];
+  }
+
+  for (const token of tokens) {
+    if (/^[MLZAQC]$/.test(token)) {
+      flush();
+      cmd = token;
+    } else {
+      nums.push(parseFloat(token));
+    }
+  }
+  flush();
+  return segments;
+}
+
+/**
+ * Ray-segment intersection. Ray starts at (ox, oy) with direction (dx, dy).
+ * Segment from (x1, y1) to (x2, y2).
+ * Returns t (ray parameter) if intersection exists, null otherwise.
+ */
+function raySegmentIntersection(
+  ox: number, oy: number, dx: number, dy: number,
+  x1: number, y1: number, x2: number, y2: number
+): number | null {
+  const sx = x2 - x1;
+  const sy = y2 - y1;
+  const denom = dx * sy - dy * sx;
+  if (Math.abs(denom) < 1e-10) return null;
+
+  const t = ((x1 - ox) * sy - (y1 - oy) * sx) / denom;
+  const u = ((x1 - ox) * dy - (y1 - oy) * dx) / denom;
+
+  if (t > 1e-10 && u >= 0 && u <= 1) {
+    return t;
+  }
+  return null;
 }
