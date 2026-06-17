@@ -150,7 +150,8 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
       return [effectiveStart, ...line.waypoints, effectiveEnd];
     }
 
-    if (useOrthogonal) {
+    // Compute orthogonal waypoints when routing mode requires it
+    if (useOrthogonal === true) {
       // Determine anchor positions: use actual anchors when present, infer for unanchored ends
       const startPos = line.sourceAnchor
         ? line.sourceAnchor.anchorPosition
