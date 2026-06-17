@@ -43,6 +43,7 @@ import type { DiagramState, ArchitectureDescription, SerializedCanvasObject } fr
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 import type { DiagramSummary } from '@/types/api';
 import { zoomAtPoint } from '@/utils/viewport';
+import { generateDefaultName } from '@/utils/name-utils';
 import { getAnchorPoints, findNearestAnchorPosition } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
 import { apiClient } from '@/utils/api-client';
@@ -367,10 +368,11 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       }
       let canvasObject = { ...obj, id, zIndex: maxZ + 1 } as CanvasObject;
 
-      // Initialize terraformVariables for architecture blocks
+      // Initialize architecture blocks: generate default name and terraform variables
       if (canvasObject.objectType === 'architecture-block') {
         canvasObject = {
           ...canvasObject,
+          name: generateDefaultName(canvasObject.serviceType, canvasObjects),
           terraformVariables: {
             ...getDefaultVariables(canvasObject.serviceType),
             ...(obj as { terraformVariables?: Record<string, string | number | boolean> }).terraformVariables,
