@@ -94,7 +94,6 @@ export default function Canvas() {
           addCanvasObject({
             objectType: 'architecture-block',
             serviceType: tool.serviceType,
-            name: 'Service',
             position: payload.canvasPosition,
             config: {},
             terraformVariables: {},
@@ -104,7 +103,6 @@ export default function Canvas() {
           addCanvasObject({
             objectType: 'architecture-block',
             serviceType: tool.serviceType,
-            name: 'Service',
             position: payload.canvasPosition,
             config: {},
             terraformVariables: {},
