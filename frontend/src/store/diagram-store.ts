@@ -370,9 +370,11 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
       // Initialize architecture blocks: generate default name and terraform variables
       if (canvasObject.objectType === 'architecture-block') {
+        const defaultName = generateDefaultName(canvasObject.serviceType, canvasObjects);
         canvasObject = {
           ...canvasObject,
-          name: generateDefaultName(canvasObject.serviceType, canvasObjects),
+          name: defaultName,
+          defaultName,
           terraformVariables: {
             ...getDefaultVariables(canvasObject.serviceType),
             ...(obj as { terraformVariables?: Record<string, string | number | boolean> }).terraformVariables,
@@ -1251,6 +1253,10 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     // --- Connector state ---
+    // NOTE: The Connector tool intentionally requires both a source and target Architecture_Block.
+    // It uses orthogonal routing by default (via DEFAULT_LINE_VISUAL / globalRoutingMode).
+    // This differs from Object Picker line/arrow placement which allows freeform (diagonal)
+    // placement on the canvas without requiring connection to existing blocks.
 
     addConnector: (sourceId: string, targetId: string, connectionType?: string): string => {
       if (sourceId === targetId) {

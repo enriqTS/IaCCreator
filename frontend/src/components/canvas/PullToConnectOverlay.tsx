@@ -79,7 +79,9 @@ export default function PullToConnectOverlay() {
           visualConfig: { ...DEFAULT_LINE_VISUAL, routingMode: globalRoutingMode },
         });
 
-        // Auto-create a Connector if both source and target are architecture blocks
+        // Auto-create a Connector (logical connection) if both source and target are architecture blocks.
+        // This is intentional: the Connector tool requires both endpoints to be Architecture_Blocks,
+        // unlike Object Picker freeform line/arrow placement which has no such restriction.
         const sourceObj = canvasObjects.get(pullConnectState.sourceObjectId);
         const targetObj = canvasObjects.get(targetObjectId);
         if (

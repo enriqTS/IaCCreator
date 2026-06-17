@@ -205,7 +205,8 @@ export type Tool =
   | 'text'
   | { type: 'place-service'; serviceType: ServiceType }
   | { type: 'place-shape'; shape: GeometricShape }
-  | { type: 'place-uml'; umlKind: UMLKind };
+  | { type: 'place-uml'; umlKind: UMLKind }
+  | { type: 'place-line' };
 
 /** Service-specific configuration for a resource instance. Mirrors the backend ResourceConfig Pydantic schema. */
 export interface ResourceConfig {
@@ -437,6 +438,8 @@ export interface ArchitectureBlock {
   objectType: 'architecture-block';
   serviceType: ServiceType;
   name: string;
+  /** The originally generated default name, preserved for revert behavior. */
+  defaultName?: string;
   position: Point;
   config: ResourceConfig;
   terraformVariables: Record<string, string | number | boolean>;
@@ -532,6 +535,12 @@ export const DEFAULT_BLOCK_VISUAL: ArchitectureBlockVisualConfig = {
   height: 80,
 };
 
+/**
+ * Default visual config for lines. The 'orthogonal' routingMode is the default
+ * for Connector tool connections between Architecture_Blocks.
+ * Lines placed from the Object Picker override this to 'diagonal' (freeform routing)
+ * at creation time — see Canvas.tsx line placement logic.
+ */
 export const DEFAULT_LINE_VISUAL: LineVisualConfig = {
   color: '#ffffff',
   borderWidth: 2,
