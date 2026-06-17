@@ -45,6 +45,7 @@ import type { DiagramSummary } from '@/types/api';
 import { zoomAtPoint } from '@/utils/viewport';
 import { generateDefaultName } from '@/utils/name-utils';
 import { getAnchorPoints, findNearestAnchorPosition } from '@/utils/anchor';
+import { getConnectionBounds } from '@/utils/bounds-utils';
 import type { AnchorPosition } from '@/utils/anchor';
 import { apiClient } from '@/utils/api-client';
 import { useToastStore } from '@/store/toast-store';
@@ -371,9 +372,11 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       // Initialize architecture blocks: generate default name and terraform variables
       if (canvasObject.objectType === 'architecture-block') {
         const defaultName = generateDefaultName(canvasObject.serviceType, canvasObjects);
+        // Preserve explicit name if provided, otherwise use generated default name
+        const assignedName = (obj as { name?: string }).name || defaultName;
         canvasObject = {
           ...canvasObject,
-          name: defaultName,
+          name: assignedName,
           defaultName,
           terraformVariables: {
             ...getDefaultVariables(canvasObject.serviceType),
@@ -1127,7 +1130,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       const movedObj = canvasObjects.get(movedObjectId);
       if (!movedObj) return;
 
-      const movedBounds = getObjectBounds(movedObj);
+      const movedBounds = getConnectionBounds(movedObj);
       const updates = new Map<string, LineObject>();
 
       for (const obj of canvasObjects.values()) {
@@ -1143,7 +1146,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           if (line.targetAnchor) {
             const targetObj = canvasObjects.get(line.targetAnchor.objectId);
             if (targetObj) {
-              const tb = getObjectBounds(targetObj);
+              const tb = getConnectionBounds(targetObj);
               otherPt = { x: tb.x + tb.width / 2, y: tb.y + tb.height / 2 };
             }
           }
@@ -1160,7 +1163,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           if (line.sourceAnchor) {
             const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
             if (sourceObj && line.sourceAnchor.objectId !== movedObjectId) {
-              const sb = getObjectBounds(sourceObj);
+              const sb = getConnectionBounds(sourceObj);
               otherPt = { x: sb.x + sb.width / 2, y: sb.y + sb.height / 2 };
             }
           }
@@ -1175,7 +1178,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           if (updatedLine.sourceAnchor && updatedLine.sourceAnchor.objectId !== movedObjectId) {
             const sourceObj = canvasObjects.get(updatedLine.sourceAnchor.objectId);
             if (sourceObj) {
-              const sourceBounds = getObjectBounds(sourceObj);
+              const sourceBounds = getConnectionBounds(sourceObj);
               const movedCenter = { x: movedBounds.x + movedBounds.width / 2, y: movedBounds.y + movedBounds.height / 2 };
               const bestSourcePos = findNearestAnchorPosition(movedCenter, sourceBounds, updatedLine.sourceAnchor.anchorPosition);
               updatedLine.sourceAnchor = { ...updatedLine.sourceAnchor, anchorPosition: bestSourcePos };
@@ -1185,7 +1188,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           if (updatedLine.targetAnchor && updatedLine.targetAnchor.objectId !== movedObjectId) {
             const targetObj = canvasObjects.get(updatedLine.targetAnchor.objectId);
             if (targetObj) {
-              const targetBounds = getObjectBounds(targetObj);
+              const targetBounds = getConnectionBounds(targetObj);
               const movedCenter = { x: movedBounds.x + movedBounds.width / 2, y: movedBounds.y + movedBounds.height / 2 };
               const bestTargetPos = findNearestAnchorPosition(movedCenter, targetBounds, updatedLine.targetAnchor.anchorPosition);
               updatedLine.targetAnchor = { ...updatedLine.targetAnchor, anchorPosition: bestTargetPos };
@@ -1257,6 +1260,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     // It uses orthogonal routing by default (via DEFAULT_LINE_VISUAL / globalRoutingMode).
     // This differs from Object Picker line/arrow placement which allows freeform (diagonal)
     // placement on the canvas without requiring connection to existing blocks.
+    // (Satisfies Requirements 3.2 and 4.3)
 
     addConnector: (sourceId: string, targetId: string, connectionType?: string): string => {
       if (sourceId === targetId) {
