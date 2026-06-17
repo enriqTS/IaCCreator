@@ -194,50 +194,50 @@ export default function Canvas() {
         return;
       }
 
+      // Place-line tool mode (from Object Picker): drag to define start/end - fires regardless of target
+      if (e.button === 0 && typeof activeTool === 'object' && activeTool.type === 'place-line') {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const canvasPoint = screenToCanvas(screenPoint, viewport);
+
+        // Snap position to grid when snap is enabled and Alt is not held
+        const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
+        const snappedCanvasPoint = (snapToGridEnabled && !e.altKey)
+          ? snapPointToGrid(canvasPoint, gridCellSize)
+          : canvasPoint;
+
+        lineDragStartRef.current = snappedCanvasPoint;
+        setLineDragPreviewEnd(snappedCanvasPoint);
+        isLineDragging.current = true;
+        e.preventDefault();
+        return;
+      }
+
+      // Place-arrow tool mode (from Object Picker): drag to define start/end - fires regardless of target
+      if (e.button === 0 && typeof activeTool === 'object' && activeTool.type === 'place-arrow') {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const canvasPoint = screenToCanvas(screenPoint, viewport);
+
+        // Snap position to grid when snap is enabled and Alt is not held
+        const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
+        const snappedCanvasPoint = (snapToGridEnabled && !e.altKey)
+          ? snapPointToGrid(canvasPoint, gridCellSize)
+          : canvasPoint;
+
+        arrowDragStartRef.current = snappedCanvasPoint;
+        setArrowDragPreviewEnd(snappedCanvasPoint);
+        isArrowDragging.current = true;
+        e.preventDefault();
+        return;
+      }
+
       // Left-click on empty canvas (target is either the container itself or the background canvas)
       const target = e.target as HTMLElement;
       const isCanvasBackground = target === e.currentTarget || target.tagName === 'CANVAS';
       if (e.button === 0 && isCanvasBackground) {
-        // Place-line tool mode (from Object Picker): drag to define start/end
-        if (typeof activeTool === 'object' && activeTool.type === 'place-line') {
-          const rect = containerRef.current?.getBoundingClientRect();
-          if (!rect) return;
-          const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-          const canvasPoint = screenToCanvas(screenPoint, viewport);
-
-          // Snap position to grid when snap is enabled and Alt is not held
-          const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
-          const snappedCanvasPoint = (snapToGridEnabled && !e.altKey)
-            ? snapPointToGrid(canvasPoint, gridCellSize)
-            : canvasPoint;
-
-          lineDragStartRef.current = snappedCanvasPoint;
-          setLineDragPreviewEnd(snappedCanvasPoint);
-          isLineDragging.current = true;
-          e.preventDefault();
-          return;
-        }
-
-        // Place-arrow tool mode (from Object Picker): drag to define start/end
-        if (typeof activeTool === 'object' && activeTool.type === 'place-arrow') {
-          const rect = containerRef.current?.getBoundingClientRect();
-          if (!rect) return;
-          const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-          const canvasPoint = screenToCanvas(screenPoint, viewport);
-
-          // Snap position to grid when snap is enabled and Alt is not held
-          const { snapToGridEnabled, gridCellSize } = useLayoutPreferencesStore.getState();
-          const snappedCanvasPoint = (snapToGridEnabled && !e.altKey)
-            ? snapPointToGrid(canvasPoint, gridCellSize)
-            : canvasPoint;
-
-          arrowDragStartRef.current = snappedCanvasPoint;
-          setArrowDragPreviewEnd(snappedCanvasPoint);
-          isArrowDragging.current = true;
-          e.preventDefault();
-          return;
-        }
-
         // Line tool mode: first click records start, second click creates line
         if (activeTool === 'line') {
           const rect = containerRef.current?.getBoundingClientRect();
