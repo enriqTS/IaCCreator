@@ -211,16 +211,15 @@ export function getShapeTightBounds(
 }
 
 /**
- * Ellipse bounding box: centered in the width×height space.
- * Does NOT expand by halfStroke — connection lines should terminate
- * at the shape path (circle perimeter), not at the outer stroke edge.
+ * Ellipse bounding box: centered in the width×height space,
+ * expanded by halfStroke on each side.
  */
-function getEllipseBounds(width: number, height: number, _halfStroke: number): Rect {
+function getEllipseBounds(width: number, height: number, halfStroke: number): Rect {
   return {
-    x: 0,
-    y: 0,
-    width: width,
-    height: height,
+    x: 0 - halfStroke,
+    y: 0 - halfStroke,
+    width: width + 2 * halfStroke,
+    height: height + 2 * halfStroke,
   };
 }
 

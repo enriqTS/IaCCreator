@@ -6,8 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { getAnchorPoints } from '@/utils/anchor';
-import { getConnectionBounds } from '@/utils/bounds-utils';
+import { computeShapeEdgePoint } from '@/utils/bounds-utils';
 import type { GeometricObject, LineObject, Rect } from '@/types/diagram';
 
 /**
@@ -36,34 +35,20 @@ describe('Bug 1: Circle line termination at shape boundary', () => {
       zIndex: 0,
     };
 
-    const bounds: Rect = getConnectionBounds(circleObj);
-    const anchors = getAnchorPoints(bounds);
-
-    // The circle has center at (200, 200) and radius 60
     const cx = 200;
     const cy = 200;
     const radius = 60;
 
-    // For a line coming from the top-right (e.g., 45 degrees), the correct
-    // termination should be on the circle perimeter at ~(242.4, 157.6).
-    // But getAnchorPoints only returns cardinal midpoints: top, right, bottom, left.
-    // The 'right' anchor is at the bounding box right midpoint.
-    const rightAnchor = anchors.right;
+    // Test with an external point at 45 degrees (top-right)
+    const externalPoint = { x: 300, y: 100 };
+    const edgePoint = computeShapeEdgePoint(circleObj, externalPoint);
 
-    // Check: does the right anchor lie on the circle boundary?
-    // Distance from center to right anchor should equal radius if on circle.
+    // The edge point should lie exactly on the circle perimeter
     const distToCenter = Math.sqrt(
-      (rightAnchor.x - cx) ** 2 + (rightAnchor.y - cy) ** 2
+      (edgePoint.x - cx) ** 2 + (edgePoint.y - cy) ** 2
     );
 
-    // This SHOULD pass (distance ≈ radius) but will FAIL because
-    // getAnchorPoints uses the bounding box which includes borderWidth expansion,
-    // and more importantly, only provides 4 cardinal points — not actual shape-edge intersections.
-    // For a non-45-degree line direction, no cardinal point lies on the circle boundary
-    // along that direction.
-    //
-    // The real bug: for arbitrary line directions, there's no mechanism to compute
-    // the actual intersection with the circle path. The anchor is always a cardinal midpoint.
+    // Distance from center to the computed edge point should equal radius
     expect(distToCenter).toBeCloseTo(radius, 0);
   });
 });
