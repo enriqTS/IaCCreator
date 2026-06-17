@@ -189,6 +189,12 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
     return buildPathD(shortened);
   }, [pathPoints, startArrow, endArrow, arrowSize]);
 
+  // Diagonal mode: compute shortened endpoints for the visible line
+  // Must be called unconditionally (before any conditional return) to satisfy React's Rules of Hooks
+  const diagShortened = useMemo(() => {
+    return shortenPath([startPt, endPt], startArrow ? arrowSize : 0, endArrow ? arrowSize : 0);
+  }, [startPt, endPt, startArrow, endArrow, arrowSize]);
+
   const markerId = `line-${line.id}`;
   const startMarkerId = `${markerId}-start`;
   const endMarkerId = `${markerId}-end`;
@@ -376,11 +382,6 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   }
 
   // Diagonal mode (or free-floating): render straight <line>
-  // Compute shortened endpoints for the visible line
-  const diagShortened = useMemo(() => {
-    return shortenPath([startPt, endPt], startArrow ? arrowSize : 0, endArrow ? arrowSize : 0);
-  }, [startPt, endPt, startArrow, endArrow, arrowSize]);
-
   return (
     <g data-testid={`line-object-${line.id}`} data-object-id={line.id} className="pointer-events-auto" style={{ cursor: line.locked ? 'not-allowed' : 'pointer' }}>
       <defs>
