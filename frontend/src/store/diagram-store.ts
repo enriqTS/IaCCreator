@@ -1,3 +1,18 @@
+/**
+ * Combined Diagram Store — composition point for all diagram state.
+ *
+ * Slice interfaces are defined in ./slices/ and represent the target
+ * decomposition for this store. The current implementation remains
+ * monolithic for stability; incremental extraction will happen per-slice.
+ *
+ * @see ./slices/canvas-slice.ts — CanvasObject CRUD, selection, z-order
+ * @see ./slices/history-slice.ts — Undo/redo with structuredClone
+ * @see ./slices/viewport-slice.ts — Pan, zoom, fit-to-screen
+ * @see ./slices/persistence-slice.ts — Save/load to server
+ * @see ./slices/connector-slice.ts — Connector CRUD
+ * @see ./slices/ui-slice.ts — Tool selection, panels, config
+ */
+
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import type {
@@ -1959,3 +1974,12 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
   };
 });
+
+
+// Re-export slice types for future decomposition
+export type { CanvasSlice } from './slices/canvas-slice';
+export type { HistorySlice } from './slices/history-slice';
+export type { ViewportSlice } from './slices/viewport-slice';
+export type { PersistenceSlice } from './slices/persistence-slice';
+export type { ConnectorSlice } from './slices/connector-slice';
+export type { UISlice } from './slices/ui-slice';
