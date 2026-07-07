@@ -31,6 +31,7 @@ def gen() -> RDSGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestRDSGeneratorMinimal:
     """Test RDSGenerator with minimal config (all optional fields None)."""
 
@@ -68,6 +69,7 @@ class TestRDSGeneratorMinimal:
 # ---------------------------------------------------------------------------
 # Optional config tests
 # ---------------------------------------------------------------------------
+
 
 class TestRDSGeneratorWithOptionalConfig:
     """Test RDSGenerator with optional config fields set."""

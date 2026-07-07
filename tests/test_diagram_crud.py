@@ -10,7 +10,8 @@ import shutil
 import tempfile
 import uuid
 
-from hypothesis import given, settings, assume, strategies as st
+from hypothesis import assume, given, settings
+from hypothesis import strategies as st
 
 from app.persistence.tinydb_repo import TinyDBRepository
 
@@ -20,50 +21,87 @@ from app.persistence.tinydb_repo import TinyDBRepository
 
 uuid4_st = st.builds(lambda: str(uuid.uuid4()))
 
-viewport_st = st.fixed_dictionaries({
-    "x": st.floats(min_value=-1e6, max_value=1e6, allow_nan=False, allow_infinity=False),
-    "y": st.floats(min_value=-1e6, max_value=1e6, allow_nan=False, allow_infinity=False),
-    "zoom": st.floats(min_value=0.01, max_value=100.0, allow_nan=False, allow_infinity=False),
-})
+viewport_st = st.fixed_dictionaries(
+    {
+        "x": st.floats(
+            min_value=-1e6, max_value=1e6, allow_nan=False, allow_infinity=False
+        ),
+        "y": st.floats(
+            min_value=-1e6, max_value=1e6, allow_nan=False, allow_infinity=False
+        ),
+        "zoom": st.floats(
+            min_value=0.01, max_value=100.0, allow_nan=False, allow_infinity=False
+        ),
+    }
+)
 
-element_st = st.fixed_dictionaries({
-    "id": uuid4_st,
-    "type": st.sampled_from(["lambda", "s3", "dynamodb", "api-gateway", "cloudwatch", "iam"]),
-    "x": st.floats(min_value=-1e4, max_value=1e4, allow_nan=False, allow_infinity=False),
-    "y": st.floats(min_value=-1e4, max_value=1e4, allow_nan=False, allow_infinity=False),
-    "name": st.text(min_size=1, max_size=30, alphabet=st.characters(whitelist_categories=("L", "N", "Pd"))),
-})
+element_st = st.fixed_dictionaries(
+    {
+        "id": uuid4_st,
+        "type": st.sampled_from(
+            ["lambda", "s3", "dynamodb", "api-gateway", "cloudwatch", "iam"]
+        ),
+        "x": st.floats(
+            min_value=-1e4, max_value=1e4, allow_nan=False, allow_infinity=False
+        ),
+        "y": st.floats(
+            min_value=-1e4, max_value=1e4, allow_nan=False, allow_infinity=False
+        ),
+        "name": st.text(
+            min_size=1,
+            max_size=30,
+            alphabet=st.characters(whitelist_categories=("L", "N", "Pd")),
+        ),
+    }
+)
 
-connector_st = st.fixed_dictionaries({
-    "id": uuid4_st,
-    "sourceId": uuid4_st,
-    "targetId": uuid4_st,
-    "type": st.sampled_from(["triggers", "reads_from", "writes_to", "logs_to", "uses"]),
-})
+connector_st = st.fixed_dictionaries(
+    {
+        "id": uuid4_st,
+        "sourceId": uuid4_st,
+        "targetId": uuid4_st,
+        "type": st.sampled_from(
+            ["triggers", "reads_from", "writes_to", "logs_to", "uses"]
+        ),
+    }
+)
 
-environment_st = st.fixed_dictionaries({
-    "name": st.sampled_from(["dev", "staging", "prod", "qa", "test"]),
-    "variables": st.dictionaries(
-        keys=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
-        values=st.text(min_size=1, max_size=20, alphabet=st.characters(whitelist_categories=("L", "N"))),
-        min_size=0,
-        max_size=3,
-    ),
-})
+environment_st = st.fixed_dictionaries(
+    {
+        "name": st.sampled_from(["dev", "staging", "prod", "qa", "test"]),
+        "variables": st.dictionaries(
+            keys=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
+            values=st.text(
+                min_size=1,
+                max_size=20,
+                alphabet=st.characters(whitelist_categories=("L", "N")),
+            ),
+            min_size=0,
+            max_size=3,
+        ),
+    }
+)
 
-diagram_state_st = st.fixed_dictionaries({
-    "version": st.integers(min_value=1, max_value=100),
-    "projectName": st.text(min_size=1, max_size=50, alphabet=st.characters(whitelist_categories=("L", "N", "Pd", "Zs"))),
-    "environments": st.lists(environment_st, min_size=0, max_size=4),
-    "elements": st.lists(element_st, min_size=0, max_size=10),
-    "connectors": st.lists(connector_st, min_size=0, max_size=8),
-    "viewport": viewport_st,
-})
+diagram_state_st = st.fixed_dictionaries(
+    {
+        "version": st.integers(min_value=1, max_value=100),
+        "projectName": st.text(
+            min_size=1,
+            max_size=50,
+            alphabet=st.characters(whitelist_categories=("L", "N", "Pd", "Zs")),
+        ),
+        "environments": st.lists(environment_st, min_size=0, max_size=4),
+        "elements": st.lists(element_st, min_size=0, max_size=10),
+        "connectors": st.lists(connector_st, min_size=0, max_size=8),
+        "viewport": viewport_st,
+    }
+)
 
 
 # ---------------------------------------------------------------------------
 # Property test
 # ---------------------------------------------------------------------------
+
 
 # Feature: frontend-backend-integration, Property 5: Diagram update then load returns updated state
 class TestDiagramUpdateThenLoad:
@@ -176,9 +214,15 @@ class TestListDiagramsReturnsCorrectSummaries:
 
             # Verify each summary has the required fields
             for summary in summaries:
-                assert hasattr(summary, "diagram_id") and isinstance(summary.diagram_id, str)
-                assert hasattr(summary, "project_name") and isinstance(summary.project_name, str)
-                assert hasattr(summary, "updated_at") and isinstance(summary.updated_at, str)
+                assert hasattr(summary, "diagram_id") and isinstance(
+                    summary.diagram_id, str
+                )
+                assert hasattr(summary, "project_name") and isinstance(
+                    summary.project_name, str
+                )
+                assert hasattr(summary, "updated_at") and isinstance(
+                    summary.updated_at, str
+                )
 
             # Verify the set of diagram IDs matches exactly
             summary_ids = {s.diagram_id for s in summaries}

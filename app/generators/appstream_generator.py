@@ -21,13 +21,19 @@ class AppStreamGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an AppStream fleet."""
         parts = [
-            self._r.render_variable("fleet_name", "string", "Name of the AppStream fleet"),
+            self._r.render_variable(
+                "fleet_name", "string", "Name of the AppStream fleet"
+            ),
         ]
         if instance.config.appstream_instance_type is not None:
-            parts.append(self._r.render_variable(
-                "instance_type", "string", "Instance type for the AppStream fleet",
-                default=instance.config.appstream_instance_type,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "instance_type",
+                    "string",
+                    "Instance type for the AppStream fleet",
+                    default=instance.config.appstream_instance_type,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

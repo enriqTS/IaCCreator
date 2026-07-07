@@ -2,11 +2,11 @@
 
 import re
 
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from app.generators.hcl_renderer import HCLRenderer
 from app.generators.service_category_map import get_category
-
 
 # --- Hypothesis strategies for HCL renderer inputs ---
 
@@ -15,7 +15,9 @@ _identifier_st = st.from_regex(r"[a-z][a-z0-9_]{0,19}", fullmatch=True)
 
 # Simple string values (no newlines to keep HCL single-line values valid)
 _simple_str_st = st.text(
-    alphabet=st.characters(whitelist_categories=("L", "N", "P", "S"), blacklist_characters='\n\r"\\'),
+    alphabet=st.characters(
+        whitelist_categories=("L", "N", "P", "S"), blacklist_characters='\n\r"\\'
+    ),
     min_size=1,
     max_size=30,
 )
@@ -39,13 +41,17 @@ _nested_attrs_st = st.dictionaries(
     keys=_identifier_st,
     values=st.one_of(
         _flat_value_st,
-        st.dictionaries(keys=_identifier_st, values=_flat_value_st, min_size=1, max_size=3),
+        st.dictionaries(
+            keys=_identifier_st, values=_flat_value_st, min_size=1, max_size=3
+        ),
     ),
     min_size=1,
     max_size=6,
 )
 
-_var_type_st = st.sampled_from(["string", "number", "bool", "list(string)", "map(string)"])
+_var_type_st = st.sampled_from(
+    ["string", "number", "bool", "list(string)", "map(string)"]
+)
 
 _region_st = st.sampled_from(["us-east-1", "us-west-2", "eu-west-1", "ap-southeast-1"])
 
@@ -105,7 +111,9 @@ def test_property_12_render_output_two_space_indent(name, value, description):
 @given(
     name=_identifier_st,
     source=_simple_str_st,
-    variables=st.dictionaries(keys=_identifier_st, values=_simple_str_st, min_size=0, max_size=5),
+    variables=st.dictionaries(
+        keys=_identifier_st, values=_simple_str_st, min_size=0, max_size=5
+    ),
 )
 def test_property_12_render_module_two_space_indent(name, source, variables):
     """render_module output uses only two-space indentation."""
@@ -123,15 +131,13 @@ def test_property_12_render_provider_two_space_indent(provider, region):
 
 # --- Imports for Property 10 and 11 ---
 
-from app.models.input_models import ServiceType, ResourceConfig
-from app.models.ir_models import ResourceInstanceIR
-from app.generators.lambda_generator import LambdaGenerator
-from app.generators.s3_generator import S3Generator
-from app.generators.dynamodb_generator import DynamoDBGenerator
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.generators.cloudwatch_generator import CloudWatchGenerator
-from app.generators.registry import GENERATOR_REGISTRY
-
+from app.generators.dynamodb_generator import DynamoDBGenerator
+from app.generators.lambda_generator import LambdaGenerator
+from app.generators.s3_generator import S3Generator
+from app.models.input_models import ResourceConfig, ServiceType
+from app.models.ir_models import ResourceInstanceIR
 
 # --- Hypothesis strategies for resource instances ---
 
@@ -156,7 +162,9 @@ _dynamodb_config_st = st.builds(
     billing_mode=st.sampled_from(["PAY_PER_REQUEST", "PROVISIONED"]),
     hash_key=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
     hash_key_type=st.sampled_from(["S", "N", "B"]),
-    range_key=st.one_of(st.none(), st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True)),
+    range_key=st.one_of(
+        st.none(), st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True)
+    ),
     range_key_type=st.one_of(st.none(), st.sampled_from(["S", "N", "B"])),
 )
 
@@ -167,11 +175,15 @@ _api_gateway_config_st = st.builds(
 
 _cloudwatch_config_st = st.builds(
     ResourceConfig,
-    retention_in_days=st.one_of(st.none(), st.sampled_from([1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365])),
+    retention_in_days=st.one_of(
+        st.none(), st.sampled_from([1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365])
+    ),
 )
 
 
-def _make_instance(name: str, service_type: ServiceType, config: ResourceConfig) -> ResourceInstanceIR:
+def _make_instance(
+    name: str, service_type: ServiceType, config: ResourceConfig
+) -> ResourceInstanceIR:
     return ResourceInstanceIR(name=name, service_type=service_type, config=config)
 
 
@@ -259,7 +271,9 @@ def test_property_11_output_block_completeness(name, value, description):
 @given(
     name=_identifier_st,
     source=_simple_str_st,
-    variables=st.dictionaries(keys=_identifier_st, values=_simple_str_st, min_size=0, max_size=5),
+    variables=st.dictionaries(
+        keys=_identifier_st, values=_simple_str_st, min_size=0, max_size=5
+    ),
 )
 def test_property_11_module_block_has_source(name, source, variables):
     """Every module block contains a source attribute with a relative path."""
@@ -272,17 +286,17 @@ def test_property_11_module_block_has_source(name, source, variables):
 import json
 
 from app.generators.iam_policy_generator import IAMPolicyGenerator
-from app.services.connection_processor import ConnectionProcessor
 from app.models.ir_models import (
     ConnectionIR,
+    EnvironmentIR,
     IAMStatement,
     ProjectIR,
-    EnvironmentIR,
     ServiceModuleIR,
 )
-
+from app.services.connection_processor import ConnectionProcessor
 
 # --- Hypothesis strategies for connected architectures ---
+
 
 def _build_project_with_connections(
     lambda_names: list[str],
@@ -301,13 +315,16 @@ def _build_project_with_connections(
 
     # Group targets by service type
     from collections import defaultdict
+
     target_groups: dict[ServiceType, list[ResourceInstanceIR]] = defaultdict(list)
     for tname, tsvc, tcfg in target_specs:
         target_groups[tsvc].append(
             ResourceInstanceIR(name=tname, service_type=tsvc, config=tcfg)
         )
 
-    modules = [ServiceModuleIR(service_type=ServiceType.LAMBDA, instances=lambda_instances)]
+    modules = [
+        ServiceModuleIR(service_type=ServiceType.LAMBDA, instances=lambda_instances)
+    ]
     for svc, insts in target_groups.items():
         modules.append(ServiceModuleIR(service_type=svc, instances=insts))
 
@@ -330,7 +347,11 @@ def _build_project_with_connections(
 
     return ProjectIR(
         project_name="test-project",
-        environments=[EnvironmentIR(name="dev", variables={}, module_refs=list(resource_map.values()))],
+        environments=[
+            EnvironmentIR(
+                name="dev", variables={}, module_refs=list(resource_map.values())
+            )
+        ],
         modules=modules,
         connections=conn_irs,
     )
@@ -340,15 +361,25 @@ def _build_project_with_connections(
 _lambda_name_st = st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True)
 
 # Strategy: random target service type (things Lambda can connect to)
-_target_service_st = st.sampled_from([ServiceType.DYNAMODB, ServiceType.S3, ServiceType.CLOUDWATCH])
+_target_service_st = st.sampled_from(
+    [ServiceType.DYNAMODB, ServiceType.S3, ServiceType.CLOUDWATCH]
+)
 
 # Strategy: a Lambda instance IR with random IAM statements
 _iam_actions_st = st.lists(
-    st.sampled_from([
-        "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query",
-        "s3:GetObject", "s3:PutObject", "s3:DeleteObject",
-        "logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents",
-    ]),
+    st.sampled_from(
+        [
+            "dynamodb:GetItem",
+            "dynamodb:PutItem",
+            "dynamodb:Query",
+            "s3:GetObject",
+            "s3:PutObject",
+            "s3:DeleteObject",
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+        ]
+    ),
     min_size=1,
     max_size=5,
 )
@@ -430,7 +461,11 @@ def test_property_18_one_consolidated_policy_per_lambda(instance):
 
 
 _dynamodb_target_st = st.builds(
-    lambda name: (name, ServiceType.DYNAMODB, ResourceConfig(hash_key="id", billing_mode="PAY_PER_REQUEST")),
+    lambda name: (
+        name,
+        ServiceType.DYNAMODB,
+        ResourceConfig(hash_key="id", billing_mode="PAY_PER_REQUEST"),
+    ),
     name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
 )
 
@@ -453,6 +488,7 @@ _cloudwatch_target_st = st.builds(
 def test_property_16_connection_derived_iam_statements(lambda_name, target):
     """Lambda connected to DynamoDB/S3/CloudWatch gets scoped IAM statements in its policy."""
     from hypothesis import assume
+
     tname, tsvc, tcfg = target
     assume(lambda_name != tname)
 
@@ -506,6 +542,7 @@ def test_property_16_connection_derived_iam_statements(lambda_name, target):
 def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
     """API Gateway → Lambda connection generates an aws_apigatewayv2_integration resource."""
     from hypothesis import assume
+
     assume(apigw_name != lambda_name)
 
     apigw_inst = ResourceInstanceIR(
@@ -529,9 +566,17 @@ def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
 
     project = ProjectIR(
         project_name="test-project",
-        environments=[EnvironmentIR(name="dev", variables={}, module_refs=[ServiceType.API_GATEWAY, ServiceType.LAMBDA])],
+        environments=[
+            EnvironmentIR(
+                name="dev",
+                variables={},
+                module_refs=[ServiceType.API_GATEWAY, ServiceType.LAMBDA],
+            )
+        ],
         modules=[
-            ServiceModuleIR(service_type=ServiceType.API_GATEWAY, instances=[apigw_inst]),
+            ServiceModuleIR(
+                service_type=ServiceType.API_GATEWAY, instances=[apigw_inst]
+            ),
             ServiceModuleIR(service_type=ServiceType.LAMBDA, instances=[lambda_inst]),
         ],
         connections=[conn],
@@ -541,7 +586,9 @@ def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
     files = processor.process_all(project)
 
     assert len(files) >= 1
-    integration_files = [f for f in files if 'resource "aws_apigatewayv2_integration"' in f.content]
+    integration_files = [
+        f for f in files if 'resource "aws_apigatewayv2_integration"' in f.content
+    ]
     assert len(integration_files) == 1
     assert lambda_name in integration_files[0].content
     assert apigw_name in integration_files[0].content
@@ -560,6 +607,7 @@ def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
 def test_property_17_terraform_references_not_hardcoded(apigw_name, lambda_name):
     """Connection-generated HCL uses Terraform resource references, not hardcoded ARNs."""
     from hypothesis import assume
+
     assume(apigw_name != lambda_name)
 
     apigw_inst = ResourceInstanceIR(
@@ -583,9 +631,17 @@ def test_property_17_terraform_references_not_hardcoded(apigw_name, lambda_name)
 
     project = ProjectIR(
         project_name="test-project",
-        environments=[EnvironmentIR(name="dev", variables={}, module_refs=[ServiceType.API_GATEWAY, ServiceType.LAMBDA])],
+        environments=[
+            EnvironmentIR(
+                name="dev",
+                variables={},
+                module_refs=[ServiceType.API_GATEWAY, ServiceType.LAMBDA],
+            )
+        ],
         modules=[
-            ServiceModuleIR(service_type=ServiceType.API_GATEWAY, instances=[apigw_inst]),
+            ServiceModuleIR(
+                service_type=ServiceType.API_GATEWAY, instances=[apigw_inst]
+            ),
             ServiceModuleIR(service_type=ServiceType.LAMBDA, instances=[lambda_inst]),
         ],
         connections=[conn],
@@ -610,8 +666,8 @@ from app.models.input_models import (
     EnvironmentConfig,
     ResourceInstance,
 )
-from app.services.ir_builder import IRBuilder
 from app.services.code_generator import CodeGenerator
+from app.services.ir_builder import IRBuilder
 
 # --- Hypothesis strategies for ArchitectureDescription ---
 
@@ -681,9 +737,7 @@ def _architecture_description_st(draw):
     project_name = draw(_project_name_st)
 
     # Generate 1-3 environments with unique names
-    env_names = draw(
-        st.lists(_env_name_st, min_size=1, max_size=3, unique=True)
-    )
+    env_names = draw(st.lists(_env_name_st, min_size=1, max_size=3, unique=True))
     environments = [
         draw(
             st.builds(
@@ -737,7 +791,9 @@ def test_property_3_project_level_folder_structure(arch):
 
     # All paths should start with the project root name
     for path in file_tree:
-        assert path.startswith(f"{root}/"), f"Path {path!r} doesn't start with root {root!r}"
+        assert path.startswith(f"{root}/"), (
+            f"Path {path!r} doesn't start with root {root!r}"
+        )
 
     # Verify environments/ folder has exactly E subfolders
     env_dirs = {
@@ -763,13 +819,17 @@ def test_property_3_project_level_folder_structure(arch):
         f"Expected {num_service_types} service type dirs, got {len(module_service_types)}: {module_service_types}"
     )
     for stype in distinct_service_types:
-        assert stype.value in module_service_types, f"Missing module dir for service type: {stype.value}"
+        assert stype.value in module_service_types, (
+            f"Missing module dir for service type: {stype.value}"
+        )
 
     # Verify iam-policies/ folder exists (at least as a prefix in some path)
     has_lambda = ServiceType.LAMBDA in distinct_service_types
     iam_policy_paths = [p for p in file_tree if p.startswith(f"{root}/iam-policies/")]
     if has_lambda:
-        assert len(iam_policy_paths) >= 1, "iam-policies/ folder should contain policy files for Lambda resources"
+        assert len(iam_policy_paths) >= 1, (
+            "iam-policies/ folder should contain policy files for Lambda resources"
+        )
     # The iam-policies/ folder should exist conceptually — if there are Lambda resources,
     # there must be policy files; the folder is always part of the structure.
 
@@ -778,7 +838,15 @@ def test_property_3_project_level_folder_structure(arch):
 # Feature: terraform-iac-generator, Property 4: Environment file completeness
 # Validates: Requirements 2.4
 
-EXPECTED_ENV_FILES = {"main.tf", "variables.tf", "outputs.tf", "terraform.tfvars", "backend.tf", "provider.tf", "versions.tf"}
+EXPECTED_ENV_FILES = {
+    "main.tf",
+    "variables.tf",
+    "outputs.tf",
+    "terraform.tfvars",
+    "backend.tf",
+    "provider.tf",
+    "versions.tf",
+}
 
 
 # --- Property 5: Environment variable consistency ---
@@ -915,6 +983,7 @@ def test_property_4_environment_file_completeness(arch):
             f"Environment '{env.name}' has files {env_files}, expected {EXPECTED_ENV_FILES}"
         )
 
+
 # --- Property 6: Environment module references ---
 # Feature: terraform-iac-generator, Property 6: Environment module references
 # Validates: Requirements 2.6, 2.8
@@ -998,6 +1067,7 @@ def test_property_7_service_module_file_structure_and_content(arch):
 
     # Group input resources by service type to know expected instance names
     from collections import defaultdict
+
     resources_by_type: dict[ServiceType, list[str]] = defaultdict(list)
     for r in arch.resources:
         resources_by_type[r.service_type].append(r.name)
@@ -1010,7 +1080,11 @@ def test_property_7_service_module_file_structure_and_content(arch):
         regular_names = instance_names
         if stype == ServiceType.LAMBDA:
             regular_names = [
-                name for name, r in zip(instance_names, [res for res in arch.resources if res.service_type == stype])
+                name
+                for name, r in zip(
+                    instance_names,
+                    [res for res in arch.resources if res.service_type == stype],
+                )
                 if not r.config.is_layer
             ]
 
@@ -1026,7 +1100,9 @@ def test_property_7_service_module_file_structure_and_content(arch):
         expected_root_files = set(EXPECTED_MODULE_ROOT_FILES)
         # If there are layer instances, layer.tf should also be at the root
         if stype == ServiceType.LAMBDA:
-            has_layers = any(r.config.is_layer for r in arch.resources if r.service_type == stype)
+            has_layers = any(
+                r.config.is_layer for r in arch.resources if r.service_type == stype
+            )
             if has_layers:
                 expected_root_files.add("layer.tf")
 
@@ -1095,7 +1171,8 @@ def test_property_8_resource_instance_subfolder_structure(arch):
         instance_files = {
             path.removeprefix(f"{inst_base}/")
             for path in file_tree
-            if path.startswith(f"{inst_base}/") and "/" not in path.removeprefix(f"{inst_base}/")
+            if path.startswith(f"{inst_base}/")
+            and "/" not in path.removeprefix(f"{inst_base}/")
         }
 
         # Req 4.3: main resource file named after service type
@@ -1110,6 +1187,7 @@ def test_property_8_resource_instance_subfolder_structure(arch):
                 f"Resource '{resource.name}' missing {expected_file} in subfolder"
             )
 
+
 # --- Property 9: Lambda iam.tf with file() references ---
 # Feature: terraform-iac-generator, Property 9: Lambda iam.tf with file() references
 # Validates: Requirements 4.5, 4.6, 9.5
@@ -1121,10 +1199,7 @@ def _architecture_with_lambdas_st(draw):
     project_name = draw(_project_name_st)
 
     env_names = draw(st.lists(_env_name_st, min_size=1, max_size=2, unique=True))
-    environments = [
-        EnvironmentConfig(name=name, variables={})
-        for name in env_names
-    ]
+    environments = [EnvironmentConfig(name=name, variables={}) for name in env_names]
 
     # At least one Lambda (may be a layer)
     lambda_resources = draw(
@@ -1143,7 +1218,12 @@ def _architecture_with_lambdas_st(draw):
     # Optionally add non-Lambda resources
     other_resources = draw(
         st.lists(
-            st.one_of(_s3_resource_st, _dynamodb_resource_st, _apigw_resource_st, _cloudwatch_resource_st),
+            st.one_of(
+                _s3_resource_st,
+                _dynamodb_resource_st,
+                _apigw_resource_st,
+                _cloudwatch_resource_st,
+            ),
             min_size=0,
             max_size=2,
         )
@@ -1152,6 +1232,7 @@ def _architecture_with_lambdas_st(draw):
     all_resources = lambda_resources + other_resources
     # Ensure unique names across all resources
     from hypothesis import assume
+
     assume(len({r.name for r in all_resources}) == len(all_resources))
 
     return ArchitectureDescription(
@@ -1173,7 +1254,9 @@ def test_property_9_lambda_iam_tf_with_file_references(arch):
     file_tree = code_gen.generate(project_ir)
 
     root = arch.project_name
-    lambda_resources = [r for r in arch.resources if r.service_type == ServiceType.LAMBDA]
+    lambda_resources = [
+        r for r in arch.resources if r.service_type == ServiceType.LAMBDA
+    ]
 
     for resource in lambda_resources:
         # Lambda layers are aggregated into layer.tf, not individual subfolders
@@ -1221,9 +1304,7 @@ def test_property_20_aws_provider_configuration(arch):
 
     for env in arch.environments:
         main_tf_path = f"{root}/environments/{env.name}/main.tf"
-        assert main_tf_path in file_tree, (
-            f"Environment '{env.name}' missing main.tf"
-        )
+        assert main_tf_path in file_tree, f"Environment '{env.name}' missing main.tf"
 
         content = file_tree[main_tf_path]
 
@@ -1254,10 +1335,11 @@ def test_property_20_aws_provider_configuration(arch):
 
 # --- Imports for Properties 1, 2, 14 (API endpoint tests) ---
 
-import zipfile
 import io
+import zipfile
 
 from fastapi.testclient import TestClient
+
 from app.main import app as fastapi_app
 
 _client = TestClient(fastapi_app)

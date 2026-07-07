@@ -31,6 +31,7 @@ def gen() -> GameLiftGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestGameLiftGeneratorMinimal:
     """Test GameLiftGenerator with minimal config (all optional fields None)."""
 
@@ -54,7 +55,9 @@ class TestGameLiftGeneratorMinimal:
         result = gen.generate_outputs_tf(instance)
         assert "fleet_id" in result
 
-    def test_resource_tf_no_ec2_instance_type_when_not_set(self, gen: GameLiftGenerator):
+    def test_resource_tf_no_ec2_instance_type_when_not_set(
+        self, gen: GameLiftGenerator
+    ):
         instance = _make_gamelift_instance()
         result = gen.generate_resource_tf(instance)
         assert "ec2_instance_type" not in result
@@ -64,6 +67,7 @@ class TestGameLiftGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestGameLiftGeneratorWithOptionalConfig:
     """Test GameLiftGenerator with optional config fields set."""
 
@@ -72,7 +76,9 @@ class TestGameLiftGeneratorWithOptionalConfig:
         result = gen.generate_resource_tf(instance)
         assert "ec2_instance_type" in result
 
-    def test_variables_tf_includes_ec2_instance_type_variable(self, gen: GameLiftGenerator):
+    def test_variables_tf_includes_ec2_instance_type_variable(
+        self, gen: GameLiftGenerator
+    ):
         instance = _make_gamelift_instance(gamelift_ec2_instance_type="c5.large")
         result = gen.generate_variables_tf(instance)
         assert "ec2_instance_type" in result

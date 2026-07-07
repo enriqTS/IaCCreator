@@ -21,13 +21,19 @@ class CodeDeployGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a CodeDeploy application."""
         parts = [
-            self._r.render_variable("app_name", "string", "Name of the CodeDeploy application"),
+            self._r.render_variable(
+                "app_name", "string", "Name of the CodeDeploy application"
+            ),
         ]
         if instance.config.codedeploy_compute_platform is not None:
-            parts.append(self._r.render_variable(
-                "compute_platform", "string", "Compute platform for the CodeDeploy application",
-                default=instance.config.codedeploy_compute_platform,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "compute_platform",
+                    "string",
+                    "Compute platform for the CodeDeploy application",
+                    default=instance.config.codedeploy_compute_platform,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

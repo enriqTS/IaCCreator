@@ -1,7 +1,7 @@
 """DynamoDB implementation of the AbstractRepository interface."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import boto3
 from boto3.dynamodb.conditions import Key
@@ -45,7 +45,7 @@ class DynamoDBRepository(AbstractRepository):
     # ------------------------------------------------------------------
 
     def create_user(self, session_id: str) -> UserRecord:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "session_id": session_id,
             "created_at": now,
@@ -62,7 +62,7 @@ class DynamoDBRepository(AbstractRepository):
         return UserRecord(**item)
 
     def update_user_last_active(self, session_id: str) -> None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         self._users_table.update_item(
             Key={"session_id": session_id},
             UpdateExpression="SET last_active = :ts",
@@ -75,7 +75,7 @@ class DynamoDBRepository(AbstractRepository):
 
     def save_diagram(self, session_id: str, diagram: dict) -> str:
         diagram_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "diagram_id": diagram_id,
             "session_id": session_id,
@@ -109,7 +109,7 @@ class DynamoDBRepository(AbstractRepository):
         ]
 
     def update_diagram(self, diagram_id: str, diagram: dict) -> bool:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         response = self._diagrams_table.update_item(
             Key={"diagram_id": diagram_id},
             UpdateExpression="SET diagram_state = :ds, project_name = :pn, updated_at = :ts",
@@ -130,5 +130,7 @@ class DynamoDBRepository(AbstractRepository):
                 ConditionExpression="attribute_exists(diagram_id)",
             )
             return True
-        except self._diagrams_table.meta.client.exceptions.ConditionalCheckFailedException:
+        except (
+            self._diagrams_table.meta.client.exceptions.ConditionalCheckFailedException
+        ):
             return False

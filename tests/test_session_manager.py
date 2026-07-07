@@ -9,10 +9,11 @@ import re
 import tempfile
 import uuid
 
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
-from app.persistence.tinydb_repo import TinyDBRepository
 from app.persistence.models import UserRecord
+from app.persistence.tinydb_repo import TinyDBRepository
 
 # Regex patterns
 UUID_V4_RE = re.compile(
@@ -72,6 +73,7 @@ class TestSessionCreationProducesValidUserRecord:
         finally:
             repo._db.close()
             import shutil
+
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
@@ -131,6 +133,7 @@ class TestExistingSessionResolutionIsIdempotent:
         finally:
             repo._db.close()
             import shutil
+
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
@@ -146,9 +149,7 @@ class TestSessionTouchUpdatesLastActiveTimestamp:
 
     @given(session_id=uuid4_session_id_st)
     @settings(max_examples=100)
-    def test_update_user_last_active_increases_timestamp(
-        self, session_id: str
-    ) -> None:
+    def test_update_user_last_active_increases_timestamp(self, session_id: str) -> None:
         """After calling update_user_last_active, the last_active timestamp
         on the UserRecord must be >= the previous value."""
         tmp_dir = tempfile.mkdtemp()
@@ -175,4 +176,5 @@ class TestSessionTouchUpdatesLastActiveTimestamp:
         finally:
             repo._db.close()
             import shutil
+
             shutil.rmtree(tmp_dir, ignore_errors=True)

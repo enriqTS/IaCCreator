@@ -31,6 +31,7 @@ def gen() -> BatchGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestBatchGeneratorMinimal:
     """Test BatchGenerator with minimal config (all optional fields None)."""
 
@@ -70,6 +71,7 @@ class TestBatchGeneratorMinimal:
 # ---------------------------------------------------------------------------
 # Optional config tests
 # ---------------------------------------------------------------------------
+
 
 class TestBatchGeneratorWithOptionalConfig:
     """Test BatchGenerator with optional config fields set."""

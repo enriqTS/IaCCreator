@@ -2,7 +2,7 @@
 
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from tinydb import TinyDB, where
 
@@ -31,7 +31,7 @@ class TinyDBRepository(AbstractRepository):
     # ------------------------------------------------------------------
 
     def create_user(self, session_id: str) -> UserRecord:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         doc = {
             "session_id": session_id,
             "created_at": now,
@@ -47,7 +47,7 @@ class TinyDBRepository(AbstractRepository):
         return UserRecord(**result[0])
 
     def update_user_last_active(self, session_id: str) -> None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         self._users.update(
             {"last_active": now},
             where("session_id") == session_id,
@@ -59,7 +59,7 @@ class TinyDBRepository(AbstractRepository):
 
     def save_diagram(self, session_id: str, diagram: dict) -> str:
         diagram_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         doc = {
             "diagram_id": diagram_id,
             "session_id": session_id,
@@ -89,7 +89,7 @@ class TinyDBRepository(AbstractRepository):
         ]
 
     def update_diagram(self, diagram_id: str, diagram: dict) -> bool:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         updated = self._diagrams.update(
             {
                 "diagram_state": diagram,

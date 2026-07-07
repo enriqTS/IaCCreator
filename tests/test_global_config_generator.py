@@ -15,6 +15,7 @@ def gen() -> GlobalConfigGenerator:
 # backend.tf tests
 # ---------------------------------------------------------------------------
 
+
 class TestBackendS3:
     def test_s3_backend_block_structure(self, gen: GlobalConfigGenerator):
         config = GlobalTerraformConfigIR(
@@ -75,6 +76,7 @@ class TestBackendLocal:
 # provider.tf tests
 # ---------------------------------------------------------------------------
 
+
 class TestProviderWithProfile:
     def test_provider_includes_profile(self, gen: GlobalConfigGenerator):
         config = GlobalTerraformConfigIR(
@@ -107,6 +109,7 @@ class TestProviderWithoutProfile:
 # ---------------------------------------------------------------------------
 # versions.tf tests
 # ---------------------------------------------------------------------------
+
 
 class TestVersionsWithConstraints:
     def test_versions_with_both_constraints(self, gen: GlobalConfigGenerator):
@@ -146,12 +149,20 @@ class TestVersionsWithoutConstraints:
         assert 'source  = "hashicorp/aws"' in result
         # version line should not appear when aws_provider_version is None
         lines = result.splitlines()
-        version_lines = [l for l in lines if "version" in l.lower() and "required_version" not in l and "required_providers" not in l]
+        version_lines = [
+            l
+            for l in lines
+            if "version" in l.lower()
+            and "required_version" not in l
+            and "required_providers" not in l
+        ]
         # Only the source line should reference "hashicorp/aws", no version = "..." line
         for line in version_lines:
             assert "source" in line or "required" in line
 
-    def test_versions_always_has_required_providers_block(self, gen: GlobalConfigGenerator):
+    def test_versions_always_has_required_providers_block(
+        self, gen: GlobalConfigGenerator
+    ):
         config = GlobalTerraformConfigIR()
         result = gen.generate_versions_tf(config)
 

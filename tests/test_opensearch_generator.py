@@ -31,6 +31,7 @@ def gen() -> OpenSearchGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestOpenSearchGeneratorMinimal:
     """Test OpenSearchGenerator with minimal config (all optional fields None)."""
 

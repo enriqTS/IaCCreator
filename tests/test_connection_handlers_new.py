@@ -13,7 +13,6 @@ Requirements: 3.2, 3.3, 3.4, 3.5, 4.1–4.6, 5.1, 5.2, 6.1–6.6,
              7.1–7.4, 8.1–8.4, 9.1, 9.2, 11.1–11.3
 """
 
-import pytest
 
 from app.models.input_models import ResourceConfig, ServiceType
 from app.models.ir_models import (
@@ -26,10 +25,10 @@ from app.models.ir_models import (
 )
 from app.services.connection_processor import ConnectionProcessor
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _lambda_ir(name: str = "my-func") -> ResourceInstanceIR:
     return ResourceInstanceIR(
@@ -91,6 +90,7 @@ def _make_project(
 # 1. Enhanced _handle_apigw_lambda
 # ===========================================================================
 
+
 class TestHandleApigwLambda:
     """Test enhanced API Gateway → Lambda handler generates integration, route, and permission."""
 
@@ -121,19 +121,28 @@ class TestHandleApigwLambda:
         """Integration file is placed at the correct path."""
         files = self._process_apigw_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/networking/api-gateway/my-api/integration_my-func.tf" in paths
+        assert (
+            "test-project/modules/networking/api-gateway/my-api/integration_my-func.tf"
+            in paths
+        )
 
     def test_route_file_path(self):
         """Route file is placed at the correct path."""
         files = self._process_apigw_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/networking/api-gateway/my-api/route_my-func.tf" in paths
+        assert (
+            "test-project/modules/networking/api-gateway/my-api/route_my-func.tf"
+            in paths
+        )
 
     def test_permission_file_path(self):
         """Permission file is placed at the correct path."""
         files = self._process_apigw_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/networking/api-gateway/my-api/permission_my-func.tf" in paths
+        assert (
+            "test-project/modules/networking/api-gateway/my-api/permission_my-func.tf"
+            in paths
+        )
 
     def test_route_file_contains_route_resource(self):
         """Route file contains aws_apigatewayv2_route resource."""
@@ -190,6 +199,7 @@ class TestHandleApigwLambda:
 # 1b. _handle_apigw_lambda_authorizer (connection_role = "authorizer")
 # ===========================================================================
 
+
 class TestHandleApigwLambdaAuthorizer:
     """Test API Gateway → Lambda authorizer handler generates authorizer + permission only."""
 
@@ -221,58 +231,98 @@ class TestHandleApigwLambdaAuthorizer:
         """Authorizer file is placed at the correct path."""
         files = self._process_apigw_lambda_authorizer()
         paths = [f.path for f in files]
-        assert "test-project/modules/networking/api-gateway/my-api/authorizer_my-func.tf" in paths
+        assert (
+            "test-project/modules/networking/api-gateway/my-api/authorizer_my-func.tf"
+            in paths
+        )
 
     def test_permission_file_path(self):
         """Authorizer permission file is placed at the correct path."""
         files = self._process_apigw_lambda_authorizer()
         paths = [f.path for f in files]
-        assert "test-project/modules/networking/api-gateway/my-api/authorizer_permission_my-func.tf" in paths
+        assert (
+            "test-project/modules/networking/api-gateway/my-api/authorizer_permission_my-func.tf"
+            in paths
+        )
 
     def test_authorizer_contains_authorizer_resource(self):
         """Authorizer file contains aws_apigatewayv2_authorizer resource."""
         files = self._process_apigw_lambda_authorizer()
-        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        auth_file = next(
+            f
+            for f in files
+            if "authorizer_my-func" in f.path and "permission" not in f.path
+        )
         assert "aws_apigatewayv2_authorizer" in auth_file.content
 
     def test_authorizer_has_request_type(self):
         """Authorizer resource has authorizer_type = REQUEST."""
         files = self._process_apigw_lambda_authorizer()
-        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        auth_file = next(
+            f
+            for f in files
+            if "authorizer_my-func" in f.path and "permission" not in f.path
+        )
         assert "REQUEST" in auth_file.content
 
     def test_authorizer_references_lambda_invoke_arn(self):
         """Authorizer resource references the Lambda invoke_arn."""
         files = self._process_apigw_lambda_authorizer()
-        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        auth_file = next(
+            f
+            for f in files
+            if "authorizer_my-func" in f.path and "permission" not in f.path
+        )
         assert "aws_lambda_function.my-func.invoke_arn" in auth_file.content
 
     def test_authorizer_default_payload_format_version(self):
         """Authorizer defaults payload_format_version to 2.0."""
         files = self._process_apigw_lambda_authorizer()
-        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        auth_file = next(
+            f
+            for f in files
+            if "authorizer_my-func" in f.path and "permission" not in f.path
+        )
         assert "2.0" in auth_file.content
 
     def test_authorizer_custom_payload_format_version(self):
         """Authorizer uses custom payload_format_version from config."""
         files = self._process_apigw_lambda_authorizer(
-            connection_config={"connection_role": "authorizer", "payload_format_version": "1.0"}
+            connection_config={
+                "connection_role": "authorizer",
+                "payload_format_version": "1.0",
+            }
         )
-        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        auth_file = next(
+            f
+            for f in files
+            if "authorizer_my-func" in f.path and "permission" not in f.path
+        )
         assert "1.0" in auth_file.content
 
     def test_authorizer_uses_target_name_as_default_name(self):
         """Authorizer uses target Lambda name as default authorizer name."""
         files = self._process_apigw_lambda_authorizer()
-        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        auth_file = next(
+            f
+            for f in files
+            if "authorizer_my-func" in f.path and "permission" not in f.path
+        )
         assert "my-func" in auth_file.content
 
     def test_authorizer_uses_custom_name(self):
         """Authorizer uses authorizer_name from config when provided."""
         files = self._process_apigw_lambda_authorizer(
-            connection_config={"connection_role": "authorizer", "authorizer_name": "custom-auth"}
+            connection_config={
+                "connection_role": "authorizer",
+                "authorizer_name": "custom-auth",
+            }
         )
-        auth_file = next(f for f in files if "authorizer_my-func" in f.path and "permission" not in f.path)
+        auth_file = next(
+            f
+            for f in files
+            if "authorizer_my-func" in f.path and "permission" not in f.path
+        )
         assert "custom-auth" in auth_file.content
 
     def test_permission_contains_lambda_permission_resource(self):
@@ -325,6 +375,7 @@ class TestHandleApigwLambdaAuthorizer:
 # ===========================================================================
 # 2. _handle_lambda_sns
 # ===========================================================================
+
 
 class TestHandleLambdaSns:
     """Test Lambda → SNS handler attaches correct IAM statement."""
@@ -379,6 +430,7 @@ class TestHandleLambdaSns:
 # 3. _handle_lambda_sqs
 # ===========================================================================
 
+
 class TestHandleLambdaSqs:
     """Test Lambda → SQS handler attaches correct IAM statement."""
 
@@ -432,6 +484,7 @@ class TestHandleLambdaSqs:
 # 4. _handle_sqs_lambda
 # ===========================================================================
 
+
 class TestHandleSqsLambda:
     """Test SQS → Lambda handler generates event source mapping, permission, and IAM."""
 
@@ -462,13 +515,18 @@ class TestHandleSqsLambda:
         """Event source mapping file is placed at the correct path."""
         files, _ = self._process_sqs_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/messaging/sqs/my-queue/event_source_my-func.tf" in paths
+        assert (
+            "test-project/modules/messaging/sqs/my-queue/event_source_my-func.tf"
+            in paths
+        )
 
     def test_permission_file_path(self):
         """Permission file is placed at the correct path."""
         files, _ = self._process_sqs_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/messaging/sqs/my-queue/permission_my-func.tf" in paths
+        assert (
+            "test-project/modules/messaging/sqs/my-queue/permission_my-func.tf" in paths
+        )
 
     def test_event_source_mapping_contains_resource(self):
         """Event source mapping file contains aws_lambda_event_source_mapping resource."""
@@ -530,6 +588,7 @@ class TestHandleSqsLambda:
 # 5. _handle_sns_sqs
 # ===========================================================================
 
+
 class TestHandleSnsSqs:
     """Test SNS → SQS handler generates subscription and queue policy."""
 
@@ -558,7 +617,10 @@ class TestHandleSnsSqs:
         """Subscription file is placed at the correct path."""
         files = self._process_sns_sqs()
         paths = [f.path for f in files]
-        assert "test-project/modules/messaging/sns/my-topic/subscription_my-queue.tf" in paths
+        assert (
+            "test-project/modules/messaging/sns/my-topic/subscription_my-queue.tf"
+            in paths
+        )
 
     def test_queue_policy_file_path(self):
         """Queue policy file is placed at the correct path."""
@@ -601,6 +663,7 @@ class TestHandleSnsSqs:
 # 6. _handle_sns_lambda
 # ===========================================================================
 
+
 class TestHandleSnsLambda:
     """Test SNS → Lambda handler generates subscription and permission."""
 
@@ -629,13 +692,18 @@ class TestHandleSnsLambda:
         """Subscription file is placed at the correct path."""
         files = self._process_sns_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/messaging/sns/my-topic/subscription_my-func.tf" in paths
+        assert (
+            "test-project/modules/messaging/sns/my-topic/subscription_my-func.tf"
+            in paths
+        )
 
     def test_permission_file_path(self):
         """Permission file is placed at the correct path."""
         files = self._process_sns_lambda()
         paths = [f.path for f in files]
-        assert "test-project/modules/messaging/sns/my-topic/permission_my-func.tf" in paths
+        assert (
+            "test-project/modules/messaging/sns/my-topic/permission_my-func.tf" in paths
+        )
 
     def test_subscription_contains_resource(self):
         """Subscription file contains aws_sns_topic_subscription resource."""
@@ -677,6 +745,7 @@ class TestHandleSnsLambda:
 # ===========================================================================
 # 7. Terraform resource reference consistency
 # ===========================================================================
+
 
 class TestTerraformReferenceConsistency:
     """Test all generated resources use Terraform resource references, not hardcoded ARNs."""
@@ -885,7 +954,11 @@ class TestHandleLambdaDynamoDBAccessPattern:
         func = self._process_lambda_dynamodb({"access_pattern": "write"})
         assert len(func.iam_statements) == 1
         actions = func.iam_statements[0].actions
-        assert actions == ["dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"]
+        assert actions == [
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:DeleteItem",
+        ]
 
     def test_read_access_pattern_excludes_write_actions(self):
         """access_pattern="read" must NOT include write actions."""

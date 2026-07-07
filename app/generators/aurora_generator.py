@@ -23,18 +23,28 @@ class AuroraGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an Aurora cluster."""
         parts = [
-            self._r.render_variable("cluster_identifier", "string", "Identifier for the Aurora cluster"),
+            self._r.render_variable(
+                "cluster_identifier", "string", "Identifier for the Aurora cluster"
+            ),
         ]
         if instance.config.aurora_engine is not None:
-            parts.append(self._r.render_variable(
-                "engine", "string", "Database engine for the Aurora cluster",
-                default=instance.config.aurora_engine,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "engine",
+                    "string",
+                    "Database engine for the Aurora cluster",
+                    default=instance.config.aurora_engine,
+                )
+            )
         if instance.config.aurora_master_username is not None:
-            parts.append(self._r.render_variable(
-                "master_username", "string", "Master username for the Aurora cluster",
-                default=instance.config.aurora_master_username,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "master_username",
+                    "string",
+                    "Master username for the Aurora cluster",
+                    default=instance.config.aurora_master_username,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

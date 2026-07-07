@@ -18,14 +18,24 @@ class EC2ImageBuilderGenerator:
             "infrastructure_configuration_arn": "var.infrastructure_configuration_arn",
         }
 
-        return self._r.render_resource("aws_imagebuilder_image_pipeline", instance.name, attrs)
+        return self._r.render_resource(
+            "aws_imagebuilder_image_pipeline", instance.name, attrs
+        )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an EC2 Image Builder pipeline."""
         parts = [
-            self._r.render_variable("pipeline_name", "string", "Name of the Image Builder pipeline"),
-            self._r.render_variable("image_recipe_arn", "string", "ARN of the image recipe"),
-            self._r.render_variable("infrastructure_configuration_arn", "string", "ARN of the infrastructure configuration"),
+            self._r.render_variable(
+                "pipeline_name", "string", "Name of the Image Builder pipeline"
+            ),
+            self._r.render_variable(
+                "image_recipe_arn", "string", "ARN of the image recipe"
+            ),
+            self._r.render_variable(
+                "infrastructure_configuration_arn",
+                "string",
+                "ARN of the infrastructure configuration",
+            ),
         ]
         return "\n".join(parts)
 

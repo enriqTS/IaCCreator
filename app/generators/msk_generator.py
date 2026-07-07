@@ -23,18 +23,28 @@ class MSKGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an MSK cluster."""
         parts = [
-            self._r.render_variable("cluster_name", "string", "Name of the MSK cluster"),
+            self._r.render_variable(
+                "cluster_name", "string", "Name of the MSK cluster"
+            ),
         ]
         if instance.config.msk_kafka_version is not None:
-            parts.append(self._r.render_variable(
-                "kafka_version", "string", "Kafka version for the MSK cluster",
-                default=instance.config.msk_kafka_version,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "kafka_version",
+                    "string",
+                    "Kafka version for the MSK cluster",
+                    default=instance.config.msk_kafka_version,
+                )
+            )
         if instance.config.msk_number_of_broker_nodes is not None:
-            parts.append(self._r.render_variable(
-                "number_of_broker_nodes", "number", "Number of broker nodes in the MSK cluster",
-                default=instance.config.msk_number_of_broker_nodes,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "number_of_broker_nodes",
+                    "number",
+                    "Number of broker nodes in the MSK cluster",
+                    default=instance.config.msk_number_of_broker_nodes,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

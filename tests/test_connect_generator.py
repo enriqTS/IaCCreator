@@ -31,6 +31,7 @@ def gen() -> ConnectGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestConnectGeneratorMinimal:
     """Test ConnectGenerator with minimal config (all optional fields None)."""
 
@@ -49,7 +50,9 @@ class TestConnectGeneratorMinimal:
         result = gen.generate_outputs_tf(instance)
         assert "instance_arn" in result
 
-    def test_resource_tf_no_identity_management_type_when_not_set(self, gen: ConnectGenerator):
+    def test_resource_tf_no_identity_management_type_when_not_set(
+        self, gen: ConnectGenerator
+    ):
         instance = _make_connect_instance()
         result = gen.generate_resource_tf(instance)
         assert "identity_management_type" not in result
@@ -59,6 +62,7 @@ class TestConnectGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestConnectGeneratorWithOptionalConfig:
     """Test ConnectGenerator with optional config fields set."""
 
@@ -67,7 +71,9 @@ class TestConnectGeneratorWithOptionalConfig:
         result = gen.generate_resource_tf(instance)
         assert "identity_management_type" in result
 
-    def test_variables_tf_includes_identity_management_type_variable(self, gen: ConnectGenerator):
+    def test_variables_tf_includes_identity_management_type_variable(
+        self, gen: ConnectGenerator
+    ):
         instance = _make_connect_instance(connect_identity_management_type="SAML")
         result = gen.generate_variables_tf(instance)
         assert "identity_management_type" in result

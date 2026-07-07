@@ -31,6 +31,7 @@ def gen() -> GlueGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestGlueGeneratorMinimal:
     """Test GlueGenerator with minimal config (all optional fields None)."""
 

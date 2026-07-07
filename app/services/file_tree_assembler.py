@@ -10,10 +10,10 @@ from app.models.input_models import ServiceType
 from app.models.ir_models import (
     EnvironmentIR,
     FileTree,
+    GeneratedFile,
     ProjectIR,
     ResourceInstanceIR,
     ServiceModuleIR,
-    GeneratedFile,
 )
 
 
@@ -87,10 +87,14 @@ class FileTreeAssembler:
 
         # variables.tf — environment variables + resource terraform variables
         var_parts = [
-            self._renderer.render_variable("aws_region", "string", "AWS region for this environment"),
+            self._renderer.render_variable(
+                "aws_region", "string", "AWS region for this environment"
+            ),
         ]
         for key in sorted(env.variables.keys()):
-            var_parts.append(self._renderer.render_variable(key, "string", f"Variable {key}"))
+            var_parts.append(
+                self._renderer.render_variable(key, "string", f"Variable {key}")
+            )
         resource_vars_tf = self._tfvars_gen.generate_variables_tf(all_instances)
         if resource_vars_tf:
             var_parts.append(resource_vars_tf)
@@ -117,13 +121,21 @@ class FileTreeAssembler:
         resource_tfvars = self._tfvars_gen.generate_tfvars(all_instances)
         if resource_tfvars:
             tfvars_lines.append(resource_tfvars.rstrip("\n"))
-        tree[f"{base}/terraform.tfvars"] = "\n".join(tfvars_lines) + ("\n" if tfvars_lines else "")
+        tree[f"{base}/terraform.tfvars"] = "\n".join(tfvars_lines) + (
+            "\n" if tfvars_lines else ""
+        )
 
         # Global config files: backend.tf, provider.tf, versions.tf
         global_cfg = project.global_config
-        tree[f"{base}/backend.tf"] = self._global_config_gen.generate_backend_tf(global_cfg)
-        tree[f"{base}/provider.tf"] = self._global_config_gen.generate_provider_tf(global_cfg)
-        tree[f"{base}/versions.tf"] = self._global_config_gen.generate_versions_tf(global_cfg)
+        tree[f"{base}/backend.tf"] = self._global_config_gen.generate_backend_tf(
+            global_cfg
+        )
+        tree[f"{base}/provider.tf"] = self._global_config_gen.generate_provider_tf(
+            global_cfg
+        )
+        tree[f"{base}/versions.tf"] = self._global_config_gen.generate_versions_tf(
+            global_cfg
+        )
 
     # ------------------------------------------------------------------
     # Service module root files

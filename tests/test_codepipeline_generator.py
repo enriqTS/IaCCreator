@@ -31,6 +31,7 @@ def gen() -> CodePipelineGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestCodePipelineGeneratorMinimal:
     """Test CodePipelineGenerator with minimal config (all optional fields None)."""
 
@@ -64,15 +65,20 @@ class TestCodePipelineGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestCodePipelineGeneratorWithOptionalConfig:
     """Test CodePipelineGenerator with optional config fields set."""
 
     def test_resource_tf_includes_role_arn(self, gen: CodePipelineGenerator):
-        instance = _make_codepipeline_instance(codepipeline_role_arn="arn:aws:iam::role/cp")
+        instance = _make_codepipeline_instance(
+            codepipeline_role_arn="arn:aws:iam::role/cp"
+        )
         result = gen.generate_resource_tf(instance)
         assert "role_arn" in result
 
     def test_variables_tf_includes_role_arn_variable(self, gen: CodePipelineGenerator):
-        instance = _make_codepipeline_instance(codepipeline_role_arn="arn:aws:iam::role/cp")
+        instance = _make_codepipeline_instance(
+            codepipeline_role_arn="arn:aws:iam::role/cp"
+        )
         result = gen.generate_variables_tf(instance)
         assert "role_arn" in result

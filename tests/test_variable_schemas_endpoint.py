@@ -20,11 +20,10 @@ def client(tmp_path, monkeypatch):
     from app.persistence.tinydb_repo import TinyDBRepository
 
     temp_repo = TinyDBRepository(db_path=db_path)
-    monkeypatch.setattr(
-        "app.persistence.factory.get_repository", lambda: temp_repo
-    )
+    monkeypatch.setattr("app.persistence.factory.get_repository", lambda: temp_repo)
 
     import importlib
+
     import app.main as main_mod
 
     importlib.reload(main_mod)
@@ -33,18 +32,46 @@ def client(tmp_path, monkeypatch):
 
 
 EXPECTED_SERVICE_TYPES = {
-    "lambda", "s3", "dynamodb", "api-gateway", "cloudwatch",
-    "ec2", "ecs", "eks", "elastic-beanstalk", "app-runner",
-    "batch", "ec2-image-builder", "lightsail", "ecr",
+    "lambda",
+    "s3",
+    "dynamodb",
+    "api-gateway",
+    "cloudwatch",
+    "ec2",
+    "ecs",
+    "eks",
+    "elastic-beanstalk",
+    "app-runner",
+    "batch",
+    "ec2-image-builder",
+    "lightsail",
+    "ecr",
     # Analytics
-    "athena", "cloudsearch", "emr", "glue", "kinesis",
-    "kinesis-firehose", "msk", "opensearch", "redshift",
+    "athena",
+    "cloudsearch",
+    "emr",
+    "glue",
+    "kinesis",
+    "kinesis-firehose",
+    "msk",
+    "opensearch",
+    "redshift",
     # Business Applications
-    "connect", "ses", "pinpoint",
+    "connect",
+    "ses",
+    "pinpoint",
     # Database
-    "aurora", "documentdb", "elasticache", "neptune", "rds", "timestream",
+    "aurora",
+    "documentdb",
+    "elasticache",
+    "neptune",
+    "rds",
+    "timestream",
     # Developer Tools
-    "codebuild", "codecommit", "codedeploy", "codepipeline",
+    "codebuild",
+    "codecommit",
+    "codedeploy",
+    "codepipeline",
     # End User Computing
     "appstream",
     # Front End Web Mobile
@@ -52,8 +79,13 @@ EXPECTED_SERVICE_TYPES = {
     # Games
     "gamelift",
     # Machine Learning
-    "bedrock", "sagemaker", "amazon-q", "bedrock-agent",
-    "bedrock-guardrail", "bedrock-knowledge-base", "bedrock-agentcore",
+    "bedrock",
+    "sagemaker",
+    "amazon-q",
+    "bedrock-agent",
+    "bedrock-guardrail",
+    "bedrock-knowledge-base",
+    "bedrock-agentcore",
 }
 
 

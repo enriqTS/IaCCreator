@@ -31,10 +31,13 @@ def gen() -> TimestreamGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestTimestreamGeneratorMinimal:
     """Test TimestreamGenerator with minimal config (all optional fields None)."""
 
-    def test_resource_tf_contains_aws_timestreamwrite_database(self, gen: TimestreamGenerator):
+    def test_resource_tf_contains_aws_timestreamwrite_database(
+        self, gen: TimestreamGenerator
+    ):
         instance = _make_timestream_instance()
         result = gen.generate_resource_tf(instance)
         assert "aws_timestreamwrite_database" in result

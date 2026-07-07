@@ -21,13 +21,19 @@ class KinesisGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Kinesis stream."""
         parts = [
-            self._r.render_variable("stream_name", "string", "Name of the Kinesis stream"),
+            self._r.render_variable(
+                "stream_name", "string", "Name of the Kinesis stream"
+            ),
         ]
         if instance.config.kinesis_shard_count is not None:
-            parts.append(self._r.render_variable(
-                "shard_count", "number", "Number of shards for the Kinesis stream",
-                default=instance.config.kinesis_shard_count,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "shard_count",
+                    "number",
+                    "Number of shards for the Kinesis stream",
+                    default=instance.config.kinesis_shard_count,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

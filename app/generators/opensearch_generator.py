@@ -19,7 +19,9 @@ class OpenSearchGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an OpenSearch domain."""
         parts = [
-            self._r.render_variable("domain_name", "string", "Name of the OpenSearch domain"),
+            self._r.render_variable(
+                "domain_name", "string", "Name of the OpenSearch domain"
+            ),
         ]
         return "\n".join(parts)
 

@@ -19,7 +19,7 @@ class IAMGenerator:
         role_block = self._r.render_resource("aws_iam_role", instance.name, role_attrs)
 
         policy_attrs = {
-            "name": f"var.policy_name",
+            "name": "var.policy_name",
             "role": f"aws_iam_role.{instance.name}.id",
             "policy": "var.policy_document",
         }
@@ -33,9 +33,13 @@ class IAMGenerator:
         """Generate variables.tf for an IAM instance."""
         parts = [
             self._r.render_variable("role_name", "string", "Name of the IAM role"),
-            self._r.render_variable("assume_role_policy", "string", "Assume role policy JSON document"),
+            self._r.render_variable(
+                "assume_role_policy", "string", "Assume role policy JSON document"
+            ),
             self._r.render_variable("policy_name", "string", "Name of the IAM policy"),
-            self._r.render_variable("policy_document", "string", "IAM policy JSON document"),
+            self._r.render_variable(
+                "policy_document", "string", "IAM policy JSON document"
+            ),
         ]
         return "\n".join(parts)
 

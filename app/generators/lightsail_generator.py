@@ -24,10 +24,20 @@ class LightsailGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Lightsail instance."""
         parts = [
-            self._r.render_variable("instance_name", "string", "Name of the Lightsail instance"),
-            self._r.render_variable("blueprint_id", "string", "Blueprint ID for the Lightsail instance"),
-            self._r.render_variable("bundle_id", "string", "Bundle ID for the Lightsail instance"),
-            self._r.render_variable("availability_zone", "string", "Availability zone for the Lightsail instance"),
+            self._r.render_variable(
+                "instance_name", "string", "Name of the Lightsail instance"
+            ),
+            self._r.render_variable(
+                "blueprint_id", "string", "Blueprint ID for the Lightsail instance"
+            ),
+            self._r.render_variable(
+                "bundle_id", "string", "Bundle ID for the Lightsail instance"
+            ),
+            self._r.render_variable(
+                "availability_zone",
+                "string",
+                "Availability zone for the Lightsail instance",
+            ),
         ]
         return "\n".join(parts)
 

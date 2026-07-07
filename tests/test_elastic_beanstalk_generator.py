@@ -31,6 +31,7 @@ def gen() -> ElasticBeanstalkGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestElasticBeanstalkGeneratorMinimal:
     """Test ElasticBeanstalkGenerator with minimal config (all optional fields None)."""
 
@@ -44,7 +45,9 @@ class TestElasticBeanstalkGeneratorMinimal:
         result = gen.generate_resource_tf(instance)
         assert "aws_elastic_beanstalk_environment" in result
 
-    def test_variables_tf_contains_required_variables(self, gen: ElasticBeanstalkGenerator):
+    def test_variables_tf_contains_required_variables(
+        self, gen: ElasticBeanstalkGenerator
+    ):
         instance = _make_eb_instance()
         result = gen.generate_variables_tf(instance)
         assert "application_name" in result
@@ -55,12 +58,16 @@ class TestElasticBeanstalkGeneratorMinimal:
         result = gen.generate_outputs_tf(instance)
         assert "application_name" in result
 
-    def test_outputs_tf_contains_environment_endpoint(self, gen: ElasticBeanstalkGenerator):
+    def test_outputs_tf_contains_environment_endpoint(
+        self, gen: ElasticBeanstalkGenerator
+    ):
         instance = _make_eb_instance()
         result = gen.generate_outputs_tf(instance)
         assert "environment_endpoint" in result
 
-    def test_resource_tf_no_solution_stack_when_not_set(self, gen: ElasticBeanstalkGenerator):
+    def test_resource_tf_no_solution_stack_when_not_set(
+        self, gen: ElasticBeanstalkGenerator
+    ):
         instance = _make_eb_instance()
         result = gen.generate_resource_tf(instance)
         assert "solution_stack_name" not in result
@@ -75,11 +82,16 @@ class TestElasticBeanstalkGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestElasticBeanstalkGeneratorWithOptionalConfig:
     """Test ElasticBeanstalkGenerator with optional config fields set."""
 
-    def test_resource_tf_includes_solution_stack_name(self, gen: ElasticBeanstalkGenerator):
-        instance = _make_eb_instance(eb_solution_stack_name="64bit Amazon Linux 2 v5.8.0 running Node.js 18")
+    def test_resource_tf_includes_solution_stack_name(
+        self, gen: ElasticBeanstalkGenerator
+    ):
+        instance = _make_eb_instance(
+            eb_solution_stack_name="64bit Amazon Linux 2 v5.8.0 running Node.js 18"
+        )
         result = gen.generate_resource_tf(instance)
         assert "solution_stack_name" in result
 
@@ -88,8 +100,12 @@ class TestElasticBeanstalkGeneratorWithOptionalConfig:
         result = gen.generate_resource_tf(instance)
         assert "tier" in result
 
-    def test_variables_tf_includes_solution_stack_variable(self, gen: ElasticBeanstalkGenerator):
-        instance = _make_eb_instance(eb_solution_stack_name="64bit Amazon Linux 2 v5.8.0 running Node.js 18")
+    def test_variables_tf_includes_solution_stack_variable(
+        self, gen: ElasticBeanstalkGenerator
+    ):
+        instance = _make_eb_instance(
+            eb_solution_stack_name="64bit Amazon Linux 2 v5.8.0 running Node.js 18"
+        )
         result = gen.generate_variables_tf(instance)
         assert "eb_solution_stack_name" in result
 

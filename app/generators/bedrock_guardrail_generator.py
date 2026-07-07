@@ -36,7 +36,11 @@ class BedrockGuardrailGenerator:
         parts = []
         for entry in schema:
             tf_type = "map(string)" if entry.type == "map" else entry.type
-            parts.append(self._r.render_variable(entry.name, tf_type, entry.description, entry.default))
+            parts.append(
+                self._r.render_variable(
+                    entry.name, tf_type, entry.description, entry.default
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

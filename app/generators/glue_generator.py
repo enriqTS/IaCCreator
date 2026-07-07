@@ -14,12 +14,16 @@ class GlueGenerator:
         """Generate resource.tf with aws_glue_catalog_database resource."""
         attrs: dict = {"name": "var.database_name"}
 
-        return self._r.render_resource("aws_glue_catalog_database", instance.name, attrs)
+        return self._r.render_resource(
+            "aws_glue_catalog_database", instance.name, attrs
+        )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Glue catalog database."""
         parts = [
-            self._r.render_variable("database_name", "string", "Name of the Glue catalog database"),
+            self._r.render_variable(
+                "database_name", "string", "Name of the Glue catalog database"
+            ),
         ]
         return "\n".join(parts)
 

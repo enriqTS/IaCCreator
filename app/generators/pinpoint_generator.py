@@ -19,7 +19,9 @@ class PinpointGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Pinpoint application."""
         parts = [
-            self._r.render_variable("app_name", "string", "Name of the Pinpoint application"),
+            self._r.render_variable(
+                "app_name", "string", "Name of the Pinpoint application"
+            ),
         ]
         return "\n".join(parts)
 

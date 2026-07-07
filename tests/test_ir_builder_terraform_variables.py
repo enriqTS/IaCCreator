@@ -6,9 +6,8 @@ Validates Requirements 7.2 and 7.3:
 - Property 2: All ResourceInstanceIR objects have terraform_variables populated after build
 """
 
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
 
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
 from app.models.input_models import (
     ArchitectureDescription,
     EnvironmentConfig,
@@ -24,7 +23,9 @@ from tests.conftest import architecture_description_strategy
 def _make_input(**overrides) -> ArchitectureDescription:
     defaults = {
         "project_name": "test-project",
-        "environments": [EnvironmentConfig(name="dev", variables={"region": "us-east-1"})],
+        "environments": [
+            EnvironmentConfig(name="dev", variables={"region": "us-east-1"})
+        ],
         "resources": [
             ResourceInstance(
                 name="my-func",
@@ -56,8 +57,14 @@ class TestTerraformVariablesPropagation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="index.handler", runtime="python3.12"),
-                    terraform_variables={"function_name": "hello", "memory_size": 256, "timeout": 10},
+                    config=ResourceConfig(
+                        handler="index.handler", runtime="python3.12"
+                    ),
+                    terraform_variables={
+                        "function_name": "hello",
+                        "memory_size": 256,
+                        "timeout": 10,
+                    },
                 ),
             ]
         )
@@ -81,13 +88,19 @@ class TestTerraformVariablesPropagation:
                 ResourceInstance(
                     name="my-bucket",
                     service_type=ServiceType.S3,
-                    terraform_variables={"bucket_name": "test-bucket", "versioning_enabled": True},
+                    terraform_variables={
+                        "bucket_name": "test-bucket",
+                        "versioning_enabled": True,
+                    },
                 ),
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
                     config=ResourceConfig(hash_key="id"),
-                    terraform_variables={"table_name": "users", "billing_mode": "PAY_PER_REQUEST"},
+                    terraform_variables={
+                        "table_name": "users",
+                        "billing_mode": "PAY_PER_REQUEST",
+                    },
                 ),
             ]
         )
@@ -159,7 +172,11 @@ class TestGlobalConfigPropagation:
         desc = _make_input()
         desc.global_terraform_config = GlobalTerraformConfig(
             backend_type="s3",
-            backend_config={"bucket": "my-state", "key": "terraform.tfstate", "region": "us-east-1"},
+            backend_config={
+                "bucket": "my-state",
+                "key": "terraform.tfstate",
+                "region": "us-east-1",
+            },
             provider_region="eu-west-1",
             provider_profile="prod",
             terraform_version=">= 1.5.0",
@@ -187,6 +204,7 @@ class TestGlobalConfigPropagation:
 # ---------------------------------------------------------------------------
 # Property 2: All ResourceInstanceIR objects have terraform_variables populated
 # ---------------------------------------------------------------------------
+
 
 @given(arch=architecture_description_strategy())
 @settings(max_examples=50)

@@ -4,9 +4,6 @@ Validates cookie attributes, session resolution, and new-session creation
 using a real TinyDB backend and the FastAPI TestClient.
 """
 
-import os
-import shutil
-import tempfile
 
 import pytest
 from fastapi import FastAPI, Request

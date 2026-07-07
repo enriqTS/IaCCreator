@@ -31,6 +31,7 @@ def gen() -> RedshiftGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestRedshiftGeneratorMinimal:
     """Test RedshiftGenerator with minimal config (all optional fields None)."""
 
@@ -69,6 +70,7 @@ class TestRedshiftGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestRedshiftGeneratorWithOptionalConfig:
     """Test RedshiftGenerator with optional config fields set."""
 
@@ -87,7 +89,9 @@ class TestRedshiftGeneratorWithOptionalConfig:
         result = gen.generate_resource_tf(instance)
         assert "master_username" in result
 
-    def test_variables_tf_includes_master_username_variable(self, gen: RedshiftGenerator):
+    def test_variables_tf_includes_master_username_variable(
+        self, gen: RedshiftGenerator
+    ):
         instance = _make_redshift_instance(redshift_master_username="admin")
         result = gen.generate_variables_tf(instance)
         assert "master_username" in result

@@ -31,6 +31,7 @@ def gen() -> LightsailGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestLightsailGeneratorMinimal:
     """Test LightsailGenerator with minimal config (all optional fields None)."""
 

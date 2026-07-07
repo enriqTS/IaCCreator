@@ -23,7 +23,9 @@ class BedrockAgentCoreGenerator:
             "idle_session_ttl": "var.idle_session_ttl",
             "tags": "var.tags",
         }
-        return self._r.render_resource("aws_bedrockagent_agent_runtime", instance.name, attrs)
+        return self._r.render_resource(
+            "aws_bedrockagent_agent_runtime", instance.name, attrs
+        )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Bedrock AgentCore Runtime."""
@@ -31,7 +33,11 @@ class BedrockAgentCoreGenerator:
         parts = []
         for entry in schema:
             tf_type = "map(string)" if entry.type == "map" else entry.type
-            parts.append(self._r.render_variable(entry.name, tf_type, entry.description, entry.default))
+            parts.append(
+                self._r.render_variable(
+                    entry.name, tf_type, entry.description, entry.default
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

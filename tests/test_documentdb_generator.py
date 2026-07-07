@@ -31,6 +31,7 @@ def gen() -> DocumentDBGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestDocumentDBGeneratorMinimal:
     """Test DocumentDBGenerator with minimal config (all optional fields None)."""
 
@@ -54,7 +55,9 @@ class TestDocumentDBGeneratorMinimal:
         result = gen.generate_outputs_tf(instance)
         assert "cluster_endpoint" in result
 
-    def test_resource_tf_no_master_username_when_not_set(self, gen: DocumentDBGenerator):
+    def test_resource_tf_no_master_username_when_not_set(
+        self, gen: DocumentDBGenerator
+    ):
         instance = _make_documentdb_instance()
         result = gen.generate_resource_tf(instance)
         assert "master_username" not in result
@@ -64,6 +67,7 @@ class TestDocumentDBGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestDocumentDBGeneratorWithOptionalConfig:
     """Test DocumentDBGenerator with optional config fields set."""
 
@@ -72,7 +76,9 @@ class TestDocumentDBGeneratorWithOptionalConfig:
         result = gen.generate_resource_tf(instance)
         assert "master_username" in result
 
-    def test_variables_tf_includes_master_username_variable(self, gen: DocumentDBGenerator):
+    def test_variables_tf_includes_master_username_variable(
+        self, gen: DocumentDBGenerator
+    ):
         instance = _make_documentdb_instance(documentdb_master_username="admin")
         result = gen.generate_variables_tf(instance)
         assert "master_username" in result

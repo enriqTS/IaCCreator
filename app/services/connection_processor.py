@@ -32,7 +32,9 @@ class ConnectionProcessor:
     def __init__(self) -> None:
         self._renderer = HCLRenderer()
 
-    def process(self, connection: ConnectionIR, project: ProjectIR) -> list[GeneratedFile]:
+    def process(
+        self, connection: ConnectionIR, project: ProjectIR
+    ) -> list[GeneratedFile]:
         """Process a single connection and return any generated files.
 
         IAM statements are attached directly to the source Lambda's
@@ -87,8 +89,12 @@ class ConnectionProcessor:
         integration_name = f"{source}_{target}_integration"
 
         # Read enhanced integration settings from connection_config (with backward-compatible defaults)
-        integration_type = connection.connection_config.get("integration_type", "AWS_PROXY")
-        payload_format_version = connection.connection_config.get("payload_format_version", "2.0")
+        integration_type = connection.connection_config.get(
+            "integration_type", "AWS_PROXY"
+        )
+        payload_format_version = connection.connection_config.get(
+            "payload_format_version", "2.0"
+        )
         vpc_link_name = connection.connection_config.get("vpc_link_name")
 
         # --- Integration ---
@@ -109,9 +115,7 @@ class ConnectionProcessor:
         integration_content = self._renderer.render_resource(
             "aws_apigatewayv2_integration", integration_name, integration_attrs
         )
-        integration_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/integration_{target}.tf"
-        )
+        integration_path = f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/integration_{target}.tf"
 
         # --- Route(s) ---
         route_path = connection.connection_config.get("route_path", "/$default")
@@ -141,10 +145,10 @@ class ConnectionProcessor:
             route_content = self._renderer.render_resource(
                 "aws_apigatewayv2_route", route_name, route_attrs
             )
-            route_file_path = (
-                f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/{route_file_name}"
+            route_file_path = f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/{route_file_name}"
+            route_files.append(
+                GeneratedFile(path=route_file_path, content=route_content)
             )
-            route_files.append(GeneratedFile(path=route_file_path, content=route_content))
 
         # --- Lambda Permission ---
         permission_name = f"{source}_{target}_permission"
@@ -159,9 +163,7 @@ class ConnectionProcessor:
         permission_content = self._renderer.render_resource(
             "aws_lambda_permission", permission_name, permission_attrs
         )
-        permission_file_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/permission_{target}.tf"
-        )
+        permission_file_path = f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/permission_{target}.tf"
 
         return [
             GeneratedFile(path=integration_path, content=integration_content),
@@ -186,7 +188,9 @@ class ConnectionProcessor:
         permission_name = f"{source}_{target}_authorizer_permission"
 
         # Read authorizer settings from connection_config
-        authorizer_display_name = connection.connection_config.get("authorizer_name", target)
+        authorizer_display_name = connection.connection_config.get(
+            "authorizer_name", target
+        )
         payload_format_version = connection.connection_config.get(
             "payload_format_version", "2.0"
         )
@@ -202,9 +206,7 @@ class ConnectionProcessor:
         authorizer_content = self._renderer.render_resource(
             "aws_apigatewayv2_authorizer", authorizer_name, authorizer_attrs
         )
-        authorizer_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/authorizer_{target}.tf"
-        )
+        authorizer_path = f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/authorizer_{target}.tf"
 
         # --- Lambda Permission for authorizer ---
         permission_attrs = {
@@ -217,9 +219,7 @@ class ConnectionProcessor:
         permission_content = self._renderer.render_resource(
             "aws_lambda_permission", permission_name, permission_attrs
         )
-        permission_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/authorizer_permission_{target}.tf"
-        )
+        permission_path = f"{project.project_name}/modules/{get_category(ServiceType.API_GATEWAY)}/api-gateway/{source}/authorizer_permission_{target}.tf"
 
         return [
             GeneratedFile(path=authorizer_path, content=authorizer_content),
@@ -339,16 +339,16 @@ class ConnectionProcessor:
             "function_name": f"aws_lambda_function.{lambda_name}.arn",
             "batch_size": connection.connection_config.get("batch_size", 10),
         }
-        batching_window = connection.connection_config.get("maximum_batching_window_in_seconds")
+        batching_window = connection.connection_config.get(
+            "maximum_batching_window_in_seconds"
+        )
         if batching_window is not None:
             mapping_attrs["maximum_batching_window_in_seconds"] = batching_window
 
         mapping_content = self._renderer.render_resource(
             "aws_lambda_event_source_mapping", mapping_name, mapping_attrs
         )
-        mapping_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.SQS)}/sqs/{sqs_name}/event_source_{lambda_name}.tf"
-        )
+        mapping_path = f"{project.project_name}/modules/{get_category(ServiceType.SQS)}/sqs/{sqs_name}/event_source_{lambda_name}.tf"
 
         # --- Lambda Permission ---
         permission_name = f"{sqs_name}_{lambda_name}_permission"
@@ -362,9 +362,7 @@ class ConnectionProcessor:
         permission_content = self._renderer.render_resource(
             "aws_lambda_permission", permission_name, permission_attrs
         )
-        permission_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.SQS)}/sqs/{sqs_name}/permission_{lambda_name}.tf"
-        )
+        permission_path = f"{project.project_name}/modules/{get_category(ServiceType.SQS)}/sqs/{sqs_name}/permission_{lambda_name}.tf"
 
         # --- IAM statements for the Lambda to receive from SQS ---
         statement = IAMStatement(
@@ -400,41 +398,37 @@ class ConnectionProcessor:
         subscription_content = self._renderer.render_resource(
             "aws_sns_topic_subscription", subscription_name, subscription_attrs
         )
-        subscription_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.SNS)}/sns/{sns_name}/subscription_{sqs_name}.tf"
-        )
+        subscription_path = f"{project.project_name}/modules/{get_category(ServiceType.SNS)}/sns/{sns_name}/subscription_{sqs_name}.tf"
 
         # --- SQS Queue Policy ---
         policy_name = f"{sqs_name}_{sns_name}_policy"
         policy_attrs = {
             "queue_url": f"aws_sqs_queue.{sqs_name}.url",
             "policy": (
-                'jsonencode({\n'
+                "jsonencode({\n"
                 '    Version = "2012-10-17"\n'
-                '    Statement = [\n'
-                '      {\n'
+                "    Statement = [\n"
+                "      {\n"
                 '        Effect   = "Allow"\n'
-                '        Principal = {\n'
+                "        Principal = {\n"
                 '          Service = "sns.amazonaws.com"\n'
-                '        }\n'
+                "        }\n"
                 '        Action   = "SQS:SendMessage"\n'
-                f'        Resource = aws_sqs_queue.{sqs_name}.arn\n'
-                '        Condition = {{\n'
-                '          ArnEquals = {{\n'
+                f"        Resource = aws_sqs_queue.{sqs_name}.arn\n"
+                "        Condition = {{\n"
+                "          ArnEquals = {{\n"
                 f'            "aws:SourceArn" = aws_sns_topic.{sns_name}.arn\n'
-                '          }}\n'
-                '        }}\n'
-                '      }\n'
-                '    ]\n'
-                '  })'
+                "          }}\n"
+                "        }}\n"
+                "      }\n"
+                "    ]\n"
+                "  })"
             ),
         }
         policy_content = self._renderer.render_resource(
             "aws_sqs_queue_policy", policy_name, policy_attrs
         )
-        policy_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.SQS)}/sqs/{sqs_name}/policy_{sns_name}.tf"
-        )
+        policy_path = f"{project.project_name}/modules/{get_category(ServiceType.SQS)}/sqs/{sqs_name}/policy_{sns_name}.tf"
 
         return [
             GeneratedFile(path=subscription_path, content=subscription_content),
@@ -462,9 +456,7 @@ class ConnectionProcessor:
         subscription_content = self._renderer.render_resource(
             "aws_sns_topic_subscription", subscription_name, subscription_attrs
         )
-        subscription_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.SNS)}/sns/{sns_name}/subscription_{lambda_name}.tf"
-        )
+        subscription_path = f"{project.project_name}/modules/{get_category(ServiceType.SNS)}/sns/{sns_name}/subscription_{lambda_name}.tf"
 
         # --- Lambda Permission ---
         permission_name = f"{sns_name}_{lambda_name}_permission"
@@ -478,9 +470,7 @@ class ConnectionProcessor:
         permission_content = self._renderer.render_resource(
             "aws_lambda_permission", permission_name, permission_attrs
         )
-        permission_path = (
-            f"{project.project_name}/modules/{get_category(ServiceType.SNS)}/sns/{sns_name}/permission_{lambda_name}.tf"
-        )
+        permission_path = f"{project.project_name}/modules/{get_category(ServiceType.SNS)}/sns/{sns_name}/permission_{lambda_name}.tf"
 
         return [
             GeneratedFile(path=subscription_path, content=subscription_content),
@@ -514,10 +504,19 @@ _CONNECTION_HANDLERS: dict[
     tuple[ServiceType, ServiceType],
     "callable",
 ] = {
-    (ServiceType.API_GATEWAY, ServiceType.LAMBDA): ConnectionProcessor._handle_apigw_lambda,
-    (ServiceType.LAMBDA, ServiceType.DYNAMODB): ConnectionProcessor._handle_lambda_dynamodb,
+    (
+        ServiceType.API_GATEWAY,
+        ServiceType.LAMBDA,
+    ): ConnectionProcessor._handle_apigw_lambda,
+    (
+        ServiceType.LAMBDA,
+        ServiceType.DYNAMODB,
+    ): ConnectionProcessor._handle_lambda_dynamodb,
     (ServiceType.LAMBDA, ServiceType.S3): ConnectionProcessor._handle_lambda_s3,
-    (ServiceType.LAMBDA, ServiceType.CLOUDWATCH): ConnectionProcessor._handle_lambda_cloudwatch,
+    (
+        ServiceType.LAMBDA,
+        ServiceType.CLOUDWATCH,
+    ): ConnectionProcessor._handle_lambda_cloudwatch,
     (ServiceType.LAMBDA, ServiceType.SNS): ConnectionProcessor._handle_lambda_sns,
     (ServiceType.LAMBDA, ServiceType.SQS): ConnectionProcessor._handle_lambda_sqs,
     (ServiceType.SQS, ServiceType.LAMBDA): ConnectionProcessor._handle_sqs_lambda,

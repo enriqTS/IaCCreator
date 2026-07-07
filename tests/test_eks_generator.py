@@ -31,6 +31,7 @@ def gen() -> EKSGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestEKSGeneratorMinimal:
     """Test EKSGenerator with minimal config (all optional fields None)."""
 
@@ -76,6 +77,7 @@ class TestEKSGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestEKSGeneratorWithOptionalConfig:
     """Test EKSGenerator with optional config fields set."""
 
@@ -94,7 +96,9 @@ class TestEKSGeneratorWithOptionalConfig:
         result = gen.generate_variables_tf(instance)
         assert "eks_version" in result
 
-    def test_variables_tf_includes_endpoint_public_access_variable(self, gen: EKSGenerator):
+    def test_variables_tf_includes_endpoint_public_access_variable(
+        self, gen: EKSGenerator
+    ):
         instance = _make_eks_instance(eks_endpoint_public_access=True)
         result = gen.generate_variables_tf(instance)
         assert "eks_endpoint_public_access" in result

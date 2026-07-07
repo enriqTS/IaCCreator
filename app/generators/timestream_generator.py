@@ -14,12 +14,16 @@ class TimestreamGenerator:
         """Generate resource.tf with aws_timestreamwrite_database resource."""
         attrs: dict = {"database_name": "var.database_name"}
 
-        return self._r.render_resource("aws_timestreamwrite_database", instance.name, attrs)
+        return self._r.render_resource(
+            "aws_timestreamwrite_database", instance.name, attrs
+        )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Timestream database."""
         parts = [
-            self._r.render_variable("database_name", "string", "Name of the Timestream database"),
+            self._r.render_variable(
+                "database_name", "string", "Name of the Timestream database"
+            ),
         ]
         return "\n".join(parts)
 

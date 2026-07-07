@@ -31,6 +31,7 @@ def gen() -> PinpointGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestPinpointGeneratorMinimal:
     """Test PinpointGenerator with minimal config (all optional fields None)."""
 

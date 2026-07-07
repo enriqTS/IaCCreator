@@ -7,7 +7,6 @@ Validates:
 - Existing /generate endpoints remain intact
 """
 
-import os
 
 import pytest
 from fastapi.testclient import TestClient
@@ -23,11 +22,10 @@ def client(tmp_path, monkeypatch):
     from app.persistence.tinydb_repo import TinyDBRepository
 
     temp_repo = TinyDBRepository(db_path=db_path)
-    monkeypatch.setattr(
-        "app.persistence.factory.get_repository", lambda: temp_repo
-    )
+    monkeypatch.setattr("app.persistence.factory.get_repository", lambda: temp_repo)
 
     import importlib
+
     import app.main as main_mod
 
     importlib.reload(main_mod)

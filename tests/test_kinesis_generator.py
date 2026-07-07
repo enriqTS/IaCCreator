@@ -31,6 +31,7 @@ def gen() -> KinesisGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestKinesisGeneratorMinimal:
     """Test KinesisGenerator with minimal config (all optional fields None)."""
 
@@ -63,6 +64,7 @@ class TestKinesisGeneratorMinimal:
 # ---------------------------------------------------------------------------
 # Optional config tests
 # ---------------------------------------------------------------------------
+
 
 class TestKinesisGeneratorWithOptionalConfig:
     """Test KinesisGenerator with optional config fields set."""

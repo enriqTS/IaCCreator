@@ -14,7 +14,9 @@ class ECSGenerator:
         """Generate resource.tf with aws_ecs_cluster, aws_ecs_task_definition, and aws_ecs_service."""
         # ECS Cluster
         cluster_attrs: dict = {"name": "var.cluster_name"}
-        result = self._r.render_resource("aws_ecs_cluster", instance.name, cluster_attrs)
+        result = self._r.render_resource(
+            "aws_ecs_cluster", instance.name, cluster_attrs
+        )
 
         # ECS Task Definition
         task_attrs: dict = {
@@ -48,21 +50,35 @@ class ECSGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an ECS instance."""
         parts = [
-            self._r.render_variable("cluster_name", "string", "Name of the ECS cluster"),
-            self._r.render_variable("task_family", "string", "Family name for the ECS task definition"),
+            self._r.render_variable(
+                "cluster_name", "string", "Name of the ECS cluster"
+            ),
+            self._r.render_variable(
+                "task_family", "string", "Family name for the ECS task definition"
+            ),
             self._r.render_variable("ecs_cpu", "string", "CPU units for the ECS task"),
-            self._r.render_variable("ecs_memory", "string", "Memory (MiB) for the ECS task"),
+            self._r.render_variable(
+                "ecs_memory", "string", "Memory (MiB) for the ECS task"
+            ),
         ]
         if instance.config.ecs_launch_type is not None:
-            parts.append(self._r.render_variable(
-                "ecs_launch_type", "string", "Launch type for the ECS service",
-                default=instance.config.ecs_launch_type,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "ecs_launch_type",
+                    "string",
+                    "Launch type for the ECS service",
+                    default=instance.config.ecs_launch_type,
+                )
+            )
         if instance.config.ecs_desired_count is not None:
-            parts.append(self._r.render_variable(
-                "ecs_desired_count", "number", "Desired number of tasks in the ECS service",
-                default=instance.config.ecs_desired_count,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "ecs_desired_count",
+                    "number",
+                    "Desired number of tasks in the ECS service",
+                    default=instance.config.ecs_desired_count,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

@@ -85,41 +85,63 @@ class APIGatewayGenerator:
             "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
             "name": f"{instance.name}-api-key",
         }
-        return self._r.render_resource("aws_apigatewayv2_api_key", f"{instance.name}_api_key", attrs)
+        return self._r.render_resource(
+            "aws_apigatewayv2_api_key", f"{instance.name}_api_key", attrs
+        )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an API Gateway instance."""
         parts = [
             self._r.render_variable("api_name", "string", "Name of the API Gateway"),
-            self._r.render_variable("protocol_type", "string", "Protocol type", default="HTTP"),
+            self._r.render_variable(
+                "protocol_type", "string", "Protocol type", default="HTTP"
+            ),
         ]
         if instance.config.description is not None:
-            parts.append(self._r.render_variable(
-                "description", "string", "Description of the API",
-                default=instance.config.description,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "description",
+                    "string",
+                    "Description of the API",
+                    default=instance.config.description,
+                )
+            )
         if instance.config.cors_configuration is not None:
-            parts.append(self._r.render_variable(
-                "cors_configuration", "map(string)", "CORS configuration for the API",
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "cors_configuration",
+                    "map(string)",
+                    "CORS configuration for the API",
+                )
+            )
         if instance.config.disable_execute_api_endpoint is not None:
-            parts.append(self._r.render_variable(
-                "disable_execute_api_endpoint", "bool",
-                "Disable the default execute-api endpoint",
-                default=instance.config.disable_execute_api_endpoint,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "disable_execute_api_endpoint",
+                    "bool",
+                    "Disable the default execute-api endpoint",
+                    default=instance.config.disable_execute_api_endpoint,
+                )
+            )
         # route_selection_expression — only when protocol_type is WEBSOCKET (visible_when)
         if instance.config.protocol_type == "WEBSOCKET":
             if instance.config.route_selection_expression is not None:
-                parts.append(self._r.render_variable(
-                    "route_selection_expression", "string",
-                    "Route selection expression for WebSocket APIs",
-                    default=instance.config.route_selection_expression,
-                ))
+                parts.append(
+                    self._r.render_variable(
+                        "route_selection_expression",
+                        "string",
+                        "Route selection expression for WebSocket APIs",
+                        default=instance.config.route_selection_expression,
+                    )
+                )
         if instance.config.tags is not None:
-            parts.append(self._r.render_variable(
-                "tags", "map(string)", "Tags to apply to the API Gateway",
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "tags",
+                    "map(string)",
+                    "Tags to apply to the API Gateway",
+                )
+            )
         return "\n".join(parts)
 
     def _generate_routes(self, instance: ResourceInstanceIR) -> str:
@@ -176,14 +198,23 @@ class APIGatewayGenerator:
                 # Authorization only on $connect
                 if route_key == "$connect":
                     self._apply_authorization(
-                        attrs, config.routes, route_key, authorizer_map, instance.name, is_connect=True
+                        attrs,
+                        config.routes,
+                        route_key,
+                        authorizer_map,
+                        instance.name,
+                        is_connect=True,
                     )
 
                 # API key required
                 if config.api_key_required:
                     attrs["api_key_required"] = True
 
-                parts.append(self._r.render_resource("aws_apigatewayv2_route", resource_name, attrs))
+                parts.append(
+                    self._r.render_resource(
+                        "aws_apigatewayv2_route", resource_name, attrs
+                    )
+                )
 
             # Custom WebSocket routes (non-special)
             for route_cfg in custom_routes:
@@ -211,7 +242,11 @@ class APIGatewayGenerator:
                 if config.api_key_required:
                     attrs["api_key_required"] = True
 
-                parts.append(self._r.render_resource("aws_apigatewayv2_route", resource_name, attrs))
+                parts.append(
+                    self._r.render_resource(
+                        "aws_apigatewayv2_route", resource_name, attrs
+                    )
+                )
 
         else:
             # HTTP API
@@ -254,7 +289,11 @@ class APIGatewayGenerator:
                     if config.api_key_required:
                         attrs["api_key_required"] = True
 
-                    parts.append(self._r.render_resource("aws_apigatewayv2_route", resource_name, attrs))
+                    parts.append(
+                        self._r.render_resource(
+                            "aws_apigatewayv2_route", resource_name, attrs
+                        )
+                    )
             else:
                 # No routes configured — generate $default route
                 resource_name = f"{instance.name}_default_route"
@@ -267,7 +306,11 @@ class APIGatewayGenerator:
                 if config.api_key_required:
                     attrs["api_key_required"] = True
 
-                parts.append(self._r.render_resource("aws_apigatewayv2_route", resource_name, attrs))
+                parts.append(
+                    self._r.render_resource(
+                        "aws_apigatewayv2_route", resource_name, attrs
+                    )
+                )
 
         return "\n".join(parts)
 
@@ -277,8 +320,11 @@ class APIGatewayGenerator:
         Replaces special characters with underscores and strips leading/trailing underscores.
         """
         import re
+
         # Replace $ with empty, replace non-alphanumeric with underscore
-        sanitized = name.replace("$", "").replace("/", "_").replace("{", "").replace("}", "")
+        sanitized = (
+            name.replace("$", "").replace("/", "_").replace("{", "").replace("}", "")
+        )
         sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", sanitized)
         # Collapse multiple underscores and strip leading/trailing
         sanitized = re.sub(r"_+", "_", sanitized)
@@ -420,7 +466,9 @@ class APIGatewayGenerator:
                     "format": log_format,
                 }
 
-            parts.append(self._r.render_resource("aws_apigatewayv2_stage", resource_name, attrs))
+            parts.append(
+                self._r.render_resource("aws_apigatewayv2_stage", resource_name, attrs)
+            )
 
             # Generate CloudWatch log group when access logging is enabled
             if access_logging_enabled:
@@ -432,7 +480,9 @@ class APIGatewayGenerator:
                 }
                 parts.append(
                     self._r.render_resource(
-                        "aws_cloudwatch_log_group", log_group_resource_name, log_group_attrs
+                        "aws_cloudwatch_log_group",
+                        log_group_resource_name,
+                        log_group_attrs,
                     )
                 )
 
@@ -490,7 +540,11 @@ class APIGatewayGenerator:
                 if jwt_config:
                     attrs["jwt_configuration"] = jwt_config
 
-            parts.append(self._r.render_resource("aws_apigatewayv2_authorizer", resource_name, attrs))
+            parts.append(
+                self._r.render_resource(
+                    "aws_apigatewayv2_authorizer", resource_name, attrs
+                )
+            )
 
         return "\n".join(parts)
 
@@ -524,9 +578,11 @@ class APIGatewayGenerator:
                 "security_policy": "TLS_1_2",
             },
         }
-        parts.append(self._r.render_resource(
-            "aws_apigatewayv2_domain_name", domain_resource_name, domain_attrs
-        ))
+        parts.append(
+            self._r.render_resource(
+                "aws_apigatewayv2_domain_name", domain_resource_name, domain_attrs
+            )
+        )
 
         # Determine stage reference for the api_mapping
         # Use the first configured stage, or fall back to $default
@@ -549,9 +605,11 @@ class APIGatewayGenerator:
             "domain_name": f"aws_apigatewayv2_domain_name.{domain_resource_name}.id",
             "stage": stage_resource_ref,
         }
-        parts.append(self._r.render_resource(
-            "aws_apigatewayv2_api_mapping", mapping_resource_name, mapping_attrs
-        ))
+        parts.append(
+            self._r.render_resource(
+                "aws_apigatewayv2_api_mapping", mapping_resource_name, mapping_attrs
+            )
+        )
 
         return "\n".join(parts)
 
@@ -577,7 +635,11 @@ class APIGatewayGenerator:
                 "security_group_ids": vpc_link["security_group_ids"],
             }
 
-            parts.append(self._r.render_resource("aws_apigatewayv2_vpc_link", resource_name, attrs))
+            parts.append(
+                self._r.render_resource(
+                    "aws_apigatewayv2_vpc_link", resource_name, attrs
+                )
+            )
 
         return "\n".join(parts)
 
@@ -607,13 +669,7 @@ class APIGatewayGenerator:
                 "integration_type": integ_type,
             }
 
-            if integ_type == "HTTP_PROXY":
-                if integration.get("uri"):
-                    attrs["integration_uri"] = integration["uri"]
-                if integration.get("method"):
-                    attrs["integration_method"] = integration["method"]
-
-            elif integ_type == "HTTP":
+            if integ_type == "HTTP_PROXY" or integ_type == "HTTP":
                 if integration.get("uri"):
                     attrs["integration_uri"] = integration["uri"]
                 if integration.get("method"):
@@ -633,7 +689,11 @@ class APIGatewayGenerator:
                     f"aws_apigatewayv2_vpc_link.{instance.name}_{vpc_link_name}_vpc_link.id"
                 )
 
-            parts.append(self._r.render_resource("aws_apigatewayv2_integration", resource_name, attrs))
+            parts.append(
+                self._r.render_resource(
+                    "aws_apigatewayv2_integration", resource_name, attrs
+                )
+            )
 
         return "\n".join(parts)
 
@@ -671,43 +731,53 @@ class APIGatewayGenerator:
             for stage_cfg in config.stages:
                 stage_name = stage_cfg.get("name", "$default")
                 sanitized_stage = self._sanitize_route_name(stage_name)
-                parts.append(self._r.render_output(
-                    f"{instance.name}_{sanitized_stage}_invoke_url",
-                    f"aws_apigatewayv2_stage.{instance.name}_{sanitized_stage}_stage.invoke_url",
-                    f"Invoke URL for the {stage_name} stage",
-                ))
+                parts.append(
+                    self._r.render_output(
+                        f"{instance.name}_{sanitized_stage}_invoke_url",
+                        f"aws_apigatewayv2_stage.{instance.name}_{sanitized_stage}_stage.invoke_url",
+                        f"Invoke URL for the {stage_name} stage",
+                    )
+                )
 
         # Output domain_name and target_domain_name for custom domain
         if config.custom_domain is not None:
-            parts.append(self._r.render_output(
-                f"{instance.name}_domain_name",
-                f"aws_apigatewayv2_domain_name.{instance.name}_domain.domain_name",
-                "Custom domain name",
-            ))
-            parts.append(self._r.render_output(
-                f"{instance.name}_target_domain_name",
-                f"aws_apigatewayv2_domain_name.{instance.name}_domain.domain_name_configuration[0].target_domain_name",
-                "Target domain name for DNS CNAME record",
-            ))
+            parts.append(
+                self._r.render_output(
+                    f"{instance.name}_domain_name",
+                    f"aws_apigatewayv2_domain_name.{instance.name}_domain.domain_name",
+                    "Custom domain name",
+                )
+            )
+            parts.append(
+                self._r.render_output(
+                    f"{instance.name}_target_domain_name",
+                    f"aws_apigatewayv2_domain_name.{instance.name}_domain.domain_name_configuration[0].target_domain_name",
+                    "Target domain name for DNS CNAME record",
+                )
+            )
 
         # Output authorizer_id per authorizer
         if config.authorizers is not None:
             for authorizer in config.authorizers:
                 auth_name = authorizer["name"]
-                parts.append(self._r.render_output(
-                    f"{instance.name}_{auth_name}_authorizer_id",
-                    f"aws_apigatewayv2_authorizer.{instance.name}_{auth_name}_authorizer.id",
-                    f"ID of the {auth_name} authorizer",
-                ))
+                parts.append(
+                    self._r.render_output(
+                        f"{instance.name}_{auth_name}_authorizer_id",
+                        f"aws_apigatewayv2_authorizer.{instance.name}_{auth_name}_authorizer.id",
+                        f"ID of the {auth_name} authorizer",
+                    )
+                )
 
         # Output vpc_link_id per VPC link
         if config.vpc_links is not None:
             for vpc_link in config.vpc_links:
                 vpc_link_name = vpc_link["name"]
-                parts.append(self._r.render_output(
-                    f"{instance.name}_{vpc_link_name}_vpc_link_id",
-                    f"aws_apigatewayv2_vpc_link.{instance.name}_{vpc_link_name}_vpc_link.id",
-                    f"ID of the {vpc_link_name} VPC link",
-                ))
+                parts.append(
+                    self._r.render_output(
+                        f"{instance.name}_{vpc_link_name}_vpc_link_id",
+                        f"aws_apigatewayv2_vpc_link.{instance.name}_{vpc_link_name}_vpc_link.id",
+                        f"ID of the {vpc_link_name} VPC link",
+                    )
+                )
 
         return "\n".join(parts)

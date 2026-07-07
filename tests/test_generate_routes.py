@@ -1,6 +1,5 @@
 """Unit tests for APIGatewayGenerator._generate_routes method."""
 
-import pytest
 
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.models.input_models import ResourceConfig, ServiceType
@@ -63,8 +62,17 @@ class TestGenerateRoutesHTTP:
         """Routes referencing authorizers get authorization_type and authorizer_id."""
         config = ResourceConfig(
             protocol_type="HTTP",
-            routes=[{"method": "GET", "path": "/secure", "authorizer_name": "jwt_auth"}],
-            authorizers=[{"name": "jwt_auth", "type": "JWT", "issuer": "https://example.com", "audience": ["api"]}],
+            routes=[
+                {"method": "GET", "path": "/secure", "authorizer_name": "jwt_auth"}
+            ],
+            authorizers=[
+                {
+                    "name": "jwt_auth",
+                    "type": "JWT",
+                    "issuer": "https://example.com",
+                    "audience": ["api"],
+                }
+            ],
         )
         instance = _make_instance("api", config)
         gen = APIGatewayGenerator()
@@ -77,8 +85,20 @@ class TestGenerateRoutesHTTP:
         """Lambda (REQUEST) authorizer sets authorization_type = CUSTOM."""
         config = ResourceConfig(
             protocol_type="HTTP",
-            routes=[{"method": "GET", "path": "/protected", "authorizer_name": "lambda_auth"}],
-            authorizers=[{"name": "lambda_auth", "type": "REQUEST", "lambda_arn": "arn:aws:lambda:us-east-1:123:function:auth"}],
+            routes=[
+                {
+                    "method": "GET",
+                    "path": "/protected",
+                    "authorizer_name": "lambda_auth",
+                }
+            ],
+            authorizers=[
+                {
+                    "name": "lambda_auth",
+                    "type": "REQUEST",
+                    "lambda_arn": "arn:aws:lambda:us-east-1:123:function:auth",
+                }
+            ],
         )
         instance = _make_instance("api", config)
         gen = APIGatewayGenerator()
@@ -117,7 +137,13 @@ class TestGenerateRoutesHTTP:
         """Routes with integration_name get a target attribute."""
         config = ResourceConfig(
             protocol_type="HTTP",
-            routes=[{"method": "GET", "path": "/users", "integration_name": "lambda_backend"}],
+            routes=[
+                {
+                    "method": "GET",
+                    "path": "/users",
+                    "integration_name": "lambda_backend",
+                }
+            ],
             integrations=[{"name": "lambda_backend", "type": "AWS_PROXY"}],
         )
         instance = _make_instance("api", config)
@@ -131,7 +157,9 @@ class TestGenerateRoutesHTTP:
         """Routes referencing undefined authorizers don't get authorization attributes."""
         config = ResourceConfig(
             protocol_type="HTTP",
-            routes=[{"method": "GET", "path": "/data", "authorizer_name": "nonexistent"}],
+            routes=[
+                {"method": "GET", "path": "/data", "authorizer_name": "nonexistent"}
+            ],
             authorizers=[],
         )
         instance = _make_instance("api", config)
@@ -180,7 +208,14 @@ class TestGenerateRoutesWebSocket:
                 {"path": "$disconnect", "authorizer_name": "jwt_auth"},
                 {"path": "$default", "authorizer_name": "jwt_auth"},
             ],
-            authorizers=[{"name": "jwt_auth", "type": "JWT", "issuer": "https://example.com", "audience": ["api"]}],
+            authorizers=[
+                {
+                    "name": "jwt_auth",
+                    "type": "JWT",
+                    "issuer": "https://example.com",
+                    "audience": ["api"],
+                }
+            ],
         )
         instance = _make_instance("ws_api", config)
         gen = APIGatewayGenerator()
@@ -188,7 +223,9 @@ class TestGenerateRoutesWebSocket:
 
         # Split into individual route blocks to check each one
         blocks = hcl.split('resource "aws_apigatewayv2_route"')
-        connect_block = next(b for b in blocks if "connect_route" in b and "disconnect" not in b)
+        connect_block = next(
+            b for b in blocks if "connect_route" in b and "disconnect" not in b
+        )
         disconnect_block = next(b for b in blocks if "disconnect_route" in b)
         default_block = next(b for b in blocks if "default_route" in b)
 

@@ -16,9 +16,9 @@ Requirements: 1.1, 3.1, 5.1, 7.1, 9.1, 11.1, 13.1, 15.1, 17.1, 19.1, 21.1, 23.1,
 
 import pytest
 
-from app.models.input_models import ResourceConfig, ServiceType
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.variable_schemas import VARIABLE_SCHEMAS
+from app.models.input_models import ResourceConfig, ServiceType
 from app.models.ir_models import (
     EnvironmentIR,
     GlobalTerraformConfigIR,
@@ -27,7 +27,6 @@ from app.models.ir_models import (
     ServiceModuleIR,
 )
 from app.services.file_tree_assembler import FileTreeAssembler
-
 
 # ---------------------------------------------------------------------------
 # Expected data
@@ -149,6 +148,7 @@ ICON_ONLY_SERVICES = {
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_instance(name: str, service_type: ServiceType) -> ResourceInstanceIR:
     """Create a minimal ResourceInstanceIR for the given service type."""
     return ResourceInstanceIR(
@@ -179,10 +179,13 @@ def _make_project(modules: list[ServiceModuleIR]) -> ProjectIR:
 # 1. Full-generator ServiceType enum members
 # ---------------------------------------------------------------------------
 
+
 class TestFullGeneratorServiceTypeEnum:
     """Verify all 25 full-generator ServiceType enum members exist with correct values."""
 
-    @pytest.mark.parametrize("member_name,expected_value", FULL_GENERATOR_SERVICES.items())
+    @pytest.mark.parametrize(
+        "member_name,expected_value", FULL_GENERATOR_SERVICES.items()
+    )
     def test_enum_member_exists(self, member_name: str, expected_value: str):
         member = ServiceType[member_name]
         assert member.value == expected_value
@@ -191,6 +194,7 @@ class TestFullGeneratorServiceTypeEnum:
 # ---------------------------------------------------------------------------
 # 2. Icon-only ServiceType enum members
 # ---------------------------------------------------------------------------
+
 
 class TestIconOnlyServiceTypeEnum:
     """Verify all 63 icon-only ServiceType enum members exist with correct values."""
@@ -204,6 +208,7 @@ class TestIconOnlyServiceTypeEnum:
 # ---------------------------------------------------------------------------
 # 3. Full-generator services in GENERATOR_REGISTRY
 # ---------------------------------------------------------------------------
+
 
 class TestGeneratorRegistry:
     """Verify all 25 full-generator services are in GENERATOR_REGISTRY."""
@@ -227,59 +232,83 @@ class TestGeneratorRegistry:
 # 4. ResourceConfig optional fields for full-generator services
 # ---------------------------------------------------------------------------
 
+
 class TestResourceConfigFields:
     """Verify ResourceConfig has all new optional fields for 25 full-generator services."""
 
     # Analytics fields
-    @pytest.mark.parametrize("field", [
-        "athena_name", "cloudsearch_name",
-        "emr_release_label", "emr_service_role",
-        "glue_catalog_database_name",
-        "kinesis_shard_count",
-        "firehose_destination",
-        "msk_kafka_version", "msk_number_of_broker_nodes",
-        "opensearch_domain_name",
-        "redshift_node_type", "redshift_master_username",
-    ])
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "athena_name",
+            "cloudsearch_name",
+            "emr_release_label",
+            "emr_service_role",
+            "glue_catalog_database_name",
+            "kinesis_shard_count",
+            "firehose_destination",
+            "msk_kafka_version",
+            "msk_number_of_broker_nodes",
+            "opensearch_domain_name",
+            "redshift_node_type",
+            "redshift_master_username",
+        ],
+    )
     def test_analytics_fields(self, field: str):
         config = ResourceConfig()
         assert hasattr(config, field)
         assert getattr(config, field) is None
 
     # Business Applications fields
-    @pytest.mark.parametrize("field", [
-        "connect_identity_management_type",
-        "connect_inbound_calls_enabled",
-        "connect_outbound_calls_enabled",
-        "ses_domain",
-        "pinpoint_name",
-    ])
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "connect_identity_management_type",
+            "connect_inbound_calls_enabled",
+            "connect_outbound_calls_enabled",
+            "ses_domain",
+            "pinpoint_name",
+        ],
+    )
     def test_business_applications_fields(self, field: str):
         config = ResourceConfig()
         assert hasattr(config, field)
         assert getattr(config, field) is None
 
     # Database fields
-    @pytest.mark.parametrize("field", [
-        "aurora_engine", "aurora_master_username",
-        "documentdb_master_username",
-        "elasticache_engine", "elasticache_node_type", "elasticache_num_cache_nodes",
-        "neptune_cluster_identifier",
-        "rds_engine", "rds_instance_class", "rds_allocated_storage", "rds_username",
-        "timestream_database_name",
-    ])
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "aurora_engine",
+            "aurora_master_username",
+            "documentdb_master_username",
+            "elasticache_engine",
+            "elasticache_node_type",
+            "elasticache_num_cache_nodes",
+            "neptune_cluster_identifier",
+            "rds_engine",
+            "rds_instance_class",
+            "rds_allocated_storage",
+            "rds_username",
+            "timestream_database_name",
+        ],
+    )
     def test_database_fields(self, field: str):
         config = ResourceConfig()
         assert hasattr(config, field)
         assert getattr(config, field) is None
 
     # Developer Tools fields
-    @pytest.mark.parametrize("field", [
-        "codebuild_source_type", "codebuild_service_role",
-        "codecommit_repository_name",
-        "codedeploy_compute_platform",
-        "codepipeline_role_arn",
-    ])
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "codebuild_source_type",
+            "codebuild_service_role",
+            "codecommit_repository_name",
+            "codedeploy_compute_platform",
+            "codepipeline_role_arn",
+        ],
+    )
     def test_developer_tools_fields(self, field: str):
         config = ResourceConfig()
         assert hasattr(config, field)
@@ -311,6 +340,7 @@ class TestResourceConfigFields:
 # 5. Variable schemas for full-generator services
 # ---------------------------------------------------------------------------
 
+
 class TestVariableSchemas:
     """Verify all 25 full-generator services have entries in VARIABLE_SCHEMAS."""
 
@@ -328,6 +358,7 @@ class TestVariableSchemas:
 # ---------------------------------------------------------------------------
 # 6. FileTreeAssembler skip behavior for icon-only services
 # ---------------------------------------------------------------------------
+
 
 class TestFileTreeAssemblerSkipBehavior:
     """Test that FileTreeAssembler skips icon-only service modules."""
@@ -370,7 +401,11 @@ class TestFileTreeAssemblerSkipBehavior:
         assert len(athena_files) > 0, "Expected files for Athena full-generator service"
 
         # QuickSight module files should NOT exist
-        quicksight_files = [p for p in tree if "modules/quicksight" in p or "modules/other/quicksight" in p]
+        quicksight_files = [
+            p
+            for p in tree
+            if "modules/quicksight" in p or "modules/other/quicksight" in p
+        ]
         assert quicksight_files == [], (
             f"Expected no files for icon-only QuickSight service, got: {quicksight_files}"
         )

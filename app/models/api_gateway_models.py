@@ -1,6 +1,5 @@
 """Data models for the API Gateway generator configuration."""
 
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -18,10 +17,10 @@ class RouteConfig(BaseModel):
     path: str
     """Route path starting with /, e.g. /users/{id}."""
 
-    authorizer_name: Optional[str] = None
+    authorizer_name: str | None = None
     """Name of the authorizer to attach to this route."""
 
-    integration_name: Optional[str] = None
+    integration_name: str | None = None
     """Name of the integration to attach to this route."""
 
 
@@ -38,13 +37,13 @@ class StageConfig(BaseModel):
     auto_deploy: bool = True
     """Whether to auto-deploy changes to this stage."""
 
-    stage_variables: Optional[dict[str, str]] = None
+    stage_variables: dict[str, str] | None = None
     """Key-value map of stage variables (max 50 entries)."""
 
-    throttling_burst_limit: Optional[int] = None
+    throttling_burst_limit: int | None = None
     """Default burst limit for the stage (1-5000)."""
 
-    throttling_rate_limit: Optional[float] = None
+    throttling_rate_limit: float | None = None
     """Default rate limit for the stage (1.0-10000.0)."""
 
     access_logging_enabled: bool = False
@@ -53,10 +52,10 @@ class StageConfig(BaseModel):
     access_log_retention_days: int = 30
     """CloudWatch log group retention in days."""
 
-    access_log_format: Optional[str] = None
+    access_log_format: str | None = None
     """Custom access log format string. Uses default format if not provided."""
 
-    route_throttling: Optional[list[dict]] = None
+    route_throttling: list[dict] | None = None
     """Per-route throttling overrides: [{route_key, burst, rate}]."""
 
 
@@ -73,24 +72,24 @@ class AuthorizerConfig(BaseModel):
     """Authorizer type: 'JWT', 'REQUEST', or 'COGNITO_USER_POOLS'."""
 
     # JWT fields
-    issuer: Optional[str] = None
+    issuer: str | None = None
     """JWT issuer URL. Required for JWT and Cognito authorizers."""
 
-    audience: Optional[list[str]] = None
+    audience: list[str] | None = None
     """JWT audience values. Required for JWT and Cognito authorizers."""
 
     # Lambda fields
-    lambda_arn: Optional[str] = None
+    lambda_arn: str | None = None
     """Lambda function ARN for REQUEST authorizers."""
 
     payload_format_version: str = "2.0"
     """Payload format version for Lambda authorizers: '1.0' or '2.0'."""
 
     # Cognito fields
-    cognito_user_pool_endpoint: Optional[str] = None
+    cognito_user_pool_endpoint: str | None = None
     """Cognito User Pool endpoint URL."""
 
-    cognito_client_ids: Optional[list[str]] = None
+    cognito_client_ids: list[str] | None = None
     """Cognito User Pool client IDs used as audience."""
 
 
@@ -106,13 +105,13 @@ class IntegrationConfig(BaseModel):
     type: str
     """Integration type: 'AWS_PROXY', 'HTTP_PROXY', or 'HTTP'."""
 
-    uri: Optional[str] = None
+    uri: str | None = None
     """Integration URI. Required for HTTP and HTTP_PROXY types."""
 
-    method: Optional[str] = None
+    method: str | None = None
     """HTTP method for HTTP/HTTP_PROXY integrations."""
 
-    vpc_link_name: Optional[str] = None
+    vpc_link_name: str | None = None
     """VPC link name for VPC_LINK connection type."""
 
     payload_format_version: str = "2.0"

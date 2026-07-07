@@ -35,39 +35,67 @@ class SQSGenerator:
             self._r.render_variable("queue_name", "string", "Name of the SQS queue"),
         ]
         if instance.config.visibility_timeout_seconds is not None:
-            parts.append(self._r.render_variable(
-                "visibility_timeout_seconds", "number", "The visibility timeout for the queue in seconds",
-                default=instance.config.visibility_timeout_seconds,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "visibility_timeout_seconds",
+                    "number",
+                    "The visibility timeout for the queue in seconds",
+                    default=instance.config.visibility_timeout_seconds,
+                )
+            )
         if instance.config.message_retention_seconds is not None:
-            parts.append(self._r.render_variable(
-                "message_retention_seconds", "number", "The number of seconds to retain a message",
-                default=instance.config.message_retention_seconds,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "message_retention_seconds",
+                    "number",
+                    "The number of seconds to retain a message",
+                    default=instance.config.message_retention_seconds,
+                )
+            )
         if instance.config.fifo_queue is not None:
-            parts.append(self._r.render_variable(
-                "fifo_queue", "bool", "Whether the SQS queue is a FIFO queue",
-                default=instance.config.fifo_queue,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "fifo_queue",
+                    "bool",
+                    "Whether the SQS queue is a FIFO queue",
+                    default=instance.config.fifo_queue,
+                )
+            )
         if instance.config.content_based_deduplication is not None:
-            parts.append(self._r.render_variable(
-                "content_based_deduplication", "bool", "Enable content-based deduplication for the SQS queue",
-                default=instance.config.content_based_deduplication,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "content_based_deduplication",
+                    "bool",
+                    "Enable content-based deduplication for the SQS queue",
+                    default=instance.config.content_based_deduplication,
+                )
+            )
         if instance.config.delay_seconds is not None:
-            parts.append(self._r.render_variable(
-                "delay_seconds", "number", "The time in seconds that delivery of all messages is delayed",
-                default=instance.config.delay_seconds,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "delay_seconds",
+                    "number",
+                    "The time in seconds that delivery of all messages is delayed",
+                    default=instance.config.delay_seconds,
+                )
+            )
         if instance.config.max_message_size is not None:
-            parts.append(self._r.render_variable(
-                "max_message_size", "number", "The limit of how many bytes a message can contain",
-                default=instance.config.max_message_size,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "max_message_size",
+                    "number",
+                    "The limit of how many bytes a message can contain",
+                    default=instance.config.max_message_size,
+                )
+            )
         if instance.config.tags is not None:
-            parts.append(self._r.render_variable(
-                "tags", "map(string)", "Tags to apply to the SQS queue",
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "tags",
+                    "map(string)",
+                    "Tags to apply to the SQS queue",
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

@@ -4,7 +4,6 @@ import json
 
 from app.models.ir_models import ResourceInstanceIR
 
-
 # Base CloudWatch Logs permissions every Lambda needs
 _BASE_LOG_ACTIONS = [
     "logs:CreateLogGroup",
@@ -30,11 +29,13 @@ class IAMPolicyGenerator:
         statements = []
 
         # Base execution policy — CloudWatch Logs
-        statements.append({
-            "Effect": "Allow",
-            "Action": _BASE_LOG_ACTIONS,
-            "Resource": f"arn:aws:logs:*:*:log-group:/aws/lambda/{instance.name}:*",
-        })
+        statements.append(
+            {
+                "Effect": "Allow",
+                "Action": _BASE_LOG_ACTIONS,
+                "Resource": f"arn:aws:logs:*:*:log-group:/aws/lambda/{instance.name}:*",
+            }
+        )
 
         # Connection-derived statements
         for iam_stmt in instance.iam_statements:

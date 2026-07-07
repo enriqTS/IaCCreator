@@ -4,7 +4,6 @@ Verifies that existing configurations continue to produce identical output
 after the generator expansion. Covers Requirements 12.1, 12.2, 12.3, 12.4.
 """
 
-import pytest
 
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.models.input_models import ResourceConfig, ServiceType
@@ -17,7 +16,6 @@ from app.models.ir_models import (
     ServiceModuleIR,
 )
 from app.services.connection_processor import ConnectionProcessor
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -372,9 +370,18 @@ class TestConnectionProcessorBackwardCompat:
         files = self.processor.process(conn, project)
 
         paths = [f.path for f in files]
-        assert "test-project/modules/networking/api-gateway/my_api/integration_my_func.tf" in paths
-        assert "test-project/modules/networking/api-gateway/my_api/route_my_func.tf" in paths
-        assert "test-project/modules/networking/api-gateway/my_api/permission_my_func.tf" in paths
+        assert (
+            "test-project/modules/networking/api-gateway/my_api/integration_my_func.tf"
+            in paths
+        )
+        assert (
+            "test-project/modules/networking/api-gateway/my_api/route_my_func.tf"
+            in paths
+        )
+        assert (
+            "test-project/modules/networking/api-gateway/my_api/permission_my_func.tf"
+            in paths
+        )
 
     def test_permission_file_content_unchanged(self):
         """Permission file has the same structure with original keys."""

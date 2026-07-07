@@ -31,6 +31,7 @@ def gen() -> AthenaGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestAthenaGeneratorMinimal:
     """Test AthenaGenerator with minimal config (all optional fields None)."""
 

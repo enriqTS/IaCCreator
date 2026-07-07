@@ -19,7 +19,9 @@ class SESGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an SES domain identity."""
         parts = [
-            self._r.render_variable("domain", "string", "Domain for the SES domain identity"),
+            self._r.render_variable(
+                "domain", "string", "Domain for the SES domain identity"
+            ),
         ]
         return "\n".join(parts)
 

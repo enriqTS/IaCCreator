@@ -16,18 +16,26 @@ class KinesisFirehoseGenerator:
         if instance.config.firehose_destination is not None:
             attrs["destination"] = "var.destination"
 
-        return self._r.render_resource("aws_kinesis_firehose_delivery_stream", instance.name, attrs)
+        return self._r.render_resource(
+            "aws_kinesis_firehose_delivery_stream", instance.name, attrs
+        )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Kinesis Firehose delivery stream."""
         parts = [
-            self._r.render_variable("stream_name", "string", "Name of the Kinesis Firehose delivery stream"),
+            self._r.render_variable(
+                "stream_name", "string", "Name of the Kinesis Firehose delivery stream"
+            ),
         ]
         if instance.config.firehose_destination is not None:
-            parts.append(self._r.render_variable(
-                "destination", "string", "Destination for the Kinesis Firehose delivery stream",
-                default=instance.config.firehose_destination,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "destination",
+                    "string",
+                    "Destination for the Kinesis Firehose delivery stream",
+                    default=instance.config.firehose_destination,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

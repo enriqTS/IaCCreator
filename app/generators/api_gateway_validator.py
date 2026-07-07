@@ -247,9 +247,7 @@ class APIGatewayValidator:
             errors.append(
                 ValidationError(
                     field="custom_domain.certificate_arn",
-                    message=(
-                        "Custom domain requires a valid ACM certificate ARN."
-                    ),
+                    message=("Custom domain requires a valid ACM certificate ARN."),
                     code="MISSING_CERTIFICATE",
                 )
             )
@@ -287,8 +285,7 @@ class APIGatewayValidator:
                     ValidationError(
                         field=f"vpc_links[{i}].subnet_ids",
                         message=(
-                            f"VPC link allows 1-3 subnet IDs "
-                            f"(has {len(subnet_ids)})."
+                            f"VPC link allows 1-3 subnet IDs (has {len(subnet_ids)})."
                         ),
                         code="EMPTY_SUBNETS",
                     )

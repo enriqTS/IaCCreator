@@ -27,8 +27,14 @@ class AppRunnerGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an App Runner service."""
         parts = [
-            self._r.render_variable("service_name", "string", "Name of the App Runner service"),
-            self._r.render_variable("image_identifier", "string", "Container image identifier for the App Runner service"),
+            self._r.render_variable(
+                "service_name", "string", "Name of the App Runner service"
+            ),
+            self._r.render_variable(
+                "image_identifier",
+                "string",
+                "Container image identifier for the App Runner service",
+            ),
         ]
         return "\n".join(parts)
 

@@ -26,20 +26,32 @@ class ConnectGenerator:
         """Generate variables.tf for a Connect instance."""
         parts = []
         if instance.config.connect_identity_management_type is not None:
-            parts.append(self._r.render_variable(
-                "identity_management_type", "string", "Identity management type for the Connect instance",
-                default=instance.config.connect_identity_management_type,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "identity_management_type",
+                    "string",
+                    "Identity management type for the Connect instance",
+                    default=instance.config.connect_identity_management_type,
+                )
+            )
         if instance.config.connect_inbound_calls_enabled is not None:
-            parts.append(self._r.render_variable(
-                "inbound_calls_enabled", "bool", "Whether inbound calls are enabled",
-                default=instance.config.connect_inbound_calls_enabled,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "inbound_calls_enabled",
+                    "bool",
+                    "Whether inbound calls are enabled",
+                    default=instance.config.connect_inbound_calls_enabled,
+                )
+            )
         if instance.config.connect_outbound_calls_enabled is not None:
-            parts.append(self._r.render_variable(
-                "outbound_calls_enabled", "bool", "Whether outbound calls are enabled",
-                default=instance.config.connect_outbound_calls_enabled,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "outbound_calls_enabled",
+                    "bool",
+                    "Whether outbound calls are enabled",
+                    default=instance.config.connect_outbound_calls_enabled,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

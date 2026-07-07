@@ -72,7 +72,9 @@ IAM_WRITE_ACTIONS: dict[ServiceType, list[str]] = {
 }
 
 
-def get_actions(service_type: ServiceType, access_pattern: str = "full") -> list[str] | None:
+def get_actions(
+    service_type: ServiceType, access_pattern: str = "full"
+) -> list[str] | None:
     """Return IAM actions for a service type and access pattern, or None if not registered.
 
     Args:

@@ -37,19 +37,35 @@ class ElasticBeanstalkGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an Elastic Beanstalk instance."""
         parts = [
-            self._r.render_variable("application_name", "string", "Name of the Elastic Beanstalk application"),
-            self._r.render_variable("environment_name", "string", "Name of the Elastic Beanstalk environment"),
+            self._r.render_variable(
+                "application_name",
+                "string",
+                "Name of the Elastic Beanstalk application",
+            ),
+            self._r.render_variable(
+                "environment_name",
+                "string",
+                "Name of the Elastic Beanstalk environment",
+            ),
         ]
         if instance.config.eb_solution_stack_name is not None:
-            parts.append(self._r.render_variable(
-                "eb_solution_stack_name", "string", "Solution stack name for the Beanstalk environment",
-                default=instance.config.eb_solution_stack_name,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "eb_solution_stack_name",
+                    "string",
+                    "Solution stack name for the Beanstalk environment",
+                    default=instance.config.eb_solution_stack_name,
+                )
+            )
         if instance.config.eb_tier is not None:
-            parts.append(self._r.render_variable(
-                "eb_tier", "string", "Tier for the Beanstalk environment (WebServer or Worker)",
-                default=instance.config.eb_tier,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "eb_tier",
+                    "string",
+                    "Tier for the Beanstalk environment (WebServer or Worker)",
+                    default=instance.config.eb_tier,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

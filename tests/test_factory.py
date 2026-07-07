@@ -1,6 +1,5 @@
 """Unit tests for the repository factory."""
 
-import os
 
 import pytest
 

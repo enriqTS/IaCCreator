@@ -1,6 +1,6 @@
 """DynamoDB-specific configuration model."""
 
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import model_validator
 
@@ -12,16 +12,16 @@ class DynamoDBConfig(BaseServiceConfig):
     """DynamoDB-specific configuration."""
 
     service_type: Literal[ServiceType.DYNAMODB] = ServiceType.DYNAMODB
-    billing_mode: Optional[str] = None
-    hash_key: Optional[str] = None
-    hash_key_type: Optional[str] = None
-    range_key: Optional[str] = None
-    range_key_type: Optional[str] = None
-    read_capacity: Optional[int] = None
-    write_capacity: Optional[int] = None
-    point_in_time_recovery_enabled: Optional[bool] = None
-    deletion_protection_enabled: Optional[bool] = None
-    table_class: Optional[str] = None
+    billing_mode: str | None = None
+    hash_key: str | None = None
+    hash_key_type: str | None = None
+    range_key: str | None = None
+    range_key_type: str | None = None
+    read_capacity: int | None = None
+    write_capacity: int | None = None
+    point_in_time_recovery_enabled: bool | None = None
+    deletion_protection_enabled: bool | None = None
+    table_class: str | None = None
 
     @model_validator(mode="after")
     def validate_hash_key_required(self) -> "DynamoDBConfig":

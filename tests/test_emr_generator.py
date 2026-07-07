@@ -31,6 +31,7 @@ def gen() -> EMRGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestEMRGeneratorMinimal:
     """Test EMRGenerator with minimal config (all optional fields None)."""
 
@@ -68,6 +69,7 @@ class TestEMRGeneratorMinimal:
 # ---------------------------------------------------------------------------
 # Optional config tests
 # ---------------------------------------------------------------------------
+
 
 class TestEMRGeneratorWithOptionalConfig:
     """Test EMRGenerator with optional config fields set."""

@@ -31,6 +31,7 @@ def gen() -> MSKGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestMSKGeneratorMinimal:
     """Test MSKGenerator with minimal config (all optional fields None)."""
 
@@ -59,7 +60,9 @@ class TestMSKGeneratorMinimal:
         result = gen.generate_resource_tf(instance)
         assert "kafka_version" not in result
 
-    def test_resource_tf_no_number_of_broker_nodes_when_not_set(self, gen: MSKGenerator):
+    def test_resource_tf_no_number_of_broker_nodes_when_not_set(
+        self, gen: MSKGenerator
+    ):
         instance = _make_msk_instance()
         result = gen.generate_resource_tf(instance)
         assert "number_of_broker_nodes" not in result
@@ -68,6 +71,7 @@ class TestMSKGeneratorMinimal:
 # ---------------------------------------------------------------------------
 # Optional config tests
 # ---------------------------------------------------------------------------
+
 
 class TestMSKGeneratorWithOptionalConfig:
     """Test MSKGenerator with optional config fields set."""
@@ -87,7 +91,9 @@ class TestMSKGeneratorWithOptionalConfig:
         result = gen.generate_resource_tf(instance)
         assert "number_of_broker_nodes" in result
 
-    def test_variables_tf_includes_number_of_broker_nodes_variable(self, gen: MSKGenerator):
+    def test_variables_tf_includes_number_of_broker_nodes_variable(
+        self, gen: MSKGenerator
+    ):
         instance = _make_msk_instance(msk_number_of_broker_nodes=3)
         result = gen.generate_variables_tf(instance)
         assert "number_of_broker_nodes" in result

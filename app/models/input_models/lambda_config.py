@@ -1,6 +1,6 @@
 """Lambda-specific configuration model."""
 
-from typing import Literal, Optional
+from typing import Literal
 
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
@@ -10,13 +10,13 @@ class LambdaConfig(BaseServiceConfig):
     """Lambda-specific configuration."""
 
     service_type: Literal[ServiceType.LAMBDA] = ServiceType.LAMBDA
-    handler: Optional[str] = None
-    runtime: Optional[str] = None
-    memory_size: Optional[int] = None
-    timeout: Optional[int] = None
+    handler: str | None = None
+    runtime: str | None = None
+    memory_size: int | None = None
+    timeout: int | None = None
     is_layer: bool = False
-    layers: Optional[list[str]] = None
-    architectures: Optional[str] = None
-    ephemeral_storage_size: Optional[int] = None
-    reserved_concurrent_executions: Optional[int] = None
-    publish: Optional[bool] = None
+    layers: list[str] | None = None
+    architectures: str | None = None
+    ephemeral_storage_size: int | None = None
+    reserved_concurrent_executions: int | None = None
+    publish: bool | None = None

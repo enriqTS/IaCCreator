@@ -31,10 +31,13 @@ def gen() -> ElastiCacheGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestElastiCacheGeneratorMinimal:
     """Test ElastiCacheGenerator with minimal config (all optional fields None)."""
 
-    def test_resource_tf_contains_aws_elasticache_cluster(self, gen: ElastiCacheGenerator):
+    def test_resource_tf_contains_aws_elasticache_cluster(
+        self, gen: ElastiCacheGenerator
+    ):
         instance = _make_elasticache_instance()
         result = gen.generate_resource_tf(instance)
         assert "aws_elasticache_cluster" in result
@@ -64,7 +67,9 @@ class TestElastiCacheGeneratorMinimal:
         result = gen.generate_resource_tf(instance)
         assert "node_type" not in result
 
-    def test_resource_tf_no_num_cache_nodes_when_not_set(self, gen: ElastiCacheGenerator):
+    def test_resource_tf_no_num_cache_nodes_when_not_set(
+        self, gen: ElastiCacheGenerator
+    ):
         instance = _make_elasticache_instance()
         result = gen.generate_resource_tf(instance)
         assert "num_cache_nodes" not in result
@@ -73,6 +78,7 @@ class TestElastiCacheGeneratorMinimal:
 # ---------------------------------------------------------------------------
 # Optional config tests
 # ---------------------------------------------------------------------------
+
 
 class TestElastiCacheGeneratorWithOptionalConfig:
     """Test ElastiCacheGenerator with optional config fields set."""

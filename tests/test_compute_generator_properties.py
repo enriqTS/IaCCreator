@@ -5,7 +5,8 @@ Uses Hypothesis to verify universal correctness properties across all
 new compute/container generators and the pipeline skip behavior.
 """
 
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.service_category_map import get_category
@@ -17,7 +18,6 @@ from app.models.ir_models import (
     ServiceModuleIR,
 )
 from app.services.file_tree_assembler import FileTreeAssembler
-
 
 # ---------------------------------------------------------------------------
 # Shared strategies
@@ -84,7 +84,9 @@ def _minimal_config_for(service_type: ServiceType) -> ResourceConfig:
     return ResourceConfig()
 
 
-def _make_instance(name: str, service_type: ServiceType, config: ResourceConfig) -> ResourceInstanceIR:
+def _make_instance(
+    name: str, service_type: ServiceType, config: ResourceConfig
+) -> ResourceInstanceIR:
     return ResourceInstanceIR(name=name, service_type=service_type, config=config)
 
 
@@ -94,12 +96,15 @@ def _make_instance(name: str, service_type: ServiceType, config: ResourceConfig)
 # **Validates: Requirements 2.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1, 18.1, 19.1, 19.2**
 # ---------------------------------------------------------------------------
 
+
 @given(
     service_type=st.sampled_from(list(GENERATOR_REGISTRY.keys())),
     name=_resource_name_st,
 )
 @settings(max_examples=100)
-def test_property_1_generator_protocol_compliance_and_non_empty_output(service_type, name):
+def test_property_1_generator_protocol_compliance_and_non_empty_output(
+    service_type, name
+):
     """Property 1: For any service type in GENERATOR_REGISTRY, the generator
     produces non-empty strings from generate_resource_tf, generate_variables_tf,
     and generate_outputs_tf when given a valid ResourceInstanceIR.
@@ -188,11 +193,13 @@ def _config_with_random_optional_fields(draw):
     fields = OPTIONAL_FIELD_MAP[service_type]
 
     # Generate a bitmask for which fields to set (at least one combination)
-    flags = draw(st.lists(
-        st.booleans(),
-        min_size=len(fields),
-        max_size=len(fields),
-    ))
+    flags = draw(
+        st.lists(
+            st.booleans(),
+            min_size=len(fields),
+            max_size=len(fields),
+        )
+    )
 
     config_kwargs: dict = {}
     set_fields: list[tuple[str, str]] = []
@@ -345,6 +352,7 @@ def test_property_3_required_terraform_blocks_per_service(service_type, name):
 # **Validates: Requirements 20.34, 20.35**
 # ---------------------------------------------------------------------------
 
+
 @given(service_type=st.sampled_from(ICON_ONLY_SERVICES))
 @settings(max_examples=100)
 def test_property_4_icon_only_services_excluded_from_registry(service_type):
@@ -360,6 +368,7 @@ def test_property_4_icon_only_services_excluded_from_registry(service_type):
 # **Validates: Requirements 21.1, 21.2, 21.3**
 # ---------------------------------------------------------------------------
 
+
 @st.composite
 def _mixed_project_ir(draw):
     """Generate a ProjectIR with a mix of full-generator and icon-only resources.
@@ -367,19 +376,23 @@ def _mixed_project_ir(draw):
     Ensures at least one full-generator and at least one icon-only resource.
     """
     # Pick 1-3 full-generator services
-    full_services = draw(st.lists(
-        st.sampled_from(FULL_GENERATOR_SERVICES),
-        min_size=1,
-        max_size=3,
-        unique=True,
-    ))
+    full_services = draw(
+        st.lists(
+            st.sampled_from(FULL_GENERATOR_SERVICES),
+            min_size=1,
+            max_size=3,
+            unique=True,
+        )
+    )
     # Pick 1-3 icon-only services
-    icon_services = draw(st.lists(
-        st.sampled_from(ICON_ONLY_SERVICES),
-        min_size=1,
-        max_size=3,
-        unique=True,
-    ))
+    icon_services = draw(
+        st.lists(
+            st.sampled_from(ICON_ONLY_SERVICES),
+            min_size=1,
+            max_size=3,
+            unique=True,
+        )
+    )
 
     all_services = full_services + icon_services
     modules = []

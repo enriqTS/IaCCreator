@@ -42,6 +42,7 @@ class VariableSchemaEntry(BaseModel):
     validation: ValidationRule | None = None
     visible_when: VisibleWhen | None = None
 
+
 VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
     # ── Lambda (13 variables) ──────────────────────────────────────────
     ServiceType.LAMBDA: [
@@ -79,8 +80,14 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
                 OptionEntry(value="dotnet6", label=".NET 6", group=".NET"),
                 OptionEntry(value="ruby3.3", label="Ruby 3.3", group="Ruby"),
                 OptionEntry(value="ruby3.2", label="Ruby 3.2", group="Ruby"),
-                OptionEntry(value="provided.al2023", label="Custom Runtime (AL2023)", group="Custom"),
-                OptionEntry(value="provided.al2", label="Custom Runtime (AL2)", group="Custom"),
+                OptionEntry(
+                    value="provided.al2023",
+                    label="Custom Runtime (AL2023)",
+                    group="Custom",
+                ),
+                OptionEntry(
+                    value="provided.al2", label="Custom Runtime (AL2)", group="Custom"
+                ),
             ],
         ),
         VariableSchemaEntry(
@@ -230,7 +237,9 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             default="PAY_PER_REQUEST",
             group="General",
             options=[
-                OptionEntry(value="PAY_PER_REQUEST", label="On-Demand (PAY_PER_REQUEST)"),
+                OptionEntry(
+                    value="PAY_PER_REQUEST", label="On-Demand (PAY_PER_REQUEST)"
+                ),
                 OptionEntry(value="PROVISIONED", label="Provisioned"),
             ],
         ),
@@ -242,7 +251,10 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             group="General",
             options=[
                 OptionEntry(value="STANDARD", label="Standard"),
-                OptionEntry(value="STANDARD_INFREQUENT_ACCESS", label="Standard - Infrequent Access"),
+                OptionEntry(
+                    value="STANDARD_INFREQUENT_ACCESS",
+                    label="Standard - Infrequent Access",
+                ),
             ],
         ),
         # Key Schema
@@ -450,14 +462,18 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             type="string",
             description="Cognito User Pool endpoint URL",
             group="Authorizers",
-            visible_when=VisibleWhen(field="authorizer_type", equals="COGNITO_USER_POOLS"),
+            visible_when=VisibleWhen(
+                field="authorizer_type", equals="COGNITO_USER_POOLS"
+            ),
         ),
         VariableSchemaEntry(
             name="cognito_client_ids",
             type="list",
             description="List of Cognito User Pool client IDs",
             group="Authorizers",
-            visible_when=VisibleWhen(field="authorizer_type", equals="COGNITO_USER_POOLS"),
+            visible_when=VisibleWhen(
+                field="authorizer_type", equals="COGNITO_USER_POOLS"
+            ),
         ),
         # ─── Custom Domain ────────────────────────────────────────────
         VariableSchemaEntry(
@@ -600,7 +616,31 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
                 OptionEntry(value=3653, label="10 years"),
             ],
             validation=ValidationRule(
-                allowed_values=[0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653],
+                allowed_values=[
+                    0,
+                    1,
+                    3,
+                    5,
+                    7,
+                    14,
+                    30,
+                    60,
+                    90,
+                    120,
+                    150,
+                    180,
+                    365,
+                    400,
+                    545,
+                    731,
+                    1096,
+                    1827,
+                    2192,
+                    2557,
+                    2922,
+                    3288,
+                    3653,
+                ],
             ),
         ),
         # Configuration
@@ -1202,10 +1242,17 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             description="Base model identifier for customization",
             group="General",
             options=[
-                OptionEntry(value="amazon.titan-text-express-v1", label="Amazon Titan Text Express"),
-                OptionEntry(value="amazon.titan-embed-text-v1", label="Amazon Titan Embed Text"),
+                OptionEntry(
+                    value="amazon.titan-text-express-v1",
+                    label="Amazon Titan Text Express",
+                ),
+                OptionEntry(
+                    value="amazon.titan-embed-text-v1", label="Amazon Titan Embed Text"
+                ),
                 OptionEntry(value="anthropic.claude-v2", label="Anthropic Claude v2"),
-                OptionEntry(value="meta.llama2-13b-chat-v1", label="Meta Llama 2 13B Chat"),
+                OptionEntry(
+                    value="meta.llama2-13b-chat-v1", label="Meta Llama 2 13B Chat"
+                ),
             ],
         ),
         VariableSchemaEntry(
@@ -1220,14 +1267,20 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             type="string",
             description="S3 URI of the training data",
             group="Training",
-            validation=ValidationRule(pattern="^s3://", pattern_description="Must be an S3 URI starting with s3://"),
+            validation=ValidationRule(
+                pattern="^s3://",
+                pattern_description="Must be an S3 URI starting with s3://",
+            ),
         ),
         VariableSchemaEntry(
             name="output_data_s3_uri",
             type="string",
             description="S3 URI for the output data",
             group="Training",
-            validation=ValidationRule(pattern="^s3://", pattern_description="Must be an S3 URI starting with s3://"),
+            validation=ValidationRule(
+                pattern="^s3://",
+                pattern_description="Must be an S3 URI starting with s3://",
+            ),
         ),
         VariableSchemaEntry(
             name="hyperparameters",
@@ -1359,10 +1412,22 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             group="General",
             options=[
                 OptionEntry(value="anthropic.claude-v2", label="Anthropic Claude v2"),
-                OptionEntry(value="anthropic.claude-3-sonnet-20240229-v1:0", label="Anthropic Claude 3 Sonnet"),
-                OptionEntry(value="anthropic.claude-3-haiku-20240307-v1:0", label="Anthropic Claude 3 Haiku"),
-                OptionEntry(value="amazon.titan-text-express-v1", label="Amazon Titan Text Express"),
-                OptionEntry(value="meta.llama3-8b-instruct-v1:0", label="Meta Llama 3 8B Instruct"),
+                OptionEntry(
+                    value="anthropic.claude-3-sonnet-20240229-v1:0",
+                    label="Anthropic Claude 3 Sonnet",
+                ),
+                OptionEntry(
+                    value="anthropic.claude-3-haiku-20240307-v1:0",
+                    label="Anthropic Claude 3 Haiku",
+                ),
+                OptionEntry(
+                    value="amazon.titan-text-express-v1",
+                    label="Amazon Titan Text Express",
+                ),
+                OptionEntry(
+                    value="meta.llama3-8b-instruct-v1:0",
+                    label="Meta Llama 3 8B Instruct",
+                ),
             ],
         ),
         VariableSchemaEntry(
@@ -1427,9 +1492,17 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             description="ARN of the embedding model for vector indexing",
             group="General",
             options=[
-                OptionEntry(value="amazon.titan-embed-text-v1", label="Titan Embeddings G1 - Text"),
-                OptionEntry(value="amazon.titan-embed-text-v2:0", label="Titan Embeddings G1 - Text v2"),
-                OptionEntry(value="cohere.embed-english-v3", label="Cohere Embed English v3"),
+                OptionEntry(
+                    value="amazon.titan-embed-text-v1",
+                    label="Titan Embeddings G1 - Text",
+                ),
+                OptionEntry(
+                    value="amazon.titan-embed-text-v2:0",
+                    label="Titan Embeddings G1 - Text v2",
+                ),
+                OptionEntry(
+                    value="cohere.embed-english-v3", label="Cohere Embed English v3"
+                ),
             ],
         ),
         # Storage Configuration
@@ -1440,7 +1513,9 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             default="OPENSEARCH_SERVERLESS",
             group="Storage Configuration",
             options=[
-                OptionEntry(value="OPENSEARCH_SERVERLESS", label="OpenSearch Serverless"),
+                OptionEntry(
+                    value="OPENSEARCH_SERVERLESS", label="OpenSearch Serverless"
+                ),
                 OptionEntry(value="PINECONE", label="Pinecone"),
                 OptionEntry(value="RDS", label="RDS Aurora PostgreSQL"),
             ],
@@ -1536,10 +1611,22 @@ VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
             group="General",
             options=[
                 OptionEntry(value="anthropic.claude-v2", label="Anthropic Claude v2"),
-                OptionEntry(value="anthropic.claude-3-sonnet-20240229-v1:0", label="Anthropic Claude 3 Sonnet"),
-                OptionEntry(value="anthropic.claude-3-haiku-20240307-v1:0", label="Anthropic Claude 3 Haiku"),
-                OptionEntry(value="amazon.titan-text-express-v1", label="Amazon Titan Text Express"),
-                OptionEntry(value="meta.llama3-8b-instruct-v1:0", label="Meta Llama 3 8B Instruct"),
+                OptionEntry(
+                    value="anthropic.claude-3-sonnet-20240229-v1:0",
+                    label="Anthropic Claude 3 Sonnet",
+                ),
+                OptionEntry(
+                    value="anthropic.claude-3-haiku-20240307-v1:0",
+                    label="Anthropic Claude 3 Haiku",
+                ),
+                OptionEntry(
+                    value="amazon.titan-text-express-v1",
+                    label="Amazon Titan Text Express",
+                ),
+                OptionEntry(
+                    value="meta.llama3-8b-instruct-v1:0",
+                    label="Meta Llama 3 8B Instruct",
+                ),
             ],
         ),
         VariableSchemaEntry(

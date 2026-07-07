@@ -31,6 +31,7 @@ def gen() -> AppStreamGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestAppStreamGeneratorMinimal:
     """Test AppStreamGenerator with minimal config (all optional fields None)."""
 
@@ -64,15 +65,22 @@ class TestAppStreamGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestAppStreamGeneratorWithOptionalConfig:
     """Test AppStreamGenerator with optional config fields set."""
 
     def test_resource_tf_includes_instance_type(self, gen: AppStreamGenerator):
-        instance = _make_appstream_instance(appstream_instance_type="stream.standard.medium")
+        instance = _make_appstream_instance(
+            appstream_instance_type="stream.standard.medium"
+        )
         result = gen.generate_resource_tf(instance)
         assert "instance_type" in result
 
-    def test_variables_tf_includes_instance_type_variable(self, gen: AppStreamGenerator):
-        instance = _make_appstream_instance(appstream_instance_type="stream.standard.medium")
+    def test_variables_tf_includes_instance_type_variable(
+        self, gen: AppStreamGenerator
+    ):
+        instance = _make_appstream_instance(
+            appstream_instance_type="stream.standard.medium"
+        )
         result = gen.generate_variables_tf(instance)
         assert "instance_type" in result

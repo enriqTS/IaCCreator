@@ -26,27 +26,45 @@ class CloudWatchGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a CloudWatch instance."""
         parts = [
-            self._r.render_variable("log_group_name", "string", "Name of the CloudWatch log group"),
+            self._r.render_variable(
+                "log_group_name", "string", "Name of the CloudWatch log group"
+            ),
         ]
         if instance.config.retention_in_days is not None:
-            parts.append(self._r.render_variable(
-                "retention_in_days", "number", "Log retention period in days",
-                default=instance.config.retention_in_days,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "retention_in_days",
+                    "number",
+                    "Log retention period in days",
+                    default=instance.config.retention_in_days,
+                )
+            )
         if instance.config.kms_key_id is not None:
-            parts.append(self._r.render_variable(
-                "kms_key_id", "string", "ARN of the KMS key to use for encrypting log data",
-                default=instance.config.kms_key_id,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "kms_key_id",
+                    "string",
+                    "ARN of the KMS key to use for encrypting log data",
+                    default=instance.config.kms_key_id,
+                )
+            )
         if instance.config.log_group_class is not None:
-            parts.append(self._r.render_variable(
-                "log_group_class", "string", "Log group class for the CloudWatch log group",
-                default=instance.config.log_group_class,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "log_group_class",
+                    "string",
+                    "Log group class for the CloudWatch log group",
+                    default=instance.config.log_group_class,
+                )
+            )
         if instance.config.tags is not None:
-            parts.append(self._r.render_variable(
-                "tags", "map(string)", "Tags to apply to the CloudWatch log group",
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "tags",
+                    "map(string)",
+                    "Tags to apply to the CloudWatch log group",
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

@@ -31,6 +31,7 @@ def gen() -> CodeDeployGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestCodeDeployGeneratorMinimal:
     """Test CodeDeployGenerator with minimal config (all optional fields None)."""
 
@@ -54,7 +55,9 @@ class TestCodeDeployGeneratorMinimal:
         result = gen.generate_outputs_tf(instance)
         assert "app_name" in result
 
-    def test_resource_tf_no_compute_platform_when_not_set(self, gen: CodeDeployGenerator):
+    def test_resource_tf_no_compute_platform_when_not_set(
+        self, gen: CodeDeployGenerator
+    ):
         instance = _make_codedeploy_instance()
         result = gen.generate_resource_tf(instance)
         assert "compute_platform" not in result
@@ -64,6 +67,7 @@ class TestCodeDeployGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestCodeDeployGeneratorWithOptionalConfig:
     """Test CodeDeployGenerator with optional config fields set."""
 
@@ -72,7 +76,9 @@ class TestCodeDeployGeneratorWithOptionalConfig:
         result = gen.generate_resource_tf(instance)
         assert "compute_platform" in result
 
-    def test_variables_tf_includes_compute_platform_variable(self, gen: CodeDeployGenerator):
+    def test_variables_tf_includes_compute_platform_variable(
+        self, gen: CodeDeployGenerator
+    ):
         instance = _make_codedeploy_instance(codedeploy_compute_platform="Server")
         result = gen.generate_variables_tf(instance)
         assert "compute_platform" in result

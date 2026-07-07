@@ -21,13 +21,19 @@ class GameLiftGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a GameLift fleet."""
         parts = [
-            self._r.render_variable("fleet_name", "string", "Name of the GameLift fleet"),
+            self._r.render_variable(
+                "fleet_name", "string", "Name of the GameLift fleet"
+            ),
         ]
         if instance.config.gamelift_ec2_instance_type is not None:
-            parts.append(self._r.render_variable(
-                "ec2_instance_type", "string", "EC2 instance type for the GameLift fleet",
-                default=instance.config.gamelift_ec2_instance_type,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "ec2_instance_type",
+                    "string",
+                    "EC2 instance type for the GameLift fleet",
+                    default=instance.config.gamelift_ec2_instance_type,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

@@ -31,10 +31,13 @@ def gen() -> CodeCommitGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestCodeCommitGeneratorMinimal:
     """Test CodeCommitGenerator with minimal config (all optional fields None)."""
 
-    def test_resource_tf_contains_aws_codecommit_repository(self, gen: CodeCommitGenerator):
+    def test_resource_tf_contains_aws_codecommit_repository(
+        self, gen: CodeCommitGenerator
+    ):
         instance = _make_codecommit_instance()
         result = gen.generate_resource_tf(instance)
         assert "aws_codecommit_repository" in result

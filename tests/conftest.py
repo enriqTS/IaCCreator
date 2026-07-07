@@ -1,6 +1,6 @@
 """Shared fixtures and Hypothesis strategies for Terraform IaC Generator tests."""
 
-from hypothesis import strategies as st, assume
+from hypothesis import strategies as st
 
 from app.models.input_models import (
     ArchitectureDescription,
@@ -9,14 +9,6 @@ from app.models.input_models import (
     ResourceConfig,
     ResourceInstance,
     ServiceType,
-)
-from app.models.ir_models import (
-    ConnectionIR,
-    EnvironmentIR,
-    IAMStatement,
-    ProjectIR,
-    ResourceInstanceIR,
-    ServiceModuleIR,
 )
 
 # Compatible connection pairs (must match ir_builder.COMPATIBLE_CONNECTIONS)
@@ -61,7 +53,9 @@ dynamodb_config_st = st.builds(
     billing_mode=st.sampled_from(["PAY_PER_REQUEST", "PROVISIONED"]),
     hash_key=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
     hash_key_type=st.sampled_from(["S", "N", "B"]),
-    range_key=st.one_of(st.none(), st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True)),
+    range_key=st.one_of(
+        st.none(), st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True)
+    ),
     range_key_type=st.one_of(st.none(), st.sampled_from(["S", "N", "B"])),
 )
 
@@ -93,7 +87,10 @@ _CONFIG_STRATEGIES = {
 # resource_instance_strategy(service_type)
 # ---------------------------------------------------------------------------
 
-def resource_instance_strategy(service_type: ServiceType) -> st.SearchStrategy[ResourceInstance]:
+
+def resource_instance_strategy(
+    service_type: ServiceType,
+) -> st.SearchStrategy[ResourceInstance]:
     """Generate a random valid ResourceInstance for the given service type."""
     config_st = _CONFIG_STRATEGIES[service_type]
     return st.builds(
@@ -119,6 +116,7 @@ any_resource_st = st.one_of(
 # connection_strategy(resources)
 # ---------------------------------------------------------------------------
 
+
 def connection_strategy(
     resources: list[ResourceInstance],
 ) -> st.SearchStrategy[list[Connection]]:
@@ -137,7 +135,9 @@ def connection_strategy(
             if src.name == tgt.name:
                 continue
             if (src.service_type, tgt.service_type) in COMPATIBLE_CONNECTIONS:
-                valid_pairs.append((src.name, tgt.name, src.service_type, tgt.service_type))
+                valid_pairs.append(
+                    (src.name, tgt.name, src.service_type, tgt.service_type)
+                )
 
     if not valid_pairs:
         return st.just([])
@@ -163,9 +163,7 @@ def connection_strategy(
             Connection(
                 source=src,
                 target=tgt,
-                connection_type=connection_type_map.get(
-                    (src_svc, tgt_svc), "uses"
-                ),
+                connection_type=connection_type_map.get((src_svc, tgt_svc), "uses"),
             )
             for src, tgt, src_svc, tgt_svc in chosen
         ]
@@ -176,6 +174,7 @@ def connection_strategy(
 # ---------------------------------------------------------------------------
 # architecture_description_strategy()
 # ---------------------------------------------------------------------------
+
 
 @st.composite
 def architecture_description_strategy(draw):

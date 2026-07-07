@@ -16,11 +16,13 @@ import uuid
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from hypothesis import given, settings, assume, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from app.middleware.session_middleware import SessionMiddleware
 from app.persistence.tinydb_repo import TinyDBRepository
-from app.routers.diagrams import get_repo, router as diagram_router
+from app.routers.diagrams import get_repo
+from app.routers.diagrams import router as diagram_router
 from app.services.session_manager import SessionManager
 
 # ---------------------------------------------------------------------------
@@ -30,7 +32,14 @@ from app.services.session_manager import SessionManager
 # A valid DiagramStateInput requires: version (int), projectName (str),
 # environments (list), elements (list), connectors (list), viewport (dict with x, y, zoom).
 
-REQUIRED_FIELDS = ["version", "projectName", "environments", "elements", "connectors", "viewport"]
+REQUIRED_FIELDS = [
+    "version",
+    "projectName",
+    "environments",
+    "elements",
+    "connectors",
+    "viewport",
+]
 
 
 def _valid_diagram_state() -> dict:
@@ -51,9 +60,11 @@ omit_fields_st = st.lists(
     min_size=1,
     max_size=len(REQUIRED_FIELDS),
     unique=True,
-).map(lambda fields_to_omit: {
-    k: v for k, v in _valid_diagram_state().items() if k not in fields_to_omit
-})
+).map(
+    lambda fields_to_omit: {
+        k: v for k, v in _valid_diagram_state().items() if k not in fields_to_omit
+    }
+)
 
 # Strategy 2: Use wrong types for fields
 wrong_type_st = st.one_of(
@@ -86,7 +97,9 @@ structural_st = st.one_of(
     st.just({"random_key": "random_value"}),
     st.just({"version": 1}),
     st.dictionaries(
-        keys=st.text(min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("L",))),
+        keys=st.text(
+            min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("L",))
+        ),
         values=st.one_of(st.integers(), st.text(max_size=10), st.booleans()),
         min_size=1,
         max_size=5,
@@ -103,6 +116,7 @@ method_st = st.sampled_from(["POST", "PUT"])
 # ---------------------------------------------------------------------------
 # Test fixtures
 # ---------------------------------------------------------------------------
+
 
 def _create_test_app(tmp_path: str) -> tuple[FastAPI, TinyDBRepository]:
     """Build a FastAPI app wired with session middleware and diagram router."""
@@ -122,6 +136,7 @@ def _create_test_app(tmp_path: str) -> tuple[FastAPI, TinyDBRepository]:
 # Property test
 # ---------------------------------------------------------------------------
 
+
 # Feature: frontend-backend-integration, Property 7: Invalid diagram payload returns 422
 class TestInvalidDiagramPayloadReturns422:
     """Property 7: Invalid diagram payload returns 422.
@@ -135,7 +150,9 @@ class TestInvalidDiagramPayloadReturns422:
 
     @given(payload=invalid_payload_st, method=method_st)
     @settings(max_examples=100)
-    def test_invalid_payload_returns_422(self, payload: dict | list, method: str) -> None:
+    def test_invalid_payload_returns_422(
+        self, payload: dict | list, method: str
+    ) -> None:
         """Any payload that does not conform to DiagramStateInput schema
         must produce an HTTP 422 response on POST, or 404/422 on PUT
         (PUT checks ownership first, which may return 404 for non-existent diagrams)."""

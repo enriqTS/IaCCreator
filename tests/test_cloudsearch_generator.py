@@ -31,10 +31,13 @@ def gen() -> CloudSearchGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestCloudSearchGeneratorMinimal:
     """Test CloudSearchGenerator with minimal config (all optional fields None)."""
 
-    def test_resource_tf_contains_aws_cloudsearch_domain(self, gen: CloudSearchGenerator):
+    def test_resource_tf_contains_aws_cloudsearch_domain(
+        self, gen: CloudSearchGenerator
+    ):
         instance = _make_cloudsearch_instance()
         result = gen.generate_resource_tf(instance)
         assert "aws_cloudsearch_domain" in result

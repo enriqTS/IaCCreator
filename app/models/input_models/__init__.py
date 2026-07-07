@@ -1,6 +1,7 @@
 """Input models package — re-exports all public types for backward compatibility."""
 
 from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._connections import ConnectionInput
 from app.models.input_models._general import (
     ArchitectureDescription,
     Connection,
@@ -10,6 +11,15 @@ from app.models.input_models._general import (
     ResourceInstance,
     ServiceType,
     get_service_config_models,
+)
+from app.models.input_models._metadata import (
+    OptionEntry,
+    TerraformField,
+    TerraformMeta,
+    ValidationRule,
+    VariableSchemaEntry,
+    VisibleWhen,
+    get_terraform_meta,
 )
 
 # Per-service config models
@@ -25,7 +35,9 @@ from app.models.input_models.bedrock_agent_config import BedrockAgentConfig
 from app.models.input_models.bedrock_agentcore_config import BedrockAgentcoreConfig
 from app.models.input_models.bedrock_config import BedrockConfig
 from app.models.input_models.bedrock_guardrail_config import BedrockGuardrailConfig
-from app.models.input_models.bedrock_knowledge_base_config import BedrockKnowledgeBaseConfig
+from app.models.input_models.bedrock_knowledge_base_config import (
+    BedrockKnowledgeBaseConfig,
+)
 from app.models.input_models.cloudsearch_config import CloudSearchConfig
 from app.models.input_models.cloudwatch_config import CloudWatchConfig
 from app.models.input_models.codebuild_config import CodeBuildConfig
@@ -124,6 +136,15 @@ __all__ = [
     "ResourceConfig",
     "ResourceInstance",
     "ServiceType",
+    # Terraform field metadata
+    "ConnectionInput",
+    "OptionEntry",
+    "TerraformField",
+    "TerraformMeta",
+    "ValidationRule",
+    "VariableSchemaEntry",
+    "VisibleWhen",
+    "get_terraform_meta",
     # Registry
     "SERVICE_CONFIG_MODELS",
     "get_service_config_models",

@@ -31,6 +31,7 @@ def gen() -> AuroraGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestAuroraGeneratorMinimal:
     """Test AuroraGenerator with minimal config (all optional fields None)."""
 
@@ -68,6 +69,7 @@ class TestAuroraGeneratorMinimal:
 # ---------------------------------------------------------------------------
 # Optional config tests
 # ---------------------------------------------------------------------------
+
 
 class TestAuroraGeneratorWithOptionalConfig:
     """Test AuroraGenerator with optional config fields set."""

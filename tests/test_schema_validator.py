@@ -4,14 +4,13 @@
 """
 
 import pytest
-from hypothesis import given, strategies as st, assume, settings
-
 from fastapi import HTTPException
+from hypothesis import assume, given, settings
+from hypothesis import strategies as st
 
 from app.generators.schema_validator import validate_config_against_schema
 from app.generators.variable_schemas import VARIABLE_SCHEMAS
 from app.models.input_models import ResourceConfig, ServiceType
-
 
 # ---------------------------------------------------------------------------
 # Helpers: collect variables that have validation rules
@@ -26,15 +25,22 @@ for _stype, _entries in VARIABLE_SCHEMAS.items():
         if _entry.validation is not None:
             # Only include rules that have numeric bounds or allowed_values
             rule = _entry.validation
-            if rule.min is not None or rule.max is not None or rule.allowed_values is not None:
+            if (
+                rule.min is not None
+                or rule.max is not None
+                or rule.allowed_values is not None
+            ):
                 # Only include if the variable maps to a real ResourceConfig field
                 if _entry.name in _RESOURCE_CONFIG_FIELDS:
-                    _VALIDATED_VARS.append((_stype, _entry.name, rule, _entry.visible_when))
+                    _VALIDATED_VARS.append(
+                        (_stype, _entry.name, rule, _entry.visible_when)
+                    )
 
 
 # ---------------------------------------------------------------------------
 # Strategy: generate a value OUTSIDE the valid range for a given rule
 # ---------------------------------------------------------------------------
+
 
 @st.composite
 def invalid_value_for_rule(draw, rule):
@@ -48,14 +54,18 @@ def invalid_value_for_rule(draw, rule):
     if rule.min is not None and rule.max is not None:
         # Pick below min or above max
         below = st.integers(max_value=int(rule.min) - 1)
-        above = st.integers(min_value=int(rule.max) + 1, max_value=int(rule.max) + 100000)
+        above = st.integers(
+            min_value=int(rule.max) + 1, max_value=int(rule.max) + 100000
+        )
         return draw(st.one_of(below, above))
 
     if rule.min is not None:
         return draw(st.integers(max_value=int(rule.min) - 1))
 
     if rule.max is not None:
-        return draw(st.integers(min_value=int(rule.max) + 1, max_value=int(rule.max) + 100000))
+        return draw(
+            st.integers(min_value=int(rule.max) + 1, max_value=int(rule.max) + 100000)
+        )
 
     # Fallback — shouldn't happen for our current schemas
     return draw(st.integers())
@@ -65,6 +75,7 @@ def invalid_value_for_rule(draw, rule):
 # Property 9: Backend validation rejects invalid values
 # **Validates: Requirements 4.10, 8.4**
 # ---------------------------------------------------------------------------
+
 
 @given(data=st.data())
 @settings(max_examples=100)
@@ -103,6 +114,7 @@ def test_backend_rejects_invalid_values(data):
 # Complementary: valid values do NOT raise exceptions
 # ---------------------------------------------------------------------------
 
+
 @given(data=st.data())
 @settings(max_examples=100)
 def test_valid_values_do_not_raise(data):
@@ -113,9 +125,13 @@ def test_valid_values_do_not_raise(data):
     if rule.allowed_values is not None:
         good_value = data.draw(st.sampled_from(rule.allowed_values))
     elif rule.min is not None and rule.max is not None:
-        good_value = data.draw(st.integers(min_value=int(rule.min), max_value=int(rule.max)))
+        good_value = data.draw(
+            st.integers(min_value=int(rule.min), max_value=int(rule.max))
+        )
     elif rule.min is not None:
-        good_value = data.draw(st.integers(min_value=int(rule.min), max_value=int(rule.min) + 10000))
+        good_value = data.draw(
+            st.integers(min_value=int(rule.min), max_value=int(rule.min) + 10000)
+        )
     elif rule.max is not None:
         good_value = data.draw(st.integers(min_value=0, max_value=int(rule.max)))
     else:

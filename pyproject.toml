@@ -1,0 +1,54 @@
+[project]
+name = "iaccreator"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.43.41",
+    "fastapi>=0.139.0",
+    "pydantic>=2.13.4",
+    "tinydb>=4.8.2",
+    "uvicorn>=0.50.2",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "hypothesis>=6.156.1",
+    "pytest>=9.1.1",
+    "ruff>=0.15.20",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+    "B008", # function call in default argument (idiomatic FastAPI Depends())
+    "N815", # mixedCase variable in class scope (API contract with frontend)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E402", "UP045"]  # late imports and Optional[] in test assertions
+"app/services/connection_processor.py" = ["E402"]  # logger before imports
+"app/services/ir_builder.py" = ["E402"]  # logger before imports
+"app/models/input_models/_metadata.py" = ["N802"]  # TerraformField factory function
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

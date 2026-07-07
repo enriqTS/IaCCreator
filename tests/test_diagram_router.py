@@ -9,10 +9,11 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.middleware.session_middleware import COOKIE_NAME, SessionMiddleware
-from app.persistence.tinydb_repo import TinyDBRepository
+from app.middleware.session_middleware import SessionMiddleware
 from app.persistence.models import DiagramRecord
-from app.routers.diagrams import get_repo, verify_ownership, router as diagram_router
+from app.persistence.tinydb_repo import TinyDBRepository
+from app.routers.diagrams import get_repo, verify_ownership
+from app.routers.diagrams import router as diagram_router
 from app.services.session_manager import SessionManager
 
 # A minimal valid diagram payload for creating/updating diagrams.
@@ -20,9 +21,7 @@ VALID_DIAGRAM = {
     "version": 1,
     "projectName": "test-project",
     "environments": [{"name": "dev", "variables": {}}],
-    "elements": [
-        {"id": "e1", "type": "lambda", "x": 0.0, "y": 0.0, "name": "fn1"}
-    ],
+    "elements": [{"id": "e1", "type": "lambda", "x": 0.0, "y": 0.0, "name": "fn1"}],
     "connectors": [],
     "viewport": {"x": 0.0, "y": 0.0, "zoom": 1.0},
 }
@@ -229,7 +228,9 @@ class TestVerifyOwnershipOverride:
         # Clean up override
         del app.dependency_overrides[verify_ownership]
 
-    def test_override_verify_ownership_independent_of_repo_override(self, setup, tmp_path):
+    def test_override_verify_ownership_independent_of_repo_override(
+        self, setup, tmp_path
+    ):
         """Validates: Requirement 5.4, 5.6 — ownership and repo overrides are independent."""
         _, repo = setup
         app = _build_app(repo)

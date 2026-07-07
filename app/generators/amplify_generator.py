@@ -19,7 +19,9 @@ class AmplifyGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an Amplify application."""
         parts = [
-            self._r.render_variable("app_name", "string", "Name of the Amplify application"),
+            self._r.render_variable(
+                "app_name", "string", "Name of the Amplify application"
+            ),
         ]
         return "\n".join(parts)
 

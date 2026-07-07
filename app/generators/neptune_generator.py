@@ -19,7 +19,9 @@ class NeptuneGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Neptune cluster."""
         parts = [
-            self._r.render_variable("cluster_identifier", "string", "Identifier for the Neptune cluster"),
+            self._r.render_variable(
+                "cluster_identifier", "string", "Identifier for the Neptune cluster"
+            ),
         ]
         return "\n".join(parts)
 

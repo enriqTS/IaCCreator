@@ -1,6 +1,6 @@
 """HCL Renderer — produces syntactically valid HCL blocks with two-space indentation."""
 
-from typing import Any, Optional
+from typing import Any
 
 
 class HCLRenderer:
@@ -32,7 +32,7 @@ class HCLRenderer:
         name: str,
         var_type: str,
         description: str,
-        default: Optional[Any] = None,
+        default: Any | None = None,
     ) -> str:
         """Render a Terraform ``variable`` block with *type* and *description*."""
         lines = [f'variable "{name}" {{']

@@ -31,6 +31,7 @@ def gen() -> CodeBuildGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestCodeBuildGeneratorMinimal:
     """Test CodeBuildGenerator with minimal config (all optional fields None)."""
 
@@ -69,6 +70,7 @@ class TestCodeBuildGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestCodeBuildGeneratorWithOptionalConfig:
     """Test CodeBuildGenerator with optional config fields set."""
 
@@ -84,11 +86,15 @@ class TestCodeBuildGeneratorWithOptionalConfig:
         assert "source_type" in result
 
     def test_resource_tf_includes_service_role(self, gen: CodeBuildGenerator):
-        instance = _make_codebuild_instance(codebuild_service_role="arn:aws:iam::role/cb")
+        instance = _make_codebuild_instance(
+            codebuild_service_role="arn:aws:iam::role/cb"
+        )
         result = gen.generate_resource_tf(instance)
         assert "service_role" in result
 
     def test_variables_tf_includes_service_role_variable(self, gen: CodeBuildGenerator):
-        instance = _make_codebuild_instance(codebuild_service_role="arn:aws:iam::role/cb")
+        instance = _make_codebuild_instance(
+            codebuild_service_role="arn:aws:iam::role/cb"
+        )
         result = gen.generate_variables_tf(instance)
         assert "service_role" in result

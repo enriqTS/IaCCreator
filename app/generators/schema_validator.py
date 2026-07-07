@@ -8,7 +8,9 @@ from app.generators.variable_schemas import VARIABLE_SCHEMAS, VariableSchemaEntr
 from app.models.input_models import ResourceConfig, ServiceType
 
 
-def validate_config_against_schema(service_type: ServiceType, config: ResourceConfig) -> None:
+def validate_config_against_schema(
+    service_type: ServiceType, config: ResourceConfig
+) -> None:
     """Validate a ResourceConfig against the VARIABLE_SCHEMAS for the given service type.
 
     Iterates over each schema entry, evaluates visible_when conditions, and checks

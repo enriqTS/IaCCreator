@@ -31,10 +31,13 @@ def gen() -> EC2ImageBuilderGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestEC2ImageBuilderGeneratorMinimal:
     """Test EC2ImageBuilderGenerator with minimal config (all optional fields None)."""
 
-    def test_resource_tf_contains_imagebuilder_pipeline(self, gen: EC2ImageBuilderGenerator):
+    def test_resource_tf_contains_imagebuilder_pipeline(
+        self, gen: EC2ImageBuilderGenerator
+    ):
         instance = _make_imagebuilder_instance()
         result = gen.generate_resource_tf(instance)
         assert "aws_imagebuilder_image_pipeline" in result
@@ -44,17 +47,23 @@ class TestEC2ImageBuilderGeneratorMinimal:
         result = gen.generate_resource_tf(instance)
         assert "var.pipeline_name" in result
 
-    def test_resource_tf_references_image_recipe_arn(self, gen: EC2ImageBuilderGenerator):
+    def test_resource_tf_references_image_recipe_arn(
+        self, gen: EC2ImageBuilderGenerator
+    ):
         instance = _make_imagebuilder_instance()
         result = gen.generate_resource_tf(instance)
         assert "var.image_recipe_arn" in result
 
-    def test_resource_tf_references_infrastructure_configuration_arn(self, gen: EC2ImageBuilderGenerator):
+    def test_resource_tf_references_infrastructure_configuration_arn(
+        self, gen: EC2ImageBuilderGenerator
+    ):
         instance = _make_imagebuilder_instance()
         result = gen.generate_resource_tf(instance)
         assert "var.infrastructure_configuration_arn" in result
 
-    def test_variables_tf_contains_required_variables(self, gen: EC2ImageBuilderGenerator):
+    def test_variables_tf_contains_required_variables(
+        self, gen: EC2ImageBuilderGenerator
+    ):
         instance = _make_imagebuilder_instance()
         result = gen.generate_variables_tf(instance)
         assert "pipeline_name" in result

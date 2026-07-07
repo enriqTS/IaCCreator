@@ -10,7 +10,8 @@ Validates Requirements 5.2, 5.3, 5.4, 5.5, 5.6:
 
 import re
 
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from app.generators.tfvars_generator import TfvarsGenerator
 from app.generators.variable_schemas import VARIABLE_SCHEMAS
@@ -118,15 +119,21 @@ class TestPrefixCollisionAvoidance:
 
     def test_same_service_type_prefixed_differently(self):
         gen = TfvarsGenerator()
-        inst1 = _make_instance(name="func_a", terraform_variables={"function_name": "alpha"})
-        inst2 = _make_instance(name="func_b", terraform_variables={"function_name": "beta"})
+        inst1 = _make_instance(
+            name="func_a", terraform_variables={"function_name": "alpha"}
+        )
+        inst2 = _make_instance(
+            name="func_b", terraform_variables={"function_name": "beta"}
+        )
         output = gen.generate_tfvars([inst1, inst2])
         assert 'func_a_function_name = "alpha"' in output
         assert 'func_b_function_name = "beta"' in output
 
     def test_different_service_types_prefixed(self):
         gen = TfvarsGenerator()
-        inst1 = _make_instance(name="my_func", terraform_variables={"function_name": "fn"})
+        inst1 = _make_instance(
+            name="my_func", terraform_variables={"function_name": "fn"}
+        )
         inst2 = _make_instance(
             name="my_bucket",
             service_type=ServiceType.S3,
@@ -145,8 +152,12 @@ class TestPrefixCollisionAvoidance:
 
     def test_prefix_in_variables_tf_matches_tfvars(self):
         gen = TfvarsGenerator()
-        inst1 = _make_instance(name="func_a", terraform_variables={"function_name": "alpha"})
-        inst2 = _make_instance(name="func_b", terraform_variables={"function_name": "beta"})
+        inst1 = _make_instance(
+            name="func_a", terraform_variables={"function_name": "alpha"}
+        )
+        inst2 = _make_instance(
+            name="func_b", terraform_variables={"function_name": "beta"}
+        )
         tfvars = gen.generate_tfvars([inst1, inst2])
         variables_tf = gen.generate_variables_tf([inst1, inst2])
         assert "func_a_function_name" in tfvars
@@ -284,7 +295,11 @@ def resource_instance_ir_strategy(draw):
     schema = VARIABLE_SCHEMAS[svc]
     var_names = [s.name for s in schema]
     # Pick a random subset of variables to include
-    chosen = draw(st.lists(st.sampled_from(var_names), min_size=1, max_size=len(var_names), unique=True))
+    chosen = draw(
+        st.lists(
+            st.sampled_from(var_names), min_size=1, max_size=len(var_names), unique=True
+        )
+    )
     variables = {vn: draw(_tf_var_value_st) for vn in chosen}
     return ResourceInstanceIR(
         name=name,

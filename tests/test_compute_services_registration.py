@@ -14,8 +14,8 @@ Requirements: 1.1, 3.1, 5.1, 7.1, 9.1, 11.1, 13.1, 15.1, 17.1, 20.1–20.35, 21.
 
 import pytest
 
-from app.models.input_models import ResourceConfig, ServiceType
 from app.generators.registry import GENERATOR_REGISTRY
+from app.models.input_models import ResourceConfig, ServiceType
 from app.models.ir_models import (
     EnvironmentIR,
     GlobalTerraformConfigIR,
@@ -24,7 +24,6 @@ from app.models.ir_models import (
     ServiceModuleIR,
 )
 from app.services.file_tree_assembler import FileTreeAssembler
-
 
 # ---------------------------------------------------------------------------
 # Expected data
@@ -82,6 +81,7 @@ ICON_ONLY_SERVICES = {
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_instance(name: str, service_type: ServiceType) -> ResourceInstanceIR:
     """Create a minimal ResourceInstanceIR for the given service type."""
     return ResourceInstanceIR(
@@ -112,10 +112,13 @@ def _make_project(modules: list[ServiceModuleIR]) -> ProjectIR:
 # 1. Full-generator ServiceType enum members
 # ---------------------------------------------------------------------------
 
+
 class TestFullGeneratorServiceTypeEnum:
     """Verify all 9 full-generator ServiceType enum members exist with correct values."""
 
-    @pytest.mark.parametrize("member_name,expected_value", FULL_GENERATOR_SERVICES.items())
+    @pytest.mark.parametrize(
+        "member_name,expected_value", FULL_GENERATOR_SERVICES.items()
+    )
     def test_enum_member_exists(self, member_name: str, expected_value: str):
         member = ServiceType[member_name]
         assert member.value == expected_value
@@ -124,6 +127,7 @@ class TestFullGeneratorServiceTypeEnum:
 # ---------------------------------------------------------------------------
 # 2. Icon-only ServiceType enum members
 # ---------------------------------------------------------------------------
+
 
 class TestIconOnlyServiceTypeEnum:
     """Verify all 30 icon-only ServiceType enum members exist with correct values."""
@@ -137,6 +141,7 @@ class TestIconOnlyServiceTypeEnum:
 # ---------------------------------------------------------------------------
 # 3. Full-generator services in GENERATOR_REGISTRY
 # ---------------------------------------------------------------------------
+
 
 class TestGeneratorRegistry:
     """Verify all 9 full-generator services are in GENERATOR_REGISTRY."""
@@ -160,6 +165,7 @@ class TestGeneratorRegistry:
 # 4. ResourceConfig optional fields for full-generator services
 # ---------------------------------------------------------------------------
 
+
 class TestResourceConfigFields:
     """Verify ResourceConfig has all new optional fields for 9 full-generator services."""
 
@@ -171,7 +177,9 @@ class TestResourceConfigFields:
         assert getattr(config, field) is None
 
     # ECS fields
-    @pytest.mark.parametrize("field", ["ecs_launch_type", "ecs_desired_count", "ecs_cpu", "ecs_memory"])
+    @pytest.mark.parametrize(
+        "field", ["ecs_launch_type", "ecs_desired_count", "ecs_cpu", "ecs_memory"]
+    )
     def test_ecs_fields(self, field: str):
         config = ResourceConfig()
         assert hasattr(config, field)
@@ -192,28 +200,45 @@ class TestResourceConfigFields:
         assert getattr(config, field) is None
 
     # App Runner fields
-    @pytest.mark.parametrize("field", ["apprunner_source_type", "apprunner_image_identifier"])
+    @pytest.mark.parametrize(
+        "field", ["apprunner_source_type", "apprunner_image_identifier"]
+    )
     def test_app_runner_fields(self, field: str):
         config = ResourceConfig()
         assert hasattr(config, field)
         assert getattr(config, field) is None
 
     # Batch fields
-    @pytest.mark.parametrize("field", ["batch_compute_environment_type", "batch_max_vcpus"])
+    @pytest.mark.parametrize(
+        "field", ["batch_compute_environment_type", "batch_max_vcpus"]
+    )
     def test_batch_fields(self, field: str):
         config = ResourceConfig()
         assert hasattr(config, field)
         assert getattr(config, field) is None
 
     # EC2 Image Builder fields
-    @pytest.mark.parametrize("field", ["imagebuilder_image_recipe_arn", "imagebuilder_infrastructure_configuration_arn"])
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "imagebuilder_image_recipe_arn",
+            "imagebuilder_infrastructure_configuration_arn",
+        ],
+    )
     def test_ec2_image_builder_fields(self, field: str):
         config = ResourceConfig()
         assert hasattr(config, field)
         assert getattr(config, field) is None
 
     # Lightsail fields
-    @pytest.mark.parametrize("field", ["lightsail_blueprint_id", "lightsail_bundle_id", "lightsail_availability_zone"])
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "lightsail_blueprint_id",
+            "lightsail_bundle_id",
+            "lightsail_availability_zone",
+        ],
+    )
     def test_lightsail_fields(self, field: str):
         config = ResourceConfig()
         assert hasattr(config, field)
@@ -230,6 +255,7 @@ class TestResourceConfigFields:
 # ---------------------------------------------------------------------------
 # 5. FileTreeAssembler skip behavior for icon-only services
 # ---------------------------------------------------------------------------
+
 
 class TestFileTreeAssemblerSkipBehavior:
     """Test that FileTreeAssembler skips icon-only service modules."""
@@ -272,7 +298,9 @@ class TestFileTreeAssemblerSkipBehavior:
         assert len(ec2_files) > 0, "Expected files for EC2 full-generator service"
 
         # Fargate module files should NOT exist
-        fargate_files = [p for p in tree if "modules/fargate" in p or "modules/other/fargate" in p]
+        fargate_files = [
+            p for p in tree if "modules/fargate" in p or "modules/other/fargate" in p
+        ]
         assert fargate_files == [], (
             f"Expected no files for icon-only Fargate service, got: {fargate_files}"
         )

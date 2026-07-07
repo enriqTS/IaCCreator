@@ -23,18 +23,28 @@ class RedshiftGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Redshift cluster."""
         parts = [
-            self._r.render_variable("cluster_identifier", "string", "Identifier for the Redshift cluster"),
+            self._r.render_variable(
+                "cluster_identifier", "string", "Identifier for the Redshift cluster"
+            ),
         ]
         if instance.config.redshift_node_type is not None:
-            parts.append(self._r.render_variable(
-                "node_type", "string", "Node type for the Redshift cluster",
-                default=instance.config.redshift_node_type,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "node_type",
+                    "string",
+                    "Node type for the Redshift cluster",
+                    default=instance.config.redshift_node_type,
+                )
+            )
         if instance.config.redshift_master_username is not None:
-            parts.append(self._r.render_variable(
-                "master_username", "string", "Master username for the Redshift cluster",
-                default=instance.config.redshift_master_username,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "master_username",
+                    "string",
+                    "Master username for the Redshift cluster",
+                    default=instance.config.redshift_master_username,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

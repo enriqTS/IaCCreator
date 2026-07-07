@@ -13,7 +13,9 @@ class IAMStatement(BaseModel):
 
     effect: str = "Allow"
     actions: list[str]
-    resources: list[str]  # Terraform references, e.g., "${aws_dynamodb_table.my_table.arn}"
+    resources: list[
+        str
+    ]  # Terraform references, e.g., "${aws_dynamodb_table.my_table.arn}"
 
 
 class ConnectionIR(BaseModel):
@@ -35,7 +37,9 @@ class ResourceInstanceIR(BaseModel):
     config: ResourceConfig
     iam_statements: list[IAMStatement] = Field(default_factory=list)
     connections: list[ConnectionIR] = Field(default_factory=list)
-    terraform_variables: dict[str, str | int | float | bool] = Field(default_factory=dict)
+    terraform_variables: dict[str, str | int | float | bool] = Field(
+        default_factory=dict
+    )
 
 
 class ServiceModuleIR(BaseModel):
@@ -71,7 +75,9 @@ class ProjectIR(BaseModel):
     environments: list[EnvironmentIR]
     modules: list[ServiceModuleIR]
     connections: list[ConnectionIR]
-    global_config: GlobalTerraformConfigIR = Field(default_factory=GlobalTerraformConfigIR)
+    global_config: GlobalTerraformConfigIR = Field(
+        default_factory=GlobalTerraformConfigIR
+    )
 
 
 class GeneratedFile(BaseModel):

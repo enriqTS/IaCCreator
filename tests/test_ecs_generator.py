@@ -31,6 +31,7 @@ def gen() -> ECSGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestECSGeneratorMinimal:
     """Test ECSGenerator with minimal config (all optional fields None)."""
 
@@ -81,6 +82,7 @@ class TestECSGeneratorMinimal:
 # ---------------------------------------------------------------------------
 # Optional config tests
 # ---------------------------------------------------------------------------
+
 
 class TestECSGeneratorWithOptionalConfig:
     """Test ECSGenerator with optional config fields set."""

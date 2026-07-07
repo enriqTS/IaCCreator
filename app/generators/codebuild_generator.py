@@ -27,18 +27,28 @@ class CodeBuildGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a CodeBuild project."""
         parts = [
-            self._r.render_variable("project_name", "string", "Name of the CodeBuild project"),
+            self._r.render_variable(
+                "project_name", "string", "Name of the CodeBuild project"
+            ),
         ]
         if instance.config.codebuild_service_role is not None:
-            parts.append(self._r.render_variable(
-                "service_role", "string", "IAM service role ARN for the CodeBuild project",
-                default=instance.config.codebuild_service_role,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "service_role",
+                    "string",
+                    "IAM service role ARN for the CodeBuild project",
+                    default=instance.config.codebuild_service_role,
+                )
+            )
         if instance.config.codebuild_source_type is not None:
-            parts.append(self._r.render_variable(
-                "source_type", "string", "Source type for the CodeBuild project",
-                default=instance.config.codebuild_source_type,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "source_type",
+                    "string",
+                    "Source type for the CodeBuild project",
+                    default=instance.config.codebuild_source_type,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

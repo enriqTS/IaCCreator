@@ -19,7 +19,9 @@ class AthenaGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an Athena workgroup."""
         parts = [
-            self._r.render_variable("workgroup_name", "string", "Name of the Athena workgroup"),
+            self._r.render_variable(
+                "workgroup_name", "string", "Name of the Athena workgroup"
+            ),
         ]
         return "\n".join(parts)
 

@@ -11,7 +11,9 @@ class TfvarsGenerator:
     def __init__(self) -> None:
         self._r = HCLRenderer()
 
-    def generate_tfvars(self, instances: list[ResourceInstanceIR], prefix: bool = True) -> str:
+    def generate_tfvars(
+        self, instances: list[ResourceInstanceIR], prefix: bool = True
+    ) -> str:
         """Generate terraform.tfvars content with properly typed values.
 
         Strings are quoted, numbers and bools are unquoted.
@@ -27,7 +29,9 @@ class TfvarsGenerator:
                 lines.append(f"{full_name} = {self._format_tfvar_value(value)}")
         return "\n".join(lines) + "\n" if lines else ""
 
-    def generate_variables_tf(self, instances: list[ResourceInstanceIR], prefix: bool = True) -> str:
+    def generate_variables_tf(
+        self, instances: list[ResourceInstanceIR], prefix: bool = True
+    ) -> str:
         """Generate variable blocks matching the tfvars entries.
 
         Each variable in terraform.tfvars gets a corresponding ``variable`` block
@@ -47,7 +51,9 @@ class TfvarsGenerator:
                 description = schema.description if schema else var_name
                 default = schema.default if schema else None
                 blocks.append(
-                    self._r.render_variable(full_name, var_type, description, default=default)
+                    self._r.render_variable(
+                        full_name, var_type, description, default=default
+                    )
                 )
         return "\n".join(blocks) if blocks else ""
 

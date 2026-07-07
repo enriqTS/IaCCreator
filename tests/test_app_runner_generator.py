@@ -31,6 +31,7 @@ def gen() -> AppRunnerGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestAppRunnerGeneratorMinimal:
     """Test AppRunnerGenerator with minimal config (all optional fields None)."""
 

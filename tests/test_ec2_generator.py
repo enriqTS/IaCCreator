@@ -31,6 +31,7 @@ def gen() -> EC2Generator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestEC2GeneratorMinimal:
     """Test EC2Generator with minimal config (all optional fields None)."""
 
@@ -75,6 +76,7 @@ class TestEC2GeneratorMinimal:
 # ---------------------------------------------------------------------------
 # Optional config tests
 # ---------------------------------------------------------------------------
+
 
 class TestEC2GeneratorWithOptionalConfig:
     """Test EC2Generator with optional config fields set."""

@@ -21,19 +21,21 @@ from app.models.input_models import (
     ServiceType,
 )
 from app.models.ir_models import ConnectionIR
-from app.services.ir_builder import IRBuilder
 from app.services.iam_registry import get_resources
-
+from app.services.ir_builder import IRBuilder
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_input(**overrides) -> ArchitectureDescription:
     """Build a minimal valid ArchitectureDescription with sensible defaults."""
     defaults = {
         "project_name": "test-project",
-        "environments": [EnvironmentConfig(name="dev", variables={"region": "us-east-1"})],
+        "environments": [
+            EnvironmentConfig(name="dev", variables={"region": "us-east-1"})
+        ],
         "resources": [
             ResourceInstance(
                 name="my-func",
@@ -67,6 +69,7 @@ def _sqs_resource(name: str = "my-queue") -> ResourceInstance:
 # 1. ServiceType enum values
 # ===========================================================================
 
+
 class TestServiceTypeEnumValues:
     """Test that SNS and SQS exist as valid ServiceType values."""
 
@@ -98,6 +101,7 @@ class TestServiceTypeEnumValues:
 # ===========================================================================
 # 2. Connection model connection_config
 # ===========================================================================
+
 
 class TestConnectionConfig:
     """Test connection_config is optional and defaults to empty dict."""
@@ -137,6 +141,7 @@ class TestConnectionConfig:
 # 3. ConnectionIR carries connection_config
 # ===========================================================================
 
+
 class TestConnectionIRConfig:
     """Test ConnectionIR model carries connection_config through."""
 
@@ -167,13 +172,18 @@ class TestConnectionIRConfig:
 # 4. IR Builder accepts new compatible pairs
 # ===========================================================================
 
+
 class TestIRBuilderNewCompatiblePairs:
     """Test IR Builder accepts Lambda→SNS, Lambda→SQS, SQS→Lambda, SNS→SQS, SNS→Lambda."""
 
     def test_lambda_to_sns_accepted(self):
         desc = _make_input(
             resources=[_lambda_resource(), _sns_resource()],
-            connections=[Connection(source="my-func", target="my-topic", connection_type="publishes_to")],
+            connections=[
+                Connection(
+                    source="my-func", target="my-topic", connection_type="publishes_to"
+                )
+            ],
         )
         ir = IRBuilder().build(desc)
         assert len(ir.connections) == 1
@@ -183,7 +193,11 @@ class TestIRBuilderNewCompatiblePairs:
     def test_lambda_to_sqs_accepted(self):
         desc = _make_input(
             resources=[_lambda_resource(), _sqs_resource()],
-            connections=[Connection(source="my-func", target="my-queue", connection_type="sends_to")],
+            connections=[
+                Connection(
+                    source="my-func", target="my-queue", connection_type="sends_to"
+                )
+            ],
         )
         ir = IRBuilder().build(desc)
         assert len(ir.connections) == 1
@@ -193,7 +207,11 @@ class TestIRBuilderNewCompatiblePairs:
     def test_sqs_to_lambda_accepted(self):
         desc = _make_input(
             resources=[_sqs_resource(), _lambda_resource()],
-            connections=[Connection(source="my-queue", target="my-func", connection_type="triggers")],
+            connections=[
+                Connection(
+                    source="my-queue", target="my-func", connection_type="triggers"
+                )
+            ],
         )
         ir = IRBuilder().build(desc)
         assert len(ir.connections) == 1
@@ -203,7 +221,11 @@ class TestIRBuilderNewCompatiblePairs:
     def test_sns_to_sqs_accepted(self):
         desc = _make_input(
             resources=[_sns_resource(), _sqs_resource()],
-            connections=[Connection(source="my-topic", target="my-queue", connection_type="delivers_to")],
+            connections=[
+                Connection(
+                    source="my-topic", target="my-queue", connection_type="delivers_to"
+                )
+            ],
         )
         ir = IRBuilder().build(desc)
         assert len(ir.connections) == 1
@@ -213,7 +235,11 @@ class TestIRBuilderNewCompatiblePairs:
     def test_sns_to_lambda_accepted(self):
         desc = _make_input(
             resources=[_sns_resource(), _lambda_resource()],
-            connections=[Connection(source="my-topic", target="my-func", connection_type="triggers")],
+            connections=[
+                Connection(
+                    source="my-topic", target="my-func", connection_type="triggers"
+                )
+            ],
         )
         ir = IRBuilder().build(desc)
         assert len(ir.connections) == 1
@@ -242,13 +268,18 @@ class TestIRBuilderNewCompatiblePairs:
 # 5. IR Builder rejects unsupported pairs
 # ===========================================================================
 
+
 class TestIRBuilderRejectsUnsupportedPairs:
     """Test IR Builder rejects incompatible connection pairs with IncompatibleConnectionError."""
 
     def test_sqs_to_sns_rejected(self):
         desc = _make_input(
             resources=[_sqs_resource(), _sns_resource()],
-            connections=[Connection(source="my-queue", target="my-topic", connection_type="sends_to")],
+            connections=[
+                Connection(
+                    source="my-queue", target="my-topic", connection_type="sends_to"
+                )
+            ],
         )
         with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
@@ -260,7 +291,11 @@ class TestIRBuilderRejectsUnsupportedPairs:
                 _sns_resource("topic-a"),
                 _sns_resource("topic-b"),
             ],
-            connections=[Connection(source="topic-a", target="topic-b", connection_type="forwards_to")],
+            connections=[
+                Connection(
+                    source="topic-a", target="topic-b", connection_type="forwards_to"
+                )
+            ],
         )
         with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
@@ -272,7 +307,11 @@ class TestIRBuilderRejectsUnsupportedPairs:
                 _sqs_resource("queue-a"),
                 _sqs_resource("queue-b"),
             ],
-            connections=[Connection(source="queue-a", target="queue-b", connection_type="forwards_to")],
+            connections=[
+                Connection(
+                    source="queue-a", target="queue-b", connection_type="forwards_to"
+                )
+            ],
         )
         with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
@@ -284,7 +323,11 @@ class TestIRBuilderRejectsUnsupportedPairs:
                 _sns_resource(),
                 ResourceInstance(name="my-bucket", service_type=ServiceType.S3),
             ],
-            connections=[Connection(source="my-topic", target="my-bucket", connection_type="delivers_to")],
+            connections=[
+                Connection(
+                    source="my-topic", target="my-bucket", connection_type="delivers_to"
+                )
+            ],
         )
         with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
@@ -300,7 +343,11 @@ class TestIRBuilderRejectsUnsupportedPairs:
                     config=ResourceConfig(hash_key="id"),
                 ),
             ],
-            connections=[Connection(source="my-queue", target="my-table", connection_type="writes_to")],
+            connections=[
+                Connection(
+                    source="my-queue", target="my-table", connection_type="writes_to"
+                )
+            ],
         )
         with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
@@ -310,6 +357,7 @@ class TestIRBuilderRejectsUnsupportedPairs:
 # ===========================================================================
 # 6. _build_iam_resources for SNS and SQS
 # ===========================================================================
+
 
 class TestBuildIAMResources:
     """Test get_resources returns correct ARN references for SNS and SQS."""
@@ -335,26 +383,39 @@ class TestBuildIAMResources:
 # 7. IAM statement derivation for new connection types
 # ===========================================================================
 
+
 class TestIAMStatementsForNewConnections:
     """Test IRBuilder produces empty IAM statements (IAM is now derived by ConnectionProcessor)."""
 
     def test_lambda_to_sns_iam_statements_empty(self):
         desc = _make_input(
             resources=[_lambda_resource(), _sns_resource()],
-            connections=[Connection(source="my-func", target="my-topic", connection_type="publishes_to")],
+            connections=[
+                Connection(
+                    source="my-func", target="my-topic", connection_type="publishes_to"
+                )
+            ],
         )
         ir = IRBuilder().build(desc)
-        lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
+        lambda_module = next(
+            m for m in ir.modules if m.service_type == ServiceType.LAMBDA
+        )
         func_ir = lambda_module.instances[0]
         assert func_ir.iam_statements == []
 
     def test_lambda_to_sqs_iam_statements_empty(self):
         desc = _make_input(
             resources=[_lambda_resource(), _sqs_resource()],
-            connections=[Connection(source="my-func", target="my-queue", connection_type="sends_to")],
+            connections=[
+                Connection(
+                    source="my-func", target="my-queue", connection_type="sends_to"
+                )
+            ],
         )
         ir = IRBuilder().build(desc)
-        lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
+        lambda_module = next(
+            m for m in ir.modules if m.service_type == ServiceType.LAMBDA
+        )
         func_ir = lambda_module.instances[0]
         assert func_ir.iam_statements == []
 
@@ -362,11 +423,17 @@ class TestIAMStatementsForNewConnections:
         desc = _make_input(
             resources=[_lambda_resource(), _sns_resource(), _sqs_resource()],
             connections=[
-                Connection(source="my-func", target="my-topic", connection_type="publishes_to"),
-                Connection(source="my-func", target="my-queue", connection_type="sends_to"),
+                Connection(
+                    source="my-func", target="my-topic", connection_type="publishes_to"
+                ),
+                Connection(
+                    source="my-func", target="my-queue", connection_type="sends_to"
+                ),
             ],
         )
         ir = IRBuilder().build(desc)
-        lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
+        lambda_module = next(
+            m for m in ir.modules if m.service_type == ServiceType.LAMBDA
+        )
         func_ir = lambda_module.instances[0]
         assert func_ir.iam_statements == []

@@ -1,7 +1,6 @@
 """Session management service for anonymous user sessions."""
 
 import uuid
-from datetime import datetime, timezone
 
 from app.persistence.base import AbstractRepository
 from app.persistence.models import UserRecord

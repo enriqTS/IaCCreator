@@ -31,6 +31,7 @@ def gen() -> SESGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestSESGeneratorMinimal:
     """Test SESGenerator with minimal config (all optional fields None)."""
 

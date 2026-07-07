@@ -9,7 +9,8 @@ an object equal to the original.
 **Validates: Requirements 9.2, 9.3, 9.4**
 """
 
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from app.generators.variable_schemas import (
     OptionEntry,
@@ -38,8 +39,16 @@ _option_entry_st = st.builds(
 
 _validation_rule_st = st.builds(
     ValidationRule,
-    min=st.one_of(st.none(), st.integers(min_value=0, max_value=10000), st.floats(allow_nan=False, allow_infinity=False, min_value=0, max_value=1e4)),
-    max=st.one_of(st.none(), st.integers(min_value=0, max_value=100000), st.floats(allow_nan=False, allow_infinity=False, min_value=0, max_value=1e5)),
+    min=st.one_of(
+        st.none(),
+        st.integers(min_value=0, max_value=10000),
+        st.floats(allow_nan=False, allow_infinity=False, min_value=0, max_value=1e4),
+    ),
+    max=st.one_of(
+        st.none(),
+        st.integers(min_value=0, max_value=100000),
+        st.floats(allow_nan=False, allow_infinity=False, min_value=0, max_value=1e5),
+    ),
     pattern=st.one_of(st.none(), st.text(min_size=1, max_size=30)),
     pattern_description=st.one_of(st.none(), st.text(min_size=1, max_size=50)),
     allowed_values=st.one_of(st.none(), st.lists(_scalar_st, min_size=1, max_size=5)),
@@ -68,6 +77,7 @@ _variable_schema_entry_st = st.builds(
 # Property test
 # ---------------------------------------------------------------------------
 
+
 @given(entry=_variable_schema_entry_st)
 @settings(max_examples=100)
 def test_schema_serialization_roundtrip(entry: VariableSchemaEntry) -> None:
@@ -89,14 +99,12 @@ from app.models.input_models import ServiceType
 
 @pytest.mark.parametrize(
     "service_type,entry",
-    [
-        (st, entry)
-        for st in VARIABLE_SCHEMAS
-        for entry in VARIABLE_SCHEMAS[st]
-    ],
+    [(st, entry) for st in VARIABLE_SCHEMAS for entry in VARIABLE_SCHEMAS[st]],
     ids=lambda val: val.value if isinstance(val, ServiceType) else val.name,
 )
-def test_all_schema_entries_have_a_group(service_type: ServiceType, entry: VariableSchemaEntry) -> None:
+def test_all_schema_entries_have_a_group(
+    service_type: ServiceType, entry: VariableSchemaEntry
+) -> None:
     """Every entry in VARIABLE_SCHEMAS must have a non-empty group string."""
     assert isinstance(entry.group, str), (
         f"{service_type.value}.{entry.name}: group must be a string, got {type(entry.group)}"

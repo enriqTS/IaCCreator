@@ -31,6 +31,7 @@ def gen() -> NeptuneGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestNeptuneGeneratorMinimal:
     """Test NeptuneGenerator with minimal config (all optional fields None)."""
 

@@ -3,13 +3,13 @@
 Feature: enhanced-variable-configuration
 """
 
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.variable_schemas import VARIABLE_SCHEMAS, VisibleWhen
 from app.models.input_models import ResourceConfig, ServiceType
 from app.models.ir_models import ResourceInstanceIR
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -17,7 +17,8 @@ from app.models.ir_models import ResourceInstanceIR
 
 # Service types that have both a generator and a variable schema
 _TESTABLE_SERVICES = [
-    stype for stype in ServiceType
+    stype
+    for stype in ServiceType
     if stype in GENERATOR_REGISTRY and stype in VARIABLE_SCHEMAS
 ]
 
@@ -41,26 +42,54 @@ _SERVICE_FIELD_NAME_MAP: dict[ServiceType, dict[str, str]] = {
     # Analytics
     ServiceType.ATHENA: {"workgroup_name": "athena_name"},
     ServiceType.CLOUDSEARCH: {"domain_name": "cloudsearch_name"},
-    ServiceType.EMR: {"release_label": "emr_release_label", "service_role": "emr_service_role"},
+    ServiceType.EMR: {
+        "release_label": "emr_release_label",
+        "service_role": "emr_service_role",
+    },
     ServiceType.GLUE: {"database_name": "glue_catalog_database_name"},
     ServiceType.KINESIS: {"shard_count": "kinesis_shard_count"},
     ServiceType.KINESIS_FIREHOSE: {"destination": "firehose_destination"},
-    ServiceType.MSK: {"kafka_version": "msk_kafka_version", "number_of_broker_nodes": "msk_number_of_broker_nodes"},
+    ServiceType.MSK: {
+        "kafka_version": "msk_kafka_version",
+        "number_of_broker_nodes": "msk_number_of_broker_nodes",
+    },
     ServiceType.OPENSEARCH: {"domain_name": "opensearch_domain_name"},
-    ServiceType.REDSHIFT: {"node_type": "redshift_node_type", "master_username": "redshift_master_username"},
+    ServiceType.REDSHIFT: {
+        "node_type": "redshift_node_type",
+        "master_username": "redshift_master_username",
+    },
     # Business Applications
-    ServiceType.CONNECT: {"identity_management_type": "connect_identity_management_type", "inbound_calls_enabled": "connect_inbound_calls_enabled", "outbound_calls_enabled": "connect_outbound_calls_enabled"},
+    ServiceType.CONNECT: {
+        "identity_management_type": "connect_identity_management_type",
+        "inbound_calls_enabled": "connect_inbound_calls_enabled",
+        "outbound_calls_enabled": "connect_outbound_calls_enabled",
+    },
     ServiceType.SES: {"domain": "ses_domain"},
     ServiceType.PINPOINT: {"app_name": "pinpoint_name"},
     # Database
-    ServiceType.AURORA: {"engine": "aurora_engine", "master_username": "aurora_master_username"},
+    ServiceType.AURORA: {
+        "engine": "aurora_engine",
+        "master_username": "aurora_master_username",
+    },
     ServiceType.DOCUMENTDB: {"master_username": "documentdb_master_username"},
-    ServiceType.ELASTICACHE: {"engine": "elasticache_engine", "node_type": "elasticache_node_type", "num_cache_nodes": "elasticache_num_cache_nodes"},
+    ServiceType.ELASTICACHE: {
+        "engine": "elasticache_engine",
+        "node_type": "elasticache_node_type",
+        "num_cache_nodes": "elasticache_num_cache_nodes",
+    },
     ServiceType.NEPTUNE: {"cluster_identifier": "neptune_cluster_identifier"},
-    ServiceType.RDS: {"engine": "rds_engine", "instance_class": "rds_instance_class", "allocated_storage": "rds_allocated_storage", "username": "rds_username"},
+    ServiceType.RDS: {
+        "engine": "rds_engine",
+        "instance_class": "rds_instance_class",
+        "allocated_storage": "rds_allocated_storage",
+        "username": "rds_username",
+    },
     ServiceType.TIMESTREAM: {"database_name": "timestream_database_name"},
     # Developer Tools
-    ServiceType.CODEBUILD: {"service_role": "codebuild_service_role", "source_type": "codebuild_source_type"},
+    ServiceType.CODEBUILD: {
+        "service_role": "codebuild_service_role",
+        "source_type": "codebuild_source_type",
+    },
     ServiceType.CODECOMMIT: {"repository_name": "codecommit_repository_name"},
     ServiceType.CODEDEPLOY: {"compute_platform": "codedeploy_compute_platform"},
     ServiceType.CODEPIPELINE: {"role_arn": "codepipeline_role_arn"},
@@ -133,15 +162,29 @@ _SKIP_VAR_REF_FIELDS: dict[ServiceType, set[str]] = {
     # New API Gateway schema variables added by the overhaul — generator support
     # for these fields is implemented in later tasks.
     ServiceType.API_GATEWAY: {
-        "route_method", "route_path", "route_selection_expression",
-        "stage_name", "auto_deploy", "stage_variables",
-        "authorizer_type", "jwt_issuer", "jwt_audience",
-        "lambda_authorizer_uri", "authorizer_payload_format_version",
-        "cognito_user_pool_endpoint", "cognito_client_ids",
-        "custom_domain_name", "certificate_arn",
-        "integration_type", "integration_uri", "integration_method",
-        "throttling_burst_limit", "throttling_rate_limit",
-        "vpc_link_name", "vpc_link_subnet_ids", "vpc_link_security_group_ids",
+        "route_method",
+        "route_path",
+        "route_selection_expression",
+        "stage_name",
+        "auto_deploy",
+        "stage_variables",
+        "authorizer_type",
+        "jwt_issuer",
+        "jwt_audience",
+        "lambda_authorizer_uri",
+        "authorizer_payload_format_version",
+        "cognito_user_pool_endpoint",
+        "cognito_client_ids",
+        "custom_domain_name",
+        "certificate_arn",
+        "integration_type",
+        "integration_uri",
+        "integration_method",
+        "throttling_burst_limit",
+        "throttling_rate_limit",
+        "vpc_link_name",
+        "vpc_link_subnet_ids",
+        "vpc_link_security_group_ids",
         "api_key_required",
     },
 }
@@ -152,10 +195,13 @@ _SKIP_VAR_REF_FIELDS: dict[ServiceType, set[str]] = {
 # for a given service type, respecting visible_when conditions.
 # ---------------------------------------------------------------------------
 
+
 def _sample_value_for_type(var_type: str) -> st.SearchStrategy:
     """Return a Hypothesis strategy that produces a non-None value for the given schema type."""
     if var_type == "string":
-        return st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=10)
+        return st.text(
+            alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=10
+        )
     if var_type == "number":
         return st.integers(min_value=1, max_value=100)
     if var_type == "bool":
@@ -163,13 +209,17 @@ def _sample_value_for_type(var_type: str) -> st.SearchStrategy:
     if var_type == "map":
         return st.dictionaries(
             keys=st.text(alphabet="abcdefghijklmnopqrstuvwxyz", min_size=1, max_size=5),
-            values=st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=8),
+            values=st.text(
+                alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=8
+            ),
             min_size=1,
             max_size=2,
         )
     if var_type == "list":
         return st.lists(
-            st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=10),
+            st.text(
+                alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=10
+            ),
             min_size=1,
             max_size=2,
         )
@@ -207,7 +257,8 @@ def resource_instance_with_populated_fields(draw):
 
     # Determine which optional fields to populate
     optional_entries = [
-        e for e in schema_entries
+        e
+        for e in schema_entries
         if e.name not in always_present
         and e.name not in config_kwargs
         and e.name not in skip_fields
@@ -232,7 +283,9 @@ def resource_instance_with_populated_fields(draw):
             continue
         # Resolve config field name: check per-service map first, then global map, then use schema name
         svc_map = _SERVICE_FIELD_NAME_MAP.get(service_type, {})
-        field_name = svc_map.get(entry.name, _FIELD_NAME_MAP.get(entry.name, entry.name))
+        field_name = svc_map.get(
+            entry.name, _FIELD_NAME_MAP.get(entry.name, entry.name)
+        )
         # Use options values when available for more realistic data
         if entry.options:
             value = draw(st.sampled_from([o.value for o in entry.options]))
@@ -247,7 +300,9 @@ def resource_instance_with_populated_fields(draw):
         if not should_populate:
             continue
         svc_map = _SERVICE_FIELD_NAME_MAP.get(service_type, {})
-        field_name = svc_map.get(entry.name, _FIELD_NAME_MAP.get(entry.name, entry.name))
+        field_name = svc_map.get(
+            entry.name, _FIELD_NAME_MAP.get(entry.name, entry.name)
+        )
         if _visible_when_satisfied(entry.visible_when, config):
             # Use the var reference name (may differ from field name)
             var_name = _VAR_REF_OVERRIDES.get(entry.name, entry.name)
@@ -267,6 +322,7 @@ def resource_instance_with_populated_fields(draw):
 # Feature: enhanced-variable-configuration, Property 12: Generators include var references for populated config fields
 # **Validates: Requirements 8.2**
 # ---------------------------------------------------------------------------
+
 
 @given(data=resource_instance_with_populated_fields())
 @settings(max_examples=100)
@@ -291,6 +347,7 @@ def test_populated_config_fields_produce_var_references(data):
 # **Validates: Requirements 6.6, 8.5**
 # ---------------------------------------------------------------------------
 
+
 @given(
     billing_mode=st.sampled_from(["PAY_PER_REQUEST"]),
     read_cap=st.integers(min_value=1, max_value=100),
@@ -298,7 +355,9 @@ def test_populated_config_fields_produce_var_references(data):
     name=st.from_regex(r"[a-z][a-z0-9\-]{0,14}", fullmatch=True),
 )
 @settings(max_examples=100)
-def test_dynamodb_visible_when_false_excludes_capacity(billing_mode, read_cap, write_cap, name):
+def test_dynamodb_visible_when_false_excludes_capacity(
+    billing_mode, read_cap, write_cap, name
+):
     """When DynamoDB billing_mode != PROVISIONED, read_capacity and write_capacity
     var references SHALL NOT appear in the generated HCL, even if those fields
     are populated on the config.
@@ -331,7 +390,9 @@ def test_dynamodb_visible_when_false_excludes_capacity(billing_mode, read_cap, w
     name=st.from_regex(r"[a-z][a-z0-9\-]{0,14}", fullmatch=True),
 )
 @settings(max_examples=100)
-def test_api_gateway_visible_when_false_excludes_route_selection(protocol_type, route_expr, name):
+def test_api_gateway_visible_when_false_excludes_route_selection(
+    protocol_type, route_expr, name
+):
     """When API Gateway protocol_type != WEBSOCKET, route_selection_expression
     var reference SHALL NOT appear in the generated HCL, even if the field
     is populated on the config.

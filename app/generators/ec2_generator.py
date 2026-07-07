@@ -25,15 +25,21 @@ class EC2Generator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an EC2 instance."""
         parts = [
-            self._r.render_variable("instance_name", "string", "Name tag for the EC2 instance"),
+            self._r.render_variable(
+                "instance_name", "string", "Name tag for the EC2 instance"
+            ),
             self._r.render_variable("ami", "string", "AMI ID for the instance"),
             self._r.render_variable("instance_type", "string", "EC2 instance type"),
         ]
         if instance.config.key_name is not None:
-            parts.append(self._r.render_variable(
-                "key_name", "string", "Name of the SSH key pair",
-                default=instance.config.key_name,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "key_name",
+                    "string",
+                    "Name of the SSH key pair",
+                    default=instance.config.key_name,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

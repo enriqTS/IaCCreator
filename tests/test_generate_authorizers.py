@@ -1,6 +1,5 @@
 """Unit tests for APIGatewayGenerator._generate_authorizers method."""
 
-import pytest
 
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.models.input_models import ResourceConfig, ServiceType
@@ -39,18 +38,23 @@ class TestGenerateAuthorizersJWT:
     def test_jwt_authorizer_basic(self):
         config = ResourceConfig(
             protocol_type="HTTP",
-            authorizers=[{
-                "name": "my_jwt",
-                "type": "JWT",
-                "issuer": "https://auth.example.com/",
-                "audience": ["api-client-1"],
-            }],
+            authorizers=[
+                {
+                    "name": "my_jwt",
+                    "type": "JWT",
+                    "issuer": "https://auth.example.com/",
+                    "audience": ["api-client-1"],
+                }
+            ],
         )
         instance = _make_instance("my_api", config)
         gen = APIGatewayGenerator()
         result = gen._generate_authorizers(instance)
 
-        assert 'resource "aws_apigatewayv2_authorizer" "my_api_my_jwt_authorizer"' in result
+        assert (
+            'resource "aws_apigatewayv2_authorizer" "my_api_my_jwt_authorizer"'
+            in result
+        )
         assert 'authorizer_type = "JWT"' in result
         assert "jwt_configuration {" in result
         assert 'issuer = "https://auth.example.com/"' in result
@@ -61,12 +65,14 @@ class TestGenerateAuthorizersJWT:
     def test_jwt_authorizer_multiple_audiences(self):
         config = ResourceConfig(
             protocol_type="HTTP",
-            authorizers=[{
-                "name": "multi_aud",
-                "type": "JWT",
-                "issuer": "https://issuer.example.com",
-                "audience": ["client-a", "client-b", "client-c"],
-            }],
+            authorizers=[
+                {
+                    "name": "multi_aud",
+                    "type": "JWT",
+                    "issuer": "https://issuer.example.com",
+                    "audience": ["client-a", "client-b", "client-c"],
+                }
+            ],
         )
         instance = _make_instance("api", config)
         gen = APIGatewayGenerator()
@@ -81,32 +87,42 @@ class TestGenerateAuthorizersLambda:
     def test_lambda_authorizer_basic(self):
         config = ResourceConfig(
             protocol_type="HTTP",
-            authorizers=[{
-                "name": "lambda_auth",
-                "type": "REQUEST",
-                "lambda_arn": "arn:aws:lambda:us-east-1:123456789012:function:my-authorizer",
-                "payload_format_version": "2.0",
-            }],
+            authorizers=[
+                {
+                    "name": "lambda_auth",
+                    "type": "REQUEST",
+                    "lambda_arn": "arn:aws:lambda:us-east-1:123456789012:function:my-authorizer",
+                    "payload_format_version": "2.0",
+                }
+            ],
         )
         instance = _make_instance("my_api", config)
         gen = APIGatewayGenerator()
         result = gen._generate_authorizers(instance)
 
-        assert 'resource "aws_apigatewayv2_authorizer" "my_api_lambda_auth_authorizer"' in result
+        assert (
+            'resource "aws_apigatewayv2_authorizer" "my_api_lambda_auth_authorizer"'
+            in result
+        )
         assert 'authorizer_type = "REQUEST"' in result
-        assert 'authorizer_uri = "arn:aws:lambda:us-east-1:123456789012:function:my-authorizer"' in result
+        assert (
+            'authorizer_uri = "arn:aws:lambda:us-east-1:123456789012:function:my-authorizer"'
+            in result
+        )
         assert 'authorizer_payload_format_version = "2.0"' in result
         assert 'name = "lambda_auth"' in result
 
     def test_lambda_authorizer_payload_version_1_0(self):
         config = ResourceConfig(
             protocol_type="HTTP",
-            authorizers=[{
-                "name": "lambda_v1",
-                "type": "REQUEST",
-                "lambda_arn": "arn:aws:lambda:us-east-1:123456789012:function:auth",
-                "payload_format_version": "1.0",
-            }],
+            authorizers=[
+                {
+                    "name": "lambda_v1",
+                    "type": "REQUEST",
+                    "lambda_arn": "arn:aws:lambda:us-east-1:123456789012:function:auth",
+                    "payload_format_version": "1.0",
+                }
+            ],
         )
         instance = _make_instance("api", config)
         gen = APIGatewayGenerator()
@@ -117,11 +133,13 @@ class TestGenerateAuthorizersLambda:
     def test_lambda_authorizer_default_payload_version(self):
         config = ResourceConfig(
             protocol_type="HTTP",
-            authorizers=[{
-                "name": "lambda_default",
-                "type": "REQUEST",
-                "lambda_arn": "arn:aws:lambda:us-east-1:123456789012:function:auth",
-            }],
+            authorizers=[
+                {
+                    "name": "lambda_default",
+                    "type": "REQUEST",
+                    "lambda_arn": "arn:aws:lambda:us-east-1:123456789012:function:auth",
+                }
+            ],
         )
         instance = _make_instance("api", config)
         gen = APIGatewayGenerator()
@@ -137,22 +155,30 @@ class TestGenerateAuthorizersCognito:
     def test_cognito_authorizer_basic(self):
         config = ResourceConfig(
             protocol_type="HTTP",
-            authorizers=[{
-                "name": "cognito_auth",
-                "type": "COGNITO_USER_POOLS",
-                "cognito_user_pool_endpoint": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_abc123",
-                "cognito_client_ids": ["client-id-1", "client-id-2"],
-            }],
+            authorizers=[
+                {
+                    "name": "cognito_auth",
+                    "type": "COGNITO_USER_POOLS",
+                    "cognito_user_pool_endpoint": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_abc123",
+                    "cognito_client_ids": ["client-id-1", "client-id-2"],
+                }
+            ],
         )
         instance = _make_instance("my_api", config)
         gen = APIGatewayGenerator()
         result = gen._generate_authorizers(instance)
 
-        assert 'resource "aws_apigatewayv2_authorizer" "my_api_cognito_auth_authorizer"' in result
+        assert (
+            'resource "aws_apigatewayv2_authorizer" "my_api_cognito_auth_authorizer"'
+            in result
+        )
         # Cognito uses JWT type in API Gateway v2
         assert 'authorizer_type = "JWT"' in result
         assert "jwt_configuration {" in result
-        assert 'issuer = "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_abc123"' in result
+        assert (
+            'issuer = "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_abc123"'
+            in result
+        )
         assert 'audience = ["client-id-1", "client-id-2"]' in result
         assert 'name = "cognito_auth"' in result
 

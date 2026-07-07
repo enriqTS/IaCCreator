@@ -5,17 +5,13 @@ from pydantic import ValidationError
 
 from app.models.input_models import (
     ArchitectureDescription,
-    Connection,
-    EnvironmentConfig,
-    ResourceConfig,
-    ResourceInstance,
     ServiceType,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_env(name: str = "dev") -> dict:
     return {"name": name, "variables": {"region": "us-east-1"}}
@@ -56,6 +52,7 @@ def _valid_payload_all_services() -> dict:
 # 1. Valid payload with all six service types passes validation
 # ---------------------------------------------------------------------------
 
+
 class TestValidPayloads:
     def test_valid_payload_all_six_service_types(self):
         """A valid payload containing all six service types passes validation."""
@@ -95,6 +92,7 @@ class TestValidPayloads:
 # 2-4. Missing required fields return validation errors
 # ---------------------------------------------------------------------------
 
+
 class TestMissingRequiredFields:
     def test_missing_project_name(self):
         """Missing project_name raises ValidationError."""
@@ -128,6 +126,7 @@ class TestMissingRequiredFields:
 # 5. Unsupported service type rejection
 # ---------------------------------------------------------------------------
 
+
 class TestUnsupportedServiceType:
     def test_unsupported_service_type_rejected(self):
         """An unsupported service_type string raises ValidationError."""
@@ -147,6 +146,7 @@ class TestUnsupportedServiceType:
 # ---------------------------------------------------------------------------
 # 6-7. DynamoDB custom validator
 # ---------------------------------------------------------------------------
+
 
 class TestDynamoDBValidator:
     def test_dynamodb_without_hash_key_raises(self):
@@ -203,9 +203,7 @@ class TestHCLRenderer:
             "aws_s3_bucket", "my_bucket", {"bucket": "my-bucket-name"}
         )
         expected = (
-            'resource "aws_s3_bucket" "my_bucket" {\n'
-            '  bucket = "my-bucket-name"\n'
-            "}\n"
+            'resource "aws_s3_bucket" "my_bucket" {\n  bucket = "my-bucket-name"\n}\n'
         )
         assert result == expected
 
@@ -324,11 +322,7 @@ class TestHCLRenderer:
     def test_render_provider(self):
         """render_provider produces a provider block with region."""
         result = self.renderer.render_provider("aws", "us-west-2")
-        expected = (
-            'provider "aws" {\n'
-            '  region = "us-west-2"\n'
-            "}\n"
-        )
+        expected = 'provider "aws" {\n  region = "us-west-2"\n}\n'
         assert result == expected
 
     # -- _quote: special characters ----------------------------------------
@@ -368,7 +362,10 @@ class TestHCLRenderer:
 
     def test_format_value_data_reference_unquoted(self):
         """Strings starting with 'data.' are passed through unquoted."""
-        assert HCLRenderer._format_value("data.aws_region.current.name") == "data.aws_region.current.name"
+        assert (
+            HCLRenderer._format_value("data.aws_region.current.name")
+            == "data.aws_region.current.name"
+        )
 
     def test_format_value_plain_string_quoted(self):
         """Plain strings are wrapped in double quotes."""

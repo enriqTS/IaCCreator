@@ -31,29 +31,49 @@ class SNSGenerator:
             self._r.render_variable("topic_name", "string", "Name of the SNS topic"),
         ]
         if instance.config.display_name is not None:
-            parts.append(self._r.render_variable(
-                "display_name", "string", "Display name for the SNS topic",
-                default=instance.config.display_name,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "display_name",
+                    "string",
+                    "Display name for the SNS topic",
+                    default=instance.config.display_name,
+                )
+            )
         if instance.config.fifo_topic is not None:
-            parts.append(self._r.render_variable(
-                "fifo_topic", "bool", "Whether the SNS topic is a FIFO topic",
-                default=instance.config.fifo_topic,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "fifo_topic",
+                    "bool",
+                    "Whether the SNS topic is a FIFO topic",
+                    default=instance.config.fifo_topic,
+                )
+            )
         if instance.config.content_based_deduplication is not None:
-            parts.append(self._r.render_variable(
-                "content_based_deduplication", "bool", "Enable content-based deduplication for the SNS topic",
-                default=instance.config.content_based_deduplication,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "content_based_deduplication",
+                    "bool",
+                    "Enable content-based deduplication for the SNS topic",
+                    default=instance.config.content_based_deduplication,
+                )
+            )
         if instance.config.kms_master_key_id is not None:
-            parts.append(self._r.render_variable(
-                "kms_master_key_id", "string", "ARN of the KMS key to use for encrypting SNS messages",
-                default=instance.config.kms_master_key_id,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "kms_master_key_id",
+                    "string",
+                    "ARN of the KMS key to use for encrypting SNS messages",
+                    default=instance.config.kms_master_key_id,
+                )
+            )
         if instance.config.tags is not None:
-            parts.append(self._r.render_variable(
-                "tags", "map(string)", "Tags to apply to the SNS topic",
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "tags",
+                    "map(string)",
+                    "Tags to apply to the SNS topic",
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

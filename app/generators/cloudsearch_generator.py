@@ -19,7 +19,9 @@ class CloudSearchGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a CloudSearch domain."""
         parts = [
-            self._r.render_variable("domain_name", "string", "Name of the CloudSearch domain"),
+            self._r.render_variable(
+                "domain_name", "string", "Name of the CloudSearch domain"
+            ),
         ]
         return "\n".join(parts)
 

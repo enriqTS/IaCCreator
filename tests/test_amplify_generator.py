@@ -31,6 +31,7 @@ def gen() -> AmplifyGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestAmplifyGeneratorMinimal:
     """Test AmplifyGenerator with minimal config (all optional fields None)."""
 

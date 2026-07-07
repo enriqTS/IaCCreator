@@ -144,5 +144,3 @@ class IRBuilder:
             )
 
         return result
-
-

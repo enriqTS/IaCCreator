@@ -31,6 +31,7 @@ def gen() -> ECRGenerator:
 # Minimal config tests
 # ---------------------------------------------------------------------------
 
+
 class TestECRGeneratorMinimal:
     """Test ECRGenerator with minimal config (all optional fields None)."""
 
@@ -74,6 +75,7 @@ class TestECRGeneratorMinimal:
 # Optional config tests
 # ---------------------------------------------------------------------------
 
+
 class TestECRGeneratorWithOptionalConfig:
     """Test ECRGenerator with optional config fields set."""
 
@@ -87,7 +89,9 @@ class TestECRGeneratorWithOptionalConfig:
         result = gen.generate_resource_tf(instance)
         assert "scan_on_push" in result
 
-    def test_variables_tf_includes_image_tag_mutability_variable(self, gen: ECRGenerator):
+    def test_variables_tf_includes_image_tag_mutability_variable(
+        self, gen: ECRGenerator
+    ):
         instance = _make_ecr_instance(ecr_image_tag_mutability="IMMUTABLE")
         result = gen.generate_variables_tf(instance)
         assert "ecr_image_tag_mutability" in result

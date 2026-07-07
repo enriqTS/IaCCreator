@@ -14,12 +14,16 @@ class CodeCommitGenerator:
         """Generate resource.tf with aws_codecommit_repository resource."""
         attrs: dict = {"repository_name": "var.repository_name"}
 
-        return self._r.render_resource("aws_codecommit_repository", instance.name, attrs)
+        return self._r.render_resource(
+            "aws_codecommit_repository", instance.name, attrs
+        )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a CodeCommit repository."""
         parts = [
-            self._r.render_variable("repository_name", "string", "Name of the CodeCommit repository"),
+            self._r.render_variable(
+                "repository_name", "string", "Name of the CodeCommit repository"
+            ),
         ]
         return "\n".join(parts)
 

@@ -27,28 +27,46 @@ class RDSGenerator:
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an RDS instance."""
         parts = [
-            self._r.render_variable("db_identifier", "string", "Identifier for the RDS instance"),
+            self._r.render_variable(
+                "db_identifier", "string", "Identifier for the RDS instance"
+            ),
         ]
         if instance.config.rds_engine is not None:
-            parts.append(self._r.render_variable(
-                "engine", "string", "Database engine type",
-                default=instance.config.rds_engine,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "engine",
+                    "string",
+                    "Database engine type",
+                    default=instance.config.rds_engine,
+                )
+            )
         if instance.config.rds_instance_class is not None:
-            parts.append(self._r.render_variable(
-                "instance_class", "string", "RDS instance class",
-                default=instance.config.rds_instance_class,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "instance_class",
+                    "string",
+                    "RDS instance class",
+                    default=instance.config.rds_instance_class,
+                )
+            )
         if instance.config.rds_allocated_storage is not None:
-            parts.append(self._r.render_variable(
-                "allocated_storage", "number", "Allocated storage in GB",
-                default=instance.config.rds_allocated_storage,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "allocated_storage",
+                    "number",
+                    "Allocated storage in GB",
+                    default=instance.config.rds_allocated_storage,
+                )
+            )
         if instance.config.rds_username is not None:
-            parts.append(self._r.render_variable(
-                "username", "string", "Master username for the database",
-                default=instance.config.rds_username,
-            ))
+            parts.append(
+                self._r.render_variable(
+                    "username",
+                    "string",
+                    "Master username for the database",
+                    default=instance.config.rds_username,
+                )
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

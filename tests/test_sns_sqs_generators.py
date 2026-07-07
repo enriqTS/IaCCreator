@@ -15,10 +15,10 @@ from app.generators.sqs_generator import SQSGenerator
 from app.models.input_models import ResourceConfig, ServiceType
 from app.models.ir_models import ResourceInstanceIR
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _sns_instance(name: str = "my-topic", **config_kwargs) -> ResourceInstanceIR:
     """Build a ResourceInstanceIR for an SNS topic with optional config overrides."""
@@ -42,6 +42,7 @@ def _sqs_instance(name: str = "my-queue", **config_kwargs) -> ResourceInstanceIR
 # 1. SNSGenerator — generate_resource_tf
 # ===========================================================================
 
+
 class TestSNSGeneratorResourceTf:
     """Test SNSGenerator.generate_resource_tf produces valid aws_sns_topic HCL."""
 
@@ -63,7 +64,9 @@ class TestSNSGeneratorResourceTf:
 
     def test_sns_with_kms_master_key_id(self):
         """When kms_master_key_id is set, the HCL includes kms_master_key_id attribute."""
-        instance = _sns_instance(kms_master_key_id="arn:aws:kms:us-east-1:123456789:key/abc")
+        instance = _sns_instance(
+            kms_master_key_id="arn:aws:kms:us-east-1:123456789:key/abc"
+        )
         hcl = self.gen.generate_resource_tf(instance)
         assert "kms_master_key_id = var.kms_master_key_id" in hcl
 
@@ -88,6 +91,7 @@ class TestSNSGeneratorResourceTf:
 # 2. SNSGenerator — FIFO topic
 # ===========================================================================
 
+
 class TestSNSGeneratorFifo:
     """Test SNSGenerator with fifo_topic=True includes fifo and deduplication."""
 
@@ -111,6 +115,7 @@ class TestSNSGeneratorFifo:
 # ===========================================================================
 # 3. SNSGenerator — generate_variables_tf
 # ===========================================================================
+
 
 class TestSNSGeneratorVariablesTf:
     """Test SNSGenerator.generate_variables_tf produces correct variable blocks."""
@@ -153,6 +158,7 @@ class TestSNSGeneratorVariablesTf:
 # 4. SNSGenerator — generate_outputs_tf
 # ===========================================================================
 
+
 class TestSNSGeneratorOutputsTf:
     """Test SNSGenerator.generate_outputs_tf produces topic_arn and topic_name outputs."""
 
@@ -177,6 +183,7 @@ class TestSNSGeneratorOutputsTf:
 # ===========================================================================
 # 5. SQSGenerator — generate_resource_tf
 # ===========================================================================
+
 
 class TestSQSGeneratorResourceTf:
     """Test SQSGenerator.generate_resource_tf produces valid aws_sqs_queue HCL."""
@@ -238,6 +245,7 @@ class TestSQSGeneratorResourceTf:
 # 6. SQSGenerator — FIFO queue
 # ===========================================================================
 
+
 class TestSQSGeneratorFifo:
     """Test SQSGenerator with fifo_queue=True includes fifo and deduplication."""
 
@@ -261,6 +269,7 @@ class TestSQSGeneratorFifo:
 # ===========================================================================
 # 7. SQSGenerator — generate_variables_tf
 # ===========================================================================
+
 
 class TestSQSGeneratorVariablesTf:
     """Test SQSGenerator.generate_variables_tf produces correct variable blocks."""
@@ -307,6 +316,7 @@ class TestSQSGeneratorVariablesTf:
 # 8. SQSGenerator — generate_outputs_tf
 # ===========================================================================
 
+
 class TestSQSGeneratorOutputsTf:
     """Test SQSGenerator.generate_outputs_tf produces queue_arn and queue_url outputs."""
 
@@ -331,6 +341,7 @@ class TestSQSGeneratorOutputsTf:
 # ===========================================================================
 # 9. Registry — both generators registered
 # ===========================================================================
+
 
 class TestGeneratorRegistry:
     """Test both SNS and SQS generators are registered in GENERATOR_REGISTRY."""
