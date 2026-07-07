@@ -3,6 +3,7 @@
 from typing import Literal
 
 from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._connections import ConnectionInput
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import (
     OptionEntry,
@@ -227,3 +228,22 @@ class ApiGatewayConfig(BaseServiceConfig):
         group="Metadata",
         description="Tags to apply to the API Gateway",
     )
+
+    # ─── Connection-Derived Inputs ─────────────────────────────────────────
+
+    @classmethod
+    def get_connections_schema(cls) -> list[ConnectionInput]:
+        """Declare connection-derived inputs for API Gateway.
+
+        API Gateway receives Lambda invoke ARNs from connected Lambda functions
+        for integration configuration.
+        """
+        return [
+            ConnectionInput(
+                name="lambda_invoke_arn",
+                source_service_type="lambda",
+                description="Lambda function invoke ARN for integration",
+                tf_variable_name="lambda_invoke_arn",
+                connection_role="route_handler",
+            ),
+        ]
