@@ -1,7 +1,16 @@
 """EKS service generator — produces HCL for aws_eks_cluster resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.eks_config import EksConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> EksConfig:
+    """Resolve typed EksConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, EksConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class EKSGenerator:
@@ -12,8 +21,10 @@ class EKSGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_eks_cluster resource."""
+        config = _resolve_config(instance)
+
         vpc_config: dict = {"subnet_ids": "var.subnet_ids"}
-        if instance.config.eks_endpoint_public_access is not None:
+        if config.eks_endpoint_public_access is not None:
             vpc_config["endpoint_public_access"] = "var.eks_endpoint_public_access"
 
         attrs: dict = {
@@ -21,13 +32,15 @@ class EKSGenerator:
             "role_arn": "var.cluster_role_arn",
             "vpc_config": vpc_config,
         }
-        if instance.config.eks_version is not None:
+        if config.eks_version is not None:
             attrs["version"] = "var.eks_version"
 
         return self._r.render_resource("aws_eks_cluster", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an EKS cluster."""
+        config = _resolve_config(instance)
+
         parts = [
             self._r.render_variable(
                 "cluster_name", "string", "Name of the EKS cluster"
@@ -41,22 +54,22 @@ class EKSGenerator:
                 "List of subnet IDs for the EKS cluster VPC config",
             ),
         ]
-        if instance.config.eks_version is not None:
+        if config.eks_version is not None:
             parts.append(
                 self._r.render_variable(
                     "eks_version",
                     "string",
                     "Kubernetes version for the EKS cluster",
-                    default=instance.config.eks_version,
+                    default=config.eks_version,
                 )
             )
-        if instance.config.eks_endpoint_public_access is not None:
+        if config.eks_endpoint_public_access is not None:
             parts.append(
                 self._r.render_variable(
                     "eks_endpoint_public_access",
                     "bool",
                     "Whether the EKS cluster endpoint is publicly accessible",
-                    default=instance.config.eks_endpoint_public_access,
+                    default=config.eks_endpoint_public_access,
                 )
             )
         return "\n".join(parts)

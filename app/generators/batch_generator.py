@@ -1,7 +1,16 @@
 """Batch service generator — produces HCL for aws_batch_compute_environment resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.batch_config import BatchConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> BatchConfig:
+    """Resolve typed BatchConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, BatchConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class BatchGenerator:
@@ -12,13 +21,15 @@ class BatchGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_batch_compute_environment resource."""
+        config = _resolve_config(instance)
+
         attrs: dict = {
             "compute_environment_name": "var.compute_environment_name",
             "service_role": "var.service_role_arn",
         }
-        if instance.config.batch_compute_environment_type is not None:
+        if config.batch_compute_environment_type is not None:
             attrs["type"] = "var.batch_compute_environment_type"
-        if instance.config.batch_max_vcpus is not None:
+        if config.batch_max_vcpus is not None:
             attrs["compute_resources"] = {"max_vcpus": "var.batch_max_vcpus"}
 
         return self._r.render_resource(
@@ -27,6 +38,8 @@ class BatchGenerator:
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Batch compute environment."""
+        config = _resolve_config(instance)
+
         parts = [
             self._r.render_variable(
                 "compute_environment_name",
@@ -37,22 +50,22 @@ class BatchGenerator:
                 "service_role_arn", "string", "ARN of the IAM service role for Batch"
             ),
         ]
-        if instance.config.batch_compute_environment_type is not None:
+        if config.batch_compute_environment_type is not None:
             parts.append(
                 self._r.render_variable(
                     "batch_compute_environment_type",
                     "string",
                     "Type of the Batch compute environment",
-                    default=instance.config.batch_compute_environment_type,
+                    default=config.batch_compute_environment_type,
                 )
             )
-        if instance.config.batch_max_vcpus is not None:
+        if config.batch_max_vcpus is not None:
             parts.append(
                 self._r.render_variable(
                     "batch_max_vcpus",
                     "number",
                     "Maximum vCPUs for the Batch compute resources",
-                    default=instance.config.batch_max_vcpus,
+                    default=config.batch_max_vcpus,
                 )
             )
         return "\n".join(parts)

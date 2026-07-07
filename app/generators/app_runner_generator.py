@@ -1,7 +1,16 @@
 """App Runner service generator — produces HCL for aws_apprunner_service resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.app_runner_config import AppRunnerConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> AppRunnerConfig:
+    """Resolve typed AppRunnerConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, AppRunnerConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class AppRunnerGenerator:
@@ -12,6 +21,8 @@ class AppRunnerGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_apprunner_service resource."""
+        config = _resolve_config(instance)  # noqa: F841
+
         attrs: dict = {
             "service_name": "var.service_name",
             "source_configuration": {
@@ -26,6 +37,8 @@ class AppRunnerGenerator:
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an App Runner service."""
+        _resolve_config(instance)
+
         parts = [
             self._r.render_variable(
                 "service_name", "string", "Name of the App Runner service"

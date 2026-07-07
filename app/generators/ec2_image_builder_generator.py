@@ -1,7 +1,16 @@
 """EC2 Image Builder service generator — produces HCL for aws_imagebuilder_image_pipeline resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.ec2_image_builder_config import Ec2ImageBuilderConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> Ec2ImageBuilderConfig:
+    """Resolve typed Ec2ImageBuilderConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, Ec2ImageBuilderConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class EC2ImageBuilderGenerator:
@@ -12,6 +21,8 @@ class EC2ImageBuilderGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_imagebuilder_image_pipeline resource."""
+        _resolve_config(instance)
+
         attrs: dict = {
             "name": "var.pipeline_name",
             "image_recipe_arn": "var.image_recipe_arn",
@@ -24,6 +35,8 @@ class EC2ImageBuilderGenerator:
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an EC2 Image Builder pipeline."""
+        _resolve_config(instance)
+
         parts = [
             self._r.render_variable(
                 "pipeline_name", "string", "Name of the Image Builder pipeline"
