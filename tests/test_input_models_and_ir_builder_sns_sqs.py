@@ -6,12 +6,12 @@ Covers task 1.5 of the connection-aware-terraform-generation spec:
 - ConnectionIR carries connection_config through
 - IR Builder compatible pairs for new service types
 - IR Builder rejection of unsupported pairs
-- _build_iam_resources ARN references for SNS and SQS
+- IAM registry ARN references for SNS and SQS
 """
 
 import pytest
-from fastapi import HTTPException
 
+from app.exceptions import IncompatibleConnectionError
 from app.models.input_models import (
     ArchitectureDescription,
     Connection,
@@ -21,7 +21,8 @@ from app.models.input_models import (
     ServiceType,
 )
 from app.models.ir_models import ConnectionIR
-from app.services.ir_builder import IRBuilder, _build_iam_resources
+from app.services.ir_builder import IRBuilder
+from app.services.iam_registry import get_resources
 
 
 # ---------------------------------------------------------------------------
@@ -242,17 +243,16 @@ class TestIRBuilderNewCompatiblePairs:
 # ===========================================================================
 
 class TestIRBuilderRejectsUnsupportedPairs:
-    """Test IR Builder rejects incompatible connection pairs with 422."""
+    """Test IR Builder rejects incompatible connection pairs with IncompatibleConnectionError."""
 
     def test_sqs_to_sns_rejected(self):
         desc = _make_input(
             resources=[_sqs_resource(), _sns_resource()],
             connections=[Connection(source="my-queue", target="my-topic", connection_type="sends_to")],
         )
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
-        assert exc_info.value.status_code == 422
-        assert "Incompatible connection" in exc_info.value.detail
+        assert "Incompatible connection" in str(exc_info.value)
 
     def test_sns_to_sns_rejected(self):
         desc = _make_input(
@@ -262,10 +262,9 @@ class TestIRBuilderRejectsUnsupportedPairs:
             ],
             connections=[Connection(source="topic-a", target="topic-b", connection_type="forwards_to")],
         )
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
-        assert exc_info.value.status_code == 422
-        assert "Incompatible connection" in exc_info.value.detail
+        assert "Incompatible connection" in str(exc_info.value)
 
     def test_sqs_to_sqs_rejected(self):
         desc = _make_input(
@@ -275,10 +274,9 @@ class TestIRBuilderRejectsUnsupportedPairs:
             ],
             connections=[Connection(source="queue-a", target="queue-b", connection_type="forwards_to")],
         )
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
-        assert exc_info.value.status_code == 422
-        assert "Incompatible connection" in exc_info.value.detail
+        assert "Incompatible connection" in str(exc_info.value)
 
     def test_sns_to_s3_rejected(self):
         desc = _make_input(
@@ -288,10 +286,9 @@ class TestIRBuilderRejectsUnsupportedPairs:
             ],
             connections=[Connection(source="my-topic", target="my-bucket", connection_type="delivers_to")],
         )
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
-        assert exc_info.value.status_code == 422
-        assert "Incompatible connection" in exc_info.value.detail
+        assert "Incompatible connection" in str(exc_info.value)
 
     def test_sqs_to_dynamodb_rejected(self):
         desc = _make_input(
@@ -305,10 +302,9 @@ class TestIRBuilderRejectsUnsupportedPairs:
             ],
             connections=[Connection(source="my-queue", target="my-table", connection_type="writes_to")],
         )
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
-        assert exc_info.value.status_code == 422
-        assert "Incompatible connection" in exc_info.value.detail
+        assert "Incompatible connection" in str(exc_info.value)
 
 
 # ===========================================================================
@@ -316,22 +312,22 @@ class TestIRBuilderRejectsUnsupportedPairs:
 # ===========================================================================
 
 class TestBuildIAMResources:
-    """Test _build_iam_resources returns correct ARN references for SNS and SQS."""
+    """Test get_resources returns correct ARN references for SNS and SQS."""
 
     def test_sns_arn_reference(self):
-        result = _build_iam_resources("my-topic", ServiceType.SNS)
+        result = get_resources("my-topic", ServiceType.SNS)
         assert result == ["${aws_sns_topic.my-topic.arn}"]
 
     def test_sqs_arn_reference(self):
-        result = _build_iam_resources("my-queue", ServiceType.SQS)
+        result = get_resources("my-queue", ServiceType.SQS)
         assert result == ["${aws_sqs_queue.my-queue.arn}"]
 
     def test_sns_arn_with_different_name(self):
-        result = _build_iam_resources("notifications", ServiceType.SNS)
+        result = get_resources("notifications", ServiceType.SNS)
         assert result == ["${aws_sns_topic.notifications.arn}"]
 
     def test_sqs_arn_with_different_name(self):
-        result = _build_iam_resources("order-events", ServiceType.SQS)
+        result = get_resources("order-events", ServiceType.SQS)
         assert result == ["${aws_sqs_queue.order-events.arn}"]
 
 
@@ -340,9 +336,9 @@ class TestBuildIAMResources:
 # ===========================================================================
 
 class TestIAMStatementsForNewConnections:
-    """Test IAM statements are correctly derived for Lambda→SNS and Lambda→SQS."""
+    """Test IRBuilder produces empty IAM statements (IAM is now derived by ConnectionProcessor)."""
 
-    def test_lambda_to_sns_iam_statements(self):
+    def test_lambda_to_sns_iam_statements_empty(self):
         desc = _make_input(
             resources=[_lambda_resource(), _sns_resource()],
             connections=[Connection(source="my-func", target="my-topic", connection_type="publishes_to")],
@@ -350,13 +346,9 @@ class TestIAMStatementsForNewConnections:
         ir = IRBuilder().build(desc)
         lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
         func_ir = lambda_module.instances[0]
-        assert len(func_ir.iam_statements) == 1
-        stmt = func_ir.iam_statements[0]
-        assert stmt.effect == "Allow"
-        assert "sns:Publish" in stmt.actions
-        assert "${aws_sns_topic.my-topic.arn}" in stmt.resources
+        assert func_ir.iam_statements == []
 
-    def test_lambda_to_sqs_iam_statements(self):
+    def test_lambda_to_sqs_iam_statements_empty(self):
         desc = _make_input(
             resources=[_lambda_resource(), _sqs_resource()],
             connections=[Connection(source="my-func", target="my-queue", connection_type="sends_to")],
@@ -364,13 +356,9 @@ class TestIAMStatementsForNewConnections:
         ir = IRBuilder().build(desc)
         lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
         func_ir = lambda_module.instances[0]
-        assert len(func_ir.iam_statements) == 1
-        stmt = func_ir.iam_statements[0]
-        assert stmt.effect == "Allow"
-        assert "sqs:SendMessage" in stmt.actions
-        assert "${aws_sqs_queue.my-queue.arn}" in stmt.resources
+        assert func_ir.iam_statements == []
 
-    def test_lambda_to_multiple_targets_produces_multiple_statements(self):
+    def test_lambda_to_multiple_targets_produces_empty_statements(self):
         desc = _make_input(
             resources=[_lambda_resource(), _sns_resource(), _sqs_resource()],
             connections=[
@@ -381,7 +369,4 @@ class TestIAMStatementsForNewConnections:
         ir = IRBuilder().build(desc)
         lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
         func_ir = lambda_module.instances[0]
-        assert len(func_ir.iam_statements) == 2
-        actions = [a for stmt in func_ir.iam_statements for a in stmt.actions]
-        assert "sns:Publish" in actions
-        assert "sqs:SendMessage" in actions
+        assert func_ir.iam_statements == []

@@ -1,8 +1,8 @@
 """Unit tests for the IRBuilder service."""
 
 import pytest
-from fastapi import HTTPException
 
+from app.exceptions import IncompatibleConnectionError, ResourceNotFoundError
 from app.models.input_models import (
     ArchitectureDescription,
     Connection,
@@ -90,19 +90,17 @@ class TestConnectionValidation:
         desc = _make_input(
             connections=[Connection(source="ghost", target="my-func", connection_type="triggers")]
         )
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(ResourceNotFoundError) as exc_info:
             IRBuilder().build(desc)
-        assert exc_info.value.status_code == 422
-        assert "non-existent source resource" in exc_info.value.detail
+        assert "non-existent source resource" in str(exc_info.value)
 
     def test_rejects_nonexistent_target_resource(self):
         desc = _make_input(
             connections=[Connection(source="my-func", target="ghost", connection_type="triggers")]
         )
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(ResourceNotFoundError) as exc_info:
             IRBuilder().build(desc)
-        assert exc_info.value.status_code == 422
-        assert "non-existent target resource" in exc_info.value.detail
+        assert "non-existent target resource" in str(exc_info.value)
 
     def test_rejects_incompatible_connection_s3_to_s3(self):
         desc = _make_input(
@@ -112,10 +110,9 @@ class TestConnectionValidation:
             ],
             connections=[Connection(source="bucket-a", target="bucket-b", connection_type="reads_from")],
         )
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(IncompatibleConnectionError) as exc_info:
             IRBuilder().build(desc)
-        assert exc_info.value.status_code == 422
-        assert "Incompatible connection" in exc_info.value.detail
+        assert "Incompatible connection" in str(exc_info.value)
 
     def test_rejects_dynamodb_to_lambda(self):
         desc = _make_input(
@@ -125,9 +122,8 @@ class TestConnectionValidation:
             ],
             connections=[Connection(source="my-table", target="my-func", connection_type="triggers")],
         )
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(IncompatibleConnectionError):
             IRBuilder().build(desc)
-        assert exc_info.value.status_code == 422
 
     def test_accepts_valid_api_gateway_to_lambda(self):
         desc = _make_input(
@@ -144,7 +140,7 @@ class TestConnectionValidation:
 
 
 class TestIAMStatementDerivation:
-    """Test IAM statement derivation from connections."""
+    """Test that IRBuilder produces empty IAM statements (IAM derivation moved to ConnectionProcessor)."""
 
     def test_lambda_to_dynamodb_iam_statements(self):
         desc = _make_input(
@@ -157,11 +153,7 @@ class TestIAMStatementDerivation:
         ir = IRBuilder().build(desc)
         lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
         func_ir = lambda_module.instances[0]
-        assert len(func_ir.iam_statements) == 1
-        stmt = func_ir.iam_statements[0]
-        assert "dynamodb:GetItem" in stmt.actions
-        assert "dynamodb:PutItem" in stmt.actions
-        assert "${aws_dynamodb_table.my-table.arn}" in stmt.resources
+        assert func_ir.iam_statements == []
 
     def test_lambda_to_s3_iam_statements(self):
         desc = _make_input(
@@ -174,12 +166,7 @@ class TestIAMStatementDerivation:
         ir = IRBuilder().build(desc)
         lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
         func_ir = lambda_module.instances[0]
-        assert len(func_ir.iam_statements) == 1
-        stmt = func_ir.iam_statements[0]
-        assert "s3:GetObject" in stmt.actions
-        assert "s3:PutObject" in stmt.actions
-        assert "${aws_s3_bucket.my-bucket.arn}" in stmt.resources
-        assert "${aws_s3_bucket.my-bucket.arn}/*" in stmt.resources
+        assert func_ir.iam_statements == []
 
     def test_lambda_to_cloudwatch_iam_statements(self):
         desc = _make_input(
@@ -192,12 +179,9 @@ class TestIAMStatementDerivation:
         ir = IRBuilder().build(desc)
         lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
         func_ir = lambda_module.instances[0]
-        assert len(func_ir.iam_statements) == 1
-        stmt = func_ir.iam_statements[0]
-        assert "logs:CreateLogGroup" in stmt.actions
-        assert "arn:aws:logs:*:*:log-group:/aws/lambda/my-logs:*" in stmt.resources
+        assert func_ir.iam_statements == []
 
-    def test_multiple_connections_produce_multiple_iam_statements(self):
+    def test_multiple_connections_produce_empty_iam_statements(self):
         desc = _make_input(
             resources=[
                 ResourceInstance(name="my-func", service_type=ServiceType.LAMBDA, config=ResourceConfig(handler="h", runtime="python3.12")),
@@ -212,7 +196,7 @@ class TestIAMStatementDerivation:
         ir = IRBuilder().build(desc)
         lambda_module = next(m for m in ir.modules if m.service_type == ServiceType.LAMBDA)
         func_ir = lambda_module.instances[0]
-        assert len(func_ir.iam_statements) == 2
+        assert func_ir.iam_statements == []
 
     def test_api_gateway_to_lambda_no_iam_on_gateway(self):
         """API Gateway → Lambda should not add IAM statements to the gateway resource."""

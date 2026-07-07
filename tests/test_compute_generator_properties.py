@@ -74,7 +74,13 @@ ICON_ONLY_SERVICES = [
 
 
 def _minimal_config_for(service_type: ServiceType) -> ResourceConfig:
-    """Return a minimal ResourceConfig with all optional fields as None."""
+    """Return a minimal ResourceConfig that produces non-empty generator output.
+
+    Most generators produce output from a bare ResourceConfig(), but some
+    have purely conditional fields. For those, provide at least one value.
+    """
+    if service_type == ServiceType.CONNECT:
+        return ResourceConfig(connect_identity_management_type="CONNECT_MANAGED")
     return ResourceConfig()
 
 
