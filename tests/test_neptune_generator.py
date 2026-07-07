@@ -6,7 +6,8 @@ Requirements: 32.1–32.5
 import pytest
 
 from app.generators.neptune_generator import NeptuneGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.neptune_config import NeptuneConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_neptune_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.NEPTUNE,
-        config=ResourceConfig(**config_kwargs),
+        config=NeptuneConfig(**config_kwargs),
     )
 
 

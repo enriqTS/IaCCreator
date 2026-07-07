@@ -9,6 +9,7 @@ from hypothesis import strategies as st
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.variable_schemas import VARIABLE_SCHEMAS, VisibleWhen
 from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import get_service_config_models
 from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -40,25 +41,7 @@ _FIELD_NAME_MAP: dict[str, str] = {
 # Per-service mapping from schema variable name → ResourceConfig field name.
 # Used when the schema name differs from the config field name.
 _SERVICE_FIELD_NAME_MAP: dict[ServiceType, dict[str, str]] = {
-    # Analytics
-    ServiceType.ATHENA: {"workgroup_name": "athena_name"},
-    ServiceType.CLOUDSEARCH: {"domain_name": "cloudsearch_name"},
-    ServiceType.EMR: {
-        "release_label": "emr_release_label",
-        "service_role": "emr_service_role",
-    },
-    ServiceType.GLUE: {"database_name": "glue_catalog_database_name"},
-    ServiceType.KINESIS: {"shard_count": "kinesis_shard_count"},
-    ServiceType.KINESIS_FIREHOSE: {"destination": "firehose_destination"},
-    ServiceType.MSK: {
-        "kafka_version": "msk_kafka_version",
-        "number_of_broker_nodes": "msk_number_of_broker_nodes",
-    },
-    ServiceType.OPENSEARCH: {"domain_name": "opensearch_domain_name"},
-    ServiceType.REDSHIFT: {
-        "node_type": "redshift_node_type",
-        "master_username": "redshift_master_username",
-    },
+    # Analytics — now using typed configs with matching field names (no mapping needed)
     # Business Applications
     ServiceType.CONNECT: {
         "identity_management_type": "connect_identity_management_type",
@@ -69,23 +52,23 @@ _SERVICE_FIELD_NAME_MAP: dict[ServiceType, dict[str, str]] = {
     ServiceType.PINPOINT: {"app_name": "pinpoint_name"},
     # Database
     ServiceType.AURORA: {
-        "engine": "aurora_engine",
-        "master_username": "aurora_master_username",
+        "engine": "engine",
+        "master_username": "master_username",
     },
-    ServiceType.DOCUMENTDB: {"master_username": "documentdb_master_username"},
+    ServiceType.DOCUMENTDB: {"master_username": "master_username"},
     ServiceType.ELASTICACHE: {
-        "engine": "elasticache_engine",
-        "node_type": "elasticache_node_type",
-        "num_cache_nodes": "elasticache_num_cache_nodes",
+        "engine": "engine",
+        "node_type": "node_type",
+        "num_cache_nodes": "num_cache_nodes",
     },
-    ServiceType.NEPTUNE: {"cluster_identifier": "neptune_cluster_identifier"},
+    ServiceType.NEPTUNE: {"cluster_identifier": "cluster_identifier"},
     ServiceType.RDS: {
-        "engine": "rds_engine",
-        "instance_class": "rds_instance_class",
-        "allocated_storage": "rds_allocated_storage",
-        "username": "rds_username",
+        "engine": "engine",
+        "instance_class": "instance_class",
+        "allocated_storage": "allocated_storage",
+        "username": "username",
     },
-    ServiceType.TIMESTREAM: {"database_name": "timestream_database_name"},
+    ServiceType.TIMESTREAM: {"database_name": "database_name"},
     # Developer Tools
     ServiceType.CODEBUILD: {
         "service_role": "codebuild_service_role",
@@ -297,7 +280,13 @@ def resource_instance_with_populated_fields(draw):
     if service_type == ServiceType.DYNAMODB:
         config = DynamoDBConfig(**config_kwargs)
     else:
-        config = ResourceConfig(**config_kwargs)
+        # Use typed config model when available (field names match schema names)
+        config_models = get_service_config_models()
+        config_cls = config_models.get(service_type)
+        if config_cls is not None and config_cls.has_terraform_schema():
+            config = config_cls(**config_kwargs)
+        else:
+            config = ResourceConfig(**config_kwargs)
 
     # Now determine which populated fields are actually visible
     for entry, should_populate in zip(optional_entries, populate_flags):

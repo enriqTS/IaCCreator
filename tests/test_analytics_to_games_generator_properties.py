@@ -11,6 +11,22 @@ from hypothesis import strategies as st
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.service_category_map import get_category
 from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models.athena_config import AthenaConfig
+from app.models.input_models.aurora_config import AuroraConfig
+from app.models.input_models.cloudsearch_config import CloudSearchConfig
+from app.models.input_models.documentdb_config import DocumentDbConfig
+from app.models.input_models.elasticache_config import ElastiCacheConfig
+from app.models.input_models.emr_config import EmrConfig
+from app.models.input_models.glue_config import GlueConfig
+from app.models.input_models.kinesis_config import KinesisConfig
+from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
+from app.models.input_models.msk_config import MskConfig
+from app.models.input_models.neptune_config import NeptuneConfig
+from app.models.input_models.opensearch_config import OpenSearchConfig
+from app.models.input_models.rds_config import RdsConfig
+from app.models.input_models.redshift_config import RedshiftConfig
+from app.models.input_models.timestream_config import TimestreamConfig
 from app.models.ir_models import (
     EnvironmentIR,
     ProjectIR,
@@ -18,6 +34,27 @@ from app.models.ir_models import (
     ServiceModuleIR,
 )
 from app.services.file_tree_assembler import FileTreeAssembler
+
+# Mapping from service type to typed config class for migrated services
+_TYPED_CONFIG_CLASSES: dict[ServiceType, type[BaseServiceConfig]] = {
+    # Analytics
+    ServiceType.ATHENA: AthenaConfig,
+    ServiceType.CLOUDSEARCH: CloudSearchConfig,
+    ServiceType.EMR: EmrConfig,
+    ServiceType.GLUE: GlueConfig,
+    ServiceType.KINESIS: KinesisConfig,
+    ServiceType.KINESIS_FIREHOSE: KinesisFirehoseConfig,
+    ServiceType.MSK: MskConfig,
+    ServiceType.OPENSEARCH: OpenSearchConfig,
+    ServiceType.REDSHIFT: RedshiftConfig,
+    # Database
+    ServiceType.AURORA: AuroraConfig,
+    ServiceType.DOCUMENTDB: DocumentDbConfig,
+    ServiceType.ELASTICACHE: ElastiCacheConfig,
+    ServiceType.NEPTUNE: NeptuneConfig,
+    ServiceType.RDS: RdsConfig,
+    ServiceType.TIMESTREAM: TimestreamConfig,
+}
 
 # ---------------------------------------------------------------------------
 # Shared strategies
@@ -132,19 +169,22 @@ ICON_ONLY_SERVICES = [
 ]
 
 
-def _minimal_config_for(service_type: ServiceType) -> ResourceConfig:
-    """Return a minimal ResourceConfig that produces non-empty generator output.
+def _minimal_config_for(service_type: ServiceType) -> BaseServiceConfig:
+    """Return a minimal config that produces non-empty generator output.
 
-    Most generators produce output from a bare ResourceConfig(), but some
+    Most generators produce output from a bare config, but some
     have purely conditional fields. For those, provide at least one value.
+    Migrated services use their typed config class.
     """
+    if service_type in _TYPED_CONFIG_CLASSES:
+        return _TYPED_CONFIG_CLASSES[service_type]()
     if service_type == ServiceType.CONNECT:
         return ResourceConfig(connect_identity_management_type="CONNECT_MANAGED")
     return ResourceConfig()
 
 
 def _make_instance(
-    name: str, service_type: ServiceType, config: ResourceConfig
+    name: str, service_type: ServiceType, config: BaseServiceConfig
 ) -> ResourceInstanceIR:
     return ResourceInstanceIR(name=name, service_type=service_type, config=config)
 
@@ -201,22 +241,22 @@ def test_property_1_generator_protocol_compliance_and_non_empty_output(
 # Only services with optional config fields are included.
 OPTIONAL_FIELD_MAP: dict[ServiceType, list[tuple[str, str]]] = {
     ServiceType.EMR: [
-        ("emr_release_label", "var.release_label"),
-        ("emr_service_role", "var.service_role"),
+        ("release_label", "var.release_label"),
+        ("service_role", "var.service_role"),
     ],
     ServiceType.KINESIS: [
-        ("kinesis_shard_count", "var.shard_count"),
+        ("shard_count", "var.shard_count"),
     ],
     ServiceType.KINESIS_FIREHOSE: [
-        ("firehose_destination", "var.destination"),
+        ("destination", "var.destination"),
     ],
     ServiceType.MSK: [
-        ("msk_kafka_version", "var.kafka_version"),
-        ("msk_number_of_broker_nodes", "var.number_of_broker_nodes"),
+        ("kafka_version", "var.kafka_version"),
+        ("number_of_broker_nodes", "var.number_of_broker_nodes"),
     ],
     ServiceType.REDSHIFT: [
-        ("redshift_node_type", "var.node_type"),
-        ("redshift_master_username", "var.master_username"),
+        ("node_type", "var.node_type"),
+        ("master_username", "var.master_username"),
     ],
     ServiceType.CONNECT: [
         ("connect_identity_management_type", "var.identity_management_type"),
@@ -224,22 +264,22 @@ OPTIONAL_FIELD_MAP: dict[ServiceType, list[tuple[str, str]]] = {
         ("connect_outbound_calls_enabled", "var.outbound_calls_enabled"),
     ],
     ServiceType.AURORA: [
-        ("aurora_engine", "var.engine"),
-        ("aurora_master_username", "var.master_username"),
+        ("engine", "var.engine"),
+        ("master_username", "var.master_username"),
     ],
     ServiceType.DOCUMENTDB: [
-        ("documentdb_master_username", "var.master_username"),
+        ("master_username", "var.master_username"),
     ],
     ServiceType.ELASTICACHE: [
-        ("elasticache_engine", "var.engine"),
-        ("elasticache_node_type", "var.node_type"),
-        ("elasticache_num_cache_nodes", "var.num_cache_nodes"),
+        ("engine", "var.engine"),
+        ("node_type", "var.node_type"),
+        ("num_cache_nodes", "var.num_cache_nodes"),
     ],
     ServiceType.RDS: [
-        ("rds_engine", "var.engine"),
-        ("rds_instance_class", "var.instance_class"),
-        ("rds_allocated_storage", "var.allocated_storage"),
-        ("rds_username", "var.username"),
+        ("engine", "var.engine"),
+        ("instance_class", "var.instance_class"),
+        ("allocated_storage", "var.allocated_storage"),
+        ("username", "var.username"),
     ],
     ServiceType.CODEBUILD: [
         ("codebuild_source_type", "var.source_type"),
@@ -264,27 +304,22 @@ _SERVICES_WITH_OPTIONAL_FIELDS = list(OPTIONAL_FIELD_MAP.keys())
 
 # Sample values for optional config fields by type
 _OPTIONAL_FIELD_VALUES: dict[str, object] = {
-    "emr_release_label": "emr-6.10.0",
-    "emr_service_role": "EMR_DefaultRole",
-    "kinesis_shard_count": 2,
-    "firehose_destination": "s3",
-    "msk_kafka_version": "3.5.1",
-    "msk_number_of_broker_nodes": 3,
-    "redshift_node_type": "dc2.large",
-    "redshift_master_username": "admin",
+    "release_label": "emr-6.10.0",
+    "service_role": "EMR_DefaultRole",
+    "shard_count": 2,
+    "destination": "s3",
+    "kafka_version": "3.5.1",
+    "number_of_broker_nodes": 3,
+    "node_type": "dc2.large",
+    "master_username": "admin",
     "connect_identity_management_type": "SAML",
     "connect_inbound_calls_enabled": True,
     "connect_outbound_calls_enabled": True,
-    "aurora_engine": "aurora-mysql",
-    "aurora_master_username": "admin",
-    "documentdb_master_username": "docdbadmin",
-    "elasticache_engine": "redis",
-    "elasticache_node_type": "cache.t3.micro",
-    "elasticache_num_cache_nodes": 1,
-    "rds_engine": "mysql",
-    "rds_instance_class": "db.t3.micro",
-    "rds_allocated_storage": 20,
-    "rds_username": "admin",
+    "engine": "aurora-mysql",
+    "num_cache_nodes": 1,
+    "instance_class": "db.t3.micro",
+    "allocated_storage": 20,
+    "username": "admin",
     "codebuild_source_type": "CODECOMMIT",
     "codebuild_service_role": "arn:aws:iam::123456789012:role/codebuild-role",
     "codedeploy_compute_platform": "Server",
@@ -296,10 +331,10 @@ _OPTIONAL_FIELD_VALUES: dict[str, object] = {
 
 @st.composite
 def _config_with_random_optional_fields(draw):
-    """Generate a (ServiceType, ResourceConfig, set_fields, unset_fields) tuple.
+    """Generate a (ServiceType, config, set_fields, unset_fields) tuple.
 
     For a randomly chosen service with optional fields, randomly set/unset
-    each optional field.
+    each optional field. Uses typed config models for migrated database services.
     """
     service_type = draw(st.sampled_from(_SERVICES_WITH_OPTIONAL_FIELDS))
     fields = OPTIONAL_FIELD_MAP[service_type]
@@ -322,9 +357,14 @@ def _config_with_random_optional_fields(draw):
             config_kwargs[field_name] = _OPTIONAL_FIELD_VALUES[field_name]
             set_fields.append((field_name, var_ref))
         else:
+            # Explicitly set to None so fields with non-None defaults are cleared
+            config_kwargs[field_name] = None
             unset_fields.append((field_name, var_ref))
 
-    config = ResourceConfig(**config_kwargs)
+    if service_type in _TYPED_CONFIG_CLASSES:
+        config = _TYPED_CONFIG_CLASSES[service_type](**config_kwargs)
+    else:
+        config = ResourceConfig(**config_kwargs)
     return service_type, config, set_fields, unset_fields
 
 

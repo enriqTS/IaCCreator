@@ -1,7 +1,15 @@
 """DocumentDB service generator — produces HCL for aws_docdb_cluster resources."""
 
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.documentdb_config import DocumentDbConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> DocumentDbConfig:
+    """Resolve typed DocumentDbConfig from the instance."""
+    if isinstance(instance.config, DocumentDbConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class DocumentDBGenerator:
@@ -12,26 +20,28 @@ class DocumentDBGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_docdb_cluster resource."""
+        config = _resolve_config(instance)
         attrs: dict = {"cluster_identifier": "var.cluster_identifier"}
-        if instance.config.documentdb_master_username is not None:
+        if config.master_username is not None:
             attrs["master_username"] = "var.master_username"
 
         return self._r.render_resource("aws_docdb_cluster", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a DocumentDB cluster."""
+        config = _resolve_config(instance)
         parts = [
             self._r.render_variable(
                 "cluster_identifier", "string", "Identifier for the DocumentDB cluster"
             ),
         ]
-        if instance.config.documentdb_master_username is not None:
+        if config.master_username is not None:
             parts.append(
                 self._r.render_variable(
                     "master_username",
                     "string",
                     "Master username for the DocumentDB cluster",
-                    default=instance.config.documentdb_master_username,
+                    default=config.master_username,
                 )
             )
         return "\n".join(parts)

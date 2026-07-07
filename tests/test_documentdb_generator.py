@@ -6,7 +6,8 @@ Requirements: 28.1–28.6
 import pytest
 
 from app.generators.documentdb_generator import DocumentDBGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.documentdb_config import DocumentDbConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_documentdb_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.DOCUMENTDB,
-        config=ResourceConfig(**config_kwargs),
+        config=DocumentDbConfig(**config_kwargs),
     )
 
 
@@ -72,13 +73,13 @@ class TestDocumentDBGeneratorWithOptionalConfig:
     """Test DocumentDBGenerator with optional config fields set."""
 
     def test_resource_tf_includes_master_username(self, gen: DocumentDBGenerator):
-        instance = _make_documentdb_instance(documentdb_master_username="admin")
+        instance = _make_documentdb_instance(master_username="admin")
         result = gen.generate_resource_tf(instance)
         assert "master_username" in result
 
     def test_variables_tf_includes_master_username_variable(
         self, gen: DocumentDBGenerator
     ):
-        instance = _make_documentdb_instance(documentdb_master_username="admin")
+        instance = _make_documentdb_instance(master_username="admin")
         result = gen.generate_variables_tf(instance)
         assert "master_username" in result

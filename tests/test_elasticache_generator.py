@@ -6,7 +6,8 @@ Requirements: 30.1–30.8
 import pytest
 
 from app.generators.elasticache_generator import ElastiCacheGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.elasticache_config import ElastiCacheConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_elasticache_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.ELASTICACHE,
-        config=ResourceConfig(**config_kwargs),
+        config=ElastiCacheConfig(**config_kwargs),
     )
 
 
@@ -84,21 +85,21 @@ class TestElastiCacheGeneratorWithOptionalConfig:
     """Test ElastiCacheGenerator with optional config fields set."""
 
     def test_resource_tf_includes_engine(self, gen: ElastiCacheGenerator):
-        instance = _make_elasticache_instance(elasticache_engine="redis")
+        instance = _make_elasticache_instance(engine="redis")
         result = gen.generate_resource_tf(instance)
         assert "engine" in result
 
     def test_variables_tf_includes_engine_variable(self, gen: ElastiCacheGenerator):
-        instance = _make_elasticache_instance(elasticache_engine="redis")
+        instance = _make_elasticache_instance(engine="redis")
         result = gen.generate_variables_tf(instance)
         assert "engine" in result
 
     def test_resource_tf_includes_node_type(self, gen: ElastiCacheGenerator):
-        instance = _make_elasticache_instance(elasticache_node_type="cache.t3.micro")
+        instance = _make_elasticache_instance(node_type="cache.t3.micro")
         result = gen.generate_resource_tf(instance)
         assert "node_type" in result
 
     def test_resource_tf_includes_num_cache_nodes(self, gen: ElastiCacheGenerator):
-        instance = _make_elasticache_instance(elasticache_num_cache_nodes=2)
+        instance = _make_elasticache_instance(num_cache_nodes=2)
         result = gen.generate_resource_tf(instance)
         assert "num_cache_nodes" in result

@@ -1,7 +1,15 @@
 """RDS service generator — produces HCL for aws_db_instance resources."""
 
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.rds_config import RdsConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> RdsConfig:
+    """Resolve typed RdsConfig from the instance."""
+    if isinstance(instance.config, RdsConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class RDSGenerator:
@@ -12,59 +20,61 @@ class RDSGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_db_instance resource."""
+        config = _resolve_config(instance)
         attrs: dict = {"identifier": "var.db_identifier"}
-        if instance.config.rds_engine is not None:
+        if config.engine is not None:
             attrs["engine"] = "var.engine"
-        if instance.config.rds_instance_class is not None:
+        if config.instance_class is not None:
             attrs["instance_class"] = "var.instance_class"
-        if instance.config.rds_allocated_storage is not None:
+        if config.allocated_storage is not None:
             attrs["allocated_storage"] = "var.allocated_storage"
-        if instance.config.rds_username is not None:
+        if config.username is not None:
             attrs["username"] = "var.username"
 
         return self._r.render_resource("aws_db_instance", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an RDS instance."""
+        config = _resolve_config(instance)
         parts = [
             self._r.render_variable(
                 "db_identifier", "string", "Identifier for the RDS instance"
             ),
         ]
-        if instance.config.rds_engine is not None:
+        if config.engine is not None:
             parts.append(
                 self._r.render_variable(
                     "engine",
                     "string",
                     "Database engine type",
-                    default=instance.config.rds_engine,
+                    default=config.engine,
                 )
             )
-        if instance.config.rds_instance_class is not None:
+        if config.instance_class is not None:
             parts.append(
                 self._r.render_variable(
                     "instance_class",
                     "string",
                     "RDS instance class",
-                    default=instance.config.rds_instance_class,
+                    default=config.instance_class,
                 )
             )
-        if instance.config.rds_allocated_storage is not None:
+        if config.allocated_storage is not None:
             parts.append(
                 self._r.render_variable(
                     "allocated_storage",
                     "number",
                     "Allocated storage in GB",
-                    default=instance.config.rds_allocated_storage,
+                    default=config.allocated_storage,
                 )
             )
-        if instance.config.rds_username is not None:
+        if config.username is not None:
             parts.append(
                 self._r.render_variable(
                     "username",
                     "string",
                     "Master username for the database",
-                    default=instance.config.rds_username,
+                    default=config.username,
                 )
             )
         return "\n".join(parts)

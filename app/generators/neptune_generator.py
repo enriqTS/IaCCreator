@@ -1,7 +1,15 @@
 """Neptune service generator — produces HCL for aws_neptune_cluster resources."""
 
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.neptune_config import NeptuneConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> NeptuneConfig:
+    """Resolve typed NeptuneConfig from the instance."""
+    if isinstance(instance.config, NeptuneConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class NeptuneGenerator:
@@ -12,12 +20,14 @@ class NeptuneGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_neptune_cluster resource."""
+        _resolve_config(instance)
         attrs: dict = {"cluster_identifier": "var.cluster_identifier"}
 
         return self._r.render_resource("aws_neptune_cluster", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Neptune cluster."""
+        _resolve_config(instance)
         parts = [
             self._r.render_variable(
                 "cluster_identifier", "string", "Identifier for the Neptune cluster"

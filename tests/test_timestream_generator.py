@@ -6,7 +6,8 @@ Requirements: 36.1–36.5
 import pytest
 
 from app.generators.timestream_generator import TimestreamGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.timestream_config import TimestreamConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_timestream_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.TIMESTREAM,
-        config=ResourceConfig(**config_kwargs),
+        config=TimestreamConfig(**config_kwargs),
     )
 
 
