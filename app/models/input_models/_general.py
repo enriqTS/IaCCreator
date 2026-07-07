@@ -1,5 +1,7 @@
 """Cross-cutting definitions used across all services."""
 
+from __future__ import annotations
+
 from enum import Enum
 from typing import Optional
 
@@ -406,3 +408,137 @@ class ArchitectureDescription(BaseModel):
     resources: list[ResourceInstance] = Field(..., min_length=1)
     connections: list[Connection] = Field(default_factory=list)
     global_terraform_config: GlobalTerraformConfig = Field(default_factory=GlobalTerraformConfig)
+
+
+def _build_service_config_models() -> dict:
+    """Build the registry mapping ServiceType to per-service config model class.
+
+    Uses lazy imports to avoid circular dependencies at module load time.
+    Only services with generator implementations (i.e., dedicated config models)
+    are registered. Icon-only services use BaseServiceConfig directly.
+    """
+    from app.models.input_models._base import BaseServiceConfig
+    from app.models.input_models.amazon_q_config import AmazonQConfig
+    from app.models.input_models.amplify_config import AmplifyConfig
+    from app.models.input_models.api_gateway_config import ApiGatewayConfig
+    from app.models.input_models.app_runner_config import AppRunnerConfig
+    from app.models.input_models.appstream_config import AppStreamConfig
+    from app.models.input_models.athena_config import AthenaConfig
+    from app.models.input_models.aurora_config import AuroraConfig
+    from app.models.input_models.batch_config import BatchConfig
+    from app.models.input_models.bedrock_agent_config import BedrockAgentConfig
+    from app.models.input_models.bedrock_agentcore_config import BedrockAgentcoreConfig
+    from app.models.input_models.bedrock_config import BedrockConfig
+    from app.models.input_models.bedrock_guardrail_config import BedrockGuardrailConfig
+    from app.models.input_models.bedrock_knowledge_base_config import BedrockKnowledgeBaseConfig
+    from app.models.input_models.cloudsearch_config import CloudSearchConfig
+    from app.models.input_models.cloudwatch_config import CloudWatchConfig
+    from app.models.input_models.codebuild_config import CodeBuildConfig
+    from app.models.input_models.codecommit_config import CodeCommitConfig
+    from app.models.input_models.codedeploy_config import CodeDeployConfig
+    from app.models.input_models.codepipeline_config import CodePipelineConfig
+    from app.models.input_models.connect_config import ConnectConfig
+    from app.models.input_models.documentdb_config import DocumentDbConfig
+    from app.models.input_models.dynamodb_config import DynamoDBConfig
+    from app.models.input_models.ec2_config import Ec2Config
+    from app.models.input_models.ec2_image_builder_config import Ec2ImageBuilderConfig
+    from app.models.input_models.ecr_config import EcrConfig
+    from app.models.input_models.ecs_config import EcsConfig
+    from app.models.input_models.eks_config import EksConfig
+    from app.models.input_models.elastic_beanstalk_config import ElasticBeanstalkConfig
+    from app.models.input_models.elasticache_config import ElastiCacheConfig
+    from app.models.input_models.emr_config import EmrConfig
+    from app.models.input_models.gamelift_config import GameLiftConfig
+    from app.models.input_models.glue_config import GlueConfig
+    from app.models.input_models.kinesis_config import KinesisConfig
+    from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
+    from app.models.input_models.lambda_config import LambdaConfig
+    from app.models.input_models.lightsail_config import LightsailConfig
+    from app.models.input_models.msk_config import MskConfig
+    from app.models.input_models.neptune_config import NeptuneConfig
+    from app.models.input_models.opensearch_config import OpenSearchConfig
+    from app.models.input_models.pinpoint_config import PinpointConfig
+    from app.models.input_models.rds_config import RdsConfig
+    from app.models.input_models.redshift_config import RedshiftConfig
+    from app.models.input_models.s3_config import S3Config
+    from app.models.input_models.sagemaker_config import SageMakerConfig
+    from app.models.input_models.ses_config import SesConfig
+    from app.models.input_models.sns_config import SnsConfig
+    from app.models.input_models.sqs_config import SqsConfig
+    from app.models.input_models.timestream_config import TimestreamConfig
+
+    return {
+        ServiceType.LAMBDA: LambdaConfig,
+        ServiceType.S3: S3Config,
+        ServiceType.API_GATEWAY: ApiGatewayConfig,
+        ServiceType.DYNAMODB: DynamoDBConfig,
+        ServiceType.CLOUDWATCH: CloudWatchConfig,
+        ServiceType.SNS: SnsConfig,
+        ServiceType.SQS: SqsConfig,
+        ServiceType.EC2: Ec2Config,
+        ServiceType.ECS: EcsConfig,
+        ServiceType.EKS: EksConfig,
+        ServiceType.ELASTIC_BEANSTALK: ElasticBeanstalkConfig,
+        ServiceType.APP_RUNNER: AppRunnerConfig,
+        ServiceType.BATCH: BatchConfig,
+        ServiceType.EC2_IMAGE_BUILDER: Ec2ImageBuilderConfig,
+        ServiceType.LIGHTSAIL: LightsailConfig,
+        ServiceType.ECR: EcrConfig,
+        ServiceType.ATHENA: AthenaConfig,
+        ServiceType.CLOUDSEARCH: CloudSearchConfig,
+        ServiceType.EMR: EmrConfig,
+        ServiceType.GLUE: GlueConfig,
+        ServiceType.KINESIS: KinesisConfig,
+        ServiceType.KINESIS_FIREHOSE: KinesisFirehoseConfig,
+        ServiceType.MSK: MskConfig,
+        ServiceType.OPENSEARCH: OpenSearchConfig,
+        ServiceType.REDSHIFT: RedshiftConfig,
+        ServiceType.CONNECT: ConnectConfig,
+        ServiceType.SES: SesConfig,
+        ServiceType.PINPOINT: PinpointConfig,
+        ServiceType.AURORA: AuroraConfig,
+        ServiceType.DOCUMENTDB: DocumentDbConfig,
+        ServiceType.ELASTICACHE: ElastiCacheConfig,
+        ServiceType.NEPTUNE: NeptuneConfig,
+        ServiceType.RDS: RdsConfig,
+        ServiceType.TIMESTREAM: TimestreamConfig,
+        ServiceType.CODEBUILD: CodeBuildConfig,
+        ServiceType.CODECOMMIT: CodeCommitConfig,
+        ServiceType.CODEDEPLOY: CodeDeployConfig,
+        ServiceType.CODEPIPELINE: CodePipelineConfig,
+        ServiceType.APPSTREAM: AppStreamConfig,
+        ServiceType.AMPLIFY: AmplifyConfig,
+        ServiceType.GAMELIFT: GameLiftConfig,
+        ServiceType.BEDROCK: BedrockConfig,
+        ServiceType.SAGEMAKER: SageMakerConfig,
+        ServiceType.AMAZON_Q: AmazonQConfig,
+        ServiceType.BEDROCK_AGENT: BedrockAgentConfig,
+        ServiceType.BEDROCK_GUARDRAIL: BedrockGuardrailConfig,
+        ServiceType.BEDROCK_KNOWLEDGE_BASE: BedrockKnowledgeBaseConfig,
+        ServiceType.BEDROCK_AGENTCORE: BedrockAgentcoreConfig,
+    }
+
+
+def get_service_config_models() -> dict:
+    """Get the SERVICE_CONFIG_MODELS registry.
+
+    Returns a dict mapping ServiceType -> config model class for services
+    that have dedicated generators. Icon-only services are not included;
+    they should use BaseServiceConfig directly.
+
+    This function uses lazy imports internally to avoid circular dependency
+    issues at module load time.
+    """
+    return _build_service_config_models()
+
+
+# Lazy singleton: built on first access, cached thereafter.
+_SERVICE_CONFIG_MODELS_CACHE: dict | None = None
+
+
+def _get_cached_service_config_models() -> dict:
+    """Return cached registry, building it on first call."""
+    global _SERVICE_CONFIG_MODELS_CACHE
+    if _SERVICE_CONFIG_MODELS_CACHE is None:
+        _SERVICE_CONFIG_MODELS_CACHE = _build_service_config_models()
+    return _SERVICE_CONFIG_MODELS_CACHE
