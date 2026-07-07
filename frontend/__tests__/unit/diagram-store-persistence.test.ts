@@ -169,8 +169,8 @@ describe('DiagramStore - loadDiagramFromServer', () => {
       version: 1,
       projectName: 'loaded-project',
       environments: [],
-      elements: [
-        { id: 'e1', serviceType: 'lambda', name: 'lambda-1', position: { x: 10, y: 20 }, config: {} },
+      canvasObjects: [
+        { id: 'e1', objectType: 'architecture-block', serviceType: 'lambda', name: 'lambda-1', x: 10, y: 20, config: {}, visualConfig: { width: 80, height: 80 } },
       ],
       connectors: [],
       viewport: { offsetX: 5, offsetY: 10, scale: 1.5 },
@@ -182,7 +182,7 @@ describe('DiagramStore - loadDiagramFromServer', () => {
     expect(apiClient.loadDiagram).toHaveBeenCalledWith('diagram-789');
     expect(useDiagramStore.getState().currentDiagramId).toBe('diagram-789');
     expect(useDiagramStore.getState().projectName).toBe('loaded-project');
-    expect(useDiagramStore.getState().elements.size).toBe(1);
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(1);
   });
 
   it('shows error toast on failure without changing state', async () => {
@@ -207,7 +207,7 @@ describe('DiagramStore - loadDiagramFromServer', () => {
     const promise = useDiagramStore.getState().loadDiagramFromServer('id');
     expect(useDiagramStore.getState().isLoading).toBe(true);
 
-    resolveFn!({ ok: true, data: { version: 1, projectName: '', environments: [], elements: [], connectors: [], viewport: { offsetX: 0, offsetY: 0, scale: 1 } } });
+    resolveFn!({ ok: true, data: { version: 2, projectName: '', environments: [], canvasObjects: [], connectors: [], viewport: { offsetX: 0, offsetY: 0, scale: 1 } } });
     await promise;
     expect(useDiagramStore.getState().isLoading).toBe(false);
   });

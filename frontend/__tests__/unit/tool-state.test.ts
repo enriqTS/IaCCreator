@@ -6,7 +6,7 @@ describe('Tool State', () => {
     useDiagramStore.setState({
       connectors: new Map(),
       activeTool: 'pointer',
-      selectedElementId: null,
+      selectedObjectIds: new Set(),
       selectedConnectorId: null,
       pendingConnectorSourceId: null,
       _undoStack: [],
@@ -48,30 +48,11 @@ describe('Tool State', () => {
     });
   });
 
-  describe('selectElement', () => {
-    it('sets selectedElementId and clears selectedConnectorId', () => {
-      useDiagramStore.setState({ selectedConnectorId: 'some-connector' });
-      useDiagramStore.getState().selectElement('elem-1');
-
-      expect(useDiagramStore.getState().selectedElementId).toBe('elem-1');
-      expect(useDiagramStore.getState().selectedConnectorId).toBeNull();
-    });
-
-    it('deselects when called with null', () => {
-      useDiagramStore.setState({ selectedElementId: 'elem-1' });
-      useDiagramStore.getState().selectElement(null);
-
-      expect(useDiagramStore.getState().selectedElementId).toBeNull();
-    });
-  });
-
   describe('selectConnector', () => {
-    it('sets selectedConnectorId and clears selectedElementId', () => {
-      useDiagramStore.setState({ selectedElementId: 'some-element' });
+    it('sets selectedConnectorId', () => {
       useDiagramStore.getState().selectConnector('conn-1');
 
       expect(useDiagramStore.getState().selectedConnectorId).toBe('conn-1');
-      expect(useDiagramStore.getState().selectedElementId).toBeNull();
     });
 
     it('deselects when called with null', () => {

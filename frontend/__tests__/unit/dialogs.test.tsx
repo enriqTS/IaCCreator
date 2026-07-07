@@ -6,11 +6,13 @@ import { useDiagramStore } from '@/store/diagram-store';
 
 function resetStore() {
   useDiagramStore.setState({
+    canvasObjects: new Map(),
     connectors: new Map(),
+    objectGroups: new Map(),
     viewport: { offsetX: 0, offsetY: 0, scale: 1 },
     projectName: '',
     environments: [],
-    selectedElementId: null,
+    selectedObjectIds: new Set(),
     selectedConnectorId: null,
     pendingConnectorSourceId: null,
     activeTool: 'pointer',
@@ -43,14 +45,26 @@ describe('NewDiagramDialog', () => {
   });
 
   it('clears store state and calls onClose on Confirm', () => {
-    // Set up some state first
+    // Set up some state first using canvasObjects API
     const store = useDiagramStore.getState();
-    store.addElement('lambda', { x: 100, y: 200 });
-    store.addElement('s3', { x: 300, y: 400 });
+    store.addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'lambda',
+      position: { x: 100, y: 200 },
+      name: 'test-lambda',
+      visualConfig: { width: 80, height: 80 },
+    });
+    store.addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 's3',
+      position: { x: 300, y: 400 },
+      name: 'test-s3',
+      visualConfig: { width: 80, height: 80 },
+    });
     store.setProjectName('test-project');
     store.setEnvironments([{ name: 'dev', variables: { key: 'val' } }]);
 
-    expect(useDiagramStore.getState().elements.size).toBe(2);
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(2);
     expect(useDiagramStore.getState().projectName).toBe('test-project');
 
     const onClose = vi.fn();
@@ -58,7 +72,7 @@ describe('NewDiagramDialog', () => {
     fireEvent.click(screen.getByTestId('new-diagram-confirm'));
 
     const state = useDiagramStore.getState();
-    expect(state.elements.size).toBe(0);
+    expect(state.canvasObjects.size).toBe(0);
     expect(state.connectors.size).toBe(0);
     expect(state.viewport).toEqual({ offsetX: 0, offsetY: 0, scale: 1 });
     expect(state.projectName).toBe('');
