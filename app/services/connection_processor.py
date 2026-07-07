@@ -10,36 +10,7 @@ from app.models.ir_models import (
     ProjectIR,
     ResourceInstanceIR,
 )
-
-
-# IAM actions granted per target service type
-_DYNAMODB_ACTIONS = [
-    "dynamodb:GetItem",
-    "dynamodb:PutItem",
-    "dynamodb:Query",
-    "dynamodb:Scan",
-    "dynamodb:UpdateItem",
-    "dynamodb:DeleteItem",
-]
-
-_S3_ACTIONS = [
-    "s3:GetObject",
-    "s3:PutObject",
-    "s3:DeleteObject",
-    "s3:ListBucket",
-]
-
-_CLOUDWATCH_ACTIONS = [
-    "logs:CreateLogGroup",
-    "logs:CreateLogStream",
-    "logs:PutLogEvents",
-]
-
-_SNS_PUBLISH_ACTIONS = ["sns:Publish"]
-
-_SQS_SEND_ACTIONS = ["sqs:SendMessage"]
-
-_SQS_RECEIVE_ACTIONS = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+from app.services.iam_registry import get_actions, get_resources
 
 
 class ConnectionProcessor:
@@ -258,17 +229,12 @@ class ConnectionProcessor:
         target = connection.target_name
         access_pattern = connection.connection_config.get("access_pattern", "full")
 
-        if access_pattern == "read":
-            actions = ["dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan"]
-        elif access_pattern == "write":
-            actions = ["dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"]
-        else:  # "full" or not specified
-            actions = _DYNAMODB_ACTIONS
+        actions = get_actions(ServiceType.DYNAMODB, access_pattern)
 
         statement = IAMStatement(
             effect="Allow",
             actions=actions,
-            resources=[f"${{aws_dynamodb_table.{target}.arn}}"],
+            resources=get_resources(target, ServiceType.DYNAMODB),
         )
         self._attach_iam_statement(connection.source_name, statement, project)
         return []
@@ -280,20 +246,12 @@ class ConnectionProcessor:
         target = connection.target_name
         access_pattern = connection.connection_config.get("access_pattern", "full")
 
-        if access_pattern == "read":
-            actions = ["s3:GetObject", "s3:ListBucket"]
-        elif access_pattern == "write":
-            actions = ["s3:PutObject", "s3:DeleteObject"]
-        else:  # "full" or not specified
-            actions = _S3_ACTIONS
+        actions = get_actions(ServiceType.S3, access_pattern)
 
         statement = IAMStatement(
             effect="Allow",
             actions=actions,
-            resources=[
-                f"${{aws_s3_bucket.{target}.arn}}",
-                f"${{aws_s3_bucket.{target}.arn}}/*",
-            ],
+            resources=get_resources(target, ServiceType.S3),
         )
         self._attach_iam_statement(connection.source_name, statement, project)
         return []
@@ -314,9 +272,10 @@ class ConnectionProcessor:
         )
 
         # Also add CloudWatch Logs IAM statements to the Lambda
+        # Keep custom resource reference here — uses source-based log group path, not standard target pattern
         statement = IAMStatement(
             effect="Allow",
-            actions=_CLOUDWATCH_ACTIONS,
+            actions=get_actions(ServiceType.CLOUDWATCH, "full"),
             resources=[f"arn:aws:logs:*:*:log-group:{log_group_name}:*"],
         )
         self._attach_iam_statement(source, statement, project)
@@ -335,8 +294,8 @@ class ConnectionProcessor:
         target = connection.target_name
         statement = IAMStatement(
             effect="Allow",
-            actions=_SNS_PUBLISH_ACTIONS,
-            resources=[f"${{aws_sns_topic.{target}.arn}}"],
+            actions=get_actions(ServiceType.SNS, "full"),
+            resources=get_resources(target, ServiceType.SNS),
         )
         self._attach_iam_statement(connection.source_name, statement, project)
         return []
@@ -352,8 +311,8 @@ class ConnectionProcessor:
         target = connection.target_name
         statement = IAMStatement(
             effect="Allow",
-            actions=_SQS_SEND_ACTIONS,
-            resources=[f"${{aws_sqs_queue.{target}.arn}}"],
+            actions=get_actions(ServiceType.SQS, "write"),
+            resources=get_resources(target, ServiceType.SQS),
         )
         self._attach_iam_statement(connection.source_name, statement, project)
         return []
@@ -406,8 +365,8 @@ class ConnectionProcessor:
         # --- IAM statements for the Lambda to receive from SQS ---
         statement = IAMStatement(
             effect="Allow",
-            actions=_SQS_RECEIVE_ACTIONS,
-            resources=[f"${{aws_sqs_queue.{sqs_name}.arn}}"],
+            actions=get_actions(ServiceType.SQS, "read"),
+            resources=get_resources(sqs_name, ServiceType.SQS),
         )
         self._attach_iam_statement(lambda_name, statement, project)
 
