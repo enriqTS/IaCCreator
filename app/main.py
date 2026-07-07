@@ -14,6 +14,7 @@ from app.generators.variable_schemas import VARIABLE_SCHEMAS
 from app.logging_config import configure_logging
 from app.middleware.session_middleware import SessionMiddleware
 from app.models.input_models import ArchitectureDescription
+from app.models.input_models._general import _get_cached_service_config_models
 from app.models.ir_models import GenerationSummary
 from app.persistence.factory import get_repository
 from app.routers.diagrams import router as diagram_router
@@ -142,8 +143,24 @@ async def generate_json(arch: ArchitectureDescription) -> JSONResponse:
 
 @app.get("/api/variable-schemas")
 async def get_variable_schemas() -> dict[str, list[dict]]:
-    """Return all variable schemas as JSON, keyed by service type value."""
-    return {
-        stype.value: [entry.model_dump() for entry in entries]
-        for stype, entries in VARIABLE_SCHEMAS.items()
-    }
+    """Return all variable schemas, using model introspection where available."""
+    result: dict[str, list[dict]] = {}
+    config_models = _get_cached_service_config_models()
+
+    for stype, entries in VARIABLE_SCHEMAS.items():
+        config_cls = config_models.get(stype)
+
+        if config_cls is not None and config_cls.has_terraform_schema():
+            try:
+                schema = config_cls.get_variable_schema()
+                result[stype.value] = [entry.model_dump() for entry in schema]
+            except Exception:
+                logger.error(
+                    f"Introspection failed for {stype.value}, falling back to legacy"
+                )
+                result[stype.value] = [entry.model_dump() for entry in entries]
+        else:
+            # Legacy path — service not yet migrated
+            result[stype.value] = [entry.model_dump() for entry in entries]
+
+    return result
