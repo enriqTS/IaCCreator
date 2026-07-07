@@ -37,6 +37,8 @@ EXPECTED_SERVICE_TYPES = {
     "dynamodb",
     "api-gateway",
     "cloudwatch",
+    "sns",
+    "sqs",
     "ec2",
     "ecs",
     "eks",

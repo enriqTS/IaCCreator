@@ -12,7 +12,7 @@ an object equal to the original.
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from app.generators.variable_schemas import (
+from app.models.input_models._metadata import (
     OptionEntry,
     ValidationRule,
     VariableSchemaEntry,

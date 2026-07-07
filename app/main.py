@@ -10,7 +10,6 @@ from fastapi.responses import JSONResponse, Response
 from app.exception_handlers import domain_error_handler
 from app.exceptions import DomainError
 from app.generators.schema_validator import validate_config_against_schema
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
 from app.logging_config import configure_logging
 from app.middleware.session_middleware import SessionMiddleware
 from app.models.input_models import ArchitectureDescription
@@ -143,24 +142,22 @@ async def generate_json(arch: ArchitectureDescription) -> JSONResponse:
 
 @app.get("/api/variable-schemas")
 async def get_variable_schemas() -> dict[str, list[dict]]:
-    """Return all variable schemas, using model introspection where available."""
+    """Return all variable schemas using model introspection.
+
+    All services are now migrated to TerraformField annotations, so schemas
+    are derived exclusively from per-service config models.
+    """
     result: dict[str, list[dict]] = {}
     config_models = _get_cached_service_config_models()
 
-    for stype, entries in VARIABLE_SCHEMAS.items():
-        config_cls = config_models.get(stype)
-
-        if config_cls is not None and config_cls.has_terraform_schema():
+    for stype, config_cls in config_models.items():
+        if config_cls.has_terraform_schema():
             try:
                 schema = config_cls.get_variable_schema()
                 result[stype.value] = [entry.model_dump() for entry in schema]
             except Exception:
                 logger.error(
-                    f"Introspection failed for {stype.value}, falling back to legacy"
+                    f"Introspection failed for {stype.value}"
                 )
-                result[stype.value] = [entry.model_dump() for entry in entries]
-        else:
-            # Legacy path — service not yet migrated
-            result[stype.value] = [entry.model_dump() for entry in entries]
 
     return result

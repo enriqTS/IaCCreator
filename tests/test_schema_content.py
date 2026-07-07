@@ -5,7 +5,8 @@ against the requirements (1.1–1.5, 2.1–2.5, 3.5–3.6, 5.3–5.11).
 """
 
 
-from app.generators.variable_schemas import VARIABLE_SCHEMAS, VariableSchemaEntry
+from app.generators.variable_schemas import VARIABLE_SCHEMAS
+from app.models.input_models._metadata import VariableSchemaEntry
 from app.models.input_models import ServiceType
 
 # ---------------------------------------------------------------------------

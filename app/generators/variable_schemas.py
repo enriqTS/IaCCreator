@@ -1,47 +1,30 @@
-"""Variable schemas per service type — defines which Terraform variables each service exposes."""
+"""Variable schemas per service type — defines which Terraform variables each service exposes.
 
-from pydantic import BaseModel
+NOTE: The model classes (ValidationRule, OptionEntry, VisibleWhen, VariableSchemaEntry)
+are now canonical in app.models.input_models._metadata. This module re-exports them for
+backward compatibility with schema_validator.py and tfvars_generator.py until those are
+migrated (tasks 12.4/12.5).
 
+VARIABLE_SCHEMAS is retained here as the legacy static dictionary. Once schema_validator
+and tfvars_generator are updated to use model introspection, this file can be deleted entirely.
+"""
+
+from app.models.input_models._metadata import (
+    OptionEntry,
+    ValidationRule,
+    VariableSchemaEntry,
+    VisibleWhen,
+)
 from app.models.input_models import ServiceType
 
-
-class ValidationRule(BaseModel):
-    """Validation constraints for a variable (min/max bounds, regex pattern, allowed values)."""
-
-    min: int | float | None = None
-    max: int | float | None = None
-    pattern: str | None = None
-    pattern_description: str | None = None
-    allowed_values: list[str | int | float | bool] | None = None
-
-
-class OptionEntry(BaseModel):
-    """A predefined selectable option for a variable (value + human-readable label)."""
-
-    value: str | int | float | bool
-    label: str
-    group: str | None = None
-
-
-class VisibleWhen(BaseModel):
-    """Conditional visibility rule — show this variable only when another field has a specific value."""
-
-    field: str
-    equals: str | int | float | bool
-
-
-class VariableSchemaEntry(BaseModel):
-    """Schema definition for a single Terraform variable exposed by a service."""
-
-    name: str
-    type: str  # "string" | "number" | "bool" | "map" | "list"
-    description: str
-    default: str | int | float | bool | None = None
-    group: str = "General"
-    options: list[OptionEntry] | None = None
-    validation: ValidationRule | None = None
-    visible_when: VisibleWhen | None = None
-
+# Re-export model classes for backward compatibility
+__all__ = [
+    "OptionEntry",
+    "ValidationRule",
+    "VariableSchemaEntry",
+    "VisibleWhen",
+    "VARIABLE_SCHEMAS",
+]
 
 VARIABLE_SCHEMAS: dict[ServiceType, list[VariableSchemaEntry]] = {
     # ── Lambda (13 variables) ──────────────────────────────────────────
