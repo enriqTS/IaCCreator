@@ -27,3 +27,9 @@ class IncompatibleConnectionError(DomainError):
         super().__init__(
             f"Incompatible connection: {source_service_type} → {target_service_type} is not supported"
         )
+
+
+class GeneratorConfigError(DomainError):
+    """Raised when a generator receives a config instance of an unexpected type."""
+
+    pass
