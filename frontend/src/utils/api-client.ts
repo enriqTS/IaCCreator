@@ -117,10 +117,10 @@ export const apiClient = {
   },
 
   /** GET /api/diagrams/{id} — load full diagram state. */
-  loadDiagram(id: string): Promise<ApiResult<any>> {
+  loadDiagram(id: string): Promise<ApiResult<DiagramState>> {
     return request('/api/diagrams/' + encodeURIComponent(id), {
       method: 'GET',
-    }, (res) => res.json());
+    }, (res) => res.json() as Promise<DiagramState>);
   },
 
   /** DELETE /api/diagrams/{id} — delete a diagram. */
