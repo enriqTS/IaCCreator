@@ -138,4 +138,3 @@ class LambdaConfig(BaseServiceConfig):
     )
 
     # ── Internal (not Terraform variables) ────────────────────────────────
-    is_layer: bool = False

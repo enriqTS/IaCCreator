@@ -6,7 +6,8 @@ Requirements: 16.1–16.5
 import pytest
 
 from app.generators.opensearch_generator import OpenSearchGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.opensearch_config import OpenSearchConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_opensearch_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.OPENSEARCH,
-        config=ResourceConfig(**config_kwargs),
+        config=OpenSearchConfig(**config_kwargs),
     )
 
 

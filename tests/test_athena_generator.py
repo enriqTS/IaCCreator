@@ -6,7 +6,8 @@ Requirements: 2.1–2.5
 import pytest
 
 from app.generators.athena_generator import AthenaGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.athena_config import AthenaConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_athena_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.ATHENA,
-        config=ResourceConfig(**config_kwargs),
+        config=AthenaConfig(**config_kwargs),
     )
 
 

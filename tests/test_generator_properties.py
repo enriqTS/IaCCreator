@@ -42,14 +42,7 @@ _FIELD_NAME_MAP: dict[str, str] = {
 # Used when the schema name differs from the config field name.
 _SERVICE_FIELD_NAME_MAP: dict[ServiceType, dict[str, str]] = {
     # Analytics — now using typed configs with matching field names (no mapping needed)
-    # Business Applications
-    ServiceType.CONNECT: {
-        "identity_management_type": "connect_identity_management_type",
-        "inbound_calls_enabled": "connect_inbound_calls_enabled",
-        "outbound_calls_enabled": "connect_outbound_calls_enabled",
-    },
-    ServiceType.SES: {"domain": "ses_domain"},
-    ServiceType.PINPOINT: {"app_name": "pinpoint_name"},
+    # Business Applications — now using typed configs with matching field names (no mapping needed)
     # Database
     ServiceType.AURORA: {
         "engine": "engine",
@@ -69,20 +62,10 @@ _SERVICE_FIELD_NAME_MAP: dict[ServiceType, dict[str, str]] = {
         "username": "username",
     },
     ServiceType.TIMESTREAM: {"database_name": "database_name"},
-    # Developer Tools
-    ServiceType.CODEBUILD: {
-        "service_role": "codebuild_service_role",
-        "source_type": "codebuild_source_type",
-    },
-    ServiceType.CODECOMMIT: {"repository_name": "codecommit_repository_name"},
-    ServiceType.CODEDEPLOY: {"compute_platform": "codedeploy_compute_platform"},
-    ServiceType.CODEPIPELINE: {"role_arn": "codepipeline_role_arn"},
-    # End User Computing
-    ServiceType.APPSTREAM: {"instance_type": "appstream_instance_type"},
-    # Front End Web Mobile
-    ServiceType.AMPLIFY: {"app_name": "amplify_name"},
-    # Games
-    ServiceType.GAMELIFT: {"ec2_instance_type": "gamelift_ec2_instance_type"},
+    # Developer Tools — now using typed configs with matching field names (no mapping needed)
+    # End User Computing — now using typed configs with matching field names (no mapping needed)
+    # Front End Web Mobile — now using typed configs with matching field names (no mapping needed)
+    # Games — now using typed configs with matching field names (no mapping needed)
 }
 
 # Fields that are "always present" in the HCL for a service (emitted

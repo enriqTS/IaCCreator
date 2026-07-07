@@ -1,7 +1,16 @@
 """Glue service generator — produces HCL for aws_glue_catalog_database resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.glue_config import GlueConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> GlueConfig:
+    """Resolve typed GlueConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, GlueConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class GlueGenerator:

@@ -26,6 +26,16 @@ from app.models.input_models.neptune_config import NeptuneConfig
 from app.models.input_models.opensearch_config import OpenSearchConfig
 from app.models.input_models.rds_config import RdsConfig
 from app.models.input_models.redshift_config import RedshiftConfig
+from app.models.input_models.amplify_config import AmplifyConfig
+from app.models.input_models.appstream_config import AppStreamConfig
+from app.models.input_models.codebuild_config import CodeBuildConfig
+from app.models.input_models.codecommit_config import CodeCommitConfig
+from app.models.input_models.codedeploy_config import CodeDeployConfig
+from app.models.input_models.codepipeline_config import CodePipelineConfig
+from app.models.input_models.connect_config import ConnectConfig
+from app.models.input_models.gamelift_config import GameLiftConfig
+from app.models.input_models.pinpoint_config import PinpointConfig
+from app.models.input_models.ses_config import SesConfig
 from app.models.input_models.timestream_config import TimestreamConfig
 from app.models.ir_models import (
     EnvironmentIR,
@@ -54,6 +64,21 @@ _TYPED_CONFIG_CLASSES: dict[ServiceType, type[BaseServiceConfig]] = {
     ServiceType.NEPTUNE: NeptuneConfig,
     ServiceType.RDS: RdsConfig,
     ServiceType.TIMESTREAM: TimestreamConfig,
+    # Business Applications
+    ServiceType.CONNECT: ConnectConfig,
+    ServiceType.SES: SesConfig,
+    ServiceType.PINPOINT: PinpointConfig,
+    # Developer Tools
+    ServiceType.CODEBUILD: CodeBuildConfig,
+    ServiceType.CODECOMMIT: CodeCommitConfig,
+    ServiceType.CODEDEPLOY: CodeDeployConfig,
+    ServiceType.CODEPIPELINE: CodePipelineConfig,
+    # End User Computing
+    ServiceType.APPSTREAM: AppStreamConfig,
+    # Front End Web Mobile
+    ServiceType.AMPLIFY: AmplifyConfig,
+    # Games
+    ServiceType.GAMELIFT: GameLiftConfig,
 }
 
 # ---------------------------------------------------------------------------
@@ -176,8 +201,19 @@ def _minimal_config_for(service_type: ServiceType) -> BaseServiceConfig:
     have purely conditional fields. For those, provide at least one value.
     Migrated services use their typed config class.
     """
-    if service_type in _TYPED_CONFIG_CLASSES:
-        return _TYPED_CONFIG_CLASSES[service_type]()
+    from app.models.input_models._general import get_service_config_models
+
+    config_models = get_service_config_models()
+    config_cls = config_models.get(service_type)
+
+    # Use typed config if the model has TerraformField annotations
+    if config_cls is not None and config_cls.has_terraform_schema():
+        # Some typed configs have required fields — provide minimal values
+        if service_type == ServiceType.DYNAMODB:
+            return config_cls(hash_key="id")
+        return config_cls()
+
+    # Legacy services still using ResourceConfig
     if service_type == ServiceType.CONNECT:
         return ResourceConfig(connect_identity_management_type="CONNECT_MANAGED")
     return ResourceConfig()
@@ -259,9 +295,9 @@ OPTIONAL_FIELD_MAP: dict[ServiceType, list[tuple[str, str]]] = {
         ("master_username", "var.master_username"),
     ],
     ServiceType.CONNECT: [
-        ("connect_identity_management_type", "var.identity_management_type"),
-        ("connect_inbound_calls_enabled", "var.inbound_calls_enabled"),
-        ("connect_outbound_calls_enabled", "var.outbound_calls_enabled"),
+        ("identity_management_type", "var.identity_management_type"),
+        ("inbound_calls_enabled", "var.inbound_calls_enabled"),
+        ("outbound_calls_enabled", "var.outbound_calls_enabled"),
     ],
     ServiceType.AURORA: [
         ("engine", "var.engine"),
@@ -282,20 +318,20 @@ OPTIONAL_FIELD_MAP: dict[ServiceType, list[tuple[str, str]]] = {
         ("username", "var.username"),
     ],
     ServiceType.CODEBUILD: [
-        ("codebuild_source_type", "var.source_type"),
-        ("codebuild_service_role", "var.service_role"),
+        ("source_type", "var.source_type"),
+        ("service_role", "var.service_role"),
     ],
     ServiceType.CODEDEPLOY: [
-        ("codedeploy_compute_platform", "var.compute_platform"),
+        ("compute_platform", "var.compute_platform"),
     ],
     ServiceType.CODEPIPELINE: [
-        ("codepipeline_role_arn", "var.role_arn"),
+        ("role_arn", "var.role_arn"),
     ],
     ServiceType.APPSTREAM: [
-        ("appstream_instance_type", "var.instance_type"),
+        ("instance_type", "var.instance_type"),
     ],
     ServiceType.GAMELIFT: [
-        ("gamelift_ec2_instance_type", "var.ec2_instance_type"),
+        ("ec2_instance_type", "var.ec2_instance_type"),
     ],
 }
 
@@ -312,20 +348,20 @@ _OPTIONAL_FIELD_VALUES: dict[str, object] = {
     "number_of_broker_nodes": 3,
     "node_type": "dc2.large",
     "master_username": "admin",
-    "connect_identity_management_type": "SAML",
-    "connect_inbound_calls_enabled": True,
-    "connect_outbound_calls_enabled": True,
+    "identity_management_type": "SAML",
+    "inbound_calls_enabled": True,
+    "outbound_calls_enabled": True,
     "engine": "aurora-mysql",
     "num_cache_nodes": 1,
     "instance_class": "db.t3.micro",
     "allocated_storage": 20,
     "username": "admin",
-    "codebuild_source_type": "CODECOMMIT",
-    "codebuild_service_role": "arn:aws:iam::123456789012:role/codebuild-role",
-    "codedeploy_compute_platform": "Server",
-    "codepipeline_role_arn": "arn:aws:iam::123456789012:role/pipeline-role",
-    "appstream_instance_type": "stream.standard.medium",
-    "gamelift_ec2_instance_type": "c5.large",
+    "source_type": "CODECOMMIT",
+    "service_role": "arn:aws:iam::123456789012:role/codebuild-role",
+    "compute_platform": "Server",
+    "role_arn": "arn:aws:iam::123456789012:role/pipeline-role",
+    "instance_type": "stream.standard.medium",
+    "ec2_instance_type": "c5.large",
 }
 
 

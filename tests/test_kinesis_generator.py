@@ -6,7 +6,8 @@ Requirements: 10.1–10.6
 import pytest
 
 from app.generators.kinesis_generator import KinesisGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.kinesis_config import KinesisConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_kinesis_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.KINESIS,
-        config=ResourceConfig(**config_kwargs),
+        config=KinesisConfig(**config_kwargs),
     )
 
 
@@ -70,11 +71,11 @@ class TestKinesisGeneratorWithOptionalConfig:
     """Test KinesisGenerator with optional config fields set."""
 
     def test_resource_tf_includes_shard_count(self, gen: KinesisGenerator):
-        instance = _make_kinesis_instance(kinesis_shard_count=4)
+        instance = _make_kinesis_instance(shard_count=4)
         result = gen.generate_resource_tf(instance)
         assert "shard_count" in result
 
     def test_variables_tf_includes_shard_count_variable(self, gen: KinesisGenerator):
-        instance = _make_kinesis_instance(kinesis_shard_count=4)
+        instance = _make_kinesis_instance(shard_count=4)
         result = gen.generate_variables_tf(instance)
         assert "shard_count" in result

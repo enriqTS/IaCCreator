@@ -1,7 +1,16 @@
 """OpenSearch service generator — produces HCL for aws_opensearch_domain resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.opensearch_config import OpenSearchConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> OpenSearchConfig:
+    """Resolve typed OpenSearchConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, OpenSearchConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class OpenSearchGenerator:

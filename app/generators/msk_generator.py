@@ -1,7 +1,16 @@
 """MSK service generator — produces HCL for aws_msk_cluster resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.msk_config import MskConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> MskConfig:
+    """Resolve typed MskConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, MskConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class MSKGenerator:
@@ -12,37 +21,39 @@ class MSKGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_msk_cluster resource."""
+        config = _resolve_config(instance)
         attrs: dict = {"cluster_name": "var.cluster_name"}
-        if instance.config.msk_kafka_version is not None:
+        if config.kafka_version is not None:
             attrs["kafka_version"] = "var.kafka_version"
-        if instance.config.msk_number_of_broker_nodes is not None:
+        if config.number_of_broker_nodes is not None:
             attrs["number_of_broker_nodes"] = "var.number_of_broker_nodes"
 
         return self._r.render_resource("aws_msk_cluster", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an MSK cluster."""
+        config = _resolve_config(instance)
         parts = [
             self._r.render_variable(
                 "cluster_name", "string", "Name of the MSK cluster"
             ),
         ]
-        if instance.config.msk_kafka_version is not None:
+        if config.kafka_version is not None:
             parts.append(
                 self._r.render_variable(
                     "kafka_version",
                     "string",
                     "Kafka version for the MSK cluster",
-                    default=instance.config.msk_kafka_version,
+                    default=config.kafka_version,
                 )
             )
-        if instance.config.msk_number_of_broker_nodes is not None:
+        if config.number_of_broker_nodes is not None:
             parts.append(
                 self._r.render_variable(
                     "number_of_broker_nodes",
                     "number",
                     "Number of broker nodes in the MSK cluster",
-                    default=instance.config.msk_number_of_broker_nodes,
+                    default=config.number_of_broker_nodes,
                 )
             )
         return "\n".join(parts)

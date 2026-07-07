@@ -6,7 +6,8 @@ Requirements: 4.1–4.5
 import pytest
 
 from app.generators.cloudsearch_generator import CloudSearchGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.cloudsearch_config import CloudSearchConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_cloudsearch_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.CLOUDSEARCH,
-        config=ResourceConfig(**config_kwargs),
+        config=CloudSearchConfig(**config_kwargs),
     )
 
 

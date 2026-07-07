@@ -1,7 +1,16 @@
 """CloudSearch service generator — produces HCL for aws_cloudsearch_domain resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.cloudsearch_config import CloudSearchConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> CloudSearchConfig:
+    """Resolve typed CloudSearchConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, CloudSearchConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class CloudSearchGenerator:

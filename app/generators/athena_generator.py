@@ -1,7 +1,16 @@
 """Athena service generator — produces HCL for aws_athena_workgroup resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.athena_config import AthenaConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> AthenaConfig:
+    """Resolve typed AthenaConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, AthenaConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class AthenaGenerator:

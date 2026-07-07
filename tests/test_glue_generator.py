@@ -6,7 +6,8 @@ Requirements: 8.1–8.5
 import pytest
 
 from app.generators.glue_generator import GlueGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.glue_config import GlueConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_glue_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.GLUE,
-        config=ResourceConfig(**config_kwargs),
+        config=GlueConfig(**config_kwargs),
     )
 
 

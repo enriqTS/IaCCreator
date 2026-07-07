@@ -6,7 +6,8 @@ Requirements: 14.1–14.7
 import pytest
 
 from app.generators.msk_generator import MSKGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.msk_config import MskConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_msk_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.MSK,
-        config=ResourceConfig(**config_kwargs),
+        config=MskConfig(**config_kwargs),
     )
 
 
@@ -77,23 +78,23 @@ class TestMSKGeneratorWithOptionalConfig:
     """Test MSKGenerator with optional config fields set."""
 
     def test_resource_tf_includes_kafka_version(self, gen: MSKGenerator):
-        instance = _make_msk_instance(msk_kafka_version="3.5.1")
+        instance = _make_msk_instance(kafka_version="3.5.1")
         result = gen.generate_resource_tf(instance)
         assert "kafka_version" in result
 
     def test_variables_tf_includes_kafka_version_variable(self, gen: MSKGenerator):
-        instance = _make_msk_instance(msk_kafka_version="3.5.1")
+        instance = _make_msk_instance(kafka_version="3.5.1")
         result = gen.generate_variables_tf(instance)
         assert "kafka_version" in result
 
     def test_resource_tf_includes_number_of_broker_nodes(self, gen: MSKGenerator):
-        instance = _make_msk_instance(msk_number_of_broker_nodes=3)
+        instance = _make_msk_instance(number_of_broker_nodes=3)
         result = gen.generate_resource_tf(instance)
         assert "number_of_broker_nodes" in result
 
     def test_variables_tf_includes_number_of_broker_nodes_variable(
         self, gen: MSKGenerator
     ):
-        instance = _make_msk_instance(msk_number_of_broker_nodes=3)
+        instance = _make_msk_instance(number_of_broker_nodes=3)
         result = gen.generate_variables_tf(instance)
         assert "number_of_broker_nodes" in result

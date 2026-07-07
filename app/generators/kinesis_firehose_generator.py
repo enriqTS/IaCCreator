@@ -1,7 +1,16 @@
 """Kinesis Firehose service generator — produces HCL for aws_kinesis_firehose_delivery_stream resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> KinesisFirehoseConfig:
+    """Resolve typed KinesisFirehoseConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, KinesisFirehoseConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class KinesisFirehoseGenerator:
@@ -12,8 +21,9 @@ class KinesisFirehoseGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_kinesis_firehose_delivery_stream resource."""
+        config = _resolve_config(instance)
         attrs: dict = {"name": "var.stream_name"}
-        if instance.config.firehose_destination is not None:
+        if config.destination is not None:
             attrs["destination"] = "var.destination"
 
         return self._r.render_resource(
@@ -22,18 +32,19 @@ class KinesisFirehoseGenerator:
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Kinesis Firehose delivery stream."""
+        config = _resolve_config(instance)
         parts = [
             self._r.render_variable(
                 "stream_name", "string", "Name of the Kinesis Firehose delivery stream"
             ),
         ]
-        if instance.config.firehose_destination is not None:
+        if config.destination is not None:
             parts.append(
                 self._r.render_variable(
                     "destination",
                     "string",
                     "Destination for the Kinesis Firehose delivery stream",
-                    default=instance.config.firehose_destination,
+                    default=config.destination,
                 )
             )
         return "\n".join(parts)

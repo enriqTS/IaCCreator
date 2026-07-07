@@ -6,7 +6,8 @@ Requirements: 18.1–18.7
 import pytest
 
 from app.generators.redshift_generator import RedshiftGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.redshift_config import RedshiftConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_redshift_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.REDSHIFT,
-        config=ResourceConfig(**config_kwargs),
+        config=RedshiftConfig(**config_kwargs),
     )
 
 
@@ -75,23 +76,23 @@ class TestRedshiftGeneratorWithOptionalConfig:
     """Test RedshiftGenerator with optional config fields set."""
 
     def test_resource_tf_includes_node_type(self, gen: RedshiftGenerator):
-        instance = _make_redshift_instance(redshift_node_type="dc2.large")
+        instance = _make_redshift_instance(node_type="dc2.large")
         result = gen.generate_resource_tf(instance)
         assert "node_type" in result
 
     def test_variables_tf_includes_node_type_variable(self, gen: RedshiftGenerator):
-        instance = _make_redshift_instance(redshift_node_type="dc2.large")
+        instance = _make_redshift_instance(node_type="dc2.large")
         result = gen.generate_variables_tf(instance)
         assert "node_type" in result
 
     def test_resource_tf_includes_master_username(self, gen: RedshiftGenerator):
-        instance = _make_redshift_instance(redshift_master_username="admin")
+        instance = _make_redshift_instance(master_username="admin")
         result = gen.generate_resource_tf(instance)
         assert "master_username" in result
 
     def test_variables_tf_includes_master_username_variable(
         self, gen: RedshiftGenerator
     ):
-        instance = _make_redshift_instance(redshift_master_username="admin")
+        instance = _make_redshift_instance(master_username="admin")
         result = gen.generate_variables_tf(instance)
         assert "master_username" in result

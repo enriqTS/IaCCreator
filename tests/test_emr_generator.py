@@ -6,7 +6,8 @@ Requirements: 6.1–6.7
 import pytest
 
 from app.generators.emr_generator import EMRGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.emr_config import EmrConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_emr_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.EMR,
-        config=ResourceConfig(**config_kwargs),
+        config=EmrConfig(**config_kwargs),
     )
 
 
@@ -75,21 +76,21 @@ class TestEMRGeneratorWithOptionalConfig:
     """Test EMRGenerator with optional config fields set."""
 
     def test_resource_tf_includes_release_label(self, gen: EMRGenerator):
-        instance = _make_emr_instance(emr_release_label="emr-6.10.0")
+        instance = _make_emr_instance(release_label="emr-6.10.0")
         result = gen.generate_resource_tf(instance)
         assert "release_label" in result
 
     def test_variables_tf_includes_release_label_variable(self, gen: EMRGenerator):
-        instance = _make_emr_instance(emr_release_label="emr-6.10.0")
+        instance = _make_emr_instance(release_label="emr-6.10.0")
         result = gen.generate_variables_tf(instance)
         assert "release_label" in result
 
     def test_resource_tf_includes_service_role(self, gen: EMRGenerator):
-        instance = _make_emr_instance(emr_service_role="arn:aws:iam::role/emr")
+        instance = _make_emr_instance(service_role="arn:aws:iam::role/emr")
         result = gen.generate_resource_tf(instance)
         assert "service_role" in result
 
     def test_variables_tf_includes_service_role_variable(self, gen: EMRGenerator):
-        instance = _make_emr_instance(emr_service_role="arn:aws:iam::role/emr")
+        instance = _make_emr_instance(service_role="arn:aws:iam::role/emr")
         result = gen.generate_variables_tf(instance)
         assert "service_role" in result

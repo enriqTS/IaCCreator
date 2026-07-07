@@ -1,7 +1,16 @@
 """Kinesis service generator — produces HCL for aws_kinesis_stream resources."""
 
+from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.kinesis_config import KinesisConfig
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _resolve_config(instance: ResourceInstanceIR) -> KinesisConfig:
+    """Resolve typed KinesisConfig, falling back to instance.config during migration."""
+    if isinstance(instance.config, KinesisConfig):
+        return instance.config
+    return instance.config  # type: ignore[return-value]
 
 
 class KinesisGenerator:
@@ -12,26 +21,28 @@ class KinesisGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_kinesis_stream resource."""
+        config = _resolve_config(instance)
         attrs: dict = {"name": "var.stream_name"}
-        if instance.config.kinesis_shard_count is not None:
+        if config.shard_count is not None:
             attrs["shard_count"] = "var.shard_count"
 
         return self._r.render_resource("aws_kinesis_stream", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Kinesis stream."""
+        config = _resolve_config(instance)
         parts = [
             self._r.render_variable(
                 "stream_name", "string", "Name of the Kinesis stream"
             ),
         ]
-        if instance.config.kinesis_shard_count is not None:
+        if config.shard_count is not None:
             parts.append(
                 self._r.render_variable(
                     "shard_count",
                     "number",
                     "Number of shards for the Kinesis stream",
-                    default=instance.config.kinesis_shard_count,
+                    default=config.shard_count,
                 )
             )
         return "\n".join(parts)

@@ -25,6 +25,7 @@ class BaseServiceConfig(BaseModel):
     tags: dict[str, str] | None = None
     description: str | None = None
     environment_variables: dict[str, str] | None = None
+    is_layer: bool = False
 
     # Subclasses may define _schema_field_order as a ClassVar tuple of field names
     # to control the order of entries returned by get_variable_schema(). This is

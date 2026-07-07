@@ -6,7 +6,8 @@ Requirements: 12.1–12.6
 import pytest
 
 from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._general import ServiceType
+from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_firehose_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.KINESIS_FIREHOSE,
-        config=ResourceConfig(**config_kwargs),
+        config=KinesisFirehoseConfig(**config_kwargs),
     )
 
 
@@ -78,13 +79,13 @@ class TestKinesisFirehoseGeneratorWithOptionalConfig:
     """Test KinesisFirehoseGenerator with optional config fields set."""
 
     def test_resource_tf_includes_destination(self, gen: KinesisFirehoseGenerator):
-        instance = _make_firehose_instance(firehose_destination="s3")
+        instance = _make_firehose_instance(destination="s3")
         result = gen.generate_resource_tf(instance)
         assert "destination" in result
 
     def test_variables_tf_includes_destination_variable(
         self, gen: KinesisFirehoseGenerator
     ):
-        instance = _make_firehose_instance(firehose_destination="s3")
+        instance = _make_firehose_instance(destination="s3")
         result = gen.generate_variables_tf(instance)
         assert "destination" in result
