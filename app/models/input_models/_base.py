@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import get_type_hints
+from typing import ClassVar, get_type_hints
 
 from pydantic import BaseModel
 
@@ -26,6 +26,12 @@ class BaseServiceConfig(BaseModel):
     description: str | None = None
     environment_variables: dict[str, str] | None = None
 
+    # Subclasses may define _schema_field_order as a ClassVar tuple of field names
+    # to control the order of entries returned by get_variable_schema(). This is
+    # needed when inherited fields (e.g. tags) must appear in a specific
+    # position to match the legacy VARIABLE_SCHEMAS ordering.
+    _schema_field_order: ClassVar[tuple[str, ...] | None] = None
+
     @classmethod
     def get_variable_schema(cls) -> list[VariableSchemaEntry]:
         """Introspect this model's fields and return Terraform variable schema entries.
@@ -33,13 +39,27 @@ class BaseServiceConfig(BaseModel):
         Only fields annotated with `TerraformField(...)` are included in the output.
         Fields without Terraform metadata (e.g., `service_type` discriminator) are skipped.
 
+        If the subclass defines `_schema_field_order`, entries are returned in that
+        order. Otherwise, entries follow `model_fields` iteration order.
+
         Returns a list of `VariableSchemaEntry` matching the format served by
         `/api/variable-schemas`.
         """
         entries: list[VariableSchemaEntry] = []
         hints = get_type_hints(cls)
 
-        for field_name, field_info in cls.model_fields.items():
+        # Determine iteration order
+        field_order: tuple[str, ...] | None = getattr(cls, "_schema_field_order", None)
+        if field_order is not None:
+            field_items = [
+                (name, cls.model_fields[name])
+                for name in field_order
+                if name in cls.model_fields
+            ]
+        else:
+            field_items = list(cls.model_fields.items())
+
+        for field_name, field_info in field_items:
             meta = get_terraform_meta(field_info)
             if meta is None:
                 # Field not annotated with TerraformField — skip
