@@ -10,7 +10,7 @@ from hypothesis import strategies as st
 
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.service_category_map import get_category
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models.athena_config import AthenaConfig
 from app.models.input_models.aurora_config import AuroraConfig
@@ -216,10 +216,10 @@ def _minimal_config_for(service_type: ServiceType) -> BaseServiceConfig:
             return config_cls(identity_management_type="CONNECT_MANAGED")
         return config_cls()
 
-    # Legacy services still using ResourceConfig
+    # Legacy services still using BaseServiceConfig fallback
     if service_type == ServiceType.CONNECT:
-        return ResourceConfig(connect_identity_management_type="CONNECT_MANAGED")
-    return ResourceConfig()
+        return BaseServiceConfig(connect_identity_management_type="CONNECT_MANAGED")
+    return BaseServiceConfig()
 
 
 def _make_instance(
@@ -403,7 +403,7 @@ def _config_with_random_optional_fields(draw):
     if service_type in _TYPED_CONFIG_CLASSES:
         config = _TYPED_CONFIG_CLASSES[service_type](**config_kwargs)
     else:
-        config = ResourceConfig(**config_kwargs)
+        config = BaseServiceConfig(**config_kwargs)
     return service_type, config, set_fields, unset_fields
 
 

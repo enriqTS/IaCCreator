@@ -1,6 +1,6 @@
 """Validator for API Gateway configurations.
 
-Validates API Gateway ResourceConfig before HCL generation,
+Validates API Gateway config before HCL generation,
 checking routes, stages, authorizers, domains, VPC links,
 integrations, and throttling settings.
 """
@@ -8,7 +8,7 @@ integrations, and throttling settings.
 import re
 
 from app.models.api_gateway_models import ValidationError
-from app.models.input_models import ResourceConfig
+from app.models.input_models._base import BaseServiceConfig
 from app.models.ir_models import ResourceInstanceIR
 
 # Allowed HTTP methods for API Gateway routes
@@ -43,7 +43,7 @@ class APIGatewayValidator:
 
         return errors
 
-    def _validate_routes(self, config: ResourceConfig) -> list[ValidationError]:
+    def _validate_routes(self, config: BaseServiceConfig) -> list[ValidationError]:
         """Validate route configurations.
 
         Checks:
@@ -52,7 +52,7 @@ class APIGatewayValidator:
         - No duplicate route_keys
         """
         errors: list[ValidationError] = []
-        routes = config.routes
+        routes = getattr(config, "routes", None)
         if not routes:
             return errors
 
@@ -105,8 +105,8 @@ class APIGatewayValidator:
 
         # Validate authorizer references on routes
         defined_authorizers: set[str] = set()
-        if config.authorizers:
-            for auth in config.authorizers:
+        if getattr(config, "authorizers", None):
+            for auth in getattr(config, "authorizers", []):
                 name = auth.get("name", "")
                 if name:
                     defined_authorizers.add(name)
@@ -126,7 +126,7 @@ class APIGatewayValidator:
 
         return errors
 
-    def _validate_stages(self, config: ResourceConfig) -> list[ValidationError]:
+    def _validate_stages(self, config: BaseServiceConfig) -> list[ValidationError]:
         """Validate stage configurations.
 
         Checks:
@@ -134,7 +134,7 @@ class APIGatewayValidator:
         - No empty keys or values in stage_variables
         """
         errors: list[ValidationError] = []
-        stages = config.stages
+        stages = getattr(config, "stages", None)
         if not stages:
             return errors
 
@@ -172,7 +172,7 @@ class APIGatewayValidator:
 
         return errors
 
-    def _validate_authorizers(self, config: ResourceConfig) -> list[ValidationError]:
+    def _validate_authorizers(self, config: BaseServiceConfig) -> list[ValidationError]:
         """Validate authorizer configurations.
 
         Checks:
@@ -180,7 +180,7 @@ class APIGatewayValidator:
         - payload_format_version must be "1.0" or "2.0"
         """
         errors: list[ValidationError] = []
-        authorizers = config.authorizers
+        authorizers = getattr(config, "authorizers", None)
         if not authorizers:
             return errors
 
@@ -231,14 +231,14 @@ class APIGatewayValidator:
 
         return errors
 
-    def _validate_domain(self, config: ResourceConfig) -> list[ValidationError]:
+    def _validate_domain(self, config: BaseServiceConfig) -> list[ValidationError]:
         """Validate custom domain configuration.
 
         Checks:
         - custom_domain requires certificate_arn
         """
         errors: list[ValidationError] = []
-        domain = config.custom_domain
+        domain = getattr(config, "custom_domain", None)
         if not domain:
             return errors
 
@@ -254,7 +254,7 @@ class APIGatewayValidator:
 
         return errors
 
-    def _validate_vpc_links(self, config: ResourceConfig) -> list[ValidationError]:
+    def _validate_vpc_links(self, config: BaseServiceConfig) -> list[ValidationError]:
         """Validate VPC link configurations.
 
         Checks:
@@ -263,7 +263,7 @@ class APIGatewayValidator:
         - 1-5 security groups allowed
         """
         errors: list[ValidationError] = []
-        vpc_links = config.vpc_links
+        vpc_links = getattr(config, "vpc_links", None)
         if not vpc_links:
             return errors
 
@@ -314,7 +314,7 @@ class APIGatewayValidator:
 
         return errors
 
-    def _validate_integrations(self, config: ResourceConfig) -> list[ValidationError]:
+    def _validate_integrations(self, config: BaseServiceConfig) -> list[ValidationError]:
         """Validate integration configurations.
 
         Checks:
@@ -323,14 +323,14 @@ class APIGatewayValidator:
         - VPC link references must be defined
         """
         errors: list[ValidationError] = []
-        integrations = config.integrations
+        integrations = getattr(config, "integrations", None)
         if not integrations:
             return errors
 
         # Build set of defined VPC link names
         defined_vpc_links: set[str] = set()
-        if config.vpc_links:
-            for vpc_link in config.vpc_links:
+        if getattr(config, "vpc_links", None):
+            for vpc_link in getattr(config, "vpc_links", []):
                 name = vpc_link.get("name", "")
                 if name:
                     defined_vpc_links.add(name)
@@ -378,7 +378,7 @@ class APIGatewayValidator:
 
         return errors
 
-    def _validate_throttling(self, config: ResourceConfig) -> list[ValidationError]:
+    def _validate_throttling(self, config: BaseServiceConfig) -> list[ValidationError]:
         """Validate throttling configuration.
 
         Checks:
@@ -387,8 +387,8 @@ class APIGatewayValidator:
         """
         errors: list[ValidationError] = []
 
-        burst = config.throttling_burst_limit
-        rate = config.throttling_rate_limit
+        burst = getattr(config, "throttling_burst_limit", None)
+        rate = getattr(config, "throttling_rate_limit", None)
 
         if burst is not None and (burst < 1 or burst > 5000):
             errors.append(

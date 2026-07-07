@@ -4,12 +4,18 @@ from hypothesis import strategies as st
 
 from app.models.input_models import (
     ArchitectureDescription,
+    BaseServiceConfig,
     Connection,
     EnvironmentConfig,
     ResourceConfig,
     ResourceInstance,
     ServiceType,
 )
+from app.models.input_models.api_gateway_config import ApiGatewayConfig
+from app.models.input_models.cloudwatch_config import CloudWatchConfig
+from app.models.input_models.dynamodb_config import DynamoDBConfig
+from app.models.input_models.lambda_config import LambdaConfig
+from app.models.input_models.s3_config import S3Config
 
 # Compatible connection pairs (must match ir_builder.COMPATIBLE_CONNECTIONS)
 COMPATIBLE_CONNECTIONS = {
@@ -31,11 +37,11 @@ env_name_st = st.sampled_from(["dev", "staging", "prod", "qa", "test"])
 
 
 # ---------------------------------------------------------------------------
-# Per-service ResourceConfig strategies
+# Per-service config strategies (using typed config models)
 # ---------------------------------------------------------------------------
 
 lambda_config_st = st.builds(
-    ResourceConfig,
+    LambdaConfig,
     handler=st.just("index.handler"),
     runtime=st.sampled_from(["python3.12", "python3.11", "nodejs18.x", "nodejs20.x"]),
     memory_size=st.one_of(st.none(), st.integers(min_value=128, max_value=3008)),
@@ -44,12 +50,12 @@ lambda_config_st = st.builds(
 )
 
 s3_config_st = st.builds(
-    ResourceConfig,
+    S3Config,
     versioning=st.one_of(st.none(), st.booleans()),
 )
 
 dynamodb_config_st = st.builds(
-    ResourceConfig,
+    DynamoDBConfig,
     billing_mode=st.sampled_from(["PAY_PER_REQUEST", "PROVISIONED"]),
     hash_key=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
     hash_key_type=st.sampled_from(["S", "N", "B"]),
@@ -60,12 +66,12 @@ dynamodb_config_st = st.builds(
 )
 
 api_gateway_config_st = st.builds(
-    ResourceConfig,
+    ApiGatewayConfig,
     protocol_type=st.sampled_from(["HTTP", "WEBSOCKET"]),
 )
 
 cloudwatch_config_st = st.builds(
-    ResourceConfig,
+    CloudWatchConfig,
     retention_in_days=st.one_of(
         st.none(),
         st.sampled_from([1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365]),
@@ -79,7 +85,7 @@ _CONFIG_STRATEGIES = {
     ServiceType.DYNAMODB: dynamodb_config_st,
     ServiceType.API_GATEWAY: api_gateway_config_st,
     ServiceType.CLOUDWATCH: cloudwatch_config_st,
-    ServiceType.IAM: st.builds(ResourceConfig),
+    ServiceType.IAM: st.builds(BaseServiceConfig),
 }
 
 

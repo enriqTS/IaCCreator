@@ -7,9 +7,12 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from app.generators.registry import GENERATOR_REGISTRY
-from app.generators.variable_schemas import VARIABLE_SCHEMAS, VisibleWhen
-from app.models.input_models import ResourceConfig, ServiceType
+from app.generators.variable_schemas import VARIABLE_SCHEMAS
+from app.models.input_models._metadata import VisibleWhen
+from app.models.input_models import ServiceType
+from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import get_service_config_models
+from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -25,48 +28,12 @@ _TESTABLE_SERVICES = [
 ]
 
 
-def _visible_when_satisfied(vw: VisibleWhen | None, config: ResourceConfig) -> bool:
+def _visible_when_satisfied(vw: VisibleWhen | None, config: BaseServiceConfig) -> bool:
     """Return True if the visible_when condition is satisfied (or absent)."""
     if vw is None:
         return True
     return getattr(config, vw.field, None) == vw.equals
 
-
-# Map from schema variable name → the ResourceConfig field name.
-# Most are identical; add overrides here if they ever diverge.
-_FIELD_NAME_MAP: dict[str, str] = {
-    "versioning": "versioning",
-}
-
-# Per-service mapping from schema variable name → ResourceConfig field name.
-# Used when the schema name differs from the config field name.
-_SERVICE_FIELD_NAME_MAP: dict[ServiceType, dict[str, str]] = {
-    # Analytics — now using typed configs with matching field names (no mapping needed)
-    # Business Applications — now using typed configs with matching field names (no mapping needed)
-    # Database
-    ServiceType.AURORA: {
-        "engine": "engine",
-        "master_username": "master_username",
-    },
-    ServiceType.DOCUMENTDB: {"master_username": "master_username"},
-    ServiceType.ELASTICACHE: {
-        "engine": "engine",
-        "node_type": "node_type",
-        "num_cache_nodes": "num_cache_nodes",
-    },
-    ServiceType.NEPTUNE: {"cluster_identifier": "cluster_identifier"},
-    ServiceType.RDS: {
-        "engine": "engine",
-        "instance_class": "instance_class",
-        "allocated_storage": "allocated_storage",
-        "username": "username",
-    },
-    ServiceType.TIMESTREAM: {"database_name": "database_name"},
-    # Developer Tools — now using typed configs with matching field names (no mapping needed)
-    # End User Computing — now using typed configs with matching field names (no mapping needed)
-    # Front End Web Mobile — now using typed configs with matching field names (no mapping needed)
-    # Games — now using typed configs with matching field names (no mapping needed)
-}
 
 # Fields that are "always present" in the HCL for a service (emitted
 # unconditionally regardless of config population).  These use var.*
@@ -158,7 +125,7 @@ _SKIP_VAR_REF_FIELDS: dict[ServiceType, set[str]] = {
 
 
 # ---------------------------------------------------------------------------
-# Strategy: build a ResourceConfig with random populated optional fields
+# Strategy: build a config with random populated optional fields
 # for a given service type, respecting visible_when conditions.
 # ---------------------------------------------------------------------------
 
@@ -248,11 +215,8 @@ def resource_instance_with_populated_fields(draw):
     for entry, should_populate in zip(optional_entries, populate_flags):
         if not should_populate:
             continue
-        # Resolve config field name: check per-service map first, then global map, then use schema name
-        svc_map = _SERVICE_FIELD_NAME_MAP.get(service_type, {})
-        field_name = svc_map.get(
-            entry.name, _FIELD_NAME_MAP.get(entry.name, entry.name)
-        )
+        # Field names match schema names directly (all services migrated)
+        field_name = entry.name
         # Use options values when available for more realistic data
         if entry.options:
             value = draw(st.sampled_from([o.value for o in entry.options]))
@@ -269,16 +233,13 @@ def resource_instance_with_populated_fields(draw):
         if config_cls is not None and config_cls.has_terraform_schema():
             config = config_cls(**config_kwargs)
         else:
-            config = ResourceConfig(**config_kwargs)
+            config = BaseServiceConfig(**config_kwargs)
 
     # Now determine which populated fields are actually visible
     for entry, should_populate in zip(optional_entries, populate_flags):
         if not should_populate:
             continue
-        svc_map = _SERVICE_FIELD_NAME_MAP.get(service_type, {})
-        field_name = svc_map.get(
-            entry.name, _FIELD_NAME_MAP.get(entry.name, entry.name)
-        )
+        field_name = entry.name
         if _visible_when_satisfied(entry.visible_when, config):
             # Use the var reference name (may differ from field name)
             var_name = _VAR_REF_OVERRIDES.get(entry.name, entry.name)
@@ -373,7 +334,7 @@ def test_api_gateway_visible_when_false_excludes_route_selection(
     var reference SHALL NOT appear in the generated HCL, even if the field
     is populated on the config.
     """
-    config = ResourceConfig(
+    config = ApiGatewayConfig(
         protocol_type=protocol_type,
         route_selection_expression=route_expr,
     )

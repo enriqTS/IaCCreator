@@ -6,6 +6,8 @@ from enum import Enum
 
 from pydantic import BaseModel, Field, model_validator
 
+from app.models.input_models._base import BaseServiceConfig
+
 
 class ServiceType(str, Enum):
     """Supported AWS service types."""
@@ -196,158 +198,13 @@ class ServiceType(str, Enum):
     BEDROCK_AGENTCORE = "bedrock-agentcore"
 
 
-class ResourceConfig(BaseModel):
-    """Service-specific configuration for a resource instance."""
+# Backward-compat alias: ResourceConfig was replaced by per-service typed configs.
+# Kept temporarily so existing tests that use ResourceConfig(...) with arbitrary
+# kwargs continue to work until they are migrated to typed config classes.
+class ResourceConfig(BaseServiceConfig):
+    """Deprecated — use per-service config models instead."""
 
-    # Lambda
-    handler: str | None = None
-    runtime: str | None = None
-    memory_size: int | None = None
-    timeout: int | None = None
-    is_layer: bool = False
-    description: str | None = None
-    environment_variables: dict[str, str] | None = None
-    tags: dict[str, str] | None = None
-    layers: list[str] | None = None
-    architectures: str | None = None
-    ephemeral_storage_size: int | None = None
-    reserved_concurrent_executions: int | None = None
-    publish: bool | None = None
-    # S3
-    versioning: bool | None = None
-    force_destroy: bool | None = None
-    object_lock_enabled: bool | None = None
-    acceleration_status: str | None = None
-    # DynamoDB
-    billing_mode: str | None = None
-    hash_key: str | None = None
-    hash_key_type: str | None = None
-    range_key: str | None = None
-    range_key_type: str | None = None
-    read_capacity: int | None = None
-    write_capacity: int | None = None
-    point_in_time_recovery_enabled: bool | None = None
-    deletion_protection_enabled: bool | None = None
-    table_class: str | None = None
-    # API Gateway
-    protocol_type: str | None = None
-    cors_configuration: dict | None = None
-    disable_execute_api_endpoint: bool | None = None
-    route_selection_expression: str | None = None
-    # API Gateway — new fields
-    routes: list[dict] | None = None
-    stages: list[dict] | None = None
-    authorizers: list[dict] | None = None
-    custom_domain: dict | None = None
-    vpc_links: list[dict] | None = None
-    integrations: list[dict] | None = None
-    api_key_required: bool | None = None
-    throttling_burst_limit: int | None = None
-    throttling_rate_limit: float | None = None
-    access_log_retention_days: int | None = None
-    access_log_format: str | None = None
-    # CloudWatch
-    retention_in_days: int | None = None
-    kms_key_id: str | None = None
-    log_group_class: str | None = None
-    # SNS
-    display_name: str | None = None
-    fifo_topic: bool | None = None
-    content_based_deduplication: bool | None = None  # shared with SQS
-    kms_master_key_id: str | None = None  # shared with CloudWatch
-    # SQS
-    visibility_timeout_seconds: int | None = None
-    message_retention_seconds: int | None = None
-    fifo_queue: bool | None = None
-    delay_seconds: int | None = None
-    max_message_size: int | None = None
-    # EC2
-    instance_type: str | None = None
-    ami: str | None = None
-    key_name: str | None = None
-    # ECS
-    ecs_launch_type: str | None = None
-    ecs_desired_count: int | None = None
-    ecs_cpu: str | None = None
-    ecs_memory: str | None = None
-    # EKS
-    eks_version: str | None = None
-    eks_endpoint_public_access: bool | None = None
-    # Elastic Beanstalk
-    eb_solution_stack_name: str | None = None
-    eb_tier: str | None = None
-    # App Runner
-    apprunner_source_type: str | None = None
-    apprunner_image_identifier: str | None = None
-    # Batch
-    batch_compute_environment_type: str | None = None
-    batch_max_vcpus: int | None = None
-    # EC2 Image Builder
-    imagebuilder_image_recipe_arn: str | None = None
-    imagebuilder_infrastructure_configuration_arn: str | None = None
-    # Lightsail
-    lightsail_blueprint_id: str | None = None
-    lightsail_bundle_id: str | None = None
-    lightsail_availability_zone: str | None = None
-    # ECR
-    ecr_image_tag_mutability: str | None = None
-    ecr_scan_on_push: bool | None = None
-    # Analytics
-    athena_name: str | None = None
-    cloudsearch_name: str | None = None
-    emr_release_label: str | None = None
-    emr_service_role: str | None = None
-    glue_catalog_database_name: str | None = None
-    kinesis_shard_count: int | None = None
-    firehose_destination: str | None = None
-    msk_kafka_version: str | None = None
-    msk_number_of_broker_nodes: int | None = None
-    opensearch_domain_name: str | None = None
-    redshift_node_type: str | None = None
-    redshift_master_username: str | None = None
-    # Business Applications
-    connect_identity_management_type: str | None = None
-    connect_inbound_calls_enabled: bool | None = None
-    connect_outbound_calls_enabled: bool | None = None
-    ses_domain: str | None = None
-    pinpoint_name: str | None = None
-    # Database
-    aurora_engine: str | None = None
-    aurora_master_username: str | None = None
-    documentdb_master_username: str | None = None
-    elasticache_engine: str | None = None
-    elasticache_node_type: str | None = None
-    elasticache_num_cache_nodes: int | None = None
-    neptune_cluster_identifier: str | None = None
-    rds_engine: str | None = None
-    rds_instance_class: str | None = None
-    rds_allocated_storage: int | None = None
-    rds_username: str | None = None
-    timestream_database_name: str | None = None
-    # Developer Tools
-    codebuild_source_type: str | None = None
-    codebuild_service_role: str | None = None
-    codecommit_repository_name: str | None = None
-    codedeploy_compute_platform: str | None = None
-    codepipeline_role_arn: str | None = None
-    # End User Computing
-    appstream_instance_type: str | None = None
-    # Front End Web Mobile
-    amplify_name: str | None = None
-    # Games
-    gamelift_ec2_instance_type: str | None = None
-    # Machine Learning / AI
-    bedrock_model_name: str | None = None
-    bedrock_base_model_identifier: str | None = None
-    sagemaker_notebook_instance_name: str | None = None
-    sagemaker_instance_type: str | None = None
-    amazon_q_application_name: str | None = None
-    bedrock_agent_name: str | None = None
-    bedrock_agent_foundation_model: str | None = None
-    bedrock_agent_instruction: str | None = None
-    bedrock_knowledge_base_name: str | None = None
-    bedrock_knowledge_base_embedding_model_arn: str | None = None
-    bedrock_guardrail_name: str | None = None
+    model_config = {"extra": "allow"}
 
 
 class ResourceInstance(BaseModel):
@@ -357,7 +214,7 @@ class ResourceInstance(BaseModel):
         ..., description="User-defined resource name, used as subfolder name"
     )
     service_type: ServiceType
-    config: ResourceConfig = Field(default_factory=ResourceConfig)
+    config: BaseServiceConfig = Field(default_factory=BaseServiceConfig)
     terraform_variables: dict[str, str | int | float | bool] = Field(
         default_factory=dict
     )
@@ -365,7 +222,7 @@ class ResourceInstance(BaseModel):
     @model_validator(mode="after")
     def validate_dynamodb_hash_key(self) -> ResourceInstance:
         """DynamoDB resources must have hash_key in config."""
-        if self.service_type == ServiceType.DYNAMODB and self.config.hash_key is None:
+        if self.service_type == ServiceType.DYNAMODB and getattr(self.config, "hash_key", None) is None:
             raise ValueError(
                 "DynamoDB resource must have 'hash_key' specified in config"
             )
