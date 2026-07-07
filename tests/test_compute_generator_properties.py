@@ -10,7 +10,7 @@ from hypothesis import strategies as st
 
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.service_category_map import get_category
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import get_service_config_models
 from app.models.ir_models import (
@@ -95,7 +95,7 @@ def _minimal_config_for(service_type: ServiceType) -> BaseServiceConfig:
             return config_cls(hash_key="id")
         return config_cls()
 
-    return ResourceConfig()
+    return BaseServiceConfig()
 
 
 def _make_instance(
@@ -198,7 +198,7 @@ _OPTIONAL_FIELD_VALUES: dict[str, object] = {
 
 @st.composite
 def _config_with_random_optional_fields(draw):
-    """Generate a (ServiceType, ResourceConfig, set_fields, unset_fields) tuple.
+    """Generate a (ServiceType, BaseServiceConfig, set_fields, unset_fields) tuple.
 
     For a randomly chosen service with optional fields, randomly set/unset
     each optional field.
@@ -226,7 +226,10 @@ def _config_with_random_optional_fields(draw):
         else:
             unset_fields.append((field_name, var_ref))
 
-    config = ResourceConfig(**config_kwargs)
+    # Use the typed config model for this service
+    config_models = get_service_config_models()
+    config_cls = config_models.get(service_type, BaseServiceConfig)
+    config = config_cls(**config_kwargs)
     return service_type, config, set_fields, unset_fields
 
 

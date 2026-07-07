@@ -6,7 +6,8 @@ Requirements: 16.1–16.5
 import pytest
 
 from app.generators.lightsail_generator import LightsailGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.lightsail_config import LightsailConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_lightsail_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.LIGHTSAIL,
-        config=ResourceConfig(**config_kwargs),
+        config=LightsailConfig(**config_kwargs),
     )
 
 

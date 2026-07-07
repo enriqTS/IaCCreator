@@ -10,16 +10,21 @@ from app.generators.bedrock_knowledge_base_generator import (
     BedrockKnowledgeBaseGenerator,
 )
 from app.generators.sagemaker_generator import SageMakerGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._general import get_service_config_models
 from app.models.ir_models import ResourceInstanceIR
+
+_SERVICE_CONFIG_MODELS = get_service_config_models()
 
 
 def make_instance(name: str, service_type: ServiceType) -> ResourceInstanceIR:
     """Create a minimal ResourceInstanceIR for testing."""
+    config_cls = _SERVICE_CONFIG_MODELS.get(service_type, BaseServiceConfig)
     return ResourceInstanceIR(
         name=name,
         service_type=service_type,
-        config=ResourceConfig(),
+        config=config_cls(),
     )
 
 

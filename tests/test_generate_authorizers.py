@@ -2,11 +2,12 @@
 
 
 from app.generators.api_gateway_generator import APIGatewayGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
-def _make_instance(name: str, config: ResourceConfig) -> ResourceInstanceIR:
+def _make_instance(name: str, config: ApiGatewayConfig) -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.API_GATEWAY,
@@ -18,14 +19,14 @@ class TestGenerateAuthorizersEmpty:
     """Tests for when no authorizers are configured."""
 
     def test_no_authorizers_returns_empty_string(self):
-        config = ResourceConfig(protocol_type="HTTP")
+        config = ApiGatewayConfig(protocol_type="HTTP")
         instance = _make_instance("my_api", config)
         gen = APIGatewayGenerator()
         result = gen._generate_authorizers(instance)
         assert result == ""
 
     def test_empty_authorizers_list_returns_empty_string(self):
-        config = ResourceConfig(protocol_type="HTTP", authorizers=[])
+        config = ApiGatewayConfig(protocol_type="HTTP", authorizers=[])
         instance = _make_instance("my_api", config)
         gen = APIGatewayGenerator()
         result = gen._generate_authorizers(instance)
@@ -36,7 +37,7 @@ class TestGenerateAuthorizersJWT:
     """Tests for JWT authorizer generation."""
 
     def test_jwt_authorizer_basic(self):
-        config = ResourceConfig(
+        config = ApiGatewayConfig(
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -63,7 +64,7 @@ class TestGenerateAuthorizersJWT:
         assert 'name = "my_jwt"' in result
 
     def test_jwt_authorizer_multiple_audiences(self):
-        config = ResourceConfig(
+        config = ApiGatewayConfig(
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -85,7 +86,7 @@ class TestGenerateAuthorizersLambda:
     """Tests for Lambda (REQUEST) authorizer generation."""
 
     def test_lambda_authorizer_basic(self):
-        config = ResourceConfig(
+        config = ApiGatewayConfig(
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -113,7 +114,7 @@ class TestGenerateAuthorizersLambda:
         assert 'name = "lambda_auth"' in result
 
     def test_lambda_authorizer_payload_version_1_0(self):
-        config = ResourceConfig(
+        config = ApiGatewayConfig(
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -131,7 +132,7 @@ class TestGenerateAuthorizersLambda:
         assert 'authorizer_payload_format_version = "1.0"' in result
 
     def test_lambda_authorizer_default_payload_version(self):
-        config = ResourceConfig(
+        config = ApiGatewayConfig(
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -153,7 +154,7 @@ class TestGenerateAuthorizersCognito:
     """Tests for Cognito User Pools authorizer generation."""
 
     def test_cognito_authorizer_basic(self):
-        config = ResourceConfig(
+        config = ApiGatewayConfig(
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -187,7 +188,7 @@ class TestGenerateAuthorizersMultiple:
     """Tests for multiple authorizers in a single API."""
 
     def test_multiple_authorizers_different_types(self):
-        config = ResourceConfig(
+        config = ApiGatewayConfig(
             protocol_type="HTTP",
             authorizers=[
                 {

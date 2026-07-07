@@ -10,17 +10,23 @@ from hypothesis import strategies as st
 
 from app.generators.schema_validator import validate_config_against_schema
 from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models._general import get_service_config_models
 
 # ---------------------------------------------------------------------------
 # Helpers: collect variables that have validation rules
 # ---------------------------------------------------------------------------
 
-# Each entry: (service_type, variable_name, validation_rule, visible_when)
-_VALIDATED_VARS: list[tuple[ServiceType, str, object, object]] = []
-# Get all valid field names from ResourceConfig to filter testable entries
-_RESOURCE_CONFIG_FIELDS = set(ResourceConfig.model_fields.keys())
+# Each entry: (service_type, variable_name, validation_rule, visible_when, config_cls)
+_VALIDATED_VARS: list[tuple[ServiceType, str, object, object, type]] = []
+
+_SERVICE_CONFIG_MODELS = get_service_config_models()
+
 for _stype, _entries in VARIABLE_SCHEMAS.items():
+    _config_cls = _SERVICE_CONFIG_MODELS.get(_stype)
+    if _config_cls is None:
+        continue
+    _config_fields = set(_config_cls.model_fields.keys())
     for _entry in _entries:
         if _entry.validation is not None:
             # Only include rules that have numeric bounds or allowed_values
@@ -30,10 +36,10 @@ for _stype, _entries in VARIABLE_SCHEMAS.items():
                 or rule.max is not None
                 or rule.allowed_values is not None
             ):
-                # Only include if the variable maps to a real ResourceConfig field
-                if _entry.name in _RESOURCE_CONFIG_FIELDS:
+                # Only include if the variable maps to a real config field
+                if _entry.name in _config_fields:
                     _VALIDATED_VARS.append(
-                        (_stype, _entry.name, rule, _entry.visible_when)
+                        (_stype, _entry.name, rule, _entry.visible_when, _config_cls)
                     )
 
 
@@ -80,19 +86,21 @@ def invalid_value_for_rule(draw, rule):
 @given(data=st.data())
 @settings(max_examples=100)
 def test_backend_rejects_invalid_values(data):
-    """Property 9: For any ResourceConfig with a value outside validation bounds,
+    """Property 9: For any typed config with a value outside validation bounds,
     validate_config_against_schema raises HTTPException with status_code 422.
 
     **Validates: Requirements 4.10, 8.4**
     """
     # Pick a random validated variable
-    stype, var_name, rule, visible_when = data.draw(st.sampled_from(_VALIDATED_VARS))
+    stype, var_name, rule, visible_when, config_cls = data.draw(
+        st.sampled_from(_VALIDATED_VARS)
+    )
 
     # Generate an invalid value for this variable's rule
     bad_value = data.draw(invalid_value_for_rule(rule))
 
     # Build config kwargs — set the invalid field, plus satisfy visible_when if needed
-    config_kwargs = {var_name: bad_value}
+    config_kwargs: dict = {var_name: bad_value}
 
     if visible_when is not None:
         # Set the discriminating field so the variable IS visible (and thus validated)
@@ -102,7 +110,7 @@ def test_backend_rejects_invalid_values(data):
     if stype == ServiceType.DYNAMODB and "hash_key" not in config_kwargs:
         config_kwargs["hash_key"] = "pk"
 
-    config = ResourceConfig(**config_kwargs)
+    config = config_cls(**config_kwargs)
 
     with pytest.raises(HTTPException) as exc_info:
         validate_config_against_schema(stype, config)
@@ -119,7 +127,9 @@ def test_backend_rejects_invalid_values(data):
 @settings(max_examples=100)
 def test_valid_values_do_not_raise(data):
     """Complementary test: valid values within bounds do not raise HTTPException."""
-    stype, var_name, rule, visible_when = data.draw(st.sampled_from(_VALIDATED_VARS))
+    stype, var_name, rule, visible_when, config_cls = data.draw(
+        st.sampled_from(_VALIDATED_VARS)
+    )
 
     # Generate a valid value
     if rule.allowed_values is not None:
@@ -137,7 +147,7 @@ def test_valid_values_do_not_raise(data):
     else:
         good_value = data.draw(st.integers())
 
-    config_kwargs = {var_name: good_value}
+    config_kwargs: dict = {var_name: good_value}
 
     if visible_when is not None:
         config_kwargs[visible_when.field] = visible_when.equals
@@ -145,7 +155,7 @@ def test_valid_values_do_not_raise(data):
     if stype == ServiceType.DYNAMODB and "hash_key" not in config_kwargs:
         config_kwargs["hash_key"] = "pk"
 
-    config = ResourceConfig(**config_kwargs)
+    config = config_cls(**config_kwargs)
 
     # Should NOT raise
     validate_config_against_schema(stype, config)

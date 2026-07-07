@@ -15,8 +15,12 @@ from hypothesis import strategies as st
 
 from app.generators.tfvars_generator import TfvarsGenerator
 from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._general import get_service_config_models
 from app.models.ir_models import ResourceInstanceIR
+
+_SERVICE_CONFIG_MODELS = get_service_config_models()
 
 
 def _make_instance(
@@ -25,10 +29,11 @@ def _make_instance(
     terraform_variables: dict | None = None,
     **config_kwargs,
 ) -> ResourceInstanceIR:
+    config_cls = _SERVICE_CONFIG_MODELS.get(service_type, BaseServiceConfig)
     return ResourceInstanceIR(
         name=name,
         service_type=service_type,
-        config=ResourceConfig(**config_kwargs),
+        config=config_cls(**config_kwargs),
         terraform_variables=terraform_variables or {},
     )
 
@@ -301,10 +306,14 @@ def resource_instance_ir_strategy(draw):
         )
     )
     variables = {vn: draw(_tf_var_value_st) for vn in chosen}
+    # DynamoDB requires hash_key
+    config_kwargs = {}
+    if svc == ServiceType.DYNAMODB:
+        config_kwargs["hash_key"] = "pk"
     return ResourceInstanceIR(
         name=name,
         service_type=svc,
-        config=ResourceConfig(),
+        config=_SERVICE_CONFIG_MODELS.get(svc, BaseServiceConfig)(**config_kwargs),
         terraform_variables=variables,
     )
 

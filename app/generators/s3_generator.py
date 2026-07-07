@@ -7,14 +7,13 @@ from app.models.ir_models import ResourceInstanceIR
 
 
 def _resolve_config(instance: ResourceInstanceIR) -> S3Config:
-    """Resolve typed S3Config, falling back to instance.config during migration.
+    """Resolve typed S3Config from instance config.
 
-    Once ResourceConfig is removed, this can be replaced with a direct
-    get_typed_config(instance, S3Config) call.
+    Falls back to duck-typed access if field names match.
     """
     if isinstance(instance.config, S3Config):
         return instance.config
-    # During migration: ResourceConfig has the same field names, use it directly
+    # Fallback: duck-typed access works if field names match
     return instance.config  # type: ignore[return-value]
 
 

@@ -16,10 +16,12 @@ from app.models.input_models import (
     ArchitectureDescription,
     Connection,
     EnvironmentConfig,
-    ResourceConfig,
     ResourceInstance,
     ServiceType,
 )
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models.dynamodb_config import DynamoDBConfig
+from app.models.input_models.lambda_config import LambdaConfig
 from app.models.ir_models import ConnectionIR
 from app.services.iam_registry import get_resources
 from app.services.ir_builder import IRBuilder
@@ -40,7 +42,7 @@ def _make_input(**overrides) -> ArchitectureDescription:
             ResourceInstance(
                 name="my-func",
                 service_type=ServiceType.LAMBDA,
-                config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+                config=LambdaConfig(handler="index.handler", runtime="python3.12"),
             ),
         ],
         "connections": [],
@@ -53,7 +55,7 @@ def _lambda_resource(name: str = "my-func") -> ResourceInstance:
     return ResourceInstance(
         name=name,
         service_type=ServiceType.LAMBDA,
-        config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
     )
 
 
@@ -340,7 +342,7 @@ class TestIRBuilderRejectsUnsupportedPairs:
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=ResourceConfig(hash_key="id"),
+                    config=DynamoDBConfig(hash_key="id"),
                 ),
             ],
             connections=[

@@ -6,7 +6,8 @@ Requirements: 18.1–18.7
 import pytest
 
 from app.generators.ecr_generator import ECRGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.ecr_config import EcrConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_ecr_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.ECR,
-        config=ResourceConfig(**config_kwargs),
+        config=EcrConfig(**config_kwargs),
     )
 
 

@@ -7,7 +7,6 @@ from app.models.input_models import (
     BaseServiceConfig,
     Connection,
     EnvironmentConfig,
-    ResourceConfig,
     ResourceInstance,
     ServiceType,
 )
@@ -51,7 +50,7 @@ lambda_config_st = st.builds(
 
 s3_config_st = st.builds(
     S3Config,
-    versioning=st.one_of(st.none(), st.booleans()),
+    versioning=st.one_of(st.none(), st.sampled_from(["Enabled", "Suspended"])),
 )
 
 dynamodb_config_st = st.builds(

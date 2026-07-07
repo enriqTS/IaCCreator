@@ -6,7 +6,8 @@ Requirements: 14.1–14.5
 import pytest
 
 from app.generators.ec2_image_builder_generator import EC2ImageBuilderGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.ec2_image_builder_config import Ec2ImageBuilderConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_imagebuilder_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.EC2_IMAGE_BUILDER,
-        config=ResourceConfig(**config_kwargs),
+        config=Ec2ImageBuilderConfig(**config_kwargs),
     )
 
 

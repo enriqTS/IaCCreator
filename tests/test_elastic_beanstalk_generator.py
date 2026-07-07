@@ -6,7 +6,8 @@ Requirements: 8.1–8.7
 import pytest
 
 from app.generators.elastic_beanstalk_generator import ElasticBeanstalkGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.elastic_beanstalk_config import ElasticBeanstalkConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_eb_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.ELASTIC_BEANSTALK,
-        config=ResourceConfig(**config_kwargs),
+        config=ElasticBeanstalkConfig(**config_kwargs),
     )
 
 

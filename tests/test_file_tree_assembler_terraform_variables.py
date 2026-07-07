@@ -9,10 +9,13 @@ from app.models.input_models import (
     ArchitectureDescription,
     EnvironmentConfig,
     GlobalTerraformConfig,
-    ResourceConfig,
     ResourceInstance,
     ServiceType,
 )
+from app.models.input_models.api_gateway_config import ApiGatewayConfig
+from app.models.input_models.dynamodb_config import DynamoDBConfig
+from app.models.input_models.lambda_config import LambdaConfig
+from app.models.input_models.s3_config import S3Config
 from app.services.file_tree_assembler import FileTreeAssembler
 from app.services.ir_builder import IRBuilder
 
@@ -26,7 +29,7 @@ def _build_tree(**overrides) -> dict[str, str]:
             ResourceInstance(
                 name="my-func",
                 service_type=ServiceType.LAMBDA,
-                config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+                config=LambdaConfig(handler="index.handler", runtime="python3.12"),
             ),
         ],
         connections=[],
@@ -51,7 +54,7 @@ class TestTfvarsInFileTree:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(
+                    config=LambdaConfig(
                         handler="index.handler", runtime="python3.12"
                     ),
                     terraform_variables={"function_name": "hello"},
@@ -66,7 +69,7 @@ class TestTfvarsInFileTree:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(
+                    config=LambdaConfig(
                         handler="index.handler", runtime="python3.12"
                     ),
                     terraform_variables={"function_name": "hello"},
@@ -82,7 +85,7 @@ class TestTfvarsInFileTree:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(
+                    config=LambdaConfig(
                         handler="index.handler", runtime="python3.12"
                     ),
                     terraform_variables={"memory_size": 512},
@@ -99,6 +102,7 @@ class TestTfvarsInFileTree:
                 ResourceInstance(
                     name="my-bucket",
                     service_type=ServiceType.S3,
+                    config=S3Config(),
                     terraform_variables={"versioning_enabled": True},
                 ),
             ],
@@ -112,13 +116,13 @@ class TestTfvarsInFileTree:
                 ResourceInstance(
                     name="func-a",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                     terraform_variables={"function_name": "alpha"},
                 ),
                 ResourceInstance(
                     name="func-b",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                     terraform_variables={"function_name": "beta"},
                 ),
             ],
@@ -137,7 +141,7 @@ class TestTfvarsInFileTree:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                     terraform_variables={"function_name": "fn"},
                 ),
             ],
@@ -152,7 +156,7 @@ class TestTfvarsInFileTree:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                     terraform_variables={"function_name": "hello", "memory_size": 256},
                 ),
             ],
@@ -167,7 +171,7 @@ class TestTfvarsInFileTree:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                     terraform_variables={},
                 ),
             ],
@@ -182,12 +186,13 @@ class TestTfvarsInFileTree:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                     terraform_variables={"function_name": "fn", "timeout": 30},
                 ),
                 ResourceInstance(
                     name="my-bucket",
                     service_type=ServiceType.S3,
+                    config=S3Config(),
                     terraform_variables={
                         "bucket_name": "bkt",
                         "versioning_enabled": False,
@@ -308,12 +313,13 @@ class TestEndToEndIntegration:
                 ResourceInstance(
                     name="api",
                     service_type=ServiceType.API_GATEWAY,
+                    config=ApiGatewayConfig(protocol_type="HTTP"),
                     terraform_variables={"api_name": "my-api", "protocol_type": "HTTP"},
                 ),
                 ResourceInstance(
                     name="handler",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="main.handler", runtime="python3.12"),
+                    config=LambdaConfig(handler="main.handler", runtime="python3.12"),
                     terraform_variables={
                         "function_name": "handler-fn",
                         "memory_size": 256,
@@ -323,7 +329,7 @@ class TestEndToEndIntegration:
                 ResourceInstance(
                     name="store",
                     service_type=ServiceType.DYNAMODB,
-                    config=ResourceConfig(hash_key="pk"),
+                    config=DynamoDBConfig(hash_key="pk"),
                     terraform_variables={
                         "table_name": "data-store",
                         "billing_mode": "PAY_PER_REQUEST",

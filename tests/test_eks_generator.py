@@ -6,7 +6,8 @@ Requirements: 6.1–6.6
 import pytest
 
 from app.generators.eks_generator import EKSGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.eks_config import EksConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_eks_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.EKS,
-        config=ResourceConfig(**config_kwargs),
+        config=EksConfig(**config_kwargs),
     )
 
 

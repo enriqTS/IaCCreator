@@ -6,7 +6,8 @@ Requirements: 2.1–2.6
 import pytest
 
 from app.generators.ec2_generator import EC2Generator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.ec2_config import Ec2Config
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_ec2_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.EC2,
-        config=ResourceConfig(**config_kwargs),
+        config=Ec2Config(**config_kwargs),
     )
 
 

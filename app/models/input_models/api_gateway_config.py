@@ -229,6 +229,18 @@ class ApiGatewayConfig(BaseServiceConfig):
         description="Tags to apply to the API Gateway",
     )
 
+    # ─── Generator-facing fields (not Terraform variables) ─────────────────
+    # These fields support the HCL generator's list-based API for complex
+    # nested configurations. They are NOT exposed as Terraform variables.
+    routes: list[dict] | None = None
+    stages: list[dict] | None = None
+    authorizers: list[dict] | None = None
+    custom_domain: dict | None = None
+    vpc_links: list[dict] | None = None
+    integrations: list[dict] | None = None
+    access_log_retention_days: int | None = None
+    access_log_format: str | None = None
+
     # ─── Connection-Derived Inputs ─────────────────────────────────────────
 
     @classmethod

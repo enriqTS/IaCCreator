@@ -7,10 +7,11 @@ from app.models.input_models import (
     ArchitectureDescription,
     Connection,
     EnvironmentConfig,
-    ResourceConfig,
     ResourceInstance,
     ServiceType,
 )
+from app.models.input_models.dynamodb_config import DynamoDBConfig
+from app.models.input_models.lambda_config import LambdaConfig
 from app.services.ir_builder import IRBuilder
 
 
@@ -25,7 +26,7 @@ def _make_input(**overrides) -> ArchitectureDescription:
             ResourceInstance(
                 name="my-func",
                 service_type=ServiceType.LAMBDA,
-                config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+                config=LambdaConfig(handler="index.handler", runtime="python3.12"),
             ),
         ],
         "connections": [],
@@ -48,12 +49,12 @@ class TestIRBuilderBasic:
                 ResourceInstance(
                     name="func-a",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="a.handler", runtime="python3.12"),
+                    config=LambdaConfig(handler="a.handler", runtime="python3.12"),
                 ),
                 ResourceInstance(
                     name="func-b",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="b.handler", runtime="python3.12"),
+                    config=LambdaConfig(handler="b.handler", runtime="python3.12"),
                 ),
                 ResourceInstance(name="my-bucket", service_type=ServiceType.S3),
             ]
@@ -76,12 +77,12 @@ class TestIRBuilderBasic:
                 ResourceInstance(
                     name="func-a",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="a.handler", runtime="python3.12"),
+                    config=LambdaConfig(handler="a.handler", runtime="python3.12"),
                 ),
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=ResourceConfig(hash_key="id"),
+                    config=DynamoDBConfig(hash_key="id"),
                 ),
             ],
             environments=[
@@ -152,12 +153,12 @@ class TestConnectionValidation:
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=ResourceConfig(hash_key="id"),
+                    config=DynamoDBConfig(hash_key="id"),
                 ),
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                 ),
             ],
             connections=[
@@ -175,12 +176,12 @@ class TestConnectionValidation:
                 ResourceInstance(
                     name="my-api",
                     service_type=ServiceType.API_GATEWAY,
-                    config=ResourceConfig(protocol_type="HTTP"),
+                    config=LambdaConfig(protocol_type="HTTP"),
                 ),
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                 ),
             ],
             connections=[
@@ -204,12 +205,12 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                 ),
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=ResourceConfig(hash_key="id"),
+                    config=DynamoDBConfig(hash_key="id"),
                 ),
             ],
             connections=[
@@ -231,7 +232,7 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                 ),
                 ResourceInstance(name="my-bucket", service_type=ServiceType.S3),
             ],
@@ -254,7 +255,7 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                 ),
                 ResourceInstance(name="my-logs", service_type=ServiceType.CLOUDWATCH),
             ],
@@ -277,12 +278,12 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                 ),
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=ResourceConfig(hash_key="id"),
+                    config=DynamoDBConfig(hash_key="id"),
                 ),
                 ResourceInstance(name="my-bucket", service_type=ServiceType.S3),
             ],
@@ -309,12 +310,12 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-api",
                     service_type=ServiceType.API_GATEWAY,
-                    config=ResourceConfig(protocol_type="HTTP"),
+                    config=LambdaConfig(protocol_type="HTTP"),
                 ),
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=ResourceConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(handler="h", runtime="python3.12"),
                 ),
             ],
             connections=[

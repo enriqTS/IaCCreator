@@ -6,7 +6,6 @@ from collections import defaultdict
 from app.exceptions import IncompatibleConnectionError, ResourceNotFoundError
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import (
-    ResourceConfig,
     _get_cached_service_config_models,
 )
 
@@ -153,28 +152,24 @@ class IRBuilder:
 
     def _resolve_config(
         self,
-        config: ResourceConfig | BaseServiceConfig,
+        config: BaseServiceConfig,
         service_type: ServiceType,
-    ) -> ResourceConfig | BaseServiceConfig:
+    ) -> BaseServiceConfig:
         """Resolve the config to a typed BaseServiceConfig subclass if possible.
 
         If the config is already a BaseServiceConfig subclass with a Terraform schema,
-        it is used directly. Otherwise, the ResourceConfig is returned as-is for
-        backward compatibility with non-migrated services.
-
-        When the input layer is updated to supply typed configs directly, this method
-        will use the SERVICE_CONFIG_MODELS registry to validate/coerce incoming data.
+        it is used directly. Otherwise, BaseServiceConfig is returned as-is for
+        icon-only services without a registered model.
 
         Args:
-            config: The resource config from input (ResourceConfig or BaseServiceConfig).
+            config: The resource config from input (BaseServiceConfig or subclass).
             service_type: The service type for registry lookup.
 
         Returns:
-            The resolved config — either a typed BaseServiceConfig subclass or the
-            original ResourceConfig.
+            The resolved config — a typed BaseServiceConfig subclass or base instance.
         """
         # If config is already a typed BaseServiceConfig subclass, use it directly
-        if isinstance(config, BaseServiceConfig) and config.has_terraform_schema():
+        if config.has_terraform_schema():
             return config
 
         # Check if this service has a registered typed config model
@@ -182,10 +177,7 @@ class IRBuilder:
         config_cls = registry.get(service_type)
 
         if config_cls is not None and config_cls.has_terraform_schema():
-            # Service is migrated, but input is still a ResourceConfig.
-            # Pass through as-is — the input layer will be updated later to
-            # supply typed configs directly. The union type on ResourceInstanceIR
-            # accepts both.
+            # Service is migrated — input layer now supplies typed configs directly.
             pass
 
         return config

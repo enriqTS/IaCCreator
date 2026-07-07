@@ -7,7 +7,6 @@ from app.models.input_models._general import (
     Connection,
     EnvironmentConfig,
     GlobalTerraformConfig,
-    ResourceConfig,
     ResourceInstance,
     ServiceType,
     get_service_config_models,
@@ -133,7 +132,6 @@ __all__ = [
     "Connection",
     "EnvironmentConfig",
     "GlobalTerraformConfig",
-    "ResourceConfig",
     "ResourceInstance",
     "ServiceType",
     # Terraform field metadata

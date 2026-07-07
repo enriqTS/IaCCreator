@@ -6,7 +6,8 @@ Requirements: 4.1–4.8
 import pytest
 
 from app.generators.ecs_generator import ECSGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.ecs_config import EcsConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_ecs_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.ECS,
-        config=ResourceConfig(**config_kwargs),
+        config=EcsConfig(**config_kwargs),
     )
 
 

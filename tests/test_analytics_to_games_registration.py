@@ -18,7 +18,9 @@ import pytest
 
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._general import get_service_config_models
 from app.models.ir_models import (
     EnvironmentIR,
     GlobalTerraformConfigIR,
@@ -149,12 +151,16 @@ ICON_ONLY_SERVICES = {
 # ---------------------------------------------------------------------------
 
 
+_SERVICE_CONFIG_MODELS = get_service_config_models()
+
+
 def _make_instance(name: str, service_type: ServiceType) -> ResourceInstanceIR:
     """Create a minimal ResourceInstanceIR for the given service type."""
+    config_cls = _SERVICE_CONFIG_MODELS.get(service_type, BaseServiceConfig)
     return ResourceInstanceIR(
         name=name,
         service_type=service_type,
-        config=ResourceConfig(),
+        config=config_cls(),
     )
 
 
@@ -229,111 +235,11 @@ class TestGeneratorRegistry:
 
 
 # ---------------------------------------------------------------------------
-# 4. ResourceConfig optional fields for full-generator services
+# 4. Typed config models for full-generator services (replaces ResourceConfig)
 # ---------------------------------------------------------------------------
 
-
-class TestResourceConfigFields:
-    """Verify ResourceConfig has all new optional fields for 25 full-generator services."""
-
-    # Analytics fields
-    @pytest.mark.parametrize(
-        "field",
-        [
-            "athena_name",
-            "cloudsearch_name",
-            "emr_release_label",
-            "emr_service_role",
-            "glue_catalog_database_name",
-            "kinesis_shard_count",
-            "firehose_destination",
-            "msk_kafka_version",
-            "msk_number_of_broker_nodes",
-            "opensearch_domain_name",
-            "redshift_node_type",
-            "redshift_master_username",
-        ],
-    )
-    def test_analytics_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # Business Applications fields
-    @pytest.mark.parametrize(
-        "field",
-        [
-            "connect_identity_management_type",
-            "connect_inbound_calls_enabled",
-            "connect_outbound_calls_enabled",
-            "ses_domain",
-            "pinpoint_name",
-        ],
-    )
-    def test_business_applications_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # Database fields
-    @pytest.mark.parametrize(
-        "field",
-        [
-            "aurora_engine",
-            "aurora_master_username",
-            "documentdb_master_username",
-            "elasticache_engine",
-            "elasticache_node_type",
-            "elasticache_num_cache_nodes",
-            "neptune_cluster_identifier",
-            "rds_engine",
-            "rds_instance_class",
-            "rds_allocated_storage",
-            "rds_username",
-            "timestream_database_name",
-        ],
-    )
-    def test_database_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # Developer Tools fields
-    @pytest.mark.parametrize(
-        "field",
-        [
-            "codebuild_source_type",
-            "codebuild_service_role",
-            "codecommit_repository_name",
-            "codedeploy_compute_platform",
-            "codepipeline_role_arn",
-        ],
-    )
-    def test_developer_tools_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # End User Computing fields
-    @pytest.mark.parametrize("field", ["appstream_instance_type"])
-    def test_end_user_computing_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # Front End Web Mobile fields
-    @pytest.mark.parametrize("field", ["amplify_name"])
-    def test_front_end_web_mobile_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # Games fields
-    @pytest.mark.parametrize("field", ["gamelift_ec2_instance_type"])
-    def test_games_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
+# TestResourceConfigFields removed — ResourceConfig god-object has been deleted.
+# Per-service typed configs are tested via their own modules and property-based tests.
 
 
 # ---------------------------------------------------------------------------

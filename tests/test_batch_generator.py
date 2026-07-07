@@ -6,7 +6,8 @@ Requirements: 12.1–12.6
 import pytest
 
 from app.generators.batch_generator import BatchGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.batch_config import BatchConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_batch_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.BATCH,
-        config=ResourceConfig(**config_kwargs),
+        config=BatchConfig(**config_kwargs),
     )
 
 

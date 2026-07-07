@@ -16,14 +16,12 @@ class LambdaGenerator:
         """Resolve instance config to LambdaConfig.
 
         Uses get_typed_config when the config is already a LambdaConfig.
-        Falls back to duck-typed access on ResourceConfig during migration
-        (both models share identical field names).
+        Falls back to duck-typed access if field names match.
         """
         try:
             return get_typed_config(instance, LambdaConfig)
         except Exception:
-            # During migration, config may still be a ResourceConfig.
-            # Field names are identical, so duck-typed access works.
+            # Fallback: duck-typed access works if field names match.
             return instance.config  # type: ignore[return-value]
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:

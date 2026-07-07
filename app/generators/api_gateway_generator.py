@@ -19,14 +19,12 @@ class APIGatewayGenerator:
         """Resolve instance config to ApiGatewayConfig.
 
         Uses get_typed_config when the config is already an ApiGatewayConfig.
-        Falls back to duck-typed access on ResourceConfig during migration
-        (both models share field names for scalar API Gateway fields).
+        Falls back to duck-typed access if field names match.
         """
         try:
             return get_typed_config(instance, ApiGatewayConfig)
         except Exception:
-            # During migration, config may still be a ResourceConfig.
-            # Field names are shared for scalar fields, so duck-typed access works.
+            # Fallback: duck-typed access works if field names match.
             return instance.config  # type: ignore[return-value]
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:

@@ -198,15 +198,6 @@ class ServiceType(str, Enum):
     BEDROCK_AGENTCORE = "bedrock-agentcore"
 
 
-# Backward-compat alias: ResourceConfig was replaced by per-service typed configs.
-# Kept temporarily so existing tests that use ResourceConfig(...) with arbitrary
-# kwargs continue to work until they are migrated to typed config classes.
-class ResourceConfig(BaseServiceConfig):
-    """Deprecated — use per-service config models instead."""
-
-    model_config = {"extra": "allow"}
-
-
 class ResourceInstance(BaseModel):
     """A specific named resource within a service module."""
 
@@ -218,6 +209,32 @@ class ResourceInstance(BaseModel):
     terraform_variables: dict[str, str | int | float | bool] = Field(
         default_factory=dict
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_typed_config(cls, data: dict) -> dict:
+        """Resolve config to the typed model based on service_type.
+
+        When config is provided as a plain dict, coerce it into the
+        appropriate typed config model using the SERVICE_CONFIG_MODELS registry.
+        """
+        if not isinstance(data, dict):
+            return data
+        config = data.get("config")
+        service_type = data.get("service_type")
+        if config is None or service_type is None:
+            return data
+        # If config is already a BaseServiceConfig instance, keep it
+        if isinstance(config, BaseServiceConfig):
+            return data
+        # If config is a dict, resolve to typed model
+        if isinstance(config, dict) and config:
+            registry = _get_cached_service_config_models()
+            stype = ServiceType(service_type) if isinstance(service_type, str) else service_type
+            config_cls = registry.get(stype)
+            if config_cls is not None:
+                data["config"] = config_cls(**config)
+        return data
 
     @model_validator(mode="after")
     def validate_dynamodb_hash_key(self) -> ResourceInstance:

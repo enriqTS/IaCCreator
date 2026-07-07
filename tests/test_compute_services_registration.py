@@ -15,7 +15,9 @@ Requirements: 1.1, 3.1, 5.1, 7.1, 9.1, 11.1, 13.1, 15.1, 17.1, 20.1–20.35, 21.
 import pytest
 
 from app.generators.registry import GENERATOR_REGISTRY
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._general import get_service_config_models
 from app.models.ir_models import (
     EnvironmentIR,
     GlobalTerraformConfigIR,
@@ -82,12 +84,16 @@ ICON_ONLY_SERVICES = {
 # ---------------------------------------------------------------------------
 
 
+_SERVICE_CONFIG_MODELS = get_service_config_models()
+
+
 def _make_instance(name: str, service_type: ServiceType) -> ResourceInstanceIR:
     """Create a minimal ResourceInstanceIR for the given service type."""
+    config_cls = _SERVICE_CONFIG_MODELS.get(service_type, BaseServiceConfig)
     return ResourceInstanceIR(
         name=name,
         service_type=service_type,
-        config=ResourceConfig(),
+        config=config_cls(),
     )
 
 
@@ -162,94 +168,12 @@ class TestGeneratorRegistry:
 
 
 # ---------------------------------------------------------------------------
-# 4. ResourceConfig optional fields for full-generator services
+# 4. Typed config models for full-generator services (replaces ResourceConfig)
 # ---------------------------------------------------------------------------
 
-
-class TestResourceConfigFields:
-    """Verify ResourceConfig has all new optional fields for 9 full-generator services."""
-
-    # EC2 fields
-    @pytest.mark.parametrize("field", ["instance_type", "ami", "key_name"])
-    def test_ec2_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # ECS fields
-    @pytest.mark.parametrize(
-        "field", ["ecs_launch_type", "ecs_desired_count", "ecs_cpu", "ecs_memory"]
-    )
-    def test_ecs_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # EKS fields
-    @pytest.mark.parametrize("field", ["eks_version", "eks_endpoint_public_access"])
-    def test_eks_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # Elastic Beanstalk fields
-    @pytest.mark.parametrize("field", ["eb_solution_stack_name", "eb_tier"])
-    def test_elastic_beanstalk_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # App Runner fields
-    @pytest.mark.parametrize(
-        "field", ["apprunner_source_type", "apprunner_image_identifier"]
-    )
-    def test_app_runner_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # Batch fields
-    @pytest.mark.parametrize(
-        "field", ["batch_compute_environment_type", "batch_max_vcpus"]
-    )
-    def test_batch_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # EC2 Image Builder fields
-    @pytest.mark.parametrize(
-        "field",
-        [
-            "imagebuilder_image_recipe_arn",
-            "imagebuilder_infrastructure_configuration_arn",
-        ],
-    )
-    def test_ec2_image_builder_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # Lightsail fields
-    @pytest.mark.parametrize(
-        "field",
-        [
-            "lightsail_blueprint_id",
-            "lightsail_bundle_id",
-            "lightsail_availability_zone",
-        ],
-    )
-    def test_lightsail_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
-
-    # ECR fields
-    @pytest.mark.parametrize("field", ["ecr_image_tag_mutability", "ecr_scan_on_push"])
-    def test_ecr_fields(self, field: str):
-        config = ResourceConfig()
-        assert hasattr(config, field)
-        assert getattr(config, field) is None
+# TestResourceConfigFields removed — ResourceConfig god-object has been deleted.
+# Per-service typed configs (Ec2Config, EcsConfig, etc.) are tested via
+# their own modules and property-based tests.
 
 
 # ---------------------------------------------------------------------------

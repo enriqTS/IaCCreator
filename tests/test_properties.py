@@ -136,8 +136,13 @@ from app.generators.cloudwatch_generator import CloudWatchGenerator
 from app.generators.dynamodb_generator import DynamoDBGenerator
 from app.generators.lambda_generator import LambdaGenerator
 from app.generators.s3_generator import S3Generator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models.api_gateway_config import ApiGatewayConfig
+from app.models.input_models.cloudwatch_config import CloudWatchConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig
+from app.models.input_models.lambda_config import LambdaConfig
+from app.models.input_models.s3_config import S3Config
 from app.models.ir_models import ResourceInstanceIR
 
 # --- Hypothesis strategies for resource instances ---
@@ -145,7 +150,7 @@ from app.models.ir_models import ResourceInstanceIR
 _resource_name_st = st.from_regex(r"[a-z][a-z0-9\-]{0,14}", fullmatch=True)
 
 _lambda_config_st = st.builds(
-    ResourceConfig,
+    LambdaConfig,
     handler=st.just("index.handler"),
     runtime=st.sampled_from(["python3.12", "python3.11", "nodejs18.x", "nodejs20.x"]),
     memory_size=st.one_of(st.none(), st.integers(min_value=128, max_value=3008)),
@@ -154,8 +159,8 @@ _lambda_config_st = st.builds(
 )
 
 _s3_config_st = st.builds(
-    ResourceConfig,
-    versioning=st.one_of(st.none(), st.booleans()),
+    S3Config,
+    versioning=st.one_of(st.none(), st.sampled_from(["Enabled", "Suspended"])),
 )
 
 _dynamodb_config_st = st.builds(
@@ -170,12 +175,12 @@ _dynamodb_config_st = st.builds(
 )
 
 _api_gateway_config_st = st.builds(
-    ResourceConfig,
+    ApiGatewayConfig,
     protocol_type=st.sampled_from(["HTTP", "WEBSOCKET"]),
 )
 
 _cloudwatch_config_st = st.builds(
-    ResourceConfig,
+    CloudWatchConfig,
     retention_in_days=st.one_of(
         st.none(), st.sampled_from([1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365])
     ),
@@ -183,7 +188,7 @@ _cloudwatch_config_st = st.builds(
 
 
 def _make_instance(
-    name: str, service_type: ServiceType, config: ResourceConfig
+    name: str, service_type: ServiceType, config: BaseServiceConfig
 ) -> ResourceInstanceIR:
     return ResourceInstanceIR(name=name, service_type=service_type, config=config)
 
@@ -301,7 +306,7 @@ from app.services.connection_processor import ConnectionProcessor
 
 def _build_project_with_connections(
     lambda_names: list[str],
-    target_specs: list[tuple[str, ServiceType, ResourceConfig]],
+    target_specs: list[tuple[str, ServiceType, BaseServiceConfig]],
     connections: list[tuple[str, str, str]],
 ) -> ProjectIR:
     """Build a ProjectIR with Lambda instances, target resources, and connections."""
@@ -309,7 +314,7 @@ def _build_project_with_connections(
         ResourceInstanceIR(
             name=n,
             service_type=ServiceType.LAMBDA,
-            config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+            config=LambdaConfig(handler="index.handler", runtime="python3.12"),
         )
         for n in lambda_names
     ]
@@ -398,7 +403,7 @@ _lambda_with_iam_st = st.builds(
     lambda name, stmts: ResourceInstanceIR(
         name=name,
         service_type=ServiceType.LAMBDA,
-        config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
         iam_statements=stmts,
     ),
     name=_lambda_name_st,
@@ -465,18 +470,18 @@ _dynamodb_target_st = st.builds(
     lambda name: (
         name,
         ServiceType.DYNAMODB,
-        ResourceConfig(hash_key="id", billing_mode="PAY_PER_REQUEST"),
+        DynamoDBConfig(hash_key="id", billing_mode="PAY_PER_REQUEST"),
     ),
     name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
 )
 
 _s3_target_st = st.builds(
-    lambda name: (name, ServiceType.S3, ResourceConfig()),
+    lambda name: (name, ServiceType.S3, S3Config()),
     name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
 )
 
 _cloudwatch_target_st = st.builds(
-    lambda name: (name, ServiceType.CLOUDWATCH, ResourceConfig()),
+    lambda name: (name, ServiceType.CLOUDWATCH, CloudWatchConfig()),
     name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
 )
 
@@ -549,12 +554,12 @@ def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
     apigw_inst = ResourceInstanceIR(
         name=apigw_name,
         service_type=ServiceType.API_GATEWAY,
-        config=ResourceConfig(protocol_type="HTTP"),
+        config=ApiGatewayConfig(protocol_type="HTTP"),
     )
     lambda_inst = ResourceInstanceIR(
         name=lambda_name,
         service_type=ServiceType.LAMBDA,
-        config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
     )
 
     conn = ConnectionIR(
@@ -614,12 +619,12 @@ def test_property_17_terraform_references_not_hardcoded(apigw_name, lambda_name)
     apigw_inst = ResourceInstanceIR(
         name=apigw_name,
         service_type=ServiceType.API_GATEWAY,
-        config=ResourceConfig(protocol_type="HTTP"),
+        config=ApiGatewayConfig(protocol_type="HTTP"),
     )
     lambda_inst = ResourceInstanceIR(
         name=lambda_name,
         service_type=ServiceType.LAMBDA,
-        config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
     )
 
     conn = ConnectionIR(

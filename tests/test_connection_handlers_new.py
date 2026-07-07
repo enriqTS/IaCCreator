@@ -14,7 +14,14 @@ Requirements: 3.2, 3.3, 3.4, 3.5, 4.1–4.6, 5.1, 5.2, 6.1–6.6,
 """
 
 
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models.api_gateway_config import ApiGatewayConfig
+from app.models.input_models.dynamodb_config import DynamoDBConfig
+from app.models.input_models.lambda_config import LambdaConfig
+from app.models.input_models.s3_config import S3Config
+from app.models.input_models.sns_config import SnsConfig
+from app.models.input_models.sqs_config import SqsConfig
 from app.models.ir_models import (
     ConnectionIR,
     EnvironmentIR,
@@ -34,7 +41,7 @@ def _lambda_ir(name: str = "my-func") -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.LAMBDA,
-        config=ResourceConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
     )
 
 
@@ -42,7 +49,7 @@ def _apigw_ir(name: str = "my-api") -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.API_GATEWAY,
-        config=ResourceConfig(protocol_type="HTTP"),
+        config=ApiGatewayConfig(protocol_type="HTTP"),
     )
 
 
@@ -50,7 +57,7 @@ def _sns_ir(name: str = "my-topic") -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.SNS,
-        config=ResourceConfig(),
+        config=SnsConfig(),
     )
 
 
@@ -58,7 +65,7 @@ def _sqs_ir(name: str = "my-queue") -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.SQS,
-        config=ResourceConfig(),
+        config=SqsConfig(),
     )
 
 
@@ -893,7 +900,7 @@ def _dynamodb_ir(name: str = "my-table") -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.DYNAMODB,
-        config=ResourceConfig(hash_key="id", billing_mode="PAY_PER_REQUEST"),
+        config=DynamoDBConfig(hash_key="id", billing_mode="PAY_PER_REQUEST"),
     )
 
 
@@ -992,7 +999,7 @@ def _s3_ir(name: str = "my-bucket") -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.S3,
-        config=ResourceConfig(),
+        config=S3Config(),
     )
 
 

@@ -12,7 +12,9 @@ Covers task 3.4 of the connection-aware-terraform-generation spec:
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.sns_generator import SNSGenerator
 from app.generators.sqs_generator import SQSGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.sns_config import SnsConfig
+from app.models.input_models.sqs_config import SqsConfig
 from app.models.ir_models import ResourceInstanceIR
 
 # ---------------------------------------------------------------------------
@@ -25,7 +27,7 @@ def _sns_instance(name: str = "my-topic", **config_kwargs) -> ResourceInstanceIR
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.SNS,
-        config=ResourceConfig(**config_kwargs),
+        config=SnsConfig(**config_kwargs),
     )
 
 
@@ -34,7 +36,7 @@ def _sqs_instance(name: str = "my-queue", **config_kwargs) -> ResourceInstanceIR
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.SQS,
-        config=ResourceConfig(**config_kwargs),
+        config=SqsConfig(**config_kwargs),
     )
 
 

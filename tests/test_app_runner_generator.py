@@ -6,7 +6,8 @@ Requirements: 10.1–10.5
 import pytest
 
 from app.generators.app_runner_generator import AppRunnerGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.app_runner_config import AppRunnerConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_app_runner_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.APP_RUNNER,
-        config=ResourceConfig(**config_kwargs),
+        config=AppRunnerConfig(**config_kwargs),
     )
 
 
