@@ -2,6 +2,7 @@
 
 from app.generators.api_gateway_validator import APIGatewayValidator
 from app.generators.base import get_typed_config
+from app.generators.connection_helpers import generate_connection_variables
 from app.generators.hcl_renderer import HCLRenderer
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -162,6 +163,12 @@ class APIGatewayGenerator:
                     "Tags to apply to the API Gateway",
                 )
             )
+
+        # Emit connection-derived variable blocks
+        connection_vars = generate_connection_variables(instance, self._r)
+        if connection_vars:
+            parts.append(connection_vars)
+
         return "\n".join(parts)
 
     def _generate_routes(self, instance: ResourceInstanceIR) -> str:
