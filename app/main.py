@@ -1,5 +1,6 @@
 """FastAPI application — Terraform IaC Generator endpoints."""
 
+import logging
 import os
 
 from fastapi import FastAPI, HTTPException
@@ -10,20 +11,34 @@ from app.exception_handlers import domain_error_handler
 from app.exceptions import DomainError
 from app.generators.schema_validator import validate_config_against_schema
 from app.generators.variable_schemas import VARIABLE_SCHEMAS
+from app.logging_config import configure_logging
 from app.middleware.session_middleware import SessionMiddleware
 from app.models.input_models import ArchitectureDescription
 from app.models.ir_models import GenerationSummary
 from app.persistence.factory import get_repository
-from app.routers.diagrams import router as diagram_router, set_repository
+from app.routers.diagrams import router as diagram_router
 from app.services.code_generator import CodeGenerator
 from app.services.ir_builder import IRBuilder
 from app.services.output_serializer import OutputSerializer
 from app.services.session_manager import SessionManager
 
+configure_logging()
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
     title="Terraform IaC Generator",
     description="Generates modular Terraform file structures from architecture descriptions",
     version="0.1.0",
+)
+
+logger.info(
+    "Application started",
+    extra={
+        "correlation_id": "startup",
+        "app_name": "Terraform IaC Generator",
+        "version": "0.1.0",
+        "log_level": os.getenv("LOG_LEVEL", "INFO").upper(),
+    },
 )
 
 # --- CORS middleware (must be added BEFORE session middleware) ---
@@ -44,7 +59,6 @@ app.add_middleware(SessionMiddleware, session_manager=_session_manager)
 app.add_exception_handler(DomainError, domain_error_handler)
 
 # --- Diagram router ---
-set_repository(_repository)
 app.include_router(diagram_router)
 
 _ir_builder = IRBuilder()
@@ -90,6 +104,11 @@ async def generate_zip(arch: ArchitectureDescription) -> Response:
     except HTTPException:
         raise
     except Exception as exc:
+        logger.error(
+            "Generation failed",
+            exc_info=True,
+            extra={"correlation_id": "anonymous"},
+        )
         raise HTTPException(
             status_code=500,
             detail=f"Generation failed: {exc}",
@@ -110,6 +129,11 @@ async def generate_json(arch: ArchitectureDescription) -> JSONResponse:
     except HTTPException:
         raise
     except Exception as exc:
+        logger.error(
+            "Generation failed",
+            exc_info=True,
+            extra={"correlation_id": "anonymous"},
+        )
         raise HTTPException(
             status_code=500,
             detail=f"Generation failed: {exc}",

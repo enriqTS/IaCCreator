@@ -1,8 +1,11 @@
 """IR Builder service: transforms validated ArchitectureDescription into ProjectIR."""
 
+import logging
 from collections import defaultdict
 
 from app.exceptions import IncompatibleConnectionError, ResourceNotFoundError
+
+logger = logging.getLogger(__name__)
 from app.models.input_models import (
     ArchitectureDescription,
     Connection,

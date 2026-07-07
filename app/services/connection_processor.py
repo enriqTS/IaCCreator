@@ -1,6 +1,10 @@
 """ConnectionProcessor — processes resource connections and generates integration resources."""
 
+import logging
+
 from app.generators.hcl_renderer import HCLRenderer
+
+logger = logging.getLogger(__name__)
 from app.generators.service_category_map import get_category
 from app.models.input_models import ServiceType
 from app.models.ir_models import (

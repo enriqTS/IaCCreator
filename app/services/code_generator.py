@@ -1,8 +1,12 @@
 """CodeGenerator — orchestrates the full generation pipeline from ProjectIR to FileTree."""
 
+import logging
+
 from app.models.ir_models import FileTree, ProjectIR
 from app.services.connection_processor import ConnectionProcessor
 from app.services.file_tree_assembler import FileTreeAssembler
+
+logger = logging.getLogger(__name__)
 
 
 class CodeGenerator:
