@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from app.models.diagram_models import DiagramStateInput
 from app.persistence.base import AbstractRepository
 from app.persistence.factory import get_repository
+from app.persistence.models import DiagramRecord
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,21 @@ router = APIRouter(prefix="/api/diagrams")
 def get_repo() -> AbstractRepository:
     """Repository dependency — overridable via app.dependency_overrides."""
     return get_repository()
+
+
+async def verify_ownership(
+    diagram_id: str,
+    request: Request,
+    repo: AbstractRepository = Depends(get_repo),
+) -> DiagramRecord:
+    """Fetch diagram and verify session ownership. Raises 404/403."""
+    record = repo.get_diagram(diagram_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Diagram not found")
+    session_id: str = request.state.session_id
+    if record.session_id != session_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return record
 
 
 # ---------------------------------------------------------------------------
@@ -60,15 +76,10 @@ async def list_diagrams(
 async def get_diagram(
     diagram_id: str,
     request: Request,
-    repo: AbstractRepository = Depends(get_repo),
+    record: DiagramRecord = Depends(verify_ownership),
 ):
     """Load the full diagram state by ID (ownership-checked)."""
     session_id: str = request.state.session_id
-    record = repo.get_diagram(diagram_id)
-    if record is None:
-        raise HTTPException(status_code=404, detail="Diagram not found")
-    if record.session_id != session_id:
-        raise HTTPException(status_code=403, detail="Forbidden")
     logger.info(
         "Diagram retrieved",
         extra={"correlation_id": session_id, "diagram_id": diagram_id},
@@ -81,15 +92,11 @@ async def update_diagram(
     diagram_id: str,
     body: DiagramStateInput,
     request: Request,
+    record: DiagramRecord = Depends(verify_ownership),
     repo: AbstractRepository = Depends(get_repo),
 ):
     """Update an existing diagram (ownership-checked)."""
     session_id: str = request.state.session_id
-    record = repo.get_diagram(diagram_id)
-    if record is None:
-        raise HTTPException(status_code=404, detail="Diagram not found")
-    if record.session_id != session_id:
-        raise HTTPException(status_code=403, detail="Forbidden")
     repo.update_diagram(diagram_id, body.model_dump())
     logger.info(
         "Diagram updated",
@@ -102,15 +109,11 @@ async def update_diagram(
 async def delete_diagram(
     diagram_id: str,
     request: Request,
+    record: DiagramRecord = Depends(verify_ownership),
     repo: AbstractRepository = Depends(get_repo),
 ):
     """Delete a diagram (ownership-checked). Returns 204 on success."""
     session_id: str = request.state.session_id
-    record = repo.get_diagram(diagram_id)
-    if record is None:
-        raise HTTPException(status_code=404, detail="Diagram not found")
-    if record.session_id != session_id:
-        raise HTTPException(status_code=403, detail="Forbidden")
     repo.delete_diagram(diagram_id)
     logger.info(
         "Diagram deleted",
