@@ -63,15 +63,6 @@ interface HistoryEntry {
 
 const MAX_HISTORY = 50;
 
-/** Deep-clone a Map of diagram objects */
-function cloneMap<K, V>(map: Map<K, V>): Map<K, V> {
-  const result = new Map<K, V>();
-  for (const [k, v] of map) {
-    result.set(k, { ...(v as object) } as V);
-  }
-  return result;
-}
-
 function takeSnapshot(state: {
   elements: Map<string, DiagramElement>;
   connectors: Map<string, Connector>;
@@ -79,10 +70,10 @@ function takeSnapshot(state: {
   objectGroups?: Map<string, ObjectGroup>;
 }): HistoryEntry {
   return {
-    elements: cloneMap(state.elements),
-    connectors: cloneMap(state.connectors),
-    canvasObjects: cloneMap(state.canvasObjects ?? new Map()),
-    objectGroups: cloneMap(state.objectGroups ?? new Map()),
+    elements: structuredClone(state.elements),
+    connectors: structuredClone(state.connectors),
+    canvasObjects: structuredClone(state.canvasObjects ?? new Map()),
+    objectGroups: structuredClone(state.objectGroups ?? new Map()),
   };
 }
 
@@ -1506,10 +1497,10 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       const newUndoStack = _undoStack.slice(0, -1);
 
       set({
-        elements: cloneMap(previous.elements),
-        connectors: cloneMap(previous.connectors),
-        canvasObjects: cloneMap(previous.canvasObjects),
-        objectGroups: cloneMap(previous.objectGroups),
+        elements: structuredClone(previous.elements),
+        connectors: structuredClone(previous.connectors),
+        canvasObjects: structuredClone(previous.canvasObjects),
+        objectGroups: structuredClone(previous.objectGroups),
         _undoStack: newUndoStack,
         _redoStack: newRedoStack,
         canUndo: newUndoStack.length > 0,
@@ -1527,10 +1518,10 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       const newRedoStack = _redoStack.slice(0, -1);
 
       set({
-        elements: cloneMap(next.elements),
-        connectors: cloneMap(next.connectors),
-        canvasObjects: cloneMap(next.canvasObjects),
-        objectGroups: cloneMap(next.objectGroups),
+        elements: structuredClone(next.elements),
+        connectors: structuredClone(next.connectors),
+        canvasObjects: structuredClone(next.canvasObjects),
+        objectGroups: structuredClone(next.objectGroups),
         _undoStack: newUndoStack,
         _redoStack: newRedoStack,
         canUndo: true,
