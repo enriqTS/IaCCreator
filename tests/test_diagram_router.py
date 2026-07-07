@@ -11,7 +11,8 @@ from fastapi.testclient import TestClient
 
 from app.middleware.session_middleware import COOKIE_NAME, SessionMiddleware
 from app.persistence.tinydb_repo import TinyDBRepository
-from app.routers.diagrams import get_repo, router as diagram_router
+from app.persistence.models import DiagramRecord
+from app.routers.diagrams import get_repo, verify_ownership, router as diagram_router
 from app.services.session_manager import SessionManager
 
 # A minimal valid diagram payload for creating/updating diagrams.
@@ -190,3 +191,80 @@ class TestSuccessfulDelete:
         # Verify it's gone
         resp = client.get(f"/api/diagrams/{diagram_id}")
         assert resp.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# verify_ownership dependency override
+# Requirements 5.4, 5.6
+# ---------------------------------------------------------------------------
+
+
+class TestVerifyOwnershipOverride:
+    """Overriding verify_ownership via app.dependency_overrides bypasses real repo lookup."""
+
+    def test_override_verify_ownership_returns_fake_record(self, setup, tmp_path):
+        """Validates: Requirement 5.6 — ownership override skips real repository."""
+        _, repo = setup
+        app = _build_app(repo)
+
+        # Create a fake DiagramRecord that the override will return
+        fake_record = DiagramRecord(
+            diagram_id="fake-id",
+            session_id="fake-session",
+            project_name="override-project",
+            diagram_state={"version": 1, "override": True},
+            created_at="2024-01-01T00:00:00Z",
+            updated_at="2024-01-01T00:00:00Z",
+        )
+
+        # Override verify_ownership to always return the fake record
+        app.dependency_overrides[verify_ownership] = lambda: fake_record
+
+        client = TestClient(app)
+        # GET on any diagram_id should succeed and return the fake state
+        resp = client.get("/api/diagrams/any-id-doesnt-matter")
+        assert resp.status_code == 200
+        assert resp.json() == {"version": 1, "override": True}
+
+        # Clean up override
+        del app.dependency_overrides[verify_ownership]
+
+    def test_override_verify_ownership_independent_of_repo_override(self, setup, tmp_path):
+        """Validates: Requirement 5.4, 5.6 — ownership and repo overrides are independent."""
+        _, repo = setup
+        app = _build_app(repo)
+
+        fake_record = DiagramRecord(
+            diagram_id="independent-id",
+            session_id="independent-session",
+            project_name="independent-project",
+            diagram_state={"version": 2, "independent": True},
+            created_at="2024-01-01T00:00:00Z",
+            updated_at="2024-01-01T00:00:00Z",
+        )
+
+        # Override ONLY verify_ownership, not get_repo
+        # This proves the ownership check can be overridden separately
+        app.dependency_overrides[verify_ownership] = lambda: fake_record
+
+        client = TestClient(app)
+
+        # GET should return fake record without touching the repo for ownership
+        resp = client.get("/api/diagrams/does-not-exist-in-repo")
+        assert resp.status_code == 200
+        assert resp.json() == {"version": 2, "independent": True}
+
+        # PUT should also work — repo override still used for update_diagram
+        updated_payload = {
+            "version": 3,
+            "projectName": "updated",
+            "environments": [],
+            "elements": [],
+            "connectors": [],
+            "viewport": {"x": 0, "y": 0, "zoom": 1},
+        }
+        resp = client.put("/api/diagrams/independent-id", json=updated_payload)
+        assert resp.status_code == 200
+        assert resp.json()["id"] == "independent-id"
+
+        del app.dependency_overrides[verify_ownership]
