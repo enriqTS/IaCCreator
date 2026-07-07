@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 
 from app.middleware.session_middleware import COOKIE_NAME, SessionMiddleware
 from app.persistence.tinydb_repo import TinyDBRepository
-from app.routers.diagrams import router as diagram_router, set_repository
+from app.routers.diagrams import get_repo, router as diagram_router
 from app.services.session_manager import SessionManager
 
 # A minimal valid diagram payload for creating/updating diagrams.
@@ -29,9 +29,9 @@ VALID_DIAGRAM = {
 
 def _build_app(repo: TinyDBRepository) -> FastAPI:
     """Wire up a test FastAPI app with session middleware and diagram router."""
-    set_repository(repo)
     manager = SessionManager(repo)
     app = FastAPI()
+    app.dependency_overrides[get_repo] = lambda: repo
     app.add_middleware(SessionMiddleware, session_manager=manager)
     app.include_router(diagram_router)
     return app

@@ -20,7 +20,7 @@ from hypothesis import given, settings, assume, strategies as st
 
 from app.middleware.session_middleware import SessionMiddleware
 from app.persistence.tinydb_repo import TinyDBRepository
-from app.routers.diagrams import router as diagram_router, set_repository
+from app.routers.diagrams import get_repo, router as diagram_router
 from app.services.session_manager import SessionManager
 
 # ---------------------------------------------------------------------------
@@ -107,11 +107,11 @@ method_st = st.sampled_from(["POST", "PUT"])
 def _create_test_app(tmp_path: str) -> tuple[FastAPI, TinyDBRepository]:
     """Build a FastAPI app wired with session middleware and diagram router."""
     repo = TinyDBRepository(db_path=tmp_path)
-    set_repository(repo)
 
     session_mgr = SessionManager(repo)
 
     app = FastAPI()
+    app.dependency_overrides[get_repo] = lambda: repo
     app.add_middleware(SessionMiddleware, session_manager=session_mgr)
     app.include_router(diagram_router)
 
