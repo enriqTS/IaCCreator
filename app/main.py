@@ -6,6 +6,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
+from app.exception_handlers import domain_error_handler
+from app.exceptions import DomainError
 from app.generators.schema_validator import validate_config_against_schema
 from app.generators.variable_schemas import VARIABLE_SCHEMAS
 from app.middleware.session_middleware import SessionMiddleware
@@ -37,6 +39,9 @@ app.add_middleware(
 _repository = get_repository()
 _session_manager = SessionManager(_repository)
 app.add_middleware(SessionMiddleware, session_manager=_session_manager)
+
+# --- Exception handlers ---
+app.add_exception_handler(DomainError, domain_error_handler)
 
 # --- Diagram router ---
 set_repository(_repository)
