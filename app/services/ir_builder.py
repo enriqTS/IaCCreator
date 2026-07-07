@@ -2,8 +2,7 @@
 
 from collections import defaultdict
 
-from fastapi import HTTPException
-
+from app.exceptions import IncompatibleConnectionError, ResourceNotFoundError
 from app.models.input_models import (
     ArchitectureDescription,
     Connection,
@@ -13,7 +12,6 @@ from app.models.ir_models import (
     ConnectionIR,
     EnvironmentIR,
     GlobalTerraformConfigIR,
-    IAMStatement,
     ProjectIR,
     ResourceInstanceIR,
     ServiceModuleIR,
@@ -31,49 +29,6 @@ COMPATIBLE_CONNECTIONS: set[tuple[ServiceType, ServiceType]] = {
     (ServiceType.SNS, ServiceType.SQS),
     (ServiceType.SNS, ServiceType.LAMBDA),
 }
-
-# IAM action mappings per target service type
-IAM_ACTIONS: dict[ServiceType, list[str]] = {
-    ServiceType.DYNAMODB: [
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:Query",
-        "dynamodb:Scan",
-        "dynamodb:UpdateItem",
-        "dynamodb:DeleteItem",
-    ],
-    ServiceType.S3: [
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:ListBucket",
-    ],
-    ServiceType.CLOUDWATCH: [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-    ],
-    ServiceType.SNS: ["sns:Publish"],
-    ServiceType.SQS: ["sqs:SendMessage"],
-}
-
-
-def _build_iam_resources(target_name: str, target_service: ServiceType) -> list[str]:
-    """Build Terraform resource references for IAM statement resources."""
-    if target_service == ServiceType.DYNAMODB:
-        return [f"${{aws_dynamodb_table.{target_name}.arn}}"]
-    elif target_service == ServiceType.S3:
-        return [
-            f"${{aws_s3_bucket.{target_name}.arn}}",
-            f"${{aws_s3_bucket.{target_name}.arn}}/*",
-        ]
-    elif target_service == ServiceType.CLOUDWATCH:
-        return [f"arn:aws:logs:*:*:log-group:/aws/lambda/{target_name}:*"]
-    elif target_service == ServiceType.SNS:
-        return [f"${{aws_sns_topic.{target_name}.arn}}"]
-    elif target_service == ServiceType.SQS:
-        return [f"${{aws_sqs_queue.{target_name}.arn}}"]
-    return []
 
 
 class IRBuilder:
@@ -95,13 +50,12 @@ class IRBuilder:
         service_groups: dict[ServiceType, list[ResourceInstanceIR]] = defaultdict(list)
         for resource in input.resources:
             instance_connections = connections_by_source.get(resource.name, [])
-            iam_statements = self._derive_iam_statements(instance_connections)
 
             instance_ir = ResourceInstanceIR(
                 name=resource.name,
                 service_type=resource.service_type,
                 config=resource.config,
-                iam_statements=iam_statements,
+                iam_statements=[],
                 connections=instance_connections,
                 terraform_variables=resource.terraform_variables,
             )
@@ -155,15 +109,13 @@ class IRBuilder:
         for conn in connections:
             # Validate source exists
             if conn.source not in resource_map:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"Connection references non-existent source resource: '{conn.source}'",
+                raise ResourceNotFoundError(
+                    resource_name=conn.source, direction="source"
                 )
             # Validate target exists
             if conn.target not in resource_map:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"Connection references non-existent target resource: '{conn.target}'",
+                raise ResourceNotFoundError(
+                    resource_name=conn.target, direction="target"
                 )
 
             source_resource = resource_map[conn.source]
@@ -172,12 +124,9 @@ class IRBuilder:
 
             # Validate compatibility
             if pair not in COMPATIBLE_CONNECTIONS:
-                raise HTTPException(
-                    status_code=422,
-                    detail=(
-                        f"Incompatible connection: {source_resource.service_type.value} "
-                        f"→ {target_resource.service_type.value} is not supported"
-                    ),
+                raise IncompatibleConnectionError(
+                    source_service_type=source_resource.service_type.value,
+                    target_service_type=target_resource.service_type.value,
                 )
 
             result.append(
@@ -193,28 +142,4 @@ class IRBuilder:
 
         return result
 
-    def _derive_iam_statements(
-        self, connections: list[ConnectionIR]
-    ) -> list[IAMStatement]:
-        """Derive IAM statements for a Lambda based on its outgoing connections."""
-        statements: list[IAMStatement] = []
 
-        for conn in connections:
-            if conn.source_service != ServiceType.LAMBDA:
-                continue
-
-            actions = IAM_ACTIONS.get(conn.target_service)
-            if not actions:
-                continue
-
-            resources = _build_iam_resources(conn.target_name, conn.target_service)
-            if resources:
-                statements.append(
-                    IAMStatement(
-                        effect="Allow",
-                        actions=actions,
-                        resources=resources,
-                    )
-                )
-
-        return statements
