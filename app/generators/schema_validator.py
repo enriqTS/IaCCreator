@@ -1,29 +1,25 @@
-"""Schema-based validation for config values against VARIABLE_SCHEMAS constraints."""
+"""Schema-based validation for config values against TerraformField constraints."""
 
 import re
 
 from fastapi import HTTPException
 
-from app.generators.variable_schemas import VARIABLE_SCHEMAS, VariableSchemaEntry
 from app.models.input_models import ServiceType
 from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._metadata import VariableSchemaEntry
 
 
 def validate_config_against_schema(
     service_type: ServiceType, config: BaseServiceConfig
 ) -> None:
-    """Validate a config against schema constraints.
+    """Validate a config against its TerraformField schema constraints.
 
-    If the config has TerraformField annotations, schema entries are introspected
-    from the model. Otherwise, falls back to the static VARIABLE_SCHEMAS dictionary.
-
-    Iterates over each schema entry, evaluates visible_when conditions, and checks
-    validation rules. Raises HTTPException(422) on the first constraint violation.
+    Derives validation entries exclusively from the per-service typed config model
+    via model introspection. Iterates over each schema entry, evaluates visible_when
+    conditions, and checks validation rules.
+    Raises HTTPException(422) on the first constraint violation.
     """
-    if config.has_terraform_schema():
-        entries = type(config).get_variable_schema()
-    else:
-        entries = VARIABLE_SCHEMAS.get(service_type, [])
+    entries = type(config).get_variable_schema()
 
     for entry in entries:
         # Evaluate visible_when — skip validation for hidden fields
