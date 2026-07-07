@@ -1,6 +1,8 @@
 """AppStream service generator — produces HCL for aws_appstream_fleet resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.appstream_config import AppStreamConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -12,26 +14,30 @@ class AppStreamGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_appstream_fleet resource."""
+        config = get_typed_config(instance, AppStreamConfig)
+
         attrs: dict = {"name": "var.fleet_name"}
-        if instance.config.appstream_instance_type is not None:
+        if config.instance_type is not None:
             attrs["instance_type"] = "var.instance_type"
 
         return self._r.render_resource("aws_appstream_fleet", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an AppStream fleet."""
+        config = get_typed_config(instance, AppStreamConfig)
+
         parts = [
             self._r.render_variable(
                 "fleet_name", "string", "Name of the AppStream fleet"
             ),
         ]
-        if instance.config.appstream_instance_type is not None:
+        if config.instance_type is not None:
             parts.append(
                 self._r.render_variable(
                     "instance_type",
                     "string",
                     "Instance type for the AppStream fleet",
-                    default=instance.config.appstream_instance_type,
+                    default=config.instance_type,
                 )
             )
         return "\n".join(parts)

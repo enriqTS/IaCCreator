@@ -1,8 +1,8 @@
 """Amazon Q service generator — produces HCL for aws_qbusiness_application resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models import ServiceType
+from app.models.input_models.amazon_q_config import AmazonQConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -14,6 +14,8 @@ class AmazonQGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_qbusiness_application resource."""
+        get_typed_config(instance, AmazonQConfig)
+
         attrs: dict = {
             "display_name": "var.application_name",
             "description": "var.description",
@@ -26,8 +28,9 @@ class AmazonQGenerator:
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
-        """Generate variables.tf dynamically from VARIABLE_SCHEMAS."""
-        schema = VARIABLE_SCHEMAS[ServiceType.AMAZON_Q]
+        """Generate variables.tf from typed config schema."""
+        config_cls = type(get_typed_config(instance, AmazonQConfig))
+        schema = config_cls.get_variable_schema()
         parts = []
         for entry in schema:
             tf_type = "map(string)" if entry.type == "map" else entry.type

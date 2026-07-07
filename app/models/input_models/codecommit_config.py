@@ -1,13 +1,22 @@
 """CodeCommit-specific configuration model."""
 
-from typing import Literal
+from typing import ClassVar, Literal
 
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
+from app.models.input_models._metadata import TerraformField
 
 
 class CodeCommitConfig(BaseServiceConfig):
-    """CodeCommit-specific configuration."""
+    """CodeCommit-specific configuration — single source of truth."""
 
     service_type: Literal[ServiceType.CODECOMMIT] = ServiceType.CODECOMMIT
-    codecommit_repository_name: str | None = None
+
+    _schema_field_order: ClassVar[tuple[str, ...]] = ("repository_name",)
+
+    # ── General ───────────────────────────────────────────────────────────
+    repository_name: str | None = TerraformField(
+        None,
+        group="General",
+        description="Name of the CodeCommit repository",
+    )

@@ -6,7 +6,8 @@ Requirements: 40.1–40.5
 import pytest
 
 from app.generators.codecommit_generator import CodeCommitGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.codecommit_config import CodeCommitConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_codecommit_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.CODECOMMIT,
-        config=ResourceConfig(**config_kwargs),
+        config=CodeCommitConfig(**config_kwargs),
     )
 
 

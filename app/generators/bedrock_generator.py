@@ -1,8 +1,8 @@
 """Bedrock service generator — produces HCL for aws_bedrock_custom_model resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models import ServiceType
+from app.models.input_models.bedrock_config import BedrockConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -14,6 +14,8 @@ class BedrockGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_bedrock_custom_model resource."""
+        get_typed_config(instance, BedrockConfig)
+
         attrs: dict = {
             "custom_model_name": "var.model_name",
             "base_model_identifier": "var.base_model_identifier",
@@ -30,8 +32,9 @@ class BedrockGenerator:
         return self._r.render_resource("aws_bedrock_custom_model", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
-        """Generate variables.tf dynamically from VARIABLE_SCHEMAS."""
-        schema = VARIABLE_SCHEMAS[ServiceType.BEDROCK]
+        """Generate variables.tf from typed config schema."""
+        config_cls = type(get_typed_config(instance, BedrockConfig))
+        schema = config_cls.get_variable_schema()
         parts = []
         for entry in schema:
             tf_type = "map(string)" if entry.type == "map" else entry.type

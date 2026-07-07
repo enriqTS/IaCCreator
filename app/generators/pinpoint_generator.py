@@ -1,6 +1,8 @@
 """Pinpoint service generator — produces HCL for aws_pinpoint_app resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.pinpoint_config import PinpointConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -12,12 +14,16 @@ class PinpointGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_pinpoint_app resource."""
+        get_typed_config(instance, PinpointConfig)
+
         attrs: dict = {"name": "var.app_name"}
 
         return self._r.render_resource("aws_pinpoint_app", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Pinpoint application."""
+        get_typed_config(instance, PinpointConfig)
+
         parts = [
             self._r.render_variable(
                 "app_name", "string", "Name of the Pinpoint application"

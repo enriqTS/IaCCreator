@@ -6,7 +6,8 @@ Requirements: 24.1–24.5
 import pytest
 
 from app.generators.pinpoint_generator import PinpointGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.pinpoint_config import PinpointConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_pinpoint_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.PINPOINT,
-        config=ResourceConfig(**config_kwargs),
+        config=PinpointConfig(**config_kwargs),
     )
 
 

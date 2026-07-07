@@ -1,6 +1,8 @@
 """SES service generator — produces HCL for aws_ses_domain_identity resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.ses_config import SesConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -12,12 +14,16 @@ class SESGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_ses_domain_identity resource."""
+        get_typed_config(instance, SesConfig)
+
         attrs: dict = {"domain": "var.domain"}
 
         return self._r.render_resource("aws_ses_domain_identity", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an SES domain identity."""
+        get_typed_config(instance, SesConfig)
+
         parts = [
             self._r.render_variable(
                 "domain", "string", "Domain for the SES domain identity"

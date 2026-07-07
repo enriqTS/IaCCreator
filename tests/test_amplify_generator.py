@@ -6,7 +6,8 @@ Requirements: 48.1–48.5
 import pytest
 
 from app.generators.amplify_generator import AmplifyGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.amplify_config import AmplifyConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_amplify_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.AMPLIFY,
-        config=ResourceConfig(**config_kwargs),
+        config=AmplifyConfig(**config_kwargs),
     )
 
 

@@ -6,7 +6,8 @@ Requirements: 46.1–46.6
 import pytest
 
 from app.generators.appstream_generator import AppStreamGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.appstream_config import AppStreamConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_appstream_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.APPSTREAM,
-        config=ResourceConfig(**config_kwargs),
+        config=AppStreamConfig(**config_kwargs),
     )
 
 
@@ -70,17 +71,13 @@ class TestAppStreamGeneratorWithOptionalConfig:
     """Test AppStreamGenerator with optional config fields set."""
 
     def test_resource_tf_includes_instance_type(self, gen: AppStreamGenerator):
-        instance = _make_appstream_instance(
-            appstream_instance_type="stream.standard.medium"
-        )
+        instance = _make_appstream_instance(instance_type="stream.standard.medium")
         result = gen.generate_resource_tf(instance)
         assert "instance_type" in result
 
     def test_variables_tf_includes_instance_type_variable(
         self, gen: AppStreamGenerator
     ):
-        instance = _make_appstream_instance(
-            appstream_instance_type="stream.standard.medium"
-        )
+        instance = _make_appstream_instance(instance_type="stream.standard.medium")
         result = gen.generate_variables_tf(instance)
         assert "instance_type" in result

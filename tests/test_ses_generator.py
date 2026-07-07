@@ -6,7 +6,8 @@ Requirements: 22.1–22.5
 import pytest
 
 from app.generators.ses_generator import SESGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.ses_config import SesConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_ses_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.SES,
-        config=ResourceConfig(**config_kwargs),
+        config=SesConfig(**config_kwargs),
     )
 
 

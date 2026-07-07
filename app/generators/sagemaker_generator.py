@@ -1,8 +1,8 @@
 """SageMaker service generator — produces HCL for aws_sagemaker_notebook_instance resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models import ServiceType
+from app.models.input_models.sagemaker_config import SageMakerConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -14,6 +14,8 @@ class SageMakerGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_sagemaker_notebook_instance resource."""
+        get_typed_config(instance, SageMakerConfig)
+
         attrs: dict = {
             "name": "var.notebook_instance_name",
             "instance_type": "var.instance_type",
@@ -28,8 +30,9 @@ class SageMakerGenerator:
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
-        """Generate variables.tf dynamically from VARIABLE_SCHEMAS."""
-        schema = VARIABLE_SCHEMAS[ServiceType.SAGEMAKER]
+        """Generate variables.tf from typed config schema."""
+        config_cls = type(get_typed_config(instance, SageMakerConfig))
+        schema = config_cls.get_variable_schema()
         parts = []
         for entry in schema:
             tf_type = "map(string)" if entry.type == "map" else entry.type

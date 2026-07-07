@@ -6,7 +6,8 @@ Requirements: 50.1–50.6
 import pytest
 
 from app.generators.gamelift_generator import GameLiftGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.gamelift_config import GameLiftConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_gamelift_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.GAMELIFT,
-        config=ResourceConfig(**config_kwargs),
+        config=GameLiftConfig(**config_kwargs),
     )
 
 
@@ -72,13 +73,13 @@ class TestGameLiftGeneratorWithOptionalConfig:
     """Test GameLiftGenerator with optional config fields set."""
 
     def test_resource_tf_includes_ec2_instance_type(self, gen: GameLiftGenerator):
-        instance = _make_gamelift_instance(gamelift_ec2_instance_type="c5.large")
+        instance = _make_gamelift_instance(ec2_instance_type="c5.large")
         result = gen.generate_resource_tf(instance)
         assert "ec2_instance_type" in result
 
     def test_variables_tf_includes_ec2_instance_type_variable(
         self, gen: GameLiftGenerator
     ):
-        instance = _make_gamelift_instance(gamelift_ec2_instance_type="c5.large")
+        instance = _make_gamelift_instance(ec2_instance_type="c5.large")
         result = gen.generate_variables_tf(instance)
         assert "ec2_instance_type" in result

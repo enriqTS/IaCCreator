@@ -1,6 +1,8 @@
 """CodeCommit service generator — produces HCL for aws_codecommit_repository resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.codecommit_config import CodeCommitConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -12,6 +14,8 @@ class CodeCommitGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_codecommit_repository resource."""
+        get_typed_config(instance, CodeCommitConfig)
+
         attrs: dict = {"repository_name": "var.repository_name"}
 
         return self._r.render_resource(
@@ -20,6 +24,8 @@ class CodeCommitGenerator:
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a CodeCommit repository."""
+        get_typed_config(instance, CodeCommitConfig)
+
         parts = [
             self._r.render_variable(
                 "repository_name", "string", "Name of the CodeCommit repository"

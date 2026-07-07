@@ -1,8 +1,8 @@
 """Bedrock Agent service generator — produces HCL for aws_bedrockagent_agent resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models import ServiceType
+from app.models.input_models.bedrock_agent_config import BedrockAgentConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -14,6 +14,8 @@ class BedrockAgentGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_bedrockagent_agent resource."""
+        get_typed_config(instance, BedrockAgentConfig)
+
         attrs: dict = {
             "agent_name": "var.agent_name",
             "foundation_model": "var.foundation_model",
@@ -26,8 +28,9 @@ class BedrockAgentGenerator:
         return self._r.render_resource("aws_bedrockagent_agent", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
-        """Generate variables.tf dynamically from VARIABLE_SCHEMAS."""
-        schema = VARIABLE_SCHEMAS[ServiceType.BEDROCK_AGENT]
+        """Generate variables.tf from typed config schema."""
+        config_cls = type(get_typed_config(instance, BedrockAgentConfig))
+        schema = config_cls.get_variable_schema()
         parts = []
         for entry in schema:
             tf_type = "map(string)" if entry.type == "map" else entry.type

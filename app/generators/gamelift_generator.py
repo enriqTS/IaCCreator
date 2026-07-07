@@ -1,6 +1,8 @@
 """GameLift service generator — produces HCL for aws_gamelift_fleet resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.gamelift_config import GameLiftConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -12,26 +14,30 @@ class GameLiftGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_gamelift_fleet resource."""
+        config = get_typed_config(instance, GameLiftConfig)
+
         attrs: dict = {"name": "var.fleet_name"}
-        if instance.config.gamelift_ec2_instance_type is not None:
+        if config.ec2_instance_type is not None:
             attrs["ec2_instance_type"] = "var.ec2_instance_type"
 
         return self._r.render_resource("aws_gamelift_fleet", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a GameLift fleet."""
+        config = get_typed_config(instance, GameLiftConfig)
+
         parts = [
             self._r.render_variable(
                 "fleet_name", "string", "Name of the GameLift fleet"
             ),
         ]
-        if instance.config.gamelift_ec2_instance_type is not None:
+        if config.ec2_instance_type is not None:
             parts.append(
                 self._r.render_variable(
                     "ec2_instance_type",
                     "string",
                     "EC2 instance type for the GameLift fleet",
-                    default=instance.config.gamelift_ec2_instance_type,
+                    default=config.ec2_instance_type,
                 )
             )
         return "\n".join(parts)

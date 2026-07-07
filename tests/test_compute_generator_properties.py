@@ -11,6 +11,8 @@ from hypothesis import strategies as st
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.service_category_map import get_category
 from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._general import get_service_config_models
 from app.models.ir_models import (
     EnvironmentIR,
     ProjectIR,
@@ -73,19 +75,31 @@ ICON_ONLY_SERVICES = [
 ]
 
 
-def _minimal_config_for(service_type: ServiceType) -> ResourceConfig:
-    """Return a minimal ResourceConfig that produces non-empty generator output.
+def _minimal_config_for(service_type: ServiceType) -> BaseServiceConfig:
+    """Return a minimal config that produces non-empty generator output.
 
-    Most generators produce output from a bare ResourceConfig(), but some
+    Most generators produce output from a bare config, but some
     have purely conditional fields. For those, provide at least one value.
+    Migrated services use their typed config class.
     """
-    if service_type == ServiceType.CONNECT:
-        return ResourceConfig(connect_identity_management_type="CONNECT_MANAGED")
+    config_models = get_service_config_models()
+    config_cls = config_models.get(service_type)
+
+    # Use typed config if the model has TerraformField annotations
+    if config_cls is not None and config_cls.has_terraform_schema():
+        # Connect needs at least one field set to produce non-empty variables_tf
+        if service_type == ServiceType.CONNECT:
+            return config_cls(identity_management_type="CONNECT_MANAGED")
+        # DynamoDB requires hash_key
+        if service_type == ServiceType.DYNAMODB:
+            return config_cls(hash_key="id")
+        return config_cls()
+
     return ResourceConfig()
 
 
 def _make_instance(
-    name: str, service_type: ServiceType, config: ResourceConfig
+    name: str, service_type: ServiceType, config: BaseServiceConfig
 ) -> ResourceInstanceIR:
     return ResourceInstanceIR(name=name, service_type=service_type, config=config)
 

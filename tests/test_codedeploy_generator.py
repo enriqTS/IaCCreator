@@ -6,7 +6,8 @@ Requirements: 42.1–42.6
 import pytest
 
 from app.generators.codedeploy_generator import CodeDeployGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.codedeploy_config import CodeDeployConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_codedeploy_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.CODEDEPLOY,
-        config=ResourceConfig(**config_kwargs),
+        config=CodeDeployConfig(**config_kwargs),
     )
 
 
@@ -72,13 +73,13 @@ class TestCodeDeployGeneratorWithOptionalConfig:
     """Test CodeDeployGenerator with optional config fields set."""
 
     def test_resource_tf_includes_compute_platform(self, gen: CodeDeployGenerator):
-        instance = _make_codedeploy_instance(codedeploy_compute_platform="Server")
+        instance = _make_codedeploy_instance(compute_platform="Server")
         result = gen.generate_resource_tf(instance)
         assert "compute_platform" in result
 
     def test_variables_tf_includes_compute_platform_variable(
         self, gen: CodeDeployGenerator
     ):
-        instance = _make_codedeploy_instance(codedeploy_compute_platform="Server")
+        instance = _make_codedeploy_instance(compute_platform="Server")
         result = gen.generate_variables_tf(instance)
         assert "compute_platform" in result

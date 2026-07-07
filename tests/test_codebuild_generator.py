@@ -6,7 +6,8 @@ Requirements: 38.1–38.8
 import pytest
 
 from app.generators.codebuild_generator import CodeBuildGenerator
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models import ServiceType
+from app.models.input_models.codebuild_config import CodeBuildConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -18,7 +19,7 @@ def _make_codebuild_instance(
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.CODEBUILD,
-        config=ResourceConfig(**config_kwargs),
+        config=CodeBuildConfig(**config_kwargs),
     )
 
 
@@ -75,26 +76,22 @@ class TestCodeBuildGeneratorWithOptionalConfig:
     """Test CodeBuildGenerator with optional config fields set."""
 
     def test_resource_tf_includes_source_type(self, gen: CodeBuildGenerator):
-        instance = _make_codebuild_instance(codebuild_source_type="GITHUB")
+        instance = _make_codebuild_instance(source_type="GITHUB")
         result = gen.generate_resource_tf(instance)
         assert "source" in result
         assert "type" in result
 
     def test_variables_tf_includes_source_type_variable(self, gen: CodeBuildGenerator):
-        instance = _make_codebuild_instance(codebuild_source_type="GITHUB")
+        instance = _make_codebuild_instance(source_type="GITHUB")
         result = gen.generate_variables_tf(instance)
         assert "source_type" in result
 
     def test_resource_tf_includes_service_role(self, gen: CodeBuildGenerator):
-        instance = _make_codebuild_instance(
-            codebuild_service_role="arn:aws:iam::role/cb"
-        )
+        instance = _make_codebuild_instance(service_role="arn:aws:iam::role/cb")
         result = gen.generate_resource_tf(instance)
         assert "service_role" in result
 
     def test_variables_tf_includes_service_role_variable(self, gen: CodeBuildGenerator):
-        instance = _make_codebuild_instance(
-            codebuild_service_role="arn:aws:iam::role/cb"
-        )
+        instance = _make_codebuild_instance(service_role="arn:aws:iam::role/cb")
         result = gen.generate_variables_tf(instance)
         assert "service_role" in result

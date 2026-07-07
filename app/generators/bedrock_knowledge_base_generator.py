@@ -1,8 +1,10 @@
 """Bedrock Knowledge Base generator — produces HCL for aws_bedrockagent_knowledge_base resources."""
 
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models import ServiceType
+from app.models.input_models.bedrock_knowledge_base_config import (
+    BedrockKnowledgeBaseConfig,
+)
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -14,6 +16,8 @@ class BedrockKnowledgeBaseGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_bedrockagent_knowledge_base resource."""
+        get_typed_config(instance, BedrockKnowledgeBaseConfig)
+
         attrs: dict = {
             "name": "var.knowledge_base_name",
             "description": "var.description",
@@ -42,8 +46,9 @@ class BedrockKnowledgeBaseGenerator:
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
-        """Generate variables.tf dynamically from VARIABLE_SCHEMAS."""
-        schema = VARIABLE_SCHEMAS[ServiceType.BEDROCK_KNOWLEDGE_BASE]
+        """Generate variables.tf from typed config schema."""
+        config_cls = type(get_typed_config(instance, BedrockKnowledgeBaseConfig))
+        schema = config_cls.get_variable_schema()
         parts = []
         for entry in schema:
             tf_type = "map(string)" if entry.type == "map" else entry.type

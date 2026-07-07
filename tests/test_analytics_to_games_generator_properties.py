@@ -211,6 +211,9 @@ def _minimal_config_for(service_type: ServiceType) -> BaseServiceConfig:
         # Some typed configs have required fields — provide minimal values
         if service_type == ServiceType.DYNAMODB:
             return config_cls(hash_key="id")
+        # Connect needs at least one field set to produce non-empty variables_tf
+        if service_type == ServiceType.CONNECT:
+            return config_cls(identity_management_type="CONNECT_MANAGED")
         return config_cls()
 
     # Legacy services still using ResourceConfig
