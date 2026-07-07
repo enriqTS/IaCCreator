@@ -137,6 +137,7 @@ from app.generators.dynamodb_generator import DynamoDBGenerator
 from app.generators.lambda_generator import LambdaGenerator
 from app.generators.s3_generator import S3Generator
 from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.ir_models import ResourceInstanceIR
 
 # --- Hypothesis strategies for resource instances ---
@@ -158,7 +159,7 @@ _s3_config_st = st.builds(
 )
 
 _dynamodb_config_st = st.builds(
-    ResourceConfig,
+    DynamoDBConfig,
     billing_mode=st.sampled_from(["PAY_PER_REQUEST", "PROVISIONED"]),
     hash_key=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
     hash_key_type=st.sampled_from(["S", "N", "B"]),

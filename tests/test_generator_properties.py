@@ -9,6 +9,7 @@ from hypothesis import strategies as st
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.variable_schemas import VARIABLE_SCHEMAS, VisibleWhen
 from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.ir_models import ResourceInstanceIR
 
 # ---------------------------------------------------------------------------
@@ -293,7 +294,10 @@ def resource_instance_with_populated_fields(draw):
             value = draw(_sample_value_for_type(entry.type))
         config_kwargs[field_name] = value
 
-    config = ResourceConfig(**config_kwargs)
+    if service_type == ServiceType.DYNAMODB:
+        config = DynamoDBConfig(**config_kwargs)
+    else:
+        config = ResourceConfig(**config_kwargs)
 
     # Now determine which populated fields are actually visible
     for entry, should_populate in zip(optional_entries, populate_flags):
@@ -362,7 +366,7 @@ def test_dynamodb_visible_when_false_excludes_capacity(
     var references SHALL NOT appear in the generated HCL, even if those fields
     are populated on the config.
     """
-    config = ResourceConfig(
+    config = DynamoDBConfig(
         billing_mode=billing_mode,
         hash_key="pk",
         read_capacity=read_cap,
