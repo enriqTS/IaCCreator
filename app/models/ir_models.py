@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel, Field
 
-from app.models.input_models import ResourceConfig, ServiceType
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._general import ResourceConfig, ServiceType
 
 # Central output type: maps relative file paths to file contents
 FileTree = dict[str, str]
@@ -34,7 +35,7 @@ class ResourceInstanceIR(BaseModel):
 
     name: str
     service_type: ServiceType
-    config: ResourceConfig
+    config: BaseServiceConfig | ResourceConfig
     iam_statements: list[IAMStatement] = Field(default_factory=list)
     connections: list[ConnectionIR] = Field(default_factory=list)
     terraform_variables: dict[str, str | int | float | bool] = Field(
