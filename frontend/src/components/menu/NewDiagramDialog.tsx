@@ -12,14 +12,15 @@ export interface NewDiagramDialogProps {
 export default function NewDiagramDialog({ open, onClose }: NewDiagramDialogProps) {
   const handleConfirm = useCallback(() => {
     const store = useDiagramStore.getState();
-    // Clear all elements and connectors
+    // Clear all canvas objects and connectors
     useDiagramStore.setState({
-      elements: new Map(),
+      canvasObjects: new Map(),
       connectors: new Map(),
+      objectGroups: new Map(),
       viewport: { offsetX: 0, offsetY: 0, scale: 1 },
       projectName: '',
       environments: [],
-      selectedElementId: null,
+      selectedObjectIds: new Set(),
       selectedConnectorId: null,
       pendingConnectorSourceId: null,
       activeTool: 'pointer',

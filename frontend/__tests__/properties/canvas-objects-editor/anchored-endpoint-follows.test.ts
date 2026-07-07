@@ -19,7 +19,6 @@ describe('Property 5: Anchored endpoint follows connected object', () => {
       canvasObjects: new Map(),
       selectedObjectIds: new Set(),
       objectGroups: new Map(),
-      elements: new Map(),
       connectors: new Map(),
       _undoStack: [],
       _redoStack: [],

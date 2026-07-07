@@ -9,7 +9,6 @@ import { useDiagramStore } from '@/store/diagram-store';
 
 function resetStore() {
   useDiagramStore.setState({
-    elements: new Map(),
     connectors: new Map(),
     canvasObjects: new Map(),
     objectGroups: new Map(),

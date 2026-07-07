@@ -7,7 +7,6 @@ function resetStore() {
   useDiagramStore.setState({
     canvasObjects: new Map(),
     connectors: new Map(),
-    elements: new Map(),
     selectedObjectIds: new Set(),
     _undoStack: [],
     _redoStack: [],
@@ -182,50 +181,56 @@ describe('DiagramStore - removeCanvasObject cascade and selection clearing', () 
   beforeEach(resetStore);
 
   it('cascade-deletes connectors when removing architecture block', () => {
-    // Add two architecture blocks as elements (for connector validation) and as canvas objects
-    const elemId1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const elemId2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
-
-    // Add connectors between the elements
-    const cid1 = useDiagramStore.getState().addConnector(elemId1, elemId2);
-
-    // Add corresponding canvas objects with the same IDs
-    useDiagramStore.setState((state) => {
-      const next = new Map(state.canvasObjects);
-      next.set(elemId1, {
-        id: elemId1,
-        objectType: 'architecture-block',
-        serviceType: 'lambda',
-        name: 'lambda-1',
-        position: { x: 0, y: 0 },
-        config: {},
-        terraformVariables: {},
-        visualConfig: { ...DEFAULT_BLOCK_VISUAL },
-      } as ArchitectureBlock);
-      next.set(elemId2, {
-        id: elemId2,
-        objectType: 'architecture-block',
-        serviceType: 's3',
-        name: 's3-1',
-        position: { x: 100, y: 0 },
-        config: {},
-        terraformVariables: {},
-        visualConfig: { ...DEFAULT_BLOCK_VISUAL },
-      } as ArchitectureBlock);
-      return { canvasObjects: next };
+    // Add two architecture blocks as canvas objects
+    const elemId1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'lambda',
+      name: 'lambda-1',
+      position: { x: 0, y: 0 },
+      config: {},
+      terraformVariables: {},
+      visualConfig: { ...DEFAULT_BLOCK_VISUAL },
     });
+    const elemId2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 's3',
+      name: 's3-1',
+      position: { x: 100, y: 0 },
+      config: {},
+      terraformVariables: {},
+      visualConfig: { ...DEFAULT_BLOCK_VISUAL },
+    });
+
+    // Add connectors between the blocks
+    const cid1 = useDiagramStore.getState().addConnector(elemId1, elemId2);
 
     // Remove the first block — should cascade-delete the connector
     useDiagramStore.getState().removeCanvasObject(elemId1);
     expect(useDiagramStore.getState().canvasObjects.has(elemId1)).toBe(false);
     expect(useDiagramStore.getState().connectors.has(cid1)).toBe(false);
-    // Second block and element should remain
+    // Second block should remain
     expect(useDiagramStore.getState().canvasObjects.has(elemId2)).toBe(true);
   });
 
   it('does not cascade-delete connectors for non-block objects', () => {
-    const elemId1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const elemId2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const elemId1 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 'lambda',
+      name: 'lambda-1',
+      position: { x: 0, y: 0 },
+      config: {},
+      terraformVariables: {},
+      visualConfig: { ...DEFAULT_BLOCK_VISUAL },
+    });
+    const elemId2 = useDiagramStore.getState().addCanvasObject({
+      objectType: 'architecture-block',
+      serviceType: 's3',
+      name: 's3-1',
+      position: { x: 100, y: 0 },
+      config: {},
+      terraformVariables: {},
+      visualConfig: { ...DEFAULT_BLOCK_VISUAL },
+    });
     const cid = useDiagramStore.getState().addConnector(elemId1, elemId2);
 
     // Add a line object (not a block)

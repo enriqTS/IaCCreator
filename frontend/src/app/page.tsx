@@ -69,10 +69,6 @@ export default function DiagramEditorPage() {
           for (const id of store.selectedObjectIds) {
             store.removeCanvasObject(id);
           }
-        } else if (store.selectedElementId) {
-          const id = store.selectedElementId;
-          store.removeElement(id);
-          store.selectElement(null);
         } else if (store.selectedConnectorId) {
           const id = store.selectedConnectorId;
           store.removeConnector(id);
@@ -83,7 +79,6 @@ export default function DiagramEditorPage() {
 
       if (!isTyping && e.key === 'Escape') {
         e.preventDefault();
-        store.selectElement(null);
         store.selectConnector(null);
         store.selectObject(null);
         useDiagramStore.setState({ pendingConnectorSourceId: null });

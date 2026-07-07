@@ -9,7 +9,6 @@ function resetStore() {
     selectedObjectIds: new Set(),
     objectGroups: new Map(),
     clipboard: [],
-    elements: new Map(),
     connectors: new Map(),
     _undoStack: [],
     _redoStack: [],

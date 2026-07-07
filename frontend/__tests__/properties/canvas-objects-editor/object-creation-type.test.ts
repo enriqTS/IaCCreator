@@ -85,7 +85,6 @@ describe('Property 9: Object creation assigns correct type and kind', () => {
       canvasObjects: new Map(),
       selectedObjectIds: new Set(),
       objectGroups: new Map(),
-      elements: new Map(),
       connectors: new Map(),
       _undoStack: [],
       _redoStack: [],

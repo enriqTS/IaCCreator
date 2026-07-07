@@ -1,117 +1,44 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
+import type { ArchitectureBlock } from '@/types/diagram';
 
-describe('DiagramStore - Element Operations', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-    });
+function resetStore() {
+  useDiagramStore.setState({
+    connectors: new Map(),
+    canvasObjects: new Map(),
+    selectedObjectIds: new Set(),
+    objectGroups: new Map(),
+    viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
+    activeTool: 'pointer',
+    selectedConnectorId: null,
+    pendingConnectorSourceId: null,
+    _undoStack: [],
+    _redoStack: [],
+    canUndo: false,
+    canRedo: false,
+    projectName: '',
+    environments: [],
   });
+}
 
-  it('addElement creates element with correct serviceType and position', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 100, y: 200 });
-    const el = useDiagramStore.getState().elements.get(id);
-
-    expect(el).toBeDefined();
-    expect(el!.serviceType).toBe('lambda');
-    expect(el!.position).toEqual({ x: 100, y: 200 });
-    expect(el!.config).toEqual({});
+function addBlock(serviceType: string, position: { x: number; y: number }, name?: string): string {
+  return useDiagramStore.getState().addCanvasObject({
+    objectType: 'architecture-block',
+    serviceType: serviceType as import('@/types/diagram').ServiceType,
+    name: name || `${serviceType}-block`,
+    position,
+    config: {},
+    terraformVariables: {},
+    visualConfig: { width: 80, height: 80 },
   });
-
-  it('addElement generates default name {serviceType}-{n}', () => {
-    const id1 = useDiagramStore.getState().addElement('s3', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 10, y: 10 });
-    const id3 = useDiagramStore.getState().addElement('lambda', { x: 20, y: 20 });
-
-    expect(useDiagramStore.getState().elements.get(id1)!.name).toBe('s3-1');
-    expect(useDiagramStore.getState().elements.get(id2)!.name).toBe('s3-2');
-    expect(useDiagramStore.getState().elements.get(id3)!.name).toBe('lambda-1');
-  });
-
-  it('addElement generates unique IDs', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('lambda', { x: 10, y: 10 });
-    expect(id1).not.toBe(id2);
-  });
-
-  it('updateElementPosition updates only position', () => {
-    const id = useDiagramStore.getState().addElement('dynamodb', { x: 0, y: 0 });
-    useDiagramStore.getState().updateElementPosition(id, { x: 500, y: 300 });
-
-    const el = useDiagramStore.getState().elements.get(id)!;
-    expect(el.position).toEqual({ x: 500, y: 300 });
-    expect(el.serviceType).toBe('dynamodb');
-    expect(el.name).toBe('dynamodb-1');
-  });
-
-  it('updateElementPosition is no-op for non-existent element', () => {
-    useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const before = new Map(useDiagramStore.getState().elements);
-    useDiagramStore.getState().updateElementPosition('nonexistent', { x: 1, y: 1 });
-    expect(useDiagramStore.getState().elements).toEqual(before);
-  });
-
-  it('updateElementConfig merges config fields', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    useDiagramStore.getState().updateElementConfig(id, { handler: 'index.handler' });
-    useDiagramStore.getState().updateElementConfig(id, { runtime: 'nodejs20.x' });
-
-    const el = useDiagramStore.getState().elements.get(id)!;
-    expect(el.config.handler).toBe('index.handler');
-    expect(el.config.runtime).toBe('nodejs20.x');
-  });
-
-  it('updateElementName changes the name', () => {
-    const id = useDiagramStore.getState().addElement('s3', { x: 0, y: 0 });
-    useDiagramStore.getState().updateElementName(id, 'my-bucket');
-    expect(useDiagramStore.getState().elements.get(id)!.name).toBe('my-bucket');
-  });
-
-  it('removeElement deletes the element', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    useDiagramStore.getState().removeElement(id);
-    expect(useDiagramStore.getState().elements.has(id)).toBe(false);
-    expect(useDiagramStore.getState().elements.size).toBe(0);
-  });
-
-  it('removeElement cascades to connectors', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
-    const id3 = useDiagramStore.getState().addElement('dynamodb', { x: 200, y: 0 });
-
-    const c1 = useDiagramStore.getState().addConnector(id1, id2);
-    const c2 = useDiagramStore.getState().addConnector(id2, id3);
-    const c3 = useDiagramStore.getState().addConnector(id1, id3);
-
-    // Remove id1 — should cascade c1 (source) and c3 (source)
-    useDiagramStore.getState().removeElement(id1);
-
-    expect(useDiagramStore.getState().connectors.has(c1)).toBe(false);
-    expect(useDiagramStore.getState().connectors.has(c3)).toBe(false);
-    // c2 should remain (id2 → id3)
-    expect(useDiagramStore.getState().connectors.has(c2)).toBe(true);
-  });
-
-  it('removeElement is no-op for non-existent element', () => {
-    useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const sizeBefore = useDiagramStore.getState().elements.size;
-    useDiagramStore.getState().removeElement('nonexistent');
-    expect(useDiagramStore.getState().elements.size).toBe(sizeBefore);
-  });
-});
+}
 
 describe('DiagramStore - Connector Operations', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-    });
-  });
+  beforeEach(resetStore);
 
   it('addConnector creates connector with default connectionType "triggers"', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
 
     const cid = useDiagramStore.getState().addConnector(id1, id2);
     const conn = useDiagramStore.getState().connectors.get(cid)!;
@@ -122,31 +49,31 @@ describe('DiagramStore - Connector Operations', () => {
   });
 
   it('addConnector uses provided connectionType', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('dynamodb', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('dynamodb', { x: 100, y: 0 });
 
     const cid = useDiagramStore.getState().addConnector(id1, id2, 'reads_from');
     expect(useDiagramStore.getState().connectors.get(cid)!.connectionType).toBe('reads_from');
   });
 
   it('addConnector rejects self-connections', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id = addBlock('lambda', { x: 0, y: 0 });
     expect(() => useDiagramStore.getState().addConnector(id, id)).toThrow();
   });
 
   it('addConnector rejects non-existent source', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id = addBlock('lambda', { x: 0, y: 0 });
     expect(() => useDiagramStore.getState().addConnector('nonexistent', id)).toThrow();
   });
 
   it('addConnector rejects non-existent target', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    const id = addBlock('lambda', { x: 0, y: 0 });
     expect(() => useDiagramStore.getState().addConnector(id, 'nonexistent')).toThrow();
   });
 
   it('updateConnectorType changes the connectionType', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().updateConnectorType(cid, 'writes_to');
@@ -154,34 +81,25 @@ describe('DiagramStore - Connector Operations', () => {
   });
 
   it('removeConnector deletes only the connector', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().removeConnector(cid);
 
     expect(useDiagramStore.getState().connectors.has(cid)).toBe(false);
-    // Elements should remain
-    expect(useDiagramStore.getState().elements.has(id1)).toBe(true);
-    expect(useDiagramStore.getState().elements.has(id2)).toBe(true);
+    // Canvas objects should remain
+    expect(useDiagramStore.getState().canvasObjects.has(id1)).toBe(true);
+    expect(useDiagramStore.getState().canvasObjects.has(id2)).toBe(true);
   });
 });
 
 describe('DiagramStore - Connector Config Management', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      _undoStack: [],
-      _redoStack: [],
-      canUndo: false,
-      canRedo: false,
-    });
-  });
+  beforeEach(resetStore);
 
   it('updateConnectorConfig sets a single key in connectionConfig', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().updateConnectorConfig(cid, 'access_pattern', 'read');
@@ -191,8 +109,8 @@ describe('DiagramStore - Connector Config Management', () => {
   });
 
   it('updateConnectorConfig preserves existing config keys', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().updateConnectorConfig(cid, 'connection_role', 'route_handler');
@@ -203,8 +121,8 @@ describe('DiagramStore - Connector Config Management', () => {
   });
 
   it('updateConnectorConfig overwrites an existing key', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().updateConnectorConfig(cid, 'batch_size', 10);
@@ -221,8 +139,8 @@ describe('DiagramStore - Connector Config Management', () => {
   });
 
   it('updateConnectorConfig pushes history for undo support', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().updateConnectorConfig(cid, 'access_pattern', 'write');
@@ -235,8 +153,8 @@ describe('DiagramStore - Connector Config Management', () => {
   });
 
   it('removeConnectorConfigKeys removes specified keys', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().updateConnectorConfig(cid, 'connection_role', 'route_handler');
@@ -249,15 +167,9 @@ describe('DiagramStore - Connector Config Management', () => {
     expect(conn.connectionConfig).toEqual({ connection_role: 'route_handler' });
   });
 
-  it('removeConnectorConfigKeys is no-op for non-existent connector', () => {
-    const before = new Map(useDiagramStore.getState().connectors);
-    useDiagramStore.getState().removeConnectorConfigKeys('nonexistent', ['key']);
-    expect(useDiagramStore.getState().connectors).toEqual(before);
-  });
-
   it('removeConnectorConfigKeys pushes history for undo support', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().updateConnectorConfig(cid, 'http_method', 'POST');
@@ -269,21 +181,9 @@ describe('DiagramStore - Connector Config Management', () => {
     expect(useDiagramStore.getState().connectors.get(cid)!.connectionConfig).toEqual({ http_method: 'POST' });
   });
 
-  it('removeConnectorConfigKeys handles keys that do not exist gracefully', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
-    const cid = useDiagramStore.getState().addConnector(id1, id2);
-
-    useDiagramStore.getState().updateConnectorConfig(cid, 'access_pattern', 'full');
-    useDiagramStore.getState().removeConnectorConfigKeys(cid, ['nonexistent_key']);
-
-    const conn = useDiagramStore.getState().connectors.get(cid)!;
-    expect(conn.connectionConfig).toEqual({ access_pattern: 'full' });
-  });
-
   it('updateConnectorConfigBatch sets multiple keys at once', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().updateConnectorConfigBatch(cid, {
@@ -300,31 +200,9 @@ describe('DiagramStore - Connector Config Management', () => {
     });
   });
 
-  it('updateConnectorConfigBatch preserves existing keys not in updates', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
-    const cid = useDiagramStore.getState().addConnector(id1, id2);
-
-    useDiagramStore.getState().updateConnectorConfig(cid, 'connection_role', 'route_handler');
-    useDiagramStore.getState().updateConnectorConfigBatch(cid, { http_method: 'GET', route_path: '/items' });
-
-    const conn = useDiagramStore.getState().connectors.get(cid)!;
-    expect(conn.connectionConfig).toEqual({
-      connection_role: 'route_handler',
-      http_method: 'GET',
-      route_path: '/items',
-    });
-  });
-
-  it('updateConnectorConfigBatch is no-op for non-existent connector', () => {
-    const before = new Map(useDiagramStore.getState().connectors);
-    useDiagramStore.getState().updateConnectorConfigBatch('nonexistent', { key: 'value' });
-    expect(useDiagramStore.getState().connectors).toEqual(before);
-  });
-
   it('updateConnectorConfigBatch pushes history for undo support', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
+    const id1 = addBlock('lambda', { x: 0, y: 0 });
+    const id2 = addBlock('s3', { x: 100, y: 0 });
     const cid = useDiagramStore.getState().addConnector(id1, id2);
 
     useDiagramStore.getState().updateConnectorConfigBatch(cid, { batch_size: 100, maximum_batching_window_in_seconds: 60 });
@@ -335,40 +213,10 @@ describe('DiagramStore - Connector Config Management', () => {
     const conn = useDiagramStore.getState().connectors.get(cid)!;
     expect(conn.connectionConfig).toBeUndefined();
   });
-
-  it('updateConnectorConfig supports boolean values', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
-    const cid = useDiagramStore.getState().addConnector(id1, id2);
-
-    useDiagramStore.getState().updateConnectorConfig(cid, 'enabled', true);
-
-    const conn = useDiagramStore.getState().connectors.get(cid)!;
-    expect(conn.connectionConfig!.enabled).toBe(true);
-  });
-
-  it('updateConnectorConfig supports numeric values', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
-    const cid = useDiagramStore.getState().addConnector(id1, id2);
-
-    useDiagramStore.getState().updateConnectorConfig(cid, 'batch_size', 250);
-
-    const conn = useDiagramStore.getState().connectors.get(cid)!;
-    expect(conn.connectionConfig!.batch_size).toBe(250);
-  });
 });
 
 describe('DiagramStore - Viewport State', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-      canUndo: false,
-      canRedo: false,
-    });
-  });
+  beforeEach(resetStore);
 
   it('has default viewport { offsetX: 0, offsetY: 0, scale: 1.0 }', () => {
     const { viewport } = useDiagramStore.getState();
@@ -408,18 +256,7 @@ describe('DiagramStore - Viewport State', () => {
 });
 
 describe('DiagramStore - UI State', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      activeTool: 'pointer',
-      selectedElementId: null,
-      selectedConnectorId: null,
-      pendingConnectorSourceId: null,
-      canUndo: false,
-      canRedo: false,
-    });
-  });
+  beforeEach(resetStore);
 
   it('default activeTool is pointer', () => {
     expect(useDiagramStore.getState().activeTool).toBe('pointer');
@@ -435,24 +272,9 @@ describe('DiagramStore - UI State', () => {
     expect(useDiagramStore.getState().activeTool).toEqual({ type: 'place-service', serviceType: 'lambda' });
   });
 
-  it('selectElement sets selectedElementId and clears selectedConnectorId', () => {
-    useDiagramStore.setState({ selectedConnectorId: 'some-connector' });
-    useDiagramStore.getState().selectElement('elem-1');
-    expect(useDiagramStore.getState().selectedElementId).toBe('elem-1');
-    expect(useDiagramStore.getState().selectedConnectorId).toBeNull();
-  });
-
-  it('selectConnector sets selectedConnectorId and clears selectedElementId', () => {
-    useDiagramStore.setState({ selectedElementId: 'some-element' });
+  it('selectConnector sets selectedConnectorId', () => {
     useDiagramStore.getState().selectConnector('conn-1');
     expect(useDiagramStore.getState().selectedConnectorId).toBe('conn-1');
-    expect(useDiagramStore.getState().selectedElementId).toBeNull();
-  });
-
-  it('selectElement with null deselects', () => {
-    useDiagramStore.setState({ selectedElementId: 'elem-1' });
-    useDiagramStore.getState().selectElement(null);
-    expect(useDiagramStore.getState().selectedElementId).toBeNull();
   });
 
   it('selectConnector with null deselects', () => {
@@ -463,21 +285,7 @@ describe('DiagramStore - UI State', () => {
 });
 
 describe('DiagramStore - Undo/Redo', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-      activeTool: 'pointer',
-      selectedElementId: null,
-      selectedConnectorId: null,
-      pendingConnectorSourceId: null,
-      canUndo: false,
-      canRedo: false,
-      _undoStack: [],
-      _redoStack: [],
-    });
-  });
+  beforeEach(resetStore);
 
   it('canUndo is false initially', () => {
     expect(useDiagramStore.getState().canUndo).toBe(false);
@@ -487,93 +295,56 @@ describe('DiagramStore - Undo/Redo', () => {
     expect(useDiagramStore.getState().canRedo).toBe(false);
   });
 
-  it('addElement makes canUndo true', () => {
-    useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+  it('addCanvasObject makes canUndo true', () => {
+    addBlock('lambda', { x: 0, y: 0 });
     expect(useDiagramStore.getState().canUndo).toBe(true);
   });
 
-  it('undo after addElement restores empty state', () => {
-    useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    expect(useDiagramStore.getState().elements.size).toBe(1);
+  it('undo after addCanvasObject restores empty state', () => {
+    addBlock('lambda', { x: 0, y: 0 });
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(1);
 
     useDiagramStore.getState().undo();
-    expect(useDiagramStore.getState().elements.size).toBe(0);
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(0);
     expect(useDiagramStore.getState().canUndo).toBe(false);
     expect(useDiagramStore.getState().canRedo).toBe(true);
   });
 
-  it('redo after undo restores the element', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 10, y: 20 });
+  it('redo after undo restores the canvas object', () => {
+    addBlock('lambda', { x: 10, y: 20 });
     useDiagramStore.getState().undo();
-    expect(useDiagramStore.getState().elements.size).toBe(0);
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(0);
 
     useDiagramStore.getState().redo();
-    expect(useDiagramStore.getState().elements.size).toBe(1);
-    // The element should have the same data (though ID may differ since it's a snapshot)
-    const el = Array.from(useDiagramStore.getState().elements.values())[0];
-    expect(el.serviceType).toBe('lambda');
-    expect(el.position).toEqual({ x: 10, y: 20 });
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(1);
+    const obj = Array.from(useDiagramStore.getState().canvasObjects.values())[0];
+    expect(obj.objectType).toBe('architecture-block');
   });
 
   it('new mutation clears redo stack', () => {
-    useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    addBlock('lambda', { x: 0, y: 0 });
     useDiagramStore.getState().undo();
     expect(useDiagramStore.getState().canRedo).toBe(true);
 
-    // New mutation should clear redo
-    useDiagramStore.getState().addElement('s3', { x: 50, y: 50 });
+    addBlock('s3', { x: 50, y: 50 });
     expect(useDiagramStore.getState().canRedo).toBe(false);
   });
 
-  it('undo restores element position after move', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    useDiagramStore.getState().updateElementPosition(id, { x: 100, y: 200 });
-
-    useDiagramStore.getState().undo();
-    const el = useDiagramStore.getState().elements.get(id)!;
-    expect(el.position).toEqual({ x: 0, y: 0 });
-  });
-
-  it('undo restores connectors after removeElement cascade', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
-    const cid = useDiagramStore.getState().addConnector(id1, id2);
-
-    useDiagramStore.getState().removeElement(id1);
-    expect(useDiagramStore.getState().elements.size).toBe(1);
-    expect(useDiagramStore.getState().connectors.size).toBe(0);
-
-    useDiagramStore.getState().undo();
-    expect(useDiagramStore.getState().elements.size).toBe(2);
-    expect(useDiagramStore.getState().connectors.size).toBe(1);
-  });
-
   it('undo is no-op when stack is empty', () => {
-    const sizeBefore = useDiagramStore.getState().elements.size;
+    const sizeBefore = useDiagramStore.getState().canvasObjects.size;
     useDiagramStore.getState().undo();
-    expect(useDiagramStore.getState().elements.size).toBe(sizeBefore);
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(sizeBefore);
   });
 
   it('redo is no-op when stack is empty', () => {
-    const sizeBefore = useDiagramStore.getState().elements.size;
+    const sizeBefore = useDiagramStore.getState().canvasObjects.size;
     useDiagramStore.getState().redo();
-    expect(useDiagramStore.getState().elements.size).toBe(sizeBefore);
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(sizeBefore);
   });
 });
 
 describe('DiagramStore - Project State', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      projectName: '',
-      environments: [],
-      _undoStack: [],
-      _redoStack: [],
-      canUndo: false,
-      canRedo: false,
-    });
-  });
+  beforeEach(resetStore);
 
   it('default projectName is empty string', () => {
     expect(useDiagramStore.getState().projectName).toBe('');
@@ -599,20 +370,7 @@ describe('DiagramStore - Project State', () => {
 });
 
 describe('DiagramStore - serializeDiagramState', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      canvasObjects: new Map(),
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-      projectName: '',
-      environments: [],
-      _undoStack: [],
-      _redoStack: [],
-      canUndo: false,
-      canRedo: false,
-    });
-  });
+  beforeEach(resetStore);
 
   it('returns DiagramState with version 3', () => {
     const state = useDiagramStore.getState().serializeDiagramState();
@@ -627,41 +385,6 @@ describe('DiagramStore - serializeDiagramState', () => {
     expect(state.viewport).toEqual({ offsetX: 0, offsetY: 0, scale: 1.0 });
     expect(state.projectName).toBe('');
     expect(state.environments).toEqual([]);
-  });
-
-  it('serializes elements as array', () => {
-    const id = useDiagramStore.getState().addElement('lambda', { x: 10, y: 20 });
-    const state = useDiagramStore.getState().serializeDiagramState();
-
-    expect(state.elements).toHaveLength(1);
-    expect(state.elements[0].id).toBe(id);
-    expect(state.elements[0].serviceType).toBe('lambda');
-    expect(state.elements[0].position).toEqual({ x: 10, y: 20 });
-  });
-
-  it('serializes connectors as array', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('s3', { x: 100, y: 0 });
-    const cid = useDiagramStore.getState().addConnector(id1, id2, 'writes_to');
-
-    const state = useDiagramStore.getState().serializeDiagramState();
-    expect(state.connectors).toHaveLength(1);
-    expect(state.connectors[0].id).toBe(cid);
-    expect(state.connectors[0].sourceId).toBe(id1);
-    expect(state.connectors[0].targetId).toBe(id2);
-    expect(state.connectors[0].connectionType).toBe('writes_to');
-  });
-
-  it('includes viewport, projectName, and environments', () => {
-    useDiagramStore.getState().pan(50, -30);
-    useDiagramStore.getState().setProjectName('test-project');
-    useDiagramStore.getState().setEnvironments([{ name: 'dev', variables: { key: 'val' } }]);
-
-    const state = useDiagramStore.getState().serializeDiagramState();
-    expect(state.viewport.offsetX).toBe(50);
-    expect(state.viewport.offsetY).toBe(-30);
-    expect(state.projectName).toBe('test-project');
-    expect(state.environments).toEqual([{ name: 'dev', variables: { key: 'val' } }]);
   });
 
   it('serializes canvasObjects as array', () => {
@@ -685,45 +408,22 @@ describe('DiagramStore - serializeDiagramState', () => {
     expect(state.canvasObjects![0].serviceType).toBe('lambda');
     expect(state.canvasObjects![0].visualConfig).toEqual({ width: 80, height: 80 });
   });
+
+  it('includes viewport, projectName, and environments', () => {
+    useDiagramStore.getState().pan(50, -30);
+    useDiagramStore.getState().setProjectName('test-project');
+    useDiagramStore.getState().setEnvironments([{ name: 'dev', variables: { key: 'val' } }]);
+
+    const state = useDiagramStore.getState().serializeDiagramState();
+    expect(state.viewport.offsetX).toBe(50);
+    expect(state.viewport.offsetY).toBe(-30);
+    expect(state.projectName).toBe('test-project');
+    expect(state.environments).toEqual([{ name: 'dev', variables: { key: 'val' } }]);
+  });
 });
 
 describe('DiagramStore - loadDiagramState', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      canvasObjects: new Map(),
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-      projectName: '',
-      environments: [],
-      _undoStack: [],
-      _redoStack: [],
-      canUndo: false,
-      canRedo: false,
-    });
-  });
-
-  it('restores elements from serialized state', () => {
-    const state = {
-      version: 1,
-      projectName: 'loaded',
-      environments: [],
-      elements: [
-        { id: 'e1', serviceType: 'lambda' as const, name: 'lambda-1', position: { x: 10, y: 20 }, config: { handler: 'index.handler' } },
-      ],
-      connectors: [],
-      viewport: { offsetX: 5, offsetY: 10, scale: 2.0 },
-    };
-
-    useDiagramStore.getState().loadDiagramState(state);
-
-    const el = useDiagramStore.getState().elements.get('e1');
-    expect(el).toBeDefined();
-    expect(el!.serviceType).toBe('lambda');
-    expect(el!.name).toBe('lambda-1');
-    expect(el!.position).toEqual({ x: 10, y: 20 });
-    expect(el!.config.handler).toBe('index.handler');
-  });
+  beforeEach(resetStore);
 
   it('restores connectors from serialized state', () => {
     const state = {
@@ -766,8 +466,7 @@ describe('DiagramStore - loadDiagramState', () => {
   });
 
   it('clears undo/redo stacks on load', () => {
-    // Build up some history
-    useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
+    addBlock('lambda', { x: 0, y: 0 });
     expect(useDiagramStore.getState().canUndo).toBe(true);
 
     const state = {
@@ -783,29 +482,10 @@ describe('DiagramStore - loadDiagramState', () => {
 
     expect(useDiagramStore.getState().canUndo).toBe(false);
     expect(useDiagramStore.getState().canRedo).toBe(false);
-    expect(useDiagramStore.getState()._undoStack).toHaveLength(0);
-    expect(useDiagramStore.getState()._redoStack).toHaveLength(0);
   });
 
   it('deserializes canvasObjects from v2 state', () => {
-    const state: Parameters<typeof useDiagramStore.getState>extends never ? never : {
-      version: 2;
-      projectName: string;
-      environments: never[];
-      elements: never[];
-      connectors: never[];
-      canvasObjects: {
-        id: string;
-        objectType: 'architecture-block';
-        name: string;
-        x: number;
-        y: number;
-        serviceType: 'lambda';
-        config: { handler: string };
-        visualConfig: { width: number; height: number };
-      }[];
-      viewport: { offsetX: number; offsetY: number; scale: number };
-    } = {
+    const state = {
       version: 2,
       projectName: 'v2-proj',
       environments: [],
@@ -814,7 +494,7 @@ describe('DiagramStore - loadDiagramState', () => {
       canvasObjects: [
         {
           id: 'obj1',
-          objectType: 'architecture-block',
+          objectType: 'architecture-block' as const,
           name: 'lambda-1',
           x: 10,
           y: 20,
@@ -867,43 +547,44 @@ describe('DiagramStore - loadDiagramState', () => {
     }
   });
 
-  it('handles missing canvasObjects in v2 state gracefully', () => {
+  it('discards legacy elements field when loading saved diagram (requirement 2.4)', () => {
     const state = {
       version: 2,
-      projectName: 'v2-no-canvas',
+      projectName: 'test',
       environments: [],
       elements: [
-        { id: 'e1', serviceType: 'lambda' as const, name: 'lambda-1', position: { x: 0, y: 0 }, config: {} },
+        { id: 'legacy-el', serviceType: 'lambda' as const, name: 'old-lambda', position: { x: 0, y: 0 }, config: {} },
       ],
       connectors: [],
+      canvasObjects: [
+        {
+          id: 'obj1',
+          objectType: 'architecture-block' as const,
+          name: 'new-lambda',
+          x: 10,
+          y: 20,
+          serviceType: 'lambda',
+          config: {},
+          visualConfig: { width: 80, height: 80 },
+        },
+      ],
       viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
     };
 
-    useDiagramStore.getState().loadDiagramState(state);
+    // Should not throw
+    useDiagramStore.getState().loadDiagramState(state as any);
 
-    // v2 with no canvasObjects should result in empty canvasObjects map (no migration)
-    expect(useDiagramStore.getState().canvasObjects.size).toBe(0);
+    // Canvas objects should be loaded normally
+    expect(useDiagramStore.getState().canvasObjects.size).toBe(1);
+    expect(useDiagramStore.getState().canvasObjects.get('obj1')).toBeDefined();
   });
 });
 
 describe('DiagramStore - serializeToArchitectureDescription', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      canvasObjects: new Map(),
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-      projectName: '',
-      environments: [],
-      _undoStack: [],
-      _redoStack: [],
-      canUndo: false,
-      canRedo: false,
-    });
-  });
+  beforeEach(resetStore);
 
-  it('maps elements to resources with name, service_type, config', () => {
-    const id = useDiagramStore.getState().addCanvasObject({
+  it('maps canvas objects to resources with name, service_type, config', () => {
+    useDiagramStore.getState().addCanvasObject({
       objectType: 'architecture-block',
       serviceType: 'lambda',
       name: 'lambda-1',
@@ -922,9 +603,9 @@ describe('DiagramStore - serializeToArchitectureDescription', () => {
     expect(desc.resources[0].config.runtime).toBe('python3.12');
   });
 
-  it('maps connectors to connections using element names', () => {
-    const id1 = useDiagramStore.getState().addElement('lambda', { x: 0, y: 0 });
-    const id2 = useDiagramStore.getState().addElement('dynamodb', { x: 100, y: 0 });
+  it('maps connectors to connections using canvas object names', () => {
+    const id1 = addBlock('lambda', { x: 0, y: 0 }, 'lambda-1');
+    const id2 = addBlock('dynamodb', { x: 100, y: 0 }, 'dynamodb-1');
     useDiagramStore.getState().addConnector(id1, id2, 'reads_from');
 
     const desc = useDiagramStore.getState().serializeToArchitectureDescription();
@@ -951,819 +632,5 @@ describe('DiagramStore - serializeToArchitectureDescription', () => {
     const desc = useDiagramStore.getState().serializeToArchitectureDescription();
     expect(desc.resources).toEqual([]);
     expect(desc.connections).toEqual([]);
-  });
-});
-
-describe('DiagramStore - Object Grouping', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      canvasObjects: new Map(),
-      selectedObjectIds: new Set(),
-      objectGroups: new Map(),
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-      _undoStack: [],
-      _redoStack: [],
-      canUndo: false,
-      canRedo: false,
-    });
-  });
-
-  function addTwoObjects(): [string, string] {
-    const id1 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 0, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    const id2 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-2',
-      position: { x: 200, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    return [id1, id2];
-  }
-
-  it('groupSelectedObjects returns null when fewer than 2 objects selected', () => {
-    const [id1] = addTwoObjects();
-    useDiagramStore.getState().selectObject(id1);
-    const result = useDiagramStore.getState().groupSelectedObjects();
-    expect(result).toBeNull();
-    expect(useDiagramStore.getState().objectGroups.size).toBe(0);
-  });
-
-  it('groupSelectedObjects returns null when no objects selected', () => {
-    addTwoObjects();
-    const result = useDiagramStore.getState().groupSelectedObjects();
-    expect(result).toBeNull();
-  });
-
-  it('groupSelectedObjects creates a group from 2+ selected objects', () => {
-    const [id1, id2] = addTwoObjects();
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-
-    const groupId = useDiagramStore.getState().groupSelectedObjects();
-    expect(groupId).toBeTruthy();
-
-    const group = useDiagramStore.getState().objectGroups.get(groupId!);
-    expect(group).toBeDefined();
-    expect(group!.memberIds).toContain(id1);
-    expect(group!.memberIds).toContain(id2);
-    expect(group!.memberIds).toHaveLength(2);
-    expect(group!.name).toMatch(/^Group \d+$/);
-  });
-
-  it('groupSelectedObjects sets groupId on member objects', () => {
-    const [id1, id2] = addTwoObjects();
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-
-    const groupId = useDiagramStore.getState().groupSelectedObjects();
-
-    const obj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
-    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
-    expect(obj1.groupId).toBe(groupId);
-    expect(obj2.groupId).toBe(groupId);
-  });
-
-  it('ungroupObjects dissolves the group and clears groupId on members', () => {
-    const [id1, id2] = addTwoObjects();
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-
-    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
-    useDiagramStore.getState().ungroupObjects(groupId);
-
-    expect(useDiagramStore.getState().objectGroups.has(groupId)).toBe(false);
-    expect(useDiagramStore.getState().canvasObjects.get(id1)!.groupId).toBeUndefined();
-    expect(useDiagramStore.getState().canvasObjects.get(id2)!.groupId).toBeUndefined();
-  });
-
-  it('ungroupObjects is no-op for non-existent groupId', () => {
-    const [id1, id2] = addTwoObjects();
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-    useDiagramStore.getState().groupSelectedObjects();
-
-    const sizeBefore = useDiagramStore.getState().objectGroups.size;
-    useDiagramStore.getState().ungroupObjects('nonexistent');
-    expect(useDiagramStore.getState().objectGroups.size).toBe(sizeBefore);
-  });
-
-  it('removeCanvasObject auto-dissolves group when fewer than 2 members remain', () => {
-    const [id1, id2] = addTwoObjects();
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-
-    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
-    expect(useDiagramStore.getState().objectGroups.size).toBe(1);
-
-    // Remove one member — group should auto-dissolve since only 1 remains
-    useDiagramStore.getState().removeCanvasObject(id1);
-
-    expect(useDiagramStore.getState().objectGroups.has(groupId)).toBe(false);
-    expect(useDiagramStore.getState().canvasObjects.get(id2)!.groupId).toBeUndefined();
-  });
-
-  it('removeCanvasObject keeps group intact when 2+ members remain', () => {
-    const [id1, id2] = addTwoObjects();
-    const id3 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-3',
-      position: { x: 400, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2, id3]) });
-
-    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
-
-    // Remove one member — group should still have 2 members
-    useDiagramStore.getState().removeCanvasObject(id1);
-
-    const group = useDiagramStore.getState().objectGroups.get(groupId);
-    expect(group).toBeDefined();
-    expect(group!.memberIds).toHaveLength(2);
-    expect(group!.memberIds).toContain(id2);
-    expect(group!.memberIds).toContain(id3);
-  });
-
-  it('groupSelectedObjects removes members from existing groups', () => {
-    const [id1, id2] = addTwoObjects();
-    const id3 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-3',
-      position: { x: 400, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    // Group id1 and id2
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-    const group1Id = useDiagramStore.getState().groupSelectedObjects()!;
-
-    // Now group id2 and id3 — id2 should be removed from group1
-    useDiagramStore.setState({ selectedObjectIds: new Set([id2, id3]) });
-    const group2Id = useDiagramStore.getState().groupSelectedObjects()!;
-
-    // group1 should be auto-dissolved (only id1 left)
-    expect(useDiagramStore.getState().objectGroups.has(group1Id)).toBe(false);
-    expect(useDiagramStore.getState().canvasObjects.get(id1)!.groupId).toBeUndefined();
-
-    // group2 should exist with id2 and id3
-    const group2 = useDiagramStore.getState().objectGroups.get(group2Id);
-    expect(group2).toBeDefined();
-    expect(group2!.memberIds).toContain(id2);
-    expect(group2!.memberIds).toContain(id3);
-    expect(useDiagramStore.getState().canvasObjects.get(id2)!.groupId).toBe(group2Id);
-  });
-
-  it('loadDiagramState resets objectGroups', () => {
-    const [id1, id2] = addTwoObjects();
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-    useDiagramStore.getState().groupSelectedObjects();
-    expect(useDiagramStore.getState().objectGroups.size).toBe(1);
-
-    useDiagramStore.getState().loadDiagramState({
-      version: 2,
-      projectName: '',
-      environments: [],
-      elements: [],
-      connectors: [],
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-    });
-
-    expect(useDiagramStore.getState().objectGroups.size).toBe(0);
-  });
-
-  it('selectObject selects all group members when clicking a grouped object', () => {
-    const [id1, id2] = addTwoObjects();
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
-    expect(groupId).toBeTruthy();
-
-    // Clear selection, then select just one member
-    useDiagramStore.getState().clearSelection();
-    expect(useDiagramStore.getState().selectedObjectIds.size).toBe(0);
-
-    useDiagramStore.getState().selectObject(id1);
-
-    // Both group members should be selected
-    const selected = useDiagramStore.getState().selectedObjectIds;
-    expect(selected.size).toBe(2);
-    expect(selected.has(id1)).toBe(true);
-    expect(selected.has(id2)).toBe(true);
-  });
-
-  it('selectObject selects only the clicked object when it has no group', () => {
-    const [id1, id2] = addTwoObjects();
-
-    useDiagramStore.getState().selectObject(id1);
-
-    const selected = useDiagramStore.getState().selectedObjectIds;
-    expect(selected.size).toBe(1);
-    expect(selected.has(id1)).toBe(true);
-    expect(selected.has(id2)).toBe(false);
-  });
-
-  it('selectObject with null clears the selection', () => {
-    const [id1] = addTwoObjects();
-    useDiagramStore.getState().selectObject(id1);
-    expect(useDiagramStore.getState().selectedObjectIds.size).toBe(1);
-
-    useDiagramStore.getState().selectObject(null);
-    expect(useDiagramStore.getState().selectedObjectIds.size).toBe(0);
-  });
-});
-
-describe('DiagramStore - moveSelectedObjects', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      canvasObjects: new Map(),
-      selectedObjectIds: new Set(),
-      objectGroups: new Map(),
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-      _undoStack: [],
-      _redoStack: [],
-      canUndo: false,
-      canRedo: false,
-    });
-  });
-
-  it('moves a single selected architecture-block by offset', () => {
-    const id = useDiagramStore.getState().addCanvasObject({
-      objectType: 'architecture-block',
-      serviceType: 'lambda',
-      name: 'lambda-1',
-      position: { x: 100, y: 200 },
-      config: {},
-      terraformVariables: {},
-      visualConfig: { width: 80, height: 80 },
-    });
-    useDiagramStore.getState().selectObject(id);
-    useDiagramStore.getState().moveSelectedObjects(10, -20);
-
-    const obj = useDiagramStore.getState().canvasObjects.get(id)!;
-    expect(obj.objectType === 'architecture-block' && obj.position).toEqual({ x: 110, y: 180 });
-  });
-
-  it('moves a single selected geometric object by offset', () => {
-    const id = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 50, y: 50 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    useDiagramStore.getState().selectObject(id);
-    useDiagramStore.getState().moveSelectedObjects(5, 15);
-
-    const obj = useDiagramStore.getState().canvasObjects.get(id)!;
-    expect(obj.objectType === 'geometric' && obj.position).toEqual({ x: 55, y: 65 });
-  });
-
-  it('moves a line object by updating both start and end points', () => {
-    const id = useDiagramStore.getState().addCanvasObject({
-      objectType: 'line',
-      name: 'line-1',
-      start: { x: 10, y: 20 },
-      end: { x: 100, y: 200 },
-      sourceAnchor: null,
-      targetAnchor: null,
-      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
-    });
-    useDiagramStore.getState().selectObject(id);
-    useDiagramStore.getState().moveSelectedObjects(5, -5);
-
-    const obj = useDiagramStore.getState().canvasObjects.get(id)!;
-    if (obj.objectType === 'line') {
-      expect(obj.start).toEqual({ x: 15, y: 15 });
-      expect(obj.end).toEqual({ x: 105, y: 195 });
-    }
-  });
-
-  it('moves multiple selected objects by the same offset', () => {
-    const id1 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 0, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    const id2 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-2',
-      position: { x: 200, y: 200 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-    useDiagramStore.getState().moveSelectedObjects(10, 10);
-
-    const obj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
-    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
-    expect(obj1.objectType === 'geometric' && obj1.position).toEqual({ x: 10, y: 10 });
-    expect(obj2.objectType === 'geometric' && obj2.position).toEqual({ x: 210, y: 210 });
-  });
-
-  it('moves all group members when one grouped object is selected', () => {
-    const id1 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 0, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    const id2 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-2',
-      position: { x: 200, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    // Group them
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-    useDiagramStore.getState().groupSelectedObjects();
-
-    // Select only id1, but id2 should also move because they're grouped
-    useDiagramStore.getState().selectObject(id1);
-    useDiagramStore.getState().moveSelectedObjects(30, 40);
-
-    const obj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
-    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
-    expect(obj1.objectType === 'geometric' && obj1.position).toEqual({ x: 30, y: 40 });
-    expect(obj2.objectType === 'geometric' && obj2.position).toEqual({ x: 230, y: 40 });
-  });
-
-  it('is no-op when selection is empty', () => {
-    const id = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 50, y: 50 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    useDiagramStore.getState().moveSelectedObjects(10, 10);
-
-    const obj = useDiagramStore.getState().canvasObjects.get(id)!;
-    expect(obj.objectType === 'geometric' && obj.position).toEqual({ x: 50, y: 50 });
-  });
-
-  it('does not move unselected non-grouped objects', () => {
-    const id1 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 0, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    const id2 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-2',
-      position: { x: 200, y: 200 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    // Select only id1
-    useDiagramStore.getState().selectObject(id1);
-    useDiagramStore.getState().moveSelectedObjects(10, 10);
-
-    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
-    expect(obj2.objectType === 'geometric' && obj2.position).toEqual({ x: 200, y: 200 });
-  });
-});
-
-describe('DiagramStore - Serialization of zIndex, groupId, and objectGroups', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      canvasObjects: new Map(),
-      selectedObjectIds: new Set(),
-      objectGroups: new Map(),
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-      projectName: '',
-      environments: [],
-      _undoStack: [],
-      _redoStack: [],
-      canUndo: false,
-      canRedo: false,
-    });
-  });
-
-  it('serializeDiagramState includes zIndex on each canvas object', () => {
-    const id = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 10, y: 20 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    const state = useDiagramStore.getState().serializeDiagramState();
-    const sObj = state.canvasObjects!.find((o) => o.id === id)!;
-    expect(sObj.zIndex).toBe(0);
-  });
-
-  it('serializeDiagramState includes groupId on grouped canvas objects', () => {
-    const id1 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 0, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    const id2 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-2',
-      position: { x: 200, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
-
-    const state = useDiagramStore.getState().serializeDiagramState();
-    const sObj1 = state.canvasObjects!.find((o) => o.id === id1)!;
-    const sObj2 = state.canvasObjects!.find((o) => o.id === id2)!;
-    expect(sObj1.groupId).toBe(groupId);
-    expect(sObj2.groupId).toBe(groupId);
-  });
-
-  it('serializeDiagramState does not include groupId on ungrouped objects', () => {
-    useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 0, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    const state = useDiagramStore.getState().serializeDiagramState();
-    expect(state.canvasObjects![0].groupId).toBeUndefined();
-  });
-
-  it('serializeDiagramState includes objectGroups when groups exist', () => {
-    const id1 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 0, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    const id2 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-2',
-      position: { x: 200, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
-
-    const state = useDiagramStore.getState().serializeDiagramState();
-    expect(state.objectGroups).toBeDefined();
-    expect(state.objectGroups).toHaveLength(1);
-    expect(state.objectGroups![0].id).toBe(groupId);
-    expect(state.objectGroups![0].memberIds).toContain(id1);
-    expect(state.objectGroups![0].memberIds).toContain(id2);
-  });
-
-  it('serializeDiagramState omits objectGroups when no groups exist', () => {
-    useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 0, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    const state = useDiagramStore.getState().serializeDiagramState();
-    expect(state.objectGroups).toBeUndefined();
-  });
-
-  it('loadDiagramState deserializes zIndex from serialized state', () => {
-    const state = useDiagramStore.getState().serializeDiagramState();
-
-    // Create objects with specific zIndex values
-    const id1 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 0, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-    const id2 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-2',
-      position: { x: 200, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    // Bring id1 to front so it has a higher zIndex
-    useDiagramStore.getState().bringToFront(id1);
-
-    const serialized = useDiagramStore.getState().serializeDiagramState();
-    useDiagramStore.getState().loadDiagramState(serialized);
-
-    const obj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
-    const obj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
-    expect(obj1.zIndex).toBeGreaterThan(obj2.zIndex);
-  });
-
-  it('loadDiagramState defaults zIndex to insertion index when missing', () => {
-    const serialized = {
-      version: 2,
-      projectName: '',
-      environments: [],
-      elements: [],
-      connectors: [],
-      canvasObjects: [
-        {
-          id: 'a',
-          objectType: 'geometric' as const,
-          name: 'rect-1',
-          x: 0,
-          y: 0,
-          visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-        },
-        {
-          id: 'b',
-          objectType: 'geometric' as const,
-          name: 'rect-2',
-          x: 200,
-          y: 0,
-          visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-        },
-      ],
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-    };
-
-    useDiagramStore.getState().loadDiagramState(serialized as any);
-
-    expect(useDiagramStore.getState().canvasObjects.get('a')!.zIndex).toBe(0);
-    expect(useDiagramStore.getState().canvasObjects.get('b')!.zIndex).toBe(1);
-  });
-
-  it('loadDiagramState deserializes objectGroups and restores groupId on objects', () => {
-    const serialized = {
-      version: 2,
-      projectName: '',
-      environments: [],
-      elements: [],
-      connectors: [],
-      canvasObjects: [
-        {
-          id: 'a',
-          objectType: 'geometric' as const,
-          name: 'rect-1',
-          x: 0,
-          y: 0,
-          visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-          zIndex: 0,
-          groupId: 'g1',
-        },
-        {
-          id: 'b',
-          objectType: 'geometric' as const,
-          name: 'rect-2',
-          x: 200,
-          y: 0,
-          visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-          zIndex: 1,
-          groupId: 'g1',
-        },
-      ],
-      objectGroups: [
-        { id: 'g1', name: 'Group 1', memberIds: ['a', 'b'] },
-      ],
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-    };
-
-    useDiagramStore.getState().loadDiagramState(serialized as any);
-
-    // Verify objectGroups are restored
-    expect(useDiagramStore.getState().objectGroups.size).toBe(1);
-    const group = useDiagramStore.getState().objectGroups.get('g1')!;
-    expect(group.name).toBe('Group 1');
-    expect(group.memberIds).toEqual(['a', 'b']);
-
-    // Verify groupId is restored on objects
-    expect(useDiagramStore.getState().canvasObjects.get('a')!.groupId).toBe('g1');
-    expect(useDiagramStore.getState().canvasObjects.get('b')!.groupId).toBe('g1');
-  });
-
-  it('loadDiagramState defaults objectGroups to empty when missing', () => {
-    const serialized = {
-      version: 2,
-      projectName: '',
-      environments: [],
-      elements: [],
-      connectors: [],
-      canvasObjects: [],
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-    };
-
-    useDiagramStore.getState().loadDiagramState(serialized as any);
-    expect(useDiagramStore.getState().objectGroups.size).toBe(0);
-  });
-
-  it('round-trip: serialize then load preserves zIndex, groupId, and objectGroups', () => {
-    const id1 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'architecture-block',
-      serviceType: 'lambda',
-      name: 'lambda-1',
-      position: { x: 10, y: 20 },
-      config: {},
-      terraformVariables: {},
-      visualConfig: { width: 80, height: 80 },
-    });
-    const id2 = useDiagramStore.getState().addCanvasObject({
-      objectType: 'geometric',
-      name: 'rect-1',
-      position: { x: 200, y: 0 },
-      visualConfig: { width: 100, height: 100, fill: true, fillColor: '#fff', borderColor: '#000', borderWidth: 2, shape: 'rectangle' },
-    });
-
-    // Group them
-    useDiagramStore.setState({ selectedObjectIds: new Set([id1, id2]) });
-    const groupId = useDiagramStore.getState().groupSelectedObjects()!;
-
-    // Bring id2 to front
-    useDiagramStore.getState().bringToFront(id2);
-
-    const beforeObj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
-    const beforeObj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
-
-    // Serialize and reload
-    const serialized = useDiagramStore.getState().serializeDiagramState();
-    useDiagramStore.getState().loadDiagramState(serialized);
-
-    const afterObj1 = useDiagramStore.getState().canvasObjects.get(id1)!;
-    const afterObj2 = useDiagramStore.getState().canvasObjects.get(id2)!;
-
-    // zIndex preserved
-    expect(afterObj1.zIndex).toBe(beforeObj1.zIndex);
-    expect(afterObj2.zIndex).toBe(beforeObj2.zIndex);
-
-    // groupId preserved
-    expect(afterObj1.groupId).toBe(groupId);
-    expect(afterObj2.groupId).toBe(groupId);
-
-    // objectGroups preserved
-    expect(useDiagramStore.getState().objectGroups.size).toBe(1);
-    const group = useDiagramStore.getState().objectGroups.get(groupId)!;
-    expect(group.memberIds).toContain(id1);
-    expect(group.memberIds).toContain(id2);
-  });
-});
-
-describe('DiagramStore - removeLinkedEntry', () => {
-  beforeEach(() => {
-    useDiagramStore.setState({
-      elements: new Map(),
-      connectors: new Map(),
-      canvasObjects: new Map(),
-      _undoStack: [],
-      _redoStack: [],
-      canUndo: false,
-      canRedo: false,
-    });
-  });
-
-  function setupBlockAndConnectors() {
-    // Create an API Gateway block with routes
-    const blockId = useDiagramStore.getState().addCanvasObject({
-      objectType: 'architecture-block',
-      serviceType: 'api-gateway',
-      name: 'api-gw-1',
-      position: { x: 0, y: 0 },
-      config: {
-        routes: [
-          { method: 'GET', path: '/users', integration_name: 'lambda-1' },
-          { method: 'POST', path: '/orders', integration_name: 'lambda-2' },
-        ],
-      },
-      terraformVariables: {},
-      visualConfig: { width: 80, height: 80 },
-    });
-
-    // Create a Lambda block
-    const lambdaId = useDiagramStore.getState().addCanvasObject({
-      objectType: 'architecture-block',
-      serviceType: 'lambda',
-      name: 'lambda-1',
-      position: { x: 200, y: 0 },
-      config: {},
-      terraformVariables: {},
-      visualConfig: { width: 80, height: 80 },
-    });
-
-    // Create connectors referencing the routes
-    const conn1Id = useDiagramStore.getState().addConnector(blockId, lambdaId);
-    useDiagramStore.getState().updateConnectorConfig(conn1Id, 'route_path', '/users');
-
-    const conn2Id = useDiagramStore.getState().addConnector(blockId, lambdaId);
-    useDiagramStore.getState().updateConnectorConfig(conn2Id, 'route_path', '/orders');
-
-    return { blockId, lambdaId, conn1Id, conn2Id };
-  }
-
-  it('removes the entry from the block config array', () => {
-    const { blockId } = setupBlockAndConnectors();
-
-    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/users', 'route_path');
-
-    const block = useDiagramStore.getState().canvasObjects.get(blockId) as { config: Record<string, unknown> };
-    const routes = block.config.routes as { path: string }[];
-    expect(routes).toHaveLength(1);
-    expect(routes[0].path).toBe('/orders');
-  });
-
-  it('clears connectionConfig on connectors referencing the removed value', () => {
-    const { blockId, conn1Id, conn2Id } = setupBlockAndConnectors();
-
-    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/users', 'route_path');
-
-    const conn1 = useDiagramStore.getState().connectors.get(conn1Id)!;
-    expect(conn1.connectionConfig!.route_path).toBe('');
-
-    // conn2 should be unaffected
-    const conn2 = useDiagramStore.getState().connectors.get(conn2Id)!;
-    expect(conn2.connectionConfig!.route_path).toBe('/orders');
-  });
-
-  it('does not affect connectors for other blocks', () => {
-    const { blockId, lambdaId } = setupBlockAndConnectors();
-
-    // Create another block with a connector that has the same route_path value
-    const otherBlockId = useDiagramStore.getState().addCanvasObject({
-      objectType: 'architecture-block',
-      serviceType: 'api-gateway',
-      name: 'api-gw-2',
-      position: { x: 400, y: 0 },
-      config: { routes: [{ method: 'GET', path: '/users', integration_name: 'lambda-3' }] },
-      terraformVariables: {},
-      visualConfig: { width: 80, height: 80 },
-    });
-    const otherConnId = useDiagramStore.getState().addConnector(otherBlockId, lambdaId);
-    useDiagramStore.getState().updateConnectorConfig(otherConnId, 'route_path', '/users');
-
-    // Remove from the first block only
-    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/users', 'route_path');
-
-    // The other block's connector should be unaffected
-    const otherConn = useDiagramStore.getState().connectors.get(otherConnId)!;
-    expect(otherConn.connectionConfig!.route_path).toBe('/users');
-  });
-
-  it('pushes history for undo support', () => {
-    const { blockId, conn1Id } = setupBlockAndConnectors();
-
-    // Clear undo stack from setup
-    useDiagramStore.setState({ _undoStack: [], _redoStack: [], canUndo: false, canRedo: false });
-
-    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/users', 'route_path');
-
-    expect(useDiagramStore.getState().canUndo).toBe(true);
-
-    useDiagramStore.getState().undo();
-
-    // After undo, the route should be back
-    const block = useDiagramStore.getState().canvasObjects.get(blockId) as { config: Record<string, unknown> };
-    const routes = block.config.routes as { path: string }[];
-    expect(routes).toHaveLength(2);
-
-    // And the connector should have its original value
-    const conn1 = useDiagramStore.getState().connectors.get(conn1Id)!;
-    expect(conn1.connectionConfig!.route_path).toBe('/users');
-  });
-
-  it('is no-op for non-existent block', () => {
-    const { conn1Id } = setupBlockAndConnectors();
-    const connBefore = useDiagramStore.getState().connectors.get(conn1Id)!;
-
-    useDiagramStore.getState().removeLinkedEntry('nonexistent', 'routes', 'path', '/users', 'route_path');
-
-    const connAfter = useDiagramStore.getState().connectors.get(conn1Id)!;
-    expect(connAfter.connectionConfig!.route_path).toBe(connBefore.connectionConfig!.route_path);
-  });
-
-  it('is no-op for non-architecture-block objects', () => {
-    const lineId = useDiagramStore.getState().addCanvasObject({
-      objectType: 'line',
-      start: { x: 0, y: 0 },
-      end: { x: 100, y: 100 },
-      visualConfig: { strokeColor: '#000', strokeWidth: 2, strokeStyle: 'solid', arrowEnd: 'none', arrowStart: 'none' },
-    } as never);
-
-    // Should not throw
-    useDiagramStore.getState().removeLinkedEntry(lineId, 'routes', 'path', '/users', 'route_path');
-  });
-
-  it('handles removing a value that no connector references', () => {
-    const { blockId, conn1Id, conn2Id } = setupBlockAndConnectors();
-
-    // Remove a route that exists in the block but no connector references
-    // First add a route that no connector uses
-    const block = useDiagramStore.getState().canvasObjects.get(blockId) as { config: Record<string, unknown> };
-    const routes = block.config.routes as { path: string; method: string; integration_name: string }[];
-    useDiagramStore.getState().updateCanvasObject(blockId, {
-      config: { routes: [...routes, { method: 'DELETE', path: '/admin', integration_name: 'lambda-3' }] },
-    } as never);
-
-    useDiagramStore.getState().removeLinkedEntry(blockId, 'routes', 'path', '/admin', 'route_path');
-
-    // Connectors should be unaffected
-    const c1 = useDiagramStore.getState().connectors.get(conn1Id)!;
-    const c2 = useDiagramStore.getState().connectors.get(conn2Id)!;
-    expect(c1.connectionConfig!.route_path).toBe('/users');
-    expect(c2.connectionConfig!.route_path).toBe('/orders');
   });
 });

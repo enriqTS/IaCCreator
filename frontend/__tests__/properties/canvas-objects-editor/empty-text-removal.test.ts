@@ -14,7 +14,6 @@ describe('Property 7: Empty text objects are auto-removed', () => {
       canvasObjects: new Map(),
       selectedObjectIds: new Set(),
       objectGroups: new Map(),
-      elements: new Map(),
       connectors: new Map(),
       _undoStack: [],
       _redoStack: [],

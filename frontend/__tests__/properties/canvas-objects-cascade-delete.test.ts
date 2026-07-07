@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { serviceTypeArbitrary, pointArbitrary } from './arbitraries';
-import type { ArchitectureBlock, Connector } from '@/types/diagram';
+import type { ArchitectureBlock, Connector, ServiceType } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
 import { getDefaultVariables } from '@/types/terraform-variables';
 
@@ -9,7 +9,6 @@ function resetStore() {
   useDiagramStore.setState({
     canvasObjects: new Map(),
     connectors: new Map(),
-    elements: new Map(),
     selectedObjectIds: new Set(),
     _undoStack: [],
     _redoStack: [],
@@ -19,35 +18,23 @@ function resetStore() {
 }
 
 /**
- * Helper: adds an element + corresponding architecture block canvas object with the same ID.
- * Connectors validate against the `elements` Map, so we must add elements first.
+ * Helper: adds an architecture block canvas object.
+ * Connectors validate against canvasObjects for architecture-block type.
  */
-function addBlockWithElement(
-  serviceType: 'lambda' | 's3' | 'api-gateway' | 'dynamodb' | 'iam' | 'cloudwatch',
+function addBlock(
+  serviceType: ServiceType,
   position: { x: number; y: number },
   name: string,
 ): string {
-  const store = useDiagramStore.getState();
-  // addElement creates an entry in the elements Map (needed for connector validation)
-  const id = store.addElement(serviceType, position);
-
-  // Add a corresponding canvas object with the same ID
-  useDiagramStore.setState((state) => {
-    const next = new Map(state.canvasObjects);
-    next.set(id, {
-      id,
-      objectType: 'architecture-block',
-      serviceType,
-      name,
-      position,
-      config: {},
-      terraformVariables: getDefaultVariables(serviceType),
-      visualConfig: { ...DEFAULT_BLOCK_VISUAL },
-    } as ArchitectureBlock);
-    return { canvasObjects: next };
+  return useDiagramStore.getState().addCanvasObject({
+    objectType: 'architecture-block',
+    serviceType,
+    name,
+    position,
+    config: {},
+    terraformVariables: getDefaultVariables(serviceType),
+    visualConfig: { ...DEFAULT_BLOCK_VISUAL },
   });
-
-  return id;
 }
 
 // Feature: canvas-objects-editor, Property 10: Architecture block deletion cascades to connectors
@@ -66,9 +53,9 @@ describe('Property 10: Architecture block deletion cascades to connectors', () =
         (serviceType1, serviceType2, pos1, pos2, connType) => {
           resetStore();
 
-          // Create two blocks with elements
-          const blockId1 = addBlockWithElement(serviceType1, pos1, 'block-1');
-          const blockId2 = addBlockWithElement(serviceType2, pos2, 'block-2');
+          // Create two blocks
+          const blockId1 = addBlock(serviceType1, pos1, 'block-1');
+          const blockId2 = addBlock(serviceType2, pos2, 'block-2');
 
           // Add a connector between them
           const connId = useDiagramStore.getState().addConnector(blockId1, blockId2, connType);
@@ -108,14 +95,14 @@ describe('Property 10: Architecture block deletion cascades to connectors', () =
           resetStore();
 
           // Create the block to be deleted
-          const deletedBlockId = addBlockWithElement(deletedServiceType, deletedPos, 'to-delete');
+          const deletedBlockId = addBlock(deletedServiceType, deletedPos, 'to-delete');
 
           // Create other blocks and connectors referencing the deleted block
           const otherBlockIds: string[] = [];
           const connectorIds: string[] = [];
 
           for (let i = 0; i < numOtherBlocks; i++) {
-            const otherId = addBlockWithElement('lambda', { x: i * 100, y: 0 }, `other-${i}`);
+            const otherId = addBlock('lambda', { x: i * 100, y: 0 }, `other-${i}`);
             otherBlockIds.push(otherId);
 
             // Alternate: some connectors where deleted block is source, some where it's target
@@ -169,9 +156,9 @@ describe('Property 10: Architecture block deletion cascades to connectors', () =
           resetStore();
 
           // Create three blocks
-          const blockA = addBlockWithElement(st1, pos1, 'block-a');
-          const blockB = addBlockWithElement(st2, pos2, 'block-b');
-          const blockC = addBlockWithElement(st3, pos3, 'block-c');
+          const blockA = addBlock(st1, pos1, 'block-a');
+          const blockB = addBlock(st2, pos2, 'block-b');
+          const blockC = addBlock(st3, pos3, 'block-c');
 
           // Connector between A and B (will be cascade-deleted when A is removed)
           const connAB = useDiagramStore.getState().addConnector(blockA, blockB);

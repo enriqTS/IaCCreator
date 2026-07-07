@@ -52,7 +52,6 @@ function makeLine(id: string, zIndex: number): LineObject {
 describe('ElementLayer', () => {
   beforeEach(() => {
     useDiagramStore.setState({
-      elements: new Map(),
       canvasObjects: new Map(),
       selectedObjectIds: new Set(),
       viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },

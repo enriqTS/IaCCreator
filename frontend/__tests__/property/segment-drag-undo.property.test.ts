@@ -24,7 +24,6 @@ const waypointsArb: fc.Arbitrary<Point[]> = fc.array(pointArb, { minLength: 1, m
 
 function resetStore() {
   useDiagramStore.setState({
-    elements: new Map(),
     connectors: new Map(),
     canvasObjects: new Map(),
     selectedObjectIds: new Set(),

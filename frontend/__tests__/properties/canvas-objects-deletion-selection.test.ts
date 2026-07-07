@@ -6,7 +6,6 @@ function resetStore() {
   useDiagramStore.setState({
     canvasObjects: new Map(),
     connectors: new Map(),
-    elements: new Map(),
     selectedObjectIds: new Set(),
     _undoStack: [],
     _redoStack: [],

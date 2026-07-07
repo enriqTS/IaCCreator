@@ -4,7 +4,6 @@ import { useDiagramStore } from '@/store/diagram-store';
 describe('Tool State', () => {
   beforeEach(() => {
     useDiagramStore.setState({
-      elements: new Map(),
       connectors: new Map(),
       activeTool: 'pointer',
       selectedElementId: null,

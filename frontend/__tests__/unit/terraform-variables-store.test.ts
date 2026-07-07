@@ -15,7 +15,6 @@ function resetStore() {
     canvasObjects: new Map(),
     selectedObjectIds: new Set(),
     objectGroups: new Map(),
-    elements: new Map(),
     connectors: new Map(),
     viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
     projectName: '',

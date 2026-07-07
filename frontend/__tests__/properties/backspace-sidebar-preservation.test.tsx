@@ -263,7 +263,6 @@ describe('Property 2: Preservation — Delete Key and Non-Sidebar Behavior Uncha
           useDiagramStore.setState({
             canvasObjects: objects as Map<string, ArchitectureBlock>,
             selectedObjectIds: new Set(),
-            selectedElementId: null,
             selectedConnectorId: null,
           });
 

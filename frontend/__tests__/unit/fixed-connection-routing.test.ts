@@ -16,7 +16,6 @@ import type { LineObject, Rect } from '@/types/diagram';
 /** Helper to reset the store to a clean state */
 function resetStore() {
   useDiagramStore.setState({
-    elements: new Map(),
     connectors: new Map(),
     canvasObjects: new Map(),
     objectGroups: new Map(),

@@ -6,7 +6,6 @@ import { useDiagramStore } from '@/store/diagram-store';
 
 function resetStore() {
   useDiagramStore.setState({
-    elements: new Map(),
     connectors: new Map(),
     viewport: { offsetX: 0, offsetY: 0, scale: 1 },
     projectName: '',

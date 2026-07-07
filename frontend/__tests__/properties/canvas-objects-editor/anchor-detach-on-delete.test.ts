@@ -15,7 +15,6 @@ describe('Property 6: Anchor detach on object deletion', () => {
       canvasObjects: new Map(),
       selectedObjectIds: new Set(),
       objectGroups: new Map(),
-      elements: new Map(),
       connectors: new Map(),
       _undoStack: [],
       _redoStack: [],

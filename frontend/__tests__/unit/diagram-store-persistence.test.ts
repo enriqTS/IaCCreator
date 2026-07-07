@@ -15,7 +15,6 @@ vi.mock('@/utils/api-client', () => ({
 
 function resetStore() {
   useDiagramStore.setState({
-    elements: new Map(),
     connectors: new Map(),
     viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
     projectName: 'test-project',

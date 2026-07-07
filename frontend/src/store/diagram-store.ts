@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import type {
   ServiceType,
   Point,
-  DiagramElement,
   Connector,
   ResourceConfig,
   Viewport,
@@ -55,7 +54,6 @@ import { getDefaultVariables, DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-va
 import { MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT_RATIO, DEFAULT_PANEL_HEIGHT, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH_RATIO, DEFAULT_SIDEBAR_WIDTH } from '@/components/config/panel-constants';
 
 interface HistoryEntry {
-  elements: Map<string, DiagramElement>;
   connectors: Map<string, Connector>;
   canvasObjects: Map<string, CanvasObject>;
   objectGroups: Map<string, ObjectGroup>;
@@ -64,28 +62,18 @@ interface HistoryEntry {
 const MAX_HISTORY = 50;
 
 function takeSnapshot(state: {
-  elements: Map<string, DiagramElement>;
   connectors: Map<string, Connector>;
-  canvasObjects?: Map<string, CanvasObject>;
-  objectGroups?: Map<string, ObjectGroup>;
+  canvasObjects: Map<string, CanvasObject>;
+  objectGroups: Map<string, ObjectGroup>;
 }): HistoryEntry {
   return {
-    elements: structuredClone(state.elements),
     connectors: structuredClone(state.connectors),
-    canvasObjects: structuredClone(state.canvasObjects ?? new Map()),
-    objectGroups: structuredClone(state.objectGroups ?? new Map()),
+    canvasObjects: structuredClone(state.canvasObjects),
+    objectGroups: structuredClone(state.objectGroups),
   };
 }
 
 export interface DiagramStore {
-  // Element state
-  elements: Map<string, DiagramElement>;
-  addElement: (serviceType: ServiceType, position: Point) => string;
-  updateElementPosition: (id: string, position: Point) => void;
-  updateElementConfig: (id: string, config: Partial<ResourceConfig>) => void;
-  updateElementName: (id: string, name: string) => void;
-  removeElement: (id: string) => void;
-
   // Canvas object state
   canvasObjects: Map<string, CanvasObject>;
   selectedObjectIds: Set<string>;
@@ -182,9 +170,7 @@ export interface DiagramStore {
   // UI state
   activeTool: Tool;
   setActiveTool: (tool: Tool) => void;
-  selectedElementId: string | null;
   selectedConnectorId: string | null;
-  selectElement: (id: string | null) => void;
   selectConnector: (id: string | null) => void;
   pendingConnectorSourceId: string | null;
 
@@ -248,8 +234,8 @@ export interface DiagramStore {
 
 export const useDiagramStore = create<DiagramStore>((set, get) => {
   function pushHistory() {
-    const { elements, connectors, canvasObjects, objectGroups, _undoStack } = get();
-    const snapshot = takeSnapshot({ elements, connectors, canvasObjects, objectGroups });
+    const { connectors, canvasObjects, objectGroups, _undoStack } = get();
+    const snapshot = takeSnapshot({ connectors, canvasObjects, objectGroups });
     let newStack = [..._undoStack, snapshot];
     if (newStack.length > MAX_HISTORY) {
       newStack = newStack.slice(newStack.length - MAX_HISTORY);
@@ -258,90 +244,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
   }
 
   return {
-    // --- Element state ---
-    elements: new Map<string, DiagramElement>(),
+    // --- Connector state (initialized here for use by element-less store) ---
     connectors: new Map<string, Connector>(),
-
-    addElement: (serviceType: ServiceType, position: Point): string => {
-      pushHistory();
-
-      const id = uuidv4();
-      const { elements } = get();
-
-      let count = 0;
-      for (const el of elements.values()) {
-        if (el.serviceType === serviceType) count++;
-      }
-      const name = `${serviceType}-${count + 1}`;
-
-      const element: DiagramElement = {
-        id,
-        serviceType,
-        name,
-        position,
-        config: {},
-      };
-
-      set((state) => {
-        const next = new Map(state.elements);
-        next.set(id, element);
-        return { elements: next };
-      });
-
-      return id;
-    },
-
-    updateElementPosition: (id: string, position: Point): void => {
-      const el = get().elements.get(id);
-      if (!el) return;
-      pushHistory();
-      set((state) => {
-        const next = new Map(state.elements);
-        next.set(id, { ...state.elements.get(id)!, position });
-        return { elements: next };
-      });
-    },
-
-    updateElementConfig: (id: string, config: Partial<ResourceConfig>): void => {
-      const el = get().elements.get(id);
-      if (!el) return;
-      pushHistory();
-      set((state) => {
-        const current = state.elements.get(id)!;
-        const next = new Map(state.elements);
-        next.set(id, { ...current, config: { ...current.config, ...config } });
-        return { elements: next };
-      });
-    },
-
-    updateElementName: (id: string, name: string): void => {
-      const el = get().elements.get(id);
-      if (!el) return;
-      pushHistory();
-      set((state) => {
-        const next = new Map(state.elements);
-        next.set(id, { ...state.elements.get(id)!, name });
-        return { elements: next };
-      });
-    },
-
-    removeElement: (id: string): void => {
-      if (!get().elements.has(id)) return;
-      pushHistory();
-      set((state) => {
-        const nextElements = new Map(state.elements);
-        nextElements.delete(id);
-
-        const nextConnectors = new Map(state.connectors);
-        for (const [cid, conn] of state.connectors) {
-          if (conn.sourceId === id || conn.targetId === id) {
-            nextConnectors.delete(cid);
-          }
-        }
-
-        return { elements: nextElements, connectors: nextConnectors };
-      });
-    },
 
     // --- Canvas object state ---
     canvasObjects: new Map<string, CanvasObject>(),
@@ -1258,10 +1162,10 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         throw new Error('Cannot create a connector from an element to itself');
       }
 
-      const { elements, canvasObjects } = get();
-      const sourceExists = elements.has(sourceId) ||
+      const { canvasObjects } = get();
+      const sourceExists =
         (canvasObjects.has(sourceId) && canvasObjects.get(sourceId)!.objectType === 'architecture-block');
-      const targetExists = elements.has(targetId) ||
+      const targetExists =
         (canvasObjects.has(targetId) && canvasObjects.get(targetId)!.objectType === 'architecture-block');
 
       if (!sourceExists) {
@@ -1465,7 +1369,6 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     // --- UI state ---
     activeTool: 'pointer' as Tool,
-    selectedElementId: null,
     selectedConnectorId: null,
     pendingConnectorSourceId: null,
 
@@ -1473,12 +1376,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       set({ activeTool: tool });
     },
 
-    selectElement: (id: string | null): void => {
-      set({ selectedElementId: id, selectedConnectorId: null });
-    },
-
     selectConnector: (id: string | null): void => {
-      set({ selectedConnectorId: id, selectedElementId: null });
+      set({ selectedConnectorId: id });
     },
 
     // --- History (undo/redo) ---
@@ -1488,16 +1387,15 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     _redoStack: [],
 
     undo: (): void => {
-      const { _undoStack, _redoStack, elements, connectors, canvasObjects, objectGroups } = get();
+      const { _undoStack, _redoStack, connectors, canvasObjects, objectGroups } = get();
       if (_undoStack.length === 0) return;
-      const currentSnapshot = takeSnapshot({ elements, connectors, canvasObjects, objectGroups });
+      const currentSnapshot = takeSnapshot({ connectors, canvasObjects, objectGroups });
       const newRedoStack = [..._redoStack, currentSnapshot];
 
       const previous = _undoStack[_undoStack.length - 1];
       const newUndoStack = _undoStack.slice(0, -1);
 
       set({
-        elements: structuredClone(previous.elements),
         connectors: structuredClone(previous.connectors),
         canvasObjects: structuredClone(previous.canvasObjects),
         objectGroups: structuredClone(previous.objectGroups),
@@ -1509,16 +1407,15 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     redo: (): void => {
-      const { _undoStack, _redoStack, elements, connectors, canvasObjects, objectGroups } = get();
+      const { _undoStack, _redoStack, connectors, canvasObjects, objectGroups } = get();
       if (_redoStack.length === 0) return;
-      const currentSnapshot = takeSnapshot({ elements, connectors, canvasObjects, objectGroups });
+      const currentSnapshot = takeSnapshot({ connectors, canvasObjects, objectGroups });
       const newUndoStack = [..._undoStack, currentSnapshot];
 
       const next = _redoStack[_redoStack.length - 1];
       const newRedoStack = _redoStack.slice(0, -1);
 
       set({
-        elements: structuredClone(next.elements),
         connectors: structuredClone(next.connectors),
         canvasObjects: structuredClone(next.canvasObjects),
         objectGroups: structuredClone(next.objectGroups),
@@ -1587,7 +1484,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     // --- Serialization ---
 
     serializeDiagramState: (): DiagramState => {
-      const { elements, connectors, viewport, projectName, environments, canvasObjects, objectGroups, globalTerraformConfig } = get();
+      const { connectors, viewport, projectName, environments, canvasObjects, objectGroups, globalTerraformConfig } = get();
 
       const serializedCanvasObjects: SerializedCanvasObject[] = Array.from(canvasObjects.values()).map((obj) => {
         const base: SerializedCanvasObject = {
@@ -1646,13 +1543,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         version: CURRENT_DIAGRAM_VERSION,
         projectName,
         environments: environments.map((e) => ({ ...e, variables: { ...e.variables } })),
-        elements: Array.from(elements.values()).map((el) => ({
-          id: el.id,
-          serviceType: el.serviceType,
-          name: el.name,
-          position: { ...el.position },
-          config: { ...el.config },
-        })),
+        elements: [],
         canvasObjects: serializedCanvasObjects,
         connectors: Array.from(connectors.values()).map((c) => ({
           id: c.id,
@@ -1669,17 +1560,6 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     loadDiagramState: (state: DiagramState): void => {
-      const elementsMap = new Map<string, DiagramElement>();
-      for (const el of state.elements) {
-        elementsMap.set(el.id, {
-          id: el.id,
-          serviceType: el.serviceType,
-          name: el.name,
-          position: { ...el.position },
-          config: { ...el.config },
-        });
-      }
-
       const connectorsMap = new Map<string, Connector>();
       for (const c of state.connectors) {
         connectorsMap.set(c.id, {
@@ -1875,7 +1755,6 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       }
 
       set({
-        elements: elementsMap,
         connectors: connectorsMap,
         canvasObjects: canvasObjectsMap,
         viewport: { ...state.viewport },
@@ -1895,7 +1774,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     serializeToArchitectureDescription: (): ArchitectureDescription => {
-      const { elements, canvasObjects, connectors, projectName, environments, globalTerraformConfig } = get();
+      const { canvasObjects, connectors, projectName, environments, globalTerraformConfig } = get();
 
       // Use canvasObjects (architecture blocks) as the source of resources
       const resources = Array.from(canvasObjects.values())
@@ -1907,16 +1786,10 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           terraform_variables: { ...block.terraformVariables },
         }));
 
-      // Build a name lookup from canvasObjects and elements for connector resolution
+      // Build a name lookup from canvasObjects for connector resolution
       const nameById = new Map<string, string>();
       for (const obj of canvasObjects.values()) {
         nameById.set(obj.id, obj.name);
-      }
-      // Fallback to elements for backward compatibility
-      for (const el of elements.values()) {
-        if (!nameById.has(el.id)) {
-          nameById.set(el.id, el.name);
-        }
       }
 
       const connections = Array.from(connectors.values()).map((c) => ({

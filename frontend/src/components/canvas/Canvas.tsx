@@ -52,7 +52,6 @@ export default function Canvas() {
   // Store actions (stable references)
   const zoom = useDiagramStore((s) => s.zoom);
   const pan = useDiagramStore((s) => s.pan);
-  const selectElement = useDiagramStore((s) => s.selectElement);
   const selectConnector = useDiagramStore((s) => s.selectConnector);
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
   const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
@@ -276,13 +275,12 @@ export default function Canvas() {
         }
 
         // Deselect everything and cancel pending connector
-        selectElement(null);
         selectConnector(null);
         clearSelection();
         useDiagramStore.setState({ pendingConnectorSourceId: null });
       }
     },
-    [activeTool, viewport, lineStart, addCanvasObject, selectElement, selectConnector, clearSelection],
+    [activeTool, viewport, lineStart, addCanvasObject, selectConnector, clearSelection],
   );
 
   // Mouse move handler for line preview and pan

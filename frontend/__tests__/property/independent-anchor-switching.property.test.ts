@@ -27,7 +27,6 @@ const endpointArb = fc.constantFrom('source' as const, 'target' as const);
 
 function resetStore() {
   useDiagramStore.setState({
-    elements: new Map(),
     connectors: new Map(),
     canvasObjects: new Map(),
     selectedObjectIds: new Set(),

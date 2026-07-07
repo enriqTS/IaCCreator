@@ -14,7 +14,6 @@ describe('Property 11: UML class data persistence', () => {
       canvasObjects: new Map(),
       selectedObjectIds: new Set(),
       objectGroups: new Map(),
-      elements: new Map(),
       connectors: new Map(),
       _undoStack: [],
       _redoStack: [],

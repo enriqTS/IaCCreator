@@ -47,7 +47,6 @@ function snapshotCanvasState() {
 
 function resetStore() {
   useDiagramStore.setState({
-    elements: new Map(),
     connectors: new Map(),
     canvasObjects: new Map(),
     selectedObjectIds: new Set(),

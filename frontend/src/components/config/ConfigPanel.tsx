@@ -28,16 +28,19 @@ function getIconPath(serviceType: ServiceType): string {
 const CONNECTION_TYPE_OPTIONS = ['triggers', 'reads_from', 'writes_to', 'invokes'];
 
 export default function ConfigPanel() {
-  const selectedElementId = useDiagramStore((s) => s.selectedElementId);
+  const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const selectedConnectorId = useDiagramStore((s) => s.selectedConnectorId);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const connectors = useDiagramStore((s) => s.connectors);
-  const updateElementName = useDiagramStore((s) => s.updateElementName);
-  const removeElement = useDiagramStore((s) => s.removeElement);
-  const selectElement = useDiagramStore((s) => s.selectElement);
+  const updateCanvasObject = useDiagramStore((s) => s.updateCanvasObject);
+  const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
+  const selectObject = useDiagramStore((s) => s.selectObject);
   const updateConnectorType = useDiagramStore((s) => s.updateConnectorType);
   const removeConnector = useDiagramStore((s) => s.removeConnector);
   const selectConnector = useDiagramStore((s) => s.selectConnector);
+
+  // Determine the selected element id (single selection of architecture block)
+  const selectedElementId = selectedObjectIds.size === 1 ? Array.from(selectedObjectIds)[0] : null;
 
   // Nothing selected — render nothing
   if (!selectedElementId && !selectedConnectorId) return null;
@@ -129,7 +132,7 @@ export default function ConfigPanel() {
           data-testid="element-name-input"
           type="text"
           value={block.name}
-          onChange={(e) => updateElementName(block.id, e.target.value)}
+          onChange={(e) => updateCanvasObject(block.id, { name: e.target.value } as Partial<ArchitectureBlock>)}
           placeholder={block.defaultName || ''}
           className="w-[200px] text-sm font-semibold"
         />
@@ -143,8 +146,8 @@ export default function ConfigPanel() {
           variant="destructive"
           size="sm"
           onClick={() => {
-            removeElement(selectedElementId!);
-            selectElement(null);
+            removeCanvasObject(selectedElementId!);
+            selectObject(null);
           }}
         >
           Delete
