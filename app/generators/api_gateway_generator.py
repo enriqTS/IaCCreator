@@ -1,7 +1,9 @@
 """API Gateway service generator — produces HCL for aws_apigatewayv2_api resources."""
 
 from app.generators.api_gateway_validator import APIGatewayValidator
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -11,6 +13,20 @@ class APIGatewayGenerator:
     def __init__(self) -> None:
         self._r = HCLRenderer()
         self._validator = APIGatewayValidator()
+
+    def _resolve_config(self, instance: ResourceInstanceIR) -> ApiGatewayConfig:
+        """Resolve instance config to ApiGatewayConfig.
+
+        Uses get_typed_config when the config is already an ApiGatewayConfig.
+        Falls back to duck-typed access on ResourceConfig during migration
+        (both models share field names for scalar API Gateway fields).
+        """
+        try:
+            return get_typed_config(instance, ApiGatewayConfig)
+        except Exception:
+            # During migration, config may still be a ResourceConfig.
+            # Field names are shared for scalar fields, so duck-typed access works.
+            return instance.config  # type: ignore[return-value]
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate all API Gateway resources as HCL.
@@ -26,6 +42,8 @@ class APIGatewayGenerator:
                 + "\n".join(error_messages)
             )
 
+        config = self._resolve_config(instance)
+
         parts = [
             self._generate_api_resource(instance),
             self._generate_api_key(instance),
@@ -35,50 +53,51 @@ class APIGatewayGenerator:
         # when the corresponding config fields are explicitly set (not None).
         # This preserves backward compatibility: configs with only the original
         # 7 fields produce only the API resource block.
-        config = instance.config
-        if config.routes is not None or config.api_key_required:
+        if getattr(config, "routes", None) is not None or config.api_key_required:
             parts.append(self._generate_routes(instance))
-        if config.stages is not None:
+        if getattr(config, "stages", None) is not None:
             parts.append(self._generate_stages(instance))
-        if config.authorizers is not None:
+        if getattr(config, "authorizers", None) is not None:
             parts.append(self._generate_authorizers(instance))
-        if config.custom_domain is not None:
+        if getattr(config, "custom_domain", None) is not None:
             parts.append(self._generate_domain(instance))
-        if config.vpc_links is not None:
+        if getattr(config, "vpc_links", None) is not None:
             parts.append(self._generate_vpc_links(instance))
-        if config.integrations is not None:
+        if getattr(config, "integrations", None) is not None:
             parts.append(self._generate_integrations(instance))
 
         return "\n".join(p for p in parts if p)
 
     def _generate_api_resource(self, instance: ResourceInstanceIR) -> str:
         """Generate aws_apigatewayv2_api resource block."""
+        config = self._resolve_config(instance)
         attrs: dict = {
             "name": "var.api_name",
             "protocol_type": "var.protocol_type",
         }
-        if instance.config.description is not None:
+        if config.description is not None:
             attrs["description"] = "var.description"
-        if instance.config.cors_configuration is not None:
+        if config.cors_configuration is not None:
             attrs["cors_configuration"] = "var.cors_configuration"
-        if instance.config.disable_execute_api_endpoint is not None:
+        if config.disable_execute_api_endpoint is not None:
             attrs["disable_execute_api_endpoint"] = "var.disable_execute_api_endpoint"
         # route_selection_expression — only when protocol_type is WEBSOCKET (visible_when)
-        if instance.config.protocol_type == "WEBSOCKET":
-            if instance.config.route_selection_expression is not None:
+        if config.protocol_type == "WEBSOCKET":
+            if config.route_selection_expression is not None:
                 attrs["route_selection_expression"] = "var.route_selection_expression"
-        if instance.config.tags is not None:
+        if config.tags is not None:
             attrs["tags"] = "var.tags"
 
         # API key selection expression when api_key_required is true
-        if instance.config.api_key_required:
+        if config.api_key_required:
             attrs["api_key_selection_expression"] = "$request.header.x-api-key"
 
         return self._r.render_resource("aws_apigatewayv2_api", instance.name, attrs)
 
     def _generate_api_key(self, instance: ResourceInstanceIR) -> str:
         """Generate aws_apigatewayv2_api_key resource when api_key_required is true."""
-        if not instance.config.api_key_required:
+        config = self._resolve_config(instance)
+        if not config.api_key_required:
             return ""
 
         attrs: dict = {
@@ -91,22 +110,23 @@ class APIGatewayGenerator:
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an API Gateway instance."""
+        config = self._resolve_config(instance)
         parts = [
             self._r.render_variable("api_name", "string", "Name of the API Gateway"),
             self._r.render_variable(
                 "protocol_type", "string", "Protocol type", default="HTTP"
             ),
         ]
-        if instance.config.description is not None:
+        if config.description is not None:
             parts.append(
                 self._r.render_variable(
                     "description",
                     "string",
                     "Description of the API",
-                    default=instance.config.description,
+                    default=config.description,
                 )
             )
-        if instance.config.cors_configuration is not None:
+        if config.cors_configuration is not None:
             parts.append(
                 self._r.render_variable(
                     "cors_configuration",
@@ -114,27 +134,27 @@ class APIGatewayGenerator:
                     "CORS configuration for the API",
                 )
             )
-        if instance.config.disable_execute_api_endpoint is not None:
+        if config.disable_execute_api_endpoint is not None:
             parts.append(
                 self._r.render_variable(
                     "disable_execute_api_endpoint",
                     "bool",
                     "Disable the default execute-api endpoint",
-                    default=instance.config.disable_execute_api_endpoint,
+                    default=config.disable_execute_api_endpoint,
                 )
             )
         # route_selection_expression — only when protocol_type is WEBSOCKET (visible_when)
-        if instance.config.protocol_type == "WEBSOCKET":
-            if instance.config.route_selection_expression is not None:
+        if config.protocol_type == "WEBSOCKET":
+            if config.route_selection_expression is not None:
                 parts.append(
                     self._r.render_variable(
                         "route_selection_expression",
                         "string",
                         "Route selection expression for WebSocket APIs",
-                        default=instance.config.route_selection_expression,
+                        default=config.route_selection_expression,
                     )
                 )
-        if instance.config.tags is not None:
+        if config.tags is not None:
             parts.append(
                 self._r.render_variable(
                     "tags",
@@ -155,30 +175,33 @@ class APIGatewayGenerator:
         For WebSocket, only $connect gets authorization attributes (per AWS docs).
         If api_key_required is True, all routes get api_key_required = true.
         """
-        config = instance.config
+        config = self._resolve_config(instance)
         protocol_type = config.protocol_type or "HTTP"
         is_websocket = protocol_type == "WEBSOCKET"
 
         # Build a lookup of authorizer names to their configs for authorization_type resolution
         authorizer_map: dict[str, dict] = {}
-        if config.authorizers:
-            for auth in config.authorizers:
+        authorizers = getattr(config, "authorizers", None)
+        if authorizers:
+            for auth in authorizers:
                 authorizer_map[auth["name"]] = auth
 
         # Build a lookup of integration names for target resolution
         integration_names: set[str] = set()
-        if config.integrations:
-            for integ in config.integrations:
+        integrations = getattr(config, "integrations", None)
+        if integrations:
+            for integ in integrations:
                 integration_names.add(integ["name"])
 
         parts: list[str] = []
+        routes = getattr(config, "routes", None)
 
         if is_websocket:
             # WebSocket: always generate special routes + custom routes
             ws_special_routes = ["$connect", "$disconnect", "$default"]
             custom_routes: list[dict] = []
-            if config.routes:
-                custom_routes = config.routes
+            if routes:
+                custom_routes = routes
 
             for route_key in ws_special_routes:
                 route_name = self._sanitize_route_name(route_key)
@@ -190,7 +213,7 @@ class APIGatewayGenerator:
 
                 # Target integration if available (use $default integration or named)
                 target_integration = self._find_ws_route_integration(
-                    route_key, config.routes, instance.name
+                    route_key, routes, instance.name
                 )
                 if target_integration:
                     attrs["target"] = target_integration
@@ -199,7 +222,7 @@ class APIGatewayGenerator:
                 if route_key == "$connect":
                     self._apply_authorization(
                         attrs,
-                        config.routes,
+                        routes,
                         route_key,
                         authorizer_map,
                         instance.name,
@@ -250,8 +273,8 @@ class APIGatewayGenerator:
 
         else:
             # HTTP API
-            if config.routes:
-                for route_cfg in config.routes:
+            if routes:
+                for route_cfg in routes:
                     method = route_cfg.get("method", "ANY")
                     path = route_cfg.get("path", "/")
                     route_key = f"{method} {path}"
@@ -390,8 +413,8 @@ class APIGatewayGenerator:
 
         When no stages are configured, generates a single $default stage with auto_deploy=true.
         """
-        config = instance.config
-        stages = config.stages
+        config = self._resolve_config(instance)
+        stages = getattr(config, "stages", None)
 
         # Default log format per requirement 6.4
         default_log_format = (
@@ -497,13 +520,14 @@ class APIGatewayGenerator:
         - COGNITO_USER_POOLS: authorizer_type = "JWT" with jwt_configuration using
           cognito_user_pool_endpoint as issuer and cognito_client_ids as audience
         """
-        config = instance.config
-        if not config.authorizers:
+        config = self._resolve_config(instance)
+        authorizers = getattr(config, "authorizers", None)
+        if not authorizers:
             return ""
 
         parts: list[str] = []
 
-        for authorizer in config.authorizers:
+        for authorizer in authorizers:
             auth_name = authorizer["name"]
             auth_type = authorizer.get("type", "JWT")
             resource_name = f"{instance.name}_{auth_name}_authorizer"
@@ -559,12 +583,13 @@ class APIGatewayGenerator:
 
         Returns empty string when no custom_domain is configured.
         """
-        config = instance.config
-        if not config.custom_domain:
+        config = self._resolve_config(instance)
+        custom_domain = getattr(config, "custom_domain", None)
+        if not custom_domain:
             return ""
 
-        domain_name = config.custom_domain.get("domain_name", "")
-        certificate_arn = config.custom_domain.get("certificate_arn", "")
+        domain_name = custom_domain.get("domain_name", "")
+        certificate_arn = custom_domain.get("certificate_arn", "")
 
         parts: list[str] = []
 
@@ -587,8 +612,9 @@ class APIGatewayGenerator:
         # Determine stage reference for the api_mapping
         # Use the first configured stage, or fall back to $default
         stage_resource_ref: str
-        if config.stages:
-            first_stage_name = config.stages[0].get("name", "$default")
+        stages = getattr(config, "stages", None)
+        if stages:
+            first_stage_name = stages[0].get("name", "$default")
             sanitized_stage = self._sanitize_route_name(first_stage_name)
             stage_resource_ref = (
                 f"aws_apigatewayv2_stage.{instance.name}_{sanitized_stage}_stage.id"
@@ -619,13 +645,14 @@ class APIGatewayGenerator:
         Each VPC link resource includes name, subnet_ids, and security_group_ids.
         Returns empty string when no VPC links are configured.
         """
-        config = instance.config
-        if not config.vpc_links:
+        config = self._resolve_config(instance)
+        vpc_links = getattr(config, "vpc_links", None)
+        if not vpc_links:
             return ""
 
         parts: list[str] = []
 
-        for vpc_link in config.vpc_links:
+        for vpc_link in vpc_links:
             vpc_link_name = vpc_link["name"]
             resource_name = f"{instance.name}_{vpc_link_name}_vpc_link"
 
@@ -653,13 +680,14 @@ class APIGatewayGenerator:
           payload_format_version (default "2.0")
         - VPC_LINK: sets connection_type = "VPC_LINK", connection_id referencing VPC link resource
         """
-        config = instance.config
-        if not config.integrations:
+        config = self._resolve_config(instance)
+        integrations = getattr(config, "integrations", None)
+        if not integrations:
             return ""
 
         parts: list[str] = []
 
-        for integration in config.integrations:
+        for integration in integrations:
             integ_name = integration["name"]
             integ_type = integration.get("type", "HTTP_PROXY")
             resource_name = f"{instance.name}_{integ_name}_integration"
@@ -707,7 +735,7 @@ class APIGatewayGenerator:
         - authorizer_id per authorizer (when authorizers are configured)
         - vpc_link_id per VPC link (when VPC links are configured)
         """
-        config = instance.config
+        config = self._resolve_config(instance)
         parts = [
             self._r.render_output(
                 f"{instance.name}_api_id",
@@ -727,8 +755,9 @@ class APIGatewayGenerator:
         ]
 
         # Output invoke_url per stage
-        if config.stages is not None:
-            for stage_cfg in config.stages:
+        stages = getattr(config, "stages", None)
+        if stages is not None:
+            for stage_cfg in stages:
                 stage_name = stage_cfg.get("name", "$default")
                 sanitized_stage = self._sanitize_route_name(stage_name)
                 parts.append(
@@ -740,7 +769,8 @@ class APIGatewayGenerator:
                 )
 
         # Output domain_name and target_domain_name for custom domain
-        if config.custom_domain is not None:
+        custom_domain = getattr(config, "custom_domain", None)
+        if custom_domain is not None:
             parts.append(
                 self._r.render_output(
                     f"{instance.name}_domain_name",
@@ -757,8 +787,9 @@ class APIGatewayGenerator:
             )
 
         # Output authorizer_id per authorizer
-        if config.authorizers is not None:
-            for authorizer in config.authorizers:
+        authorizers = getattr(config, "authorizers", None)
+        if authorizers is not None:
+            for authorizer in authorizers:
                 auth_name = authorizer["name"]
                 parts.append(
                     self._r.render_output(
@@ -769,8 +800,9 @@ class APIGatewayGenerator:
                 )
 
         # Output vpc_link_id per VPC link
-        if config.vpc_links is not None:
-            for vpc_link in config.vpc_links:
+        vpc_links = getattr(config, "vpc_links", None)
+        if vpc_links is not None:
+            for vpc_link in vpc_links:
                 vpc_link_name = vpc_link["name"]
                 parts.append(
                     self._r.render_output(
