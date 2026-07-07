@@ -4,6 +4,11 @@ import logging
 from collections import defaultdict
 
 from app.exceptions import IncompatibleConnectionError, ResourceNotFoundError
+from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._general import (
+    ResourceConfig,
+    _get_cached_service_config_models,
+)
 
 logger = logging.getLogger(__name__)
 from app.models.input_models import (
@@ -53,11 +58,12 @@ class IRBuilder:
         service_groups: dict[ServiceType, list[ResourceInstanceIR]] = defaultdict(list)
         for resource in input.resources:
             instance_connections = connections_by_source.get(resource.name, [])
+            resolved_config = self._resolve_config(resource.config, resource.service_type)
 
             instance_ir = ResourceInstanceIR(
                 name=resource.name,
                 service_type=resource.service_type,
-                config=resource.config,
+                config=resolved_config,
                 iam_statements=[],
                 connections=instance_connections,
                 terraform_variables=resource.terraform_variables,
@@ -144,3 +150,42 @@ class IRBuilder:
             )
 
         return result
+
+    def _resolve_config(
+        self,
+        config: ResourceConfig | BaseServiceConfig,
+        service_type: ServiceType,
+    ) -> ResourceConfig | BaseServiceConfig:
+        """Resolve the config to a typed BaseServiceConfig subclass if possible.
+
+        If the config is already a BaseServiceConfig subclass with a Terraform schema,
+        it is used directly. Otherwise, the ResourceConfig is returned as-is for
+        backward compatibility with non-migrated services.
+
+        When the input layer is updated to supply typed configs directly, this method
+        will use the SERVICE_CONFIG_MODELS registry to validate/coerce incoming data.
+
+        Args:
+            config: The resource config from input (ResourceConfig or BaseServiceConfig).
+            service_type: The service type for registry lookup.
+
+        Returns:
+            The resolved config — either a typed BaseServiceConfig subclass or the
+            original ResourceConfig.
+        """
+        # If config is already a typed BaseServiceConfig subclass, use it directly
+        if isinstance(config, BaseServiceConfig) and config.has_terraform_schema():
+            return config
+
+        # Check if this service has a registered typed config model
+        registry = _get_cached_service_config_models()
+        config_cls = registry.get(service_type)
+
+        if config_cls is not None and config_cls.has_terraform_schema():
+            # Service is migrated, but input is still a ResourceConfig.
+            # Pass through as-is — the input layer will be updated later to
+            # supply typed configs directly. The union type on ResourceInstanceIR
+            # accepts both.
+            pass
+
+        return config
