@@ -42,7 +42,7 @@ def _make_input(**overrides) -> ArchitectureDescription:
             ResourceInstance(
                 name="my-func",
                 service_type=ServiceType.LAMBDA,
-                config=LambdaConfig(handler="index.handler", runtime="python3.12"),
+                config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
             ),
         ],
         "connections": [],
@@ -55,7 +55,7 @@ def _lambda_resource(name: str = "my-func") -> ResourceInstance:
     return ResourceInstance(
         name=name,
         service_type=ServiceType.LAMBDA,
-        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
     )
 
 
@@ -342,7 +342,7 @@ class TestIRBuilderRejectsUnsupportedPairs:
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=DynamoDBConfig(hash_key="id"),
+                    config=DynamoDBConfig(table_name="test-table", hash_key_type="S", hash_key="id"),
                 ),
             ],
             connections=[

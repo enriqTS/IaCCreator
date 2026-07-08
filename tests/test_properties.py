@@ -151,6 +151,7 @@ _resource_name_st = st.from_regex(r"[a-z][a-z0-9\-]{0,14}", fullmatch=True)
 
 _lambda_config_st = st.builds(
     LambdaConfig,
+    function_name=st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True),
     handler=st.just("index.handler"),
     runtime=st.sampled_from(["python3.12", "python3.11", "nodejs18.x", "nodejs20.x"]),
     memory_size=st.one_of(st.none(), st.integers(min_value=128, max_value=3008)),
@@ -165,6 +166,7 @@ _s3_config_st = st.builds(
 
 _dynamodb_config_st = st.builds(
     DynamoDBConfig,
+    table_name=st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True),
     billing_mode=st.sampled_from(["PAY_PER_REQUEST", "PROVISIONED"]),
     hash_key=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
     hash_key_type=st.sampled_from(["S", "N", "B"]),
@@ -176,6 +178,7 @@ _dynamodb_config_st = st.builds(
 
 _api_gateway_config_st = st.builds(
     ApiGatewayConfig,
+    api_name=st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True),
     protocol_type=st.sampled_from(["HTTP", "WEBSOCKET"]),
 )
 
@@ -314,7 +317,7 @@ def _build_project_with_connections(
         ResourceInstanceIR(
             name=n,
             service_type=ServiceType.LAMBDA,
-            config=LambdaConfig(handler="index.handler", runtime="python3.12"),
+            config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
         )
         for n in lambda_names
     ]
@@ -403,7 +406,7 @@ _lambda_with_iam_st = st.builds(
     lambda name, stmts: ResourceInstanceIR(
         name=name,
         service_type=ServiceType.LAMBDA,
-        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
         iam_statements=stmts,
     ),
     name=_lambda_name_st,
@@ -470,7 +473,7 @@ _dynamodb_target_st = st.builds(
     lambda name: (
         name,
         ServiceType.DYNAMODB,
-        DynamoDBConfig(hash_key="id", billing_mode="PAY_PER_REQUEST"),
+        DynamoDBConfig(table_name="test-table", hash_key_type="S", hash_key="id", billing_mode="PAY_PER_REQUEST"),
     ),
     name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
 )
@@ -554,12 +557,12 @@ def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
     apigw_inst = ResourceInstanceIR(
         name=apigw_name,
         service_type=ServiceType.API_GATEWAY,
-        config=ApiGatewayConfig(protocol_type="HTTP"),
+        config=ApiGatewayConfig(api_name="test-api", protocol_type="HTTP"),
     )
     lambda_inst = ResourceInstanceIR(
         name=lambda_name,
         service_type=ServiceType.LAMBDA,
-        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
     )
 
     conn = ConnectionIR(
@@ -619,12 +622,12 @@ def test_property_17_terraform_references_not_hardcoded(apigw_name, lambda_name)
     apigw_inst = ResourceInstanceIR(
         name=apigw_name,
         service_type=ServiceType.API_GATEWAY,
-        config=ApiGatewayConfig(protocol_type="HTTP"),
+        config=ApiGatewayConfig(api_name="test-api", protocol_type="HTTP"),
     )
     lambda_inst = ResourceInstanceIR(
         name=lambda_name,
         service_type=ServiceType.LAMBDA,
-        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
     )
 
     conn = ConnectionIR(

@@ -106,9 +106,16 @@ def test_backend_rejects_invalid_values(data):
         # Set the discriminating field so the variable IS visible (and thus validated)
         config_kwargs[visible_when.field] = visible_when.equals
 
-    # DynamoDB requires hash_key
-    if stype == ServiceType.DYNAMODB and "hash_key" not in config_kwargs:
-        config_kwargs["hash_key"] = "pk"
+    # Provide required fields for services that need them
+    if stype == ServiceType.LAMBDA:
+        config_kwargs.setdefault("function_name", "test-func")
+    if stype == ServiceType.DYNAMODB:
+        config_kwargs.setdefault("table_name", "test-table")
+        config_kwargs.setdefault("hash_key", "pk")
+        config_kwargs.setdefault("hash_key_type", "S")
+    if stype == ServiceType.API_GATEWAY:
+        config_kwargs.setdefault("api_name", "test-api")
+        config_kwargs.setdefault("protocol_type", "HTTP")
 
     config = config_cls(**config_kwargs)
 
@@ -152,8 +159,16 @@ def test_valid_values_do_not_raise(data):
     if visible_when is not None:
         config_kwargs[visible_when.field] = visible_when.equals
 
-    if stype == ServiceType.DYNAMODB and "hash_key" not in config_kwargs:
-        config_kwargs["hash_key"] = "pk"
+    # Provide required fields for services that need them
+    if stype == ServiceType.LAMBDA:
+        config_kwargs.setdefault("function_name", "test-func")
+    if stype == ServiceType.DYNAMODB:
+        config_kwargs.setdefault("table_name", "test-table")
+        config_kwargs.setdefault("hash_key", "pk")
+        config_kwargs.setdefault("hash_key_type", "S")
+    if stype == ServiceType.API_GATEWAY:
+        config_kwargs.setdefault("api_name", "test-api")
+        config_kwargs.setdefault("protocol_type", "HTTP")
 
     config = config_cls(**config_kwargs)
 

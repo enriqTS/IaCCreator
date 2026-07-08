@@ -30,6 +30,16 @@ def _make_instance(
     **config_kwargs,
 ) -> ResourceInstanceIR:
     config_cls = _SERVICE_CONFIG_MODELS.get(service_type, BaseServiceConfig)
+    # Provide required fields for services that need them
+    if service_type == ServiceType.LAMBDA and "function_name" not in config_kwargs:
+        config_kwargs.setdefault("function_name", name)
+    if service_type == ServiceType.DYNAMODB:
+        config_kwargs.setdefault("table_name", name)
+        config_kwargs.setdefault("hash_key", "id")
+        config_kwargs.setdefault("hash_key_type", "S")
+    if service_type == ServiceType.API_GATEWAY:
+        config_kwargs.setdefault("api_name", name)
+        config_kwargs.setdefault("protocol_type", "HTTP")
     return ResourceInstanceIR(
         name=name,
         service_type=service_type,
@@ -306,10 +316,17 @@ def resource_instance_ir_strategy(draw):
         )
     )
     variables = {vn: draw(_tf_var_value_st) for vn in chosen}
-    # DynamoDB requires hash_key
+    # Provide required fields for services that need them
     config_kwargs = {}
+    if svc == ServiceType.LAMBDA:
+        config_kwargs["function_name"] = name
     if svc == ServiceType.DYNAMODB:
+        config_kwargs["table_name"] = name
         config_kwargs["hash_key"] = "pk"
+        config_kwargs["hash_key_type"] = "S"
+    if svc == ServiceType.API_GATEWAY:
+        config_kwargs["api_name"] = name
+        config_kwargs["protocol_type"] = "HTTP"
     return ResourceInstanceIR(
         name=name,
         service_type=svc,

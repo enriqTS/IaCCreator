@@ -14,6 +14,7 @@ from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import get_service_config_models
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig
+from app.models.input_models.lambda_config import LambdaConfig
 from app.models.ir_models import ResourceInstanceIR
 
 # ---------------------------------------------------------------------------
@@ -175,16 +176,29 @@ def resource_instance_with_populated_fields(draw):
 
     # Start with required base config values per service
     config_kwargs: dict = {}
+    if service_type == ServiceType.LAMBDA:
+        config_kwargs["function_name"] = draw(
+            st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True)
+        )
     if service_type == ServiceType.DYNAMODB:
+        config_kwargs["table_name"] = draw(
+            st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True)
+        )
         config_kwargs["hash_key"] = draw(
             st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True)
+        )
+        config_kwargs["hash_key_type"] = draw(
+            st.sampled_from(["S", "N", "B"])
         )
         config_kwargs["billing_mode"] = draw(
             st.sampled_from(["PAY_PER_REQUEST", "PROVISIONED"])
         )
     if service_type == ServiceType.API_GATEWAY:
+        config_kwargs["api_name"] = draw(
+            st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True)
+        )
         config_kwargs["protocol_type"] = draw(
-            st.sampled_from(["HTTP", "WEBSOCKET", "REST"])
+            st.sampled_from(["HTTP", "WEBSOCKET"])
         )
 
     skip_fields = _SKIP_VAR_REF_FIELDS.get(service_type, set())
@@ -226,6 +240,10 @@ def resource_instance_with_populated_fields(draw):
 
     if service_type == ServiceType.DYNAMODB:
         config = DynamoDBConfig(**config_kwargs)
+    elif service_type == ServiceType.LAMBDA:
+        config = LambdaConfig(**config_kwargs)
+    elif service_type == ServiceType.API_GATEWAY:
+        config = ApiGatewayConfig(**config_kwargs)
     else:
         # Use typed config model when available (field names match schema names)
         config_models = get_service_config_models()
@@ -299,7 +317,7 @@ def test_dynamodb_visible_when_false_excludes_capacity(
     var references SHALL NOT appear in the generated HCL, even if those fields
     are populated on the config.
     """
-    config = DynamoDBConfig(
+    config = DynamoDBConfig(table_name="test-table", hash_key_type="S", 
         billing_mode=billing_mode,
         hash_key="pk",
         read_capacity=read_cap,
@@ -334,7 +352,7 @@ def test_api_gateway_visible_when_false_excludes_route_selection(
     var reference SHALL NOT appear in the generated HCL, even if the field
     is populated on the config.
     """
-    config = ApiGatewayConfig(
+    config = ApiGatewayConfig(api_name="test-api", 
         protocol_type=protocol_type,
         route_selection_expression=route_expr,
     )

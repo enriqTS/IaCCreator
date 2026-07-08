@@ -41,6 +41,7 @@ env_name_st = st.sampled_from(["dev", "staging", "prod", "qa", "test"])
 
 lambda_config_st = st.builds(
     LambdaConfig,
+    function_name=st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True),
     handler=st.just("index.handler"),
     runtime=st.sampled_from(["python3.12", "python3.11", "nodejs18.x", "nodejs20.x"]),
     memory_size=st.one_of(st.none(), st.integers(min_value=128, max_value=3008)),
@@ -55,6 +56,7 @@ s3_config_st = st.builds(
 
 dynamodb_config_st = st.builds(
     DynamoDBConfig,
+    table_name=st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True),
     billing_mode=st.sampled_from(["PAY_PER_REQUEST", "PROVISIONED"]),
     hash_key=st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True),
     hash_key_type=st.sampled_from(["S", "N", "B"]),
@@ -66,6 +68,7 @@ dynamodb_config_st = st.builds(
 
 api_gateway_config_st = st.builds(
     ApiGatewayConfig,
+    api_name=st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True),
     protocol_type=st.sampled_from(["HTTP", "WEBSOCKET"]),
 )
 

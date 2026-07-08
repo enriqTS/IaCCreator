@@ -209,8 +209,12 @@ def _minimal_config_for(service_type: ServiceType) -> BaseServiceConfig:
     # Use typed config if the model has TerraformField annotations
     if config_cls is not None and config_cls.has_terraform_schema():
         # Some typed configs have required fields — provide minimal values
+        if service_type == ServiceType.LAMBDA:
+            return config_cls(function_name="test-func")
         if service_type == ServiceType.DYNAMODB:
-            return config_cls(hash_key="id")
+            return config_cls(table_name="test-table", hash_key="id", hash_key_type="S")
+        if service_type == ServiceType.API_GATEWAY:
+            return config_cls(api_name="test-api", protocol_type="HTTP")
         # Connect needs at least one field set to produce non-empty variables_tf
         if service_type == ServiceType.CONNECT:
             return config_cls(identity_management_type="CONNECT_MANAGED")

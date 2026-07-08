@@ -31,7 +31,7 @@ def _make_input(**overrides) -> ArchitectureDescription:
             ResourceInstance(
                 name="my-func",
                 service_type=ServiceType.LAMBDA,
-                config=LambdaConfig(handler="index.handler", runtime="python3.12"),
+                config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
             ),
         ],
         "connections": [],
@@ -58,7 +58,7 @@ class TestTerraformVariablesPropagation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(
+                    config=LambdaConfig(function_name="test-func", 
                         handler="index.handler", runtime="python3.12"
                     ),
                     terraform_variables={
@@ -83,7 +83,7 @@ class TestTerraformVariablesPropagation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
                     terraform_variables={"function_name": "fn1", "handler": "h"},
                 ),
                 ResourceInstance(
@@ -97,7 +97,7 @@ class TestTerraformVariablesPropagation:
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=DynamoDBConfig(hash_key="id"),
+                    config=DynamoDBConfig(table_name="test-table", hash_key_type="S", hash_key="id"),
                     terraform_variables={
                         "table_name": "users",
                         "billing_mode": "PAY_PER_REQUEST",
@@ -124,7 +124,7 @@ class TestTerraformVariablesPropagation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
                 ),
             ]
         )
@@ -155,7 +155,7 @@ class TestTerraformVariablesPropagation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(handler="h", runtime="python3.12"),
+                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
                     terraform_variables={"memory_size": 512, "timeout": 30},
                 ),
             ]

@@ -41,7 +41,9 @@ def _lambda_ir(name: str = "my-func") -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.LAMBDA,
-        config=LambdaConfig(handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(
+            function_name=name, handler="index.handler", runtime="python3.12"
+        ),
     )
 
 
@@ -49,7 +51,7 @@ def _apigw_ir(name: str = "my-api") -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.API_GATEWAY,
-        config=ApiGatewayConfig(protocol_type="HTTP"),
+        config=ApiGatewayConfig(api_name=name, protocol_type="HTTP"),
     )
 
 
@@ -900,7 +902,7 @@ def _dynamodb_ir(name: str = "my-table") -> ResourceInstanceIR:
     return ResourceInstanceIR(
         name=name,
         service_type=ServiceType.DYNAMODB,
-        config=DynamoDBConfig(hash_key="id", billing_mode="PAY_PER_REQUEST"),
+        config=DynamoDBConfig(table_name="test-table", hash_key_type="S", hash_key="id", billing_mode="PAY_PER_REQUEST"),
     )
 
 

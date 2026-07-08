@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, SerializeAsAny, model_validator
 
 from app.models.input_models._base import BaseServiceConfig
 
@@ -205,7 +205,7 @@ class ResourceInstance(BaseModel):
         ..., description="User-defined resource name, used as subfolder name"
     )
     service_type: ServiceType
-    config: BaseServiceConfig = Field(default_factory=BaseServiceConfig)
+    config: SerializeAsAny[BaseServiceConfig] = Field(default_factory=BaseServiceConfig)
     terraform_variables: dict[str, str | int | float | bool] = Field(
         default_factory=dict
     )

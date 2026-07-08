@@ -20,11 +20,11 @@ def _make_env(name: str = "dev") -> dict:
 def _make_resource(name: str, service_type: str, **config_overrides) -> dict:
     config = {}
     if service_type == "lambda":
-        config = {"handler": "index.handler", "runtime": "python3.12"}
+        config = {"function_name": name, "handler": "index.handler", "runtime": "python3.12"}
     elif service_type == "dynamodb":
-        config = {"hash_key": "id", "billing_mode": "PAY_PER_REQUEST"}
+        config = {"table_name": name, "hash_key": "id", "hash_key_type": "S", "billing_mode": "PAY_PER_REQUEST"}
     elif service_type == "api-gateway":
-        config = {"protocol_type": "HTTP"}
+        config = {"api_name": name, "protocol_type": "HTTP"}
     elif service_type == "cloudwatch":
         config = {"retention_in_days": 14}
     config.update(config_overrides)
