@@ -1,6 +1,10 @@
 """Lambda-specific configuration model."""
 
+from __future__ import annotations
+
 from typing import ClassVar, Literal
+
+from pydantic import model_validator
 
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
@@ -8,6 +12,7 @@ from app.models.input_models._metadata import (
     OptionEntry,
     TerraformField,
     ValidationRule,
+    VisibleWhen,
 )
 
 
@@ -16,26 +21,57 @@ class LambdaConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.LAMBDA] = ServiceType.LAMBDA
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.LAMBDA] exactly.
+    # Field order for schema output — all fields in logical group order.
     _schema_field_order: ClassVar[tuple[str, ...]] = (
+        # General
         "function_name",
         "handler",
         "runtime",
         "description",
+        # Performance
         "memory_size",
         "timeout",
         "ephemeral_storage_size",
         "reserved_concurrent_executions",
         "architectures",
+        "snap_start_apply_on",
+        # Deployment
+        "package_type",
+        "image_uri",
+        "image_config",
         "publish",
         "layers",
+        "s3_bucket",
+        "s3_key",
+        "s3_object_version",
+        "source_code_hash",
+        "filename",
+        # VPC
+        "vpc_subnet_ids",
+        "vpc_security_group_ids",
+        # Encryption
+        "kms_key_arn",
+        # Observability
+        "tracing_mode",
+        "logging_log_format",
+        "logging_log_group",
+        "logging_application_log_level",
+        "logging_system_log_level",
+        # Error Handling
+        "dead_letter_target_arn",
+        # Storage
+        "file_system_arn",
+        "file_system_local_mount_path",
+        # Security
+        "code_signing_config_arn",
+        # Metadata
         "environment_variables",
         "tags",
     )
 
     # ── General ───────────────────────────────────────────────────────────
-    function_name: str | None = TerraformField(
-        None,
+    function_name: str = TerraformField(
+        ...,
         group="General",
         description="Name of the Lambda function",
     )
@@ -112,8 +148,38 @@ class LambdaConfig(BaseServiceConfig):
             OptionEntry(value="arm64", label="ARM64 (Graviton2)"),
         ],
     )
+    snap_start_apply_on: str | None = TerraformField(
+        None,
+        group="Performance",
+        description="SnapStart setting for the function",
+        options=[
+            OptionEntry(value="PublishedVersions", label="Published Versions"),
+        ],
+    )
 
     # ── Deployment ────────────────────────────────────────────────────────
+    package_type: str | None = TerraformField(
+        None,
+        group="Deployment",
+        description="Lambda deployment package type",
+        options=[
+            OptionEntry(value="Zip", label="Zip"),
+            OptionEntry(value="Image", label="Container Image"),
+        ],
+    )
+    image_uri: str | None = TerraformField(
+        None,
+        group="Deployment",
+        description="ECR image URI for container-based Lambda",
+        visible_when=VisibleWhen(field="package_type", equals="Image"),
+    )
+    image_config: dict | None = TerraformField(
+        None,
+        group="Deployment",
+        description="Container image configuration overrides",
+        tf_type="map",
+        visible_when=VisibleWhen(field="package_type", equals="Image"),
+    )
     publish: bool | None = TerraformField(
         False,
         group="Deployment",
@@ -123,6 +189,128 @@ class LambdaConfig(BaseServiceConfig):
         None,
         group="Deployment",
         description="List of Lambda layer ARNs to attach to the function",
+    )
+    s3_bucket: str | None = TerraformField(
+        None,
+        group="Deployment",
+        description="S3 bucket containing the function deployment package",
+    )
+    s3_key: str | None = TerraformField(
+        None,
+        group="Deployment",
+        description="S3 object key of the function deployment package",
+    )
+    s3_object_version: str | None = TerraformField(
+        None,
+        group="Deployment",
+        description="S3 object version of the function deployment package",
+    )
+    source_code_hash: str | None = TerraformField(
+        None,
+        group="Deployment",
+        description="Base64-encoded SHA256 hash of the deployment package",
+    )
+    filename: str | None = TerraformField(
+        None,
+        group="Deployment",
+        description="Path to the function deployment package within the local filesystem",
+    )
+
+    # ── VPC ───────────────────────────────────────────────────────────────
+    vpc_subnet_ids: list[str] | None = TerraformField(
+        None,
+        group="VPC",
+        description="List of subnet IDs for VPC configuration",
+    )
+    vpc_security_group_ids: list[str] | None = TerraformField(
+        None,
+        group="VPC",
+        description="List of security group IDs for VPC configuration",
+    )
+
+    # ── Encryption ────────────────────────────────────────────────────────
+    kms_key_arn: str | None = TerraformField(
+        None,
+        group="Encryption",
+        description="KMS key ARN for environment variable encryption",
+    )
+
+    # ── Observability ─────────────────────────────────────────────────────
+    tracing_mode: str | None = TerraformField(
+        None,
+        group="Observability",
+        description="X-Ray tracing mode for the function",
+        options=[
+            OptionEntry(value="Active", label="Active"),
+            OptionEntry(value="PassThrough", label="Pass Through"),
+        ],
+    )
+    logging_log_format: str | None = TerraformField(
+        None,
+        group="Observability",
+        description="Log format for the function (Text or JSON)",
+        options=[
+            OptionEntry(value="Text", label="Text"),
+            OptionEntry(value="JSON", label="JSON"),
+        ],
+    )
+    logging_log_group: str | None = TerraformField(
+        None,
+        group="Observability",
+        description="CloudWatch log group for the function",
+    )
+    logging_application_log_level: str | None = TerraformField(
+        None,
+        group="Observability",
+        description="Application log level for the function",
+        options=[
+            OptionEntry(value="TRACE", label="TRACE"),
+            OptionEntry(value="DEBUG", label="DEBUG"),
+            OptionEntry(value="INFO", label="INFO"),
+            OptionEntry(value="WARN", label="WARN"),
+            OptionEntry(value="ERROR", label="ERROR"),
+            OptionEntry(value="FATAL", label="FATAL"),
+        ],
+    )
+    logging_system_log_level: str | None = TerraformField(
+        None,
+        group="Observability",
+        description="System log level for the function",
+        options=[
+            OptionEntry(value="DEBUG", label="DEBUG"),
+            OptionEntry(value="INFO", label="INFO"),
+            OptionEntry(value="WARN", label="WARN"),
+        ],
+    )
+
+    # ── Error Handling ────────────────────────────────────────────────────
+    dead_letter_target_arn: str | None = TerraformField(
+        None,
+        group="Error Handling",
+        description="ARN of the dead letter queue (SQS or SNS) for failed invocations",
+    )
+
+    # ── Storage ───────────────────────────────────────────────────────────
+    file_system_arn: str | None = TerraformField(
+        None,
+        group="Storage",
+        description="ARN of the EFS access point for the function",
+    )
+    file_system_local_mount_path: str | None = TerraformField(
+        None,
+        group="Storage",
+        description="Local mount path for the EFS file system (must start with /mnt/)",
+        validation=ValidationRule(
+            pattern="^/mnt/",
+            pattern_description="Must start with /mnt/",
+        ),
+    )
+
+    # ── Security ──────────────────────────────────────────────────────────
+    code_signing_config_arn: str | None = TerraformField(
+        None,
+        group="Security",
+        description="ARN of the code signing configuration for the function",
     )
 
     # ── Metadata ──────────────────────────────────────────────────────────
@@ -137,4 +325,18 @@ class LambdaConfig(BaseServiceConfig):
         description="Tags to apply to the Lambda function",
     )
 
-    # ── Internal (not Terraform variables) ────────────────────────────────
+    # ── Validators ────────────────────────────────────────────────────────
+
+    @model_validator(mode="after")
+    def validate_zip_requires_handler_runtime(self) -> "LambdaConfig":
+        """handler and runtime are required when package_type is Zip or unset."""
+        if self.package_type in (None, "Zip"):
+            if not self.handler:
+                raise ValueError(
+                    "handler is required when package_type is 'Zip' or unset"
+                )
+            if not self.runtime:
+                raise ValueError(
+                    "runtime is required when package_type is 'Zip' or unset"
+                )
+        return self
