@@ -13,20 +13,25 @@ RUN npm run build
 # --- Final image with both services ---
 FROM python:3.14-slim
 
-# Install Node.js runtime (needed to run the Next.js standalone server)
+# Install Node.js runtime (needed to run the Next.js standalone server) and uv
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl bash && \
     curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
+    curl -LsSf https://astral.sh/uv/install.sh | sh && \
     apt-get purge -y curl && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
+ENV PATH="/root/.local/bin:$PATH"
+
 WORKDIR /app
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies with uv
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-editable
+
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy backend
 COPY app/ ./app/
