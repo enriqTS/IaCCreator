@@ -91,6 +91,18 @@ class APIGatewayGenerator:
         if config.api_key_required:
             attrs["api_key_selection_expression"] = "$request.header.x-api-key"
 
+        # New General-level optional fields
+        if config.api_key_selection_expression is not None and not config.api_key_required:
+            attrs["api_key_selection_expression"] = "var.api_key_selection_expression"
+        if config.ip_address_type is not None:
+            attrs["ip_address_type"] = "var.ip_address_type"
+        if config.version is not None:
+            attrs["version"] = "var.version"
+        if config.body is not None:
+            attrs["body"] = "var.body"
+        if config.fail_on_warnings is not None:
+            attrs["fail_on_warnings"] = "var.fail_on_warnings"
+
         return self._r.render_resource("aws_apigatewayv2_api", instance.name, attrs)
 
     def _generate_api_key(self, instance: ResourceInstanceIR) -> str:
@@ -108,14 +120,22 @@ class APIGatewayGenerator:
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
-        """Generate variables.tf for an API Gateway instance."""
+        """Generate variables.tf for an API Gateway instance.
+
+        Emits variable blocks for all TerraformField-annotated fields on the config.
+        - api_name and protocol_type are required → no default value
+        - All others are optional → include default when non-None
+        """
         config = self._resolve_config(instance)
         parts = [
+            # Required fields — no default
             self._r.render_variable("api_name", "string", "Name of the API Gateway"),
             self._r.render_variable(
-                "protocol_type", "string", "Protocol type", default="HTTP"
+                "protocol_type", "string", "API protocol type"
             ),
         ]
+
+        # ─── General optional fields ─────────────────────────────────────────
         if config.description is not None:
             parts.append(
                 self._r.render_variable(
@@ -125,6 +145,53 @@ class APIGatewayGenerator:
                     default=config.description,
                 )
             )
+        if config.api_key_selection_expression is not None:
+            parts.append(
+                self._r.render_variable(
+                    "api_key_selection_expression",
+                    "string",
+                    "API key selection expression for the API",
+                    default=config.api_key_selection_expression,
+                )
+            )
+        if config.ip_address_type is not None:
+            parts.append(
+                self._r.render_variable(
+                    "ip_address_type",
+                    "string",
+                    "IP address type for the API endpoint",
+                    default=config.ip_address_type,
+                )
+            )
+        if config.version is not None:
+            parts.append(
+                self._r.render_variable(
+                    "version",
+                    "string",
+                    "Version identifier for the API",
+                    default=config.version,
+                )
+            )
+        if config.body is not None:
+            parts.append(
+                self._r.render_variable(
+                    "body",
+                    "string",
+                    "OpenAPI specification body for the API",
+                    default=config.body,
+                )
+            )
+        if config.fail_on_warnings is not None:
+            parts.append(
+                self._r.render_variable(
+                    "fail_on_warnings",
+                    "bool",
+                    "Whether to roll back the API creation when a warning is encountered",
+                    default=config.fail_on_warnings,
+                )
+            )
+
+        # ─── Routes fields ────────────────────────────────────────────────────
         if config.cors_configuration is not None:
             parts.append(
                 self._r.render_variable(
@@ -153,6 +220,297 @@ class APIGatewayGenerator:
                         default=config.route_selection_expression,
                     )
                 )
+        if config.authorization_type is not None:
+            parts.append(
+                self._r.render_variable(
+                    "authorization_type",
+                    "string",
+                    "Authorization type for the route",
+                    default=config.authorization_type,
+                )
+            )
+        if config.authorization_scopes is not None:
+            parts.append(
+                self._r.render_variable(
+                    "authorization_scopes",
+                    "list(string)",
+                    "Authorization scopes for the route",
+                    default=config.authorization_scopes,
+                )
+            )
+        if config.operation_name is not None:
+            parts.append(
+                self._r.render_variable(
+                    "operation_name",
+                    "string",
+                    "Operation name for the route",
+                    default=config.operation_name,
+                )
+            )
+        if config.model_selection_expression is not None:
+            parts.append(
+                self._r.render_variable(
+                    "model_selection_expression",
+                    "string",
+                    "Model selection expression for the route",
+                    default=config.model_selection_expression,
+                )
+            )
+        if config.route_response_selection_expression is not None:
+            parts.append(
+                self._r.render_variable(
+                    "route_response_selection_expression",
+                    "string",
+                    "Route response selection expression",
+                    default=config.route_response_selection_expression,
+                )
+            )
+
+        # ─── Stages fields ────────────────────────────────────────────────────
+        if config.access_log_destination_arn is not None:
+            parts.append(
+                self._r.render_variable(
+                    "access_log_destination_arn",
+                    "string",
+                    "ARN of the CloudWatch log group for access logging",
+                    default=config.access_log_destination_arn,
+                )
+            )
+        if config.access_log_format is not None:
+            parts.append(
+                self._r.render_variable(
+                    "access_log_format",
+                    "string",
+                    "Access log format string for the stage",
+                    default=config.access_log_format,
+                )
+            )
+        if config.default_route_data_trace_enabled is not None:
+            parts.append(
+                self._r.render_variable(
+                    "default_route_data_trace_enabled",
+                    "bool",
+                    "Whether data trace logging is enabled for the default route",
+                    default=config.default_route_data_trace_enabled,
+                )
+            )
+        if config.default_route_detailed_metrics_enabled is not None:
+            parts.append(
+                self._r.render_variable(
+                    "default_route_detailed_metrics_enabled",
+                    "bool",
+                    "Whether detailed metrics are enabled for the default route",
+                    default=config.default_route_detailed_metrics_enabled,
+                )
+            )
+        if config.default_route_logging_level is not None:
+            parts.append(
+                self._r.render_variable(
+                    "default_route_logging_level",
+                    "string",
+                    "Logging level for the default route",
+                    default=config.default_route_logging_level,
+                )
+            )
+        if config.default_route_throttling_burst_limit is not None:
+            parts.append(
+                self._r.render_variable(
+                    "default_route_throttling_burst_limit",
+                    "number",
+                    "Throttling burst limit for the default route",
+                    default=config.default_route_throttling_burst_limit,
+                )
+            )
+        if config.default_route_throttling_rate_limit is not None:
+            parts.append(
+                self._r.render_variable(
+                    "default_route_throttling_rate_limit",
+                    "number",
+                    "Throttling rate limit for the default route",
+                    default=config.default_route_throttling_rate_limit,
+                )
+            )
+
+        # ─── Authorizers fields ───────────────────────────────────────────────
+        if config.authorizer_result_ttl_in_seconds is not None:
+            parts.append(
+                self._r.render_variable(
+                    "authorizer_result_ttl_in_seconds",
+                    "number",
+                    "Time to live (TTL) for cached authorizer results in seconds",
+                    default=config.authorizer_result_ttl_in_seconds,
+                )
+            )
+        if config.enable_simple_responses is not None:
+            parts.append(
+                self._r.render_variable(
+                    "enable_simple_responses",
+                    "bool",
+                    "Whether to enable simple responses for the authorizer",
+                    default=config.enable_simple_responses,
+                )
+            )
+        if config.authorizer_credentials_arn is not None:
+            parts.append(
+                self._r.render_variable(
+                    "authorizer_credentials_arn",
+                    "string",
+                    "Credentials ARN for the authorizer",
+                    default=config.authorizer_credentials_arn,
+                )
+            )
+        if config.identity_sources is not None:
+            parts.append(
+                self._r.render_variable(
+                    "identity_sources",
+                    "list(string)",
+                    "Identity sources for the authorizer",
+                    default=config.identity_sources,
+                )
+            )
+
+        # ─── Custom Domain fields ─────────────────────────────────────────────
+        if config.endpoint_type is not None:
+            parts.append(
+                self._r.render_variable(
+                    "endpoint_type",
+                    "string",
+                    "Endpoint type for the custom domain",
+                    default=config.endpoint_type,
+                )
+            )
+        if config.security_policy is not None:
+            parts.append(
+                self._r.render_variable(
+                    "security_policy",
+                    "string",
+                    "TLS security policy for the custom domain",
+                    default=config.security_policy,
+                )
+            )
+        if config.mutual_tls_truststore_uri is not None:
+            parts.append(
+                self._r.render_variable(
+                    "mutual_tls_truststore_uri",
+                    "string",
+                    "S3 URI of the truststore for mutual TLS authentication",
+                    default=config.mutual_tls_truststore_uri,
+                )
+            )
+        if config.mutual_tls_truststore_version is not None:
+            parts.append(
+                self._r.render_variable(
+                    "mutual_tls_truststore_version",
+                    "string",
+                    "Version of the truststore for mutual TLS authentication",
+                    default=config.mutual_tls_truststore_version,
+                )
+            )
+
+        # ─── Integrations fields ──────────────────────────────────────────────
+        if config.connection_type is not None:
+            parts.append(
+                self._r.render_variable(
+                    "connection_type",
+                    "string",
+                    "Connection type for the integration",
+                    default=config.connection_type,
+                )
+            )
+        if config.connection_id is not None:
+            parts.append(
+                self._r.render_variable(
+                    "connection_id",
+                    "string",
+                    "Connection ID for VPC link integrations",
+                    default=config.connection_id,
+                )
+            )
+        if config.content_handling_strategy is not None:
+            parts.append(
+                self._r.render_variable(
+                    "content_handling_strategy",
+                    "string",
+                    "Content handling strategy for the integration",
+                    default=config.content_handling_strategy,
+                )
+            )
+        if config.credentials_arn is not None:
+            parts.append(
+                self._r.render_variable(
+                    "credentials_arn",
+                    "string",
+                    "Credentials ARN for the integration",
+                    default=config.credentials_arn,
+                )
+            )
+        if config.passthrough_behavior is not None:
+            parts.append(
+                self._r.render_variable(
+                    "passthrough_behavior",
+                    "string",
+                    "Passthrough behavior for the integration",
+                    default=config.passthrough_behavior,
+                )
+            )
+        if config.payload_format_version is not None:
+            parts.append(
+                self._r.render_variable(
+                    "payload_format_version",
+                    "string",
+                    "Payload format version for the integration",
+                    default=config.payload_format_version,
+                )
+            )
+        if config.timeout_milliseconds is not None:
+            parts.append(
+                self._r.render_variable(
+                    "timeout_milliseconds",
+                    "number",
+                    "Integration timeout in milliseconds",
+                    default=config.timeout_milliseconds,
+                )
+            )
+        if config.tls_server_name_to_verify is not None:
+            parts.append(
+                self._r.render_variable(
+                    "tls_server_name_to_verify",
+                    "string",
+                    "TLS server name to verify for the integration",
+                    default=config.tls_server_name_to_verify,
+                )
+            )
+        if config.integration_subtype is not None:
+            parts.append(
+                self._r.render_variable(
+                    "integration_subtype",
+                    "string",
+                    "Integration subtype for AWS service integrations",
+                    default=config.integration_subtype,
+                )
+            )
+
+        # ─── Rate Limiting fields ─────────────────────────────────────────────
+        if config.throttling_burst_limit is not None:
+            parts.append(
+                self._r.render_variable(
+                    "throttling_burst_limit",
+                    "number",
+                    "Maximum number of concurrent requests (burst)",
+                    default=config.throttling_burst_limit,
+                )
+            )
+        if config.throttling_rate_limit is not None:
+            parts.append(
+                self._r.render_variable(
+                    "throttling_rate_limit",
+                    "number",
+                    "Maximum number of requests per second (steady-state)",
+                    default=config.throttling_rate_limit,
+                )
+            )
+
+        # ─── Metadata fields ──────────────────────────────────────────────────
         if config.tags is not None:
             parts.append(
                 self._r.render_variable(
@@ -238,6 +596,9 @@ class APIGatewayGenerator:
                 if config.api_key_required:
                     attrs["api_key_required"] = True
 
+                # New optional route fields from TerraformField config
+                self._apply_route_optional_fields(attrs, None, routes, route_key, config)
+
                 parts.append(
                     self._r.render_resource(
                         "aws_apigatewayv2_route", resource_name, attrs
@@ -269,6 +630,9 @@ class APIGatewayGenerator:
                 # API key required
                 if config.api_key_required:
                     attrs["api_key_required"] = True
+
+                # New optional route fields from TerraformField config
+                self._apply_route_optional_fields(attrs, route_cfg, routes, route_key, config)
 
                 parts.append(
                     self._r.render_resource(
@@ -317,6 +681,9 @@ class APIGatewayGenerator:
                     if config.api_key_required:
                         attrs["api_key_required"] = True
 
+                    # New optional route fields from TerraformField config
+                    self._apply_route_optional_fields(attrs, route_cfg, routes, route_key, config)
+
                     parts.append(
                         self._r.render_resource(
                             "aws_apigatewayv2_route", resource_name, attrs
@@ -333,6 +700,9 @@ class APIGatewayGenerator:
                 # API key required
                 if config.api_key_required:
                     attrs["api_key_required"] = True
+
+                # New optional route fields from TerraformField config
+                self._apply_route_optional_fields(attrs, None, routes, "$default", config)
 
                 parts.append(
                     self._r.render_resource(
@@ -407,16 +777,71 @@ class APIGatewayGenerator:
                     )
                 break
 
+    def _apply_route_optional_fields(
+        self,
+        attrs: dict,
+        route_cfg: dict | None,
+        routes: list[dict] | None,
+        route_key: str,
+        config: "ApiGatewayConfig",
+    ) -> None:
+        """Apply optional route fields from route dict or top-level config TerraformFields.
+
+        Adds authorization_type, authorization_scopes, operation_name,
+        model_selection_expression, and route_response_selection_expression
+        when they are set (per-route dict takes precedence over config-level fields).
+        Does NOT override authorization_type if already set by authorizer logic.
+        """
+        # authorization_type — only if not already set by the authorizer logic
+        if "authorization_type" not in attrs:
+            auth_type = (route_cfg or {}).get("authorization_type")
+            if auth_type is None:
+                auth_type = getattr(config, "authorization_type", None)
+            if auth_type is not None:
+                attrs["authorization_type"] = auth_type
+
+        # authorization_scopes
+        auth_scopes = (route_cfg or {}).get("authorization_scopes")
+        if auth_scopes is None:
+            auth_scopes = getattr(config, "authorization_scopes", None)
+        if auth_scopes is not None:
+            attrs["authorization_scopes"] = auth_scopes
+
+        # operation_name
+        op_name = (route_cfg or {}).get("operation_name")
+        if op_name is None:
+            op_name = getattr(config, "operation_name", None)
+        if op_name is not None:
+            attrs["operation_name"] = op_name
+
+        # model_selection_expression
+        model_sel = (route_cfg or {}).get("model_selection_expression")
+        if model_sel is None:
+            model_sel = getattr(config, "model_selection_expression", None)
+        if model_sel is not None:
+            attrs["model_selection_expression"] = model_sel
+
+        # route_response_selection_expression
+        route_resp_sel = (route_cfg or {}).get("route_response_selection_expression")
+        if route_resp_sel is None:
+            route_resp_sel = getattr(config, "route_response_selection_expression", None)
+        if route_resp_sel is not None:
+            attrs["route_response_selection_expression"] = route_resp_sel
+
     def _generate_stages(self, instance: ResourceInstanceIR) -> str:
         """Generate aws_apigatewayv2_stage resources and associated CloudWatch log groups.
 
         For each configured stage, produces:
         - An aws_apigatewayv2_stage resource with auto_deploy, stage_variables,
-          default_route_settings (throttling), route_settings (per-route throttling),
-          and access_log_settings when logging is enabled.
+          default_route_settings (throttling, data trace, detailed metrics, logging level),
+          route_settings (per-route throttling), and access_log_settings when logging is enabled.
         - An aws_cloudwatch_log_group resource when access logging is enabled.
 
         When no stages are configured, generates a single $default stage with auto_deploy=true.
+        Also uses top-level TerraformField stage fields (access_log_destination_arn,
+        default_route_data_trace_enabled, default_route_detailed_metrics_enabled,
+        default_route_logging_level, default_route_throttling_burst_limit,
+        default_route_throttling_rate_limit) when the stage dict doesn't override them.
         """
         config = self._resolve_config(instance)
         stages = getattr(config, "stages", None)
@@ -458,15 +883,37 @@ class APIGatewayGenerator:
             if stage_variables:
                 attrs["stage_variables"] = stage_variables
 
-            # default_route_settings block (throttling)
+            # default_route_settings block (throttling + data trace + detailed metrics + logging level)
             throttling_burst = stage_cfg.get("throttling_burst_limit")
             throttling_rate = stage_cfg.get("throttling_rate_limit")
-            if throttling_burst is not None or throttling_rate is not None:
+            data_trace = stage_cfg.get("data_trace_enabled")
+            detailed_metrics = stage_cfg.get("detailed_metrics_enabled")
+            logging_level = stage_cfg.get("logging_level")
+
+            # Fall back to top-level TerraformField values from config
+            if throttling_burst is None:
+                throttling_burst = getattr(config, "default_route_throttling_burst_limit", None)
+            if throttling_rate is None:
+                throttling_rate = getattr(config, "default_route_throttling_rate_limit", None)
+            if data_trace is None:
+                data_trace = getattr(config, "default_route_data_trace_enabled", None)
+            if detailed_metrics is None:
+                detailed_metrics = getattr(config, "default_route_detailed_metrics_enabled", None)
+            if logging_level is None:
+                logging_level = getattr(config, "default_route_logging_level", None)
+
+            if any(v is not None for v in [throttling_burst, throttling_rate, data_trace, detailed_metrics, logging_level]):
                 default_route_settings: dict = {}
                 if throttling_burst is not None:
                     default_route_settings["throttling_burst_limit"] = throttling_burst
                 if throttling_rate is not None:
                     default_route_settings["throttling_rate_limit"] = throttling_rate
+                if data_trace is not None:
+                    default_route_settings["data_trace_enabled"] = data_trace
+                if detailed_metrics is not None:
+                    default_route_settings["detailed_metrics_enabled"] = detailed_metrics
+                if logging_level is not None:
+                    default_route_settings["logging_level"] = logging_level
                 attrs["default_route_settings"] = default_route_settings
 
             # route_settings blocks for per-route throttling
@@ -483,23 +930,40 @@ class APIGatewayGenerator:
                     route_settings_list.append(rs_attrs)
                 attrs["route_settings"] = route_settings_list
 
-            # access_log_settings block
+            # access_log_settings block — from stage dict or top-level config field
             access_logging_enabled = stage_cfg.get("access_logging_enabled", False)
-            if access_logging_enabled:
-                log_group_resource_name = f"{instance.name}_{sanitized_name}_log_group"
-                log_format = stage_cfg.get("access_log_format") or default_log_format
+            access_log_dest_arn = stage_cfg.get("access_log_destination_arn")
+            if access_log_dest_arn is None:
+                access_log_dest_arn = getattr(config, "access_log_destination_arn", None)
 
-                attrs["access_log_settings"] = {
-                    "destination_arn": f"aws_cloudwatch_log_group.{log_group_resource_name}.arn",
-                    "format": log_format,
-                }
+            if access_logging_enabled or access_log_dest_arn is not None:
+                log_format = stage_cfg.get("access_log_format")
+                if log_format is None:
+                    log_format = getattr(config, "access_log_format", None)
+                if log_format is None:
+                    log_format = default_log_format
+
+                if access_log_dest_arn is not None:
+                    # Use the explicit destination ARN from config
+                    attrs["access_log_settings"] = {
+                        "destination_arn": "var.access_log_destination_arn",
+                        "format": log_format,
+                    }
+                else:
+                    # Generate a CloudWatch log group reference
+                    log_group_resource_name = f"{instance.name}_{sanitized_name}_log_group"
+                    attrs["access_log_settings"] = {
+                        "destination_arn": f"aws_cloudwatch_log_group.{log_group_resource_name}.arn",
+                        "format": log_format,
+                    }
 
             parts.append(
                 self._r.render_resource("aws_apigatewayv2_stage", resource_name, attrs)
             )
 
-            # Generate CloudWatch log group when access logging is enabled
-            if access_logging_enabled:
+            # Generate CloudWatch log group when access logging is enabled via stage dict
+            # (not when using explicit access_log_destination_arn)
+            if access_logging_enabled and access_log_dest_arn is None:
                 log_group_resource_name = f"{instance.name}_{sanitized_name}_log_group"
                 retention_days = stage_cfg.get("access_log_retention_days", 30)
                 log_group_attrs: dict = {
@@ -524,6 +988,12 @@ class APIGatewayGenerator:
         - REQUEST (Lambda): authorizer_type = "REQUEST" with authorizer_uri and payload_format_version
         - COGNITO_USER_POOLS: authorizer_type = "JWT" with jwt_configuration using
           cognito_user_pool_endpoint as issuer and cognito_client_ids as audience
+
+        Also includes optional fields from TerraformField config:
+        - authorizer_result_ttl_in_seconds
+        - enable_simple_responses
+        - authorizer_credentials_arn
+        - identity_sources
         """
         config = self._resolve_config(instance)
         authorizers = getattr(config, "authorizers", None)
@@ -569,6 +1039,32 @@ class APIGatewayGenerator:
                 if jwt_config:
                     attrs["jwt_configuration"] = jwt_config
 
+            # New optional authorizer fields from TerraformField config
+            # Use per-authorizer dict values first, then fall back to top-level config fields
+            result_ttl = authorizer.get("authorizer_result_ttl_in_seconds")
+            if result_ttl is None:
+                result_ttl = getattr(config, "authorizer_result_ttl_in_seconds", None)
+            if result_ttl is not None:
+                attrs["authorizer_result_ttl_in_seconds"] = result_ttl
+
+            enable_simple = authorizer.get("enable_simple_responses")
+            if enable_simple is None:
+                enable_simple = getattr(config, "enable_simple_responses", None)
+            if enable_simple is not None:
+                attrs["enable_simple_responses"] = enable_simple
+
+            creds_arn = authorizer.get("authorizer_credentials_arn")
+            if creds_arn is None:
+                creds_arn = getattr(config, "authorizer_credentials_arn", None)
+            if creds_arn is not None:
+                attrs["authorizer_credentials_arn"] = "var.authorizer_credentials_arn"
+
+            identity_src = authorizer.get("identity_sources")
+            if identity_src is None:
+                identity_src = getattr(config, "identity_sources", None)
+            if identity_src is not None:
+                attrs["identity_sources"] = identity_src
+
             parts.append(
                 self._r.render_resource(
                     "aws_apigatewayv2_authorizer", resource_name, attrs
@@ -583,7 +1079,8 @@ class APIGatewayGenerator:
         When a custom_domain block is configured with domain_name and certificate_arn,
         produces:
         - An aws_apigatewayv2_domain_name resource with domain_name_configuration
-          containing certificate_arn, endpoint_type REGIONAL, and security_policy TLS_1_2.
+          containing certificate_arn, endpoint_type, and security_policy.
+        - A mutual_tls_authentication block when truststore fields are set.
         - An aws_apigatewayv2_api_mapping resource referencing the API, domain, and stage.
 
         Returns empty string when no custom_domain is configured.
@@ -598,16 +1095,46 @@ class APIGatewayGenerator:
 
         parts: list[str] = []
 
+        # Resolve endpoint_type and security_policy from custom_domain dict or config fields
+        endpoint_type = custom_domain.get("endpoint_type")
+        if endpoint_type is None:
+            endpoint_type = getattr(config, "endpoint_type", None)
+        if endpoint_type is None:
+            endpoint_type = "REGIONAL"
+
+        security_policy = custom_domain.get("security_policy")
+        if security_policy is None:
+            security_policy = getattr(config, "security_policy", None)
+        if security_policy is None:
+            security_policy = "TLS_1_2"
+
         # aws_apigatewayv2_domain_name resource
         domain_resource_name = f"{instance.name}_domain"
         domain_attrs: dict = {
             "domain_name": domain_name,
             "domain_name_configuration": {
                 "certificate_arn": certificate_arn,
-                "endpoint_type": "REGIONAL",
-                "security_policy": "TLS_1_2",
+                "endpoint_type": endpoint_type,
+                "security_policy": security_policy,
             },
         }
+
+        # mutual_tls_authentication block
+        mutual_tls_uri = custom_domain.get("mutual_tls_truststore_uri")
+        if mutual_tls_uri is None:
+            mutual_tls_uri = getattr(config, "mutual_tls_truststore_uri", None)
+        mutual_tls_version = custom_domain.get("mutual_tls_truststore_version")
+        if mutual_tls_version is None:
+            mutual_tls_version = getattr(config, "mutual_tls_truststore_version", None)
+
+        if mutual_tls_uri is not None:
+            mutual_tls_block: dict = {
+                "truststore_uri": mutual_tls_uri,
+            }
+            if mutual_tls_version is not None:
+                mutual_tls_block["truststore_version"] = mutual_tls_version
+            domain_attrs["mutual_tls_authentication"] = mutual_tls_block
+
         parts.append(
             self._r.render_resource(
                 "aws_apigatewayv2_domain_name", domain_resource_name, domain_attrs
@@ -684,6 +1211,11 @@ class APIGatewayGenerator:
         - AWS_PROXY (Lambda): sets integration_type = "AWS_PROXY", integration_uri,
           payload_format_version (default "2.0")
         - VPC_LINK: sets connection_type = "VPC_LINK", connection_id referencing VPC link resource
+
+        Also includes optional fields from TerraformField config:
+        - connection_type, connection_id, content_handling_strategy, credentials_arn,
+          passthrough_behavior, payload_format_version, timeout_milliseconds,
+          tls_server_name_to_verify (as tls_config block), integration_subtype
         """
         config = self._resolve_config(instance)
         integrations = getattr(config, "integrations", None)
@@ -721,6 +1253,66 @@ class APIGatewayGenerator:
                 attrs["connection_id"] = (
                     f"aws_apigatewayv2_vpc_link.{instance.name}_{vpc_link_name}_vpc_link.id"
                 )
+
+            # New optional integration fields from TerraformField config
+            # Use per-integration dict values first, then fall back to top-level config fields
+            connection_type = integration.get("connection_type")
+            if connection_type is None and not vpc_link_name:
+                connection_type = getattr(config, "connection_type", None)
+            if connection_type is not None and "connection_type" not in attrs:
+                attrs["connection_type"] = connection_type
+
+            connection_id = integration.get("connection_id")
+            if connection_id is None and not vpc_link_name:
+                connection_id = getattr(config, "connection_id", None)
+            if connection_id is not None and "connection_id" not in attrs:
+                attrs["connection_id"] = connection_id
+
+            content_handling = integration.get("content_handling_strategy")
+            if content_handling is None:
+                content_handling = getattr(config, "content_handling_strategy", None)
+            if content_handling is not None:
+                attrs["content_handling_strategy"] = content_handling
+
+            creds_arn = integration.get("credentials_arn")
+            if creds_arn is None:
+                creds_arn = getattr(config, "credentials_arn", None)
+            if creds_arn is not None:
+                attrs["credentials_arn"] = "var.credentials_arn"
+
+            passthrough = integration.get("passthrough_behavior")
+            if passthrough is None:
+                passthrough = getattr(config, "passthrough_behavior", None)
+            if passthrough is not None:
+                attrs["passthrough_behavior"] = passthrough
+
+            # payload_format_version — only add if not already set above
+            pfv = integration.get("payload_format_version")
+            if pfv is None and integ_type not in ("AWS_PROXY",):
+                pfv = getattr(config, "payload_format_version", None)
+            if pfv is not None and "payload_format_version" not in attrs:
+                attrs["payload_format_version"] = pfv
+
+            timeout_ms = integration.get("timeout_milliseconds")
+            if timeout_ms is None:
+                timeout_ms = getattr(config, "timeout_milliseconds", None)
+            if timeout_ms is not None:
+                attrs["timeout_milliseconds"] = timeout_ms
+
+            # tls_config block with server_name_to_verify
+            tls_server_name = integration.get("tls_server_name_to_verify")
+            if tls_server_name is None:
+                tls_server_name = getattr(config, "tls_server_name_to_verify", None)
+            if tls_server_name is not None:
+                attrs["tls_config"] = {
+                    "server_name_to_verify": tls_server_name,
+                }
+
+            integ_subtype = integration.get("integration_subtype")
+            if integ_subtype is None:
+                integ_subtype = getattr(config, "integration_subtype", None)
+            if integ_subtype is not None:
+                attrs["integration_subtype"] = integ_subtype
 
             parts.append(
                 self._r.render_resource(
