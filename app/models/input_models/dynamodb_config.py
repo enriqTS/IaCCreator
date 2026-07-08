@@ -2,8 +2,6 @@
 
 from typing import ClassVar, Literal
 
-from pydantic import model_validator
-
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import (
@@ -20,23 +18,43 @@ class DynamoDBConfig(BaseServiceConfig):
     service_type: Literal[ServiceType.DYNAMODB] = ServiceType.DYNAMODB
 
     _schema_field_order: ClassVar[tuple[str, ...]] = (
+        # General
         "table_name",
         "billing_mode",
         "table_class",
+        # Key Schema
         "hash_key",
         "hash_key_type",
         "range_key",
         "range_key_type",
+        # Capacity
         "read_capacity",
         "write_capacity",
+        "on_demand_max_read_request_units",
+        "on_demand_max_write_request_units",
+        # Streams
+        "stream_enabled",
+        "stream_view_type",
+        # TTL
+        "ttl_enabled",
+        "ttl_attribute_name",
+        # Indexes
+        "global_secondary_indexes",
+        "local_secondary_indexes",
+        # Encryption
+        "server_side_encryption_enabled",
+        "server_side_encryption_kms_key_arn",
+        # Global Tables
+        "replica_regions",
+        # Metadata
         "tags",
         "point_in_time_recovery_enabled",
         "deletion_protection_enabled",
     )
 
     # ── General ───────────────────────────────────────────────────────
-    table_name: str | None = TerraformField(
-        None,
+    table_name: str = TerraformField(
+        ...,
         group="General",
         description="Name of the DynamoDB table",
     )
@@ -63,13 +81,13 @@ class DynamoDBConfig(BaseServiceConfig):
     )
 
     # ── Key Schema ────────────────────────────────────────────────────
-    hash_key: str | None = TerraformField(
-        None,
+    hash_key: str = TerraformField(
+        ...,
         group="Key Schema",
         description="Attribute name for the partition (hash) key",
     )
-    hash_key_type: str | None = TerraformField(
-        "S",
+    hash_key_type: str = TerraformField(
+        ...,
         group="Key Schema",
         description="Attribute type for the partition (hash) key",
         options=[
@@ -109,6 +127,84 @@ class DynamoDBConfig(BaseServiceConfig):
         validation=ValidationRule(min=1, max=40000),
         visible_when=VisibleWhen(field="billing_mode", equals="PROVISIONED"),
     )
+    on_demand_max_read_request_units: int | None = TerraformField(
+        None,
+        group="Capacity",
+        description="Maximum read request units for on-demand capacity mode",
+        visible_when=VisibleWhen(field="billing_mode", equals="PAY_PER_REQUEST"),
+    )
+    on_demand_max_write_request_units: int | None = TerraformField(
+        None,
+        group="Capacity",
+        description="Maximum write request units for on-demand capacity mode",
+        visible_when=VisibleWhen(field="billing_mode", equals="PAY_PER_REQUEST"),
+    )
+
+    # ── Streams ───────────────────────────────────────────────────────
+    stream_enabled: bool | None = TerraformField(
+        None,
+        group="Streams",
+        description="Enable DynamoDB Streams on the table",
+    )
+    stream_view_type: str | None = TerraformField(
+        None,
+        group="Streams",
+        description="Type of information written to the stream",
+        options=[
+            OptionEntry(value="NEW_IMAGE", label="New Image"),
+            OptionEntry(value="OLD_IMAGE", label="Old Image"),
+            OptionEntry(value="NEW_AND_OLD_IMAGES", label="New and Old Images"),
+            OptionEntry(value="KEYS_ONLY", label="Keys Only"),
+        ],
+        visible_when=VisibleWhen(field="stream_enabled", equals=True),
+    )
+
+    # ── TTL ───────────────────────────────────────────────────────────
+    ttl_enabled: bool | None = TerraformField(
+        None,
+        group="TTL",
+        description="Enable Time to Live (TTL) for the table",
+    )
+    ttl_attribute_name: str | None = TerraformField(
+        None,
+        group="TTL",
+        description="Name of the TTL attribute",
+        visible_when=VisibleWhen(field="ttl_enabled", equals=True),
+    )
+
+    # ── Indexes ───────────────────────────────────────────────────────
+    global_secondary_indexes: list[dict] | None = TerraformField(
+        None,
+        group="Indexes",
+        description="List of global secondary index definitions",
+        tf_type="list",
+    )
+    local_secondary_indexes: list[dict] | None = TerraformField(
+        None,
+        group="Indexes",
+        description="List of local secondary index definitions",
+        tf_type="list",
+    )
+
+    # ── Encryption ────────────────────────────────────────────────────
+    server_side_encryption_enabled: bool | None = TerraformField(
+        None,
+        group="Encryption",
+        description="Enable server-side encryption with a KMS key",
+    )
+    server_side_encryption_kms_key_arn: str | None = TerraformField(
+        None,
+        group="Encryption",
+        description="ARN of the KMS key for server-side encryption",
+        visible_when=VisibleWhen(field="server_side_encryption_enabled", equals=True),
+    )
+
+    # ── Global Tables ─────────────────────────────────────────────────
+    replica_regions: list[str] | None = TerraformField(
+        None,
+        group="Global Tables",
+        description="List of regions for global table replicas",
+    )
 
     # ── Metadata ──────────────────────────────────────────────────────
     tags: dict[str, str] | None = TerraformField(
@@ -127,12 +223,3 @@ class DynamoDBConfig(BaseServiceConfig):
         group="Metadata",
         description="Enable deletion protection for the table",
     )
-
-    @model_validator(mode="after")
-    def validate_hash_key_required(self) -> "DynamoDBConfig":
-        """DynamoDB resources must have hash_key specified."""
-        if self.hash_key is None:
-            raise ValueError(
-                "DynamoDB resource must have 'hash_key' specified in config"
-            )
-        return self
