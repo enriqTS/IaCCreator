@@ -17,7 +17,9 @@ import { getObjectBounds } from '@/types/diagram';
 import { getConnectionBounds } from '@/utils/bounds-utils';
 import { getAnchorPoints } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
-import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
+import { inferAnchorPosition } from '@/utils/routing';
+import { routeOrthogonalConnector } from '@/utils/orthogonal-router';
+import { collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing-obstacles';
 import type { Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
 
@@ -129,15 +131,35 @@ export default function ElementLayer() {
       ? line.targetAnchor.anchorPosition
       : inferAnchorPosition(endPt, startPt);
 
-    const waypoints = computeOrthogonalWaypoints(
-      startPt,
-      startPos,
-      endPt,
-      endPos,
-      undefined,
-      snapToGridEnabled ? gridCellSize : undefined,
+    // Collect obstacles for routing (all non-line objects except source/target)
+    const sourceObjId = line.sourceAnchor?.objectId;
+    const targetObjId = line.targetAnchor?.objectId;
+    const excludeIds = new Set<string>(
+      [line.id, sourceObjId, targetObjId].filter((id): id is string => id != null)
     );
-    return [startPt, ...waypoints, endPt];
+    const obstacles = collectObstacles(canvasObjects, excludeIds);
+
+    const sourceObj = sourceObjId ? canvasObjects.get(sourceObjId) : undefined;
+    const targetObj = targetObjId ? canvasObjects.get(targetObjId) : undefined;
+    const sourceRect = sourceObj
+      ? boundsToRoutingRect(getObjectBounds(sourceObj))
+      : pointToMinimalRect(startPt);
+    const targetRect = targetObj
+      ? boundsToRoutingRect(getObjectBounds(targetObj))
+      : pointToMinimalRect(endPt);
+
+    const result = routeOrthogonalConnector({
+      sourcePoint: startPt,
+      sourceSide: startPos,
+      sourceRect,
+      targetPoint: endPt,
+      targetSide: endPos,
+      targetRect,
+      obstacles,
+      shapeMargin: snapToGridEnabled ? gridCellSize : 20,
+      gridSize: snapToGridEnabled ? gridCellSize : undefined,
+    });
+    return [startPt, ...result.waypoints, endPt];
   }, [selectedObject, canvasObjects, snapToGridEnabled, gridCellSize]);
 
   return (

@@ -5,9 +5,11 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { findSnapAnchorWithPosition } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
 import { getConnectionBounds } from '@/utils/bounds-utils';
-import { DEFAULT_LINE_VISUAL } from '@/types/diagram';
+import { DEFAULT_LINE_VISUAL, getObjectBounds } from '@/types/diagram';
 import type { Point } from '@/types/diagram';
-import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
+import { inferAnchorPosition } from '@/utils/routing';
+import { routeOrthogonalConnector } from '@/utils/orthogonal-router';
+import { collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing-obstacles';
 
 /** Build an SVG path `d` attribute from an array of points using M and L commands */
 export function buildPathD(points: Point[]): string {
@@ -168,13 +170,102 @@ export default function PullToConnectOverlay() {
   let previewElement: React.ReactNode;
 
   if (globalRoutingMode === 'orthogonal') {
-    const waypoints = computeOrthogonalWaypoints(
+    // Collect obstacles for routing preview (exclude source object and lines)
+    const sourceObjId = pullConnectState.sourceObjectId;
+    const excludeIds = new Set<string>([sourceObjId]);
+    const obstacles = collectObstacles(canvasObjects, excludeIds);
+
+    // Get source object bounds for routing
+    const sourceObj = canvasObjects.get(sourceObjId);
+    const sourceRect = sourceObj
+      ? boundsToRoutingRect(getObjectBounds(sourceObj))
+      : pointToMinimalRect(sourcePoint);
+
+    // Target rect: if snapping to an object, use its bounds; otherwise minimal rect
+    let targetRect = pointToMinimalRect(endpoint);
+    if (closestSnap) {
+      for (const [objId, obj] of canvasObjects) {
+        if (objId === sourceObjId || obj.objectType === 'line') continue;
+        const bounds = getConnectionBounds(obj);
+        const snap = findSnapAnchorWithPosition(endpoint, bounds);
+        if (snap && snap.point.x === closestSnap.point.x && snap.point.y === closestSnap.point.y) {
+          targetRect = boundsToRoutingRect(getObjectBounds(obj));
+          // Remove this object from obstacles since it's the target
+          const filteredObstacles = obstacles.filter(
+            (o) => o.left !== targetRect.left || o.top !== targetRect.top ||
+                   o.width !== targetRect.width || o.height !== targetRect.height
+          );
+          const result = routeOrthogonalConnector({
+            sourcePoint,
+            sourceSide: pullConnectState.sourceAnchorPosition,
+            sourceRect,
+            targetPoint: endpoint,
+            targetSide: endDirection,
+            targetRect,
+            obstacles: filteredObstacles,
+            shapeMargin: 20,
+          });
+          const pathPoints = [sourcePoint, ...result.waypoints, endpoint];
+
+          if (pathPoints.length >= 2) {
+            previewElement = (
+              <path
+                data-testid="pull-to-connect-preview-line"
+                d={buildPathD(pathPoints)}
+                fill="none"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                opacity={0.8}
+              />
+            );
+          } else {
+            previewElement = (
+              <line
+                data-testid="pull-to-connect-preview-line"
+                x1={sourcePoint.x}
+                y1={sourcePoint.y}
+                x2={endpoint.x}
+                y2={endpoint.y}
+                stroke="#3b82f6"
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                opacity={0.8}
+              />
+            );
+          }
+          // Early return since we handled the snapped case
+          return (
+            <svg
+              data-testid="pull-to-connect-overlay"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none',
+                overflow: 'visible',
+              }}
+            >
+              {previewElement}
+            </svg>
+          );
+        }
+      }
+    }
+
+    // Non-snapped case or no target object found
+    const result = routeOrthogonalConnector({
       sourcePoint,
-      pullConnectState.sourceAnchorPosition,
-      endpoint,
-      endDirection,
-    );
-    const pathPoints = [sourcePoint, ...waypoints, endpoint];
+      sourceSide: pullConnectState.sourceAnchorPosition,
+      sourceRect,
+      targetPoint: endpoint,
+      targetSide: endDirection,
+      targetRect,
+      obstacles,
+      shapeMargin: 20,
+    });
+    const pathPoints = [sourcePoint, ...result.waypoints, endpoint];
 
     if (pathPoints.length >= 2) {
       previewElement = (

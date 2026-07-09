@@ -979,12 +979,39 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         return { canvasObjects: next };
       });
 
+      // Identify lines whose BOTH endpoints are moving — their waypoints should
+      // be translated (not cleared) since relative geometry is unchanged.
+      const bothEndsMovingWaypoints = new Map<string, Point[]>();
+      for (const obj of get().canvasObjects.values()) {
+        if (obj.objectType !== 'line') continue;
+        if (!obj.waypoints || obj.waypoints.length === 0) continue;
+        const sourceMoving = obj.sourceAnchor && idsToMove.has(obj.sourceAnchor.objectId);
+        const targetMoving = obj.targetAnchor && idsToMove.has(obj.targetAnchor.objectId);
+        if (sourceMoving && targetMoving) {
+          bothEndsMovingWaypoints.set(obj.id, obj.waypoints.map((wp) => ({ x: wp.x + dx, y: wp.y + dy })));
+        }
+      }
+
       // Recompute anchored endpoints for each moved non-line object
       for (const id of idsToMove) {
         const obj = get().canvasObjects.get(id);
         if (obj && obj.objectType !== 'line') {
           get().recomputeAnchoredEndpoints(id);
         }
+      }
+
+      // Restore translated waypoints for lines whose both ends moved
+      if (bothEndsMovingWaypoints.size > 0) {
+        set((state) => {
+          const next = new Map(state.canvasObjects);
+          for (const [lineId, translatedWaypoints] of bothEndsMovingWaypoints) {
+            const line = next.get(lineId);
+            if (line && line.objectType === 'line') {
+              next.set(lineId, { ...line, waypoints: translatedWaypoints });
+            }
+          }
+          return { canvasObjects: next };
+        });
       }
     },
 

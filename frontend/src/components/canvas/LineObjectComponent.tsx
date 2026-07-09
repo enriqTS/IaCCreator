@@ -8,11 +8,14 @@ import { useConnectionLabel } from '@/hooks/useConnectionLabel';
 import { useServiceNameLabels } from '@/hooks/useServiceNameLabels';
 import { getAnchorPoints } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
-import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
+import { inferAnchorPosition } from '@/utils/routing';
 import { getConnectionBounds, computeShapeEdgePoint } from '@/utils/bounds-utils';
+import { getObjectBounds } from '@/types/diagram';
 import type { LineObject, Point, CanvasObject } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
 import { snapPointToGrid } from '@/utils/snap';
+import { routeOrthogonalConnector } from '@/utils/orthogonal-router';
+import { collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing-obstacles';
 
 interface LineObjectComponentProps {
   line: LineObject;
@@ -165,19 +168,41 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         ? line.targetAnchor.anchorPosition
         : inferAnchorPosition(effectiveEnd, effectiveStart);
 
-      const waypoints = computeOrthogonalWaypoints(
-        effectiveStart,
-        startPos,
-        effectiveEnd,
-        endPos,
-        undefined,
-        snapToGridEnabled ? gridCellSize : undefined,
+      // Collect obstacles (all non-line objects except source and target)
+      const sourceObjId = line.sourceAnchor?.objectId;
+      const targetObjId = line.targetAnchor?.objectId;
+      const excludeIds = new Set<string>(
+        [line.id, sourceObjId, targetObjId].filter((id): id is string => id != null)
       );
-      return [effectiveStart, ...waypoints, effectiveEnd];
+      const obstacles = collectObstacles(canvasObjects, excludeIds);
+
+      // Get bounding rects for source and target shapes
+      const sourceObj = sourceObjId ? canvasObjects.get(sourceObjId) : undefined;
+      const targetObj = targetObjId ? canvasObjects.get(targetObjId) : undefined;
+      const sourceRect = sourceObj
+        ? boundsToRoutingRect(getObjectBounds(sourceObj))
+        : pointToMinimalRect(effectiveStart);
+      const targetRect = targetObj
+        ? boundsToRoutingRect(getObjectBounds(targetObj))
+        : pointToMinimalRect(effectiveEnd);
+
+      const result = routeOrthogonalConnector({
+        sourcePoint: effectiveStart,
+        sourceSide: startPos,
+        sourceRect,
+        targetPoint: effectiveEnd,
+        targetSide: endPos,
+        targetRect,
+        obstacles,
+        shapeMargin: snapToGridEnabled ? gridCellSize : 20,
+        gridSize: snapToGridEnabled ? gridCellSize : undefined,
+      });
+
+      return [effectiveStart, ...result.waypoints, effectiveEnd];
     }
 
     return [effectiveStart, effectiveEnd];
-  }, [useOrthogonal, startPt, endPt, line.sourceAnchor, line.targetAnchor, line.waypoints, snapToGridEnabled, gridCellSize]);
+  }, [useOrthogonal, startPt, endPt, line.sourceAnchor, line.targetAnchor, line.waypoints, line.id, canvasObjects, snapToGridEnabled, gridCellSize]);
 
   const pathD = useMemo(() => buildPathD(pathPoints), [pathPoints]);
 
