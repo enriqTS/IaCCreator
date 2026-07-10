@@ -337,3 +337,62 @@ describe('filterObstaclesByProximity', () => {
     expect(result).toHaveLength(60);
   });
 });
+
+describe('routeOrthogonalConnector — center obstacle detection', () => {
+  it('routes around an obstacle placed exactly at the center of a connection', () => {
+    // Source on the left, target on the right, obstacle dead center on the same Y
+    const request: RoutingRequest = {
+      sourcePoint: { x: 150, y: 80 },
+      sourceSide: 'right',
+      sourceRect: { left: 50, top: 50, width: 100, height: 60 },
+      targetPoint: { x: 500, y: 80 },
+      targetSide: 'left',
+      targetRect: { left: 500, top: 50, width: 100, height: 60 },
+      obstacles: [
+        // Obstacle at the exact center of the connection (Y=80 is its center)
+        { left: 290, top: 50, width: 100, height: 60 },
+      ],
+      shapeMargin: 20,
+    };
+    const result = routeOrthogonalConnector(request);
+
+    const path = fullPath(request.sourcePoint, result, request.targetPoint);
+    assertOrthogonal(path);
+
+    // Must have waypoints — can't go straight through the obstacle
+    expect(result.waypoints.length).toBeGreaterThan(0);
+
+    // Verify no waypoint is inside the obstacle
+    const obs = request.obstacles[0];
+    for (const wp of result.waypoints) {
+      const inside = wp.x > obs.left && wp.x < obs.left + obs.width &&
+                     wp.y > obs.top && wp.y < obs.top + obs.height;
+      expect(inside, `Waypoint (${wp.x},${wp.y}) is inside obstacle`).toBe(false);
+    }
+  });
+
+  it('routes around an obstacle placed at the exact midpoint Y of a horizontal connection', () => {
+    // Connection at Y=100, obstacle centered at Y=100
+    const request: RoutingRequest = {
+      sourcePoint: { x: 100, y: 100 },
+      sourceSide: 'right',
+      sourceRect: { left: 0, top: 70, width: 100, height: 60 },
+      targetPoint: { x: 400, y: 100 },
+      targetSide: 'left',
+      targetRect: { left: 400, top: 70, width: 100, height: 60 },
+      obstacles: [
+        // Obstacle centered exactly at Y=100 (top=70, bottom=130, center Y=100)
+        { left: 200, top: 70, width: 80, height: 60 },
+      ],
+      shapeMargin: 20,
+    };
+    const result = routeOrthogonalConnector(request);
+
+    const path = fullPath(request.sourcePoint, result, request.targetPoint);
+    assertOrthogonal(path);
+
+    // The path must deviate — some waypoint should have Y ≠ 100
+    const hasDeviation = result.waypoints.some(wp => wp.y !== 100);
+    expect(hasDeviation).toBe(true);
+  });
+});

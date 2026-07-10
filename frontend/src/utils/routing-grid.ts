@@ -30,13 +30,13 @@ export function inflateRect(rect: RoutingRect, margin: number): RoutingRect {
   };
 }
 
-/** Check if a point is inside a rect (inclusive of edges). */
+/** Check if a point is strictly inside a rect (exclusive of edges). */
 function pointInsideRect(p: Point, rect: RoutingRect): boolean {
   return (
-    p.x >= rect.left &&
-    p.x <= rect.left + rect.width &&
-    p.y >= rect.top &&
-    p.y <= rect.top + rect.height
+    p.x > rect.left &&
+    p.x < rect.left + rect.width &&
+    p.y > rect.top &&
+    p.y < rect.top + rect.height
   );
 }
 
