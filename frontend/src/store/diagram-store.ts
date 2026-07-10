@@ -56,7 +56,7 @@ import {
 import type { DiagramState, ArchitectureDescription, SerializedCanvasObject } from '@/types/serialization';
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 import type { DiagramSummary } from '@/types/api';
-import { zoomAtPoint } from '@/utils/viewport';
+import { zoomAtPoint, animateViewport, cancelViewportAnimation } from '@/utils/viewport';
 import { generateDefaultName } from '@/utils/name-utils';
 import { getAnchorPoints, findNearestAnchorPosition, computeOptimalExitSide } from '@/utils/anchor';
 import { getConnectionBounds } from '@/utils/bounds-utils';
@@ -930,9 +930,13 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       const offsetX = containerRect.width / 2 - contentCenterX * scale;
       const offsetY = containerRect.height / 2 - contentCenterY * scale;
 
-      set({
-        viewport: { offsetX, offsetY, scale },
-      });
+      const target = { offsetX, offsetY, scale };
+      animateViewport(
+        () => get().viewport,
+        (viewport) => set({ viewport }),
+        target,
+        300,
+      );
     },
 
     // --- Multi-object move ---
@@ -1394,6 +1398,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
 
     pan: (dx: number, dy: number): void => {
+      cancelViewportAnimation();
       set((state) => ({
         viewport: {
           ...state.viewport,
@@ -1404,6 +1409,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     zoom: (factor: number, center: Point): void => {
+      cancelViewportAnimation();
       set((state) => ({
         viewport: zoomAtPoint(state.viewport, factor, center),
       }));
