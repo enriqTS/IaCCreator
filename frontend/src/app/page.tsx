@@ -13,6 +13,7 @@ import NewDiagramDialog from '@/components/menu/NewDiagramDialog';
 import ProjectSettingsDialog from '@/components/menu/ProjectSettingsDialog';
 import ToastProvider from '@/components/toast/ToastProvider';
 import OnboardingTour from '@/components/tour/OnboardingTour';
+import KeyboardShortcutsOverlay from '@/components/shortcuts/KeyboardShortcutsOverlay';
 import { saveDiagram, listSavedDiagrams, loadDiagram } from '@/utils/storage';
 import { exportToTerraform } from '@/utils/export';
 
@@ -20,6 +21,7 @@ export default function DiagramEditorPage() {
   const [newDiagramOpen, setNewDiagramOpen] = useState(false);
   const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [shortcutsOverlayOpen, setShortcutsOverlayOpen] = useState(false);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -28,20 +30,177 @@ export default function DiagramEditorPage() {
       const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target as HTMLElement)?.isContentEditable;
 
       const store = useDiagramStore.getState();
+      const mod = e.ctrlKey || e.metaKey;
+
+      // --- Shortcuts that work even when not typing ---
 
       if (!isTyping) {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && e.shiftKey) {
+        // Help overlay
+        if (e.key === '?' && !mod) {
+          e.preventDefault();
+          setShortcutsOverlayOpen((prev) => !prev);
+          return;
+        }
+
+        // Undo / Redo
+        if (mod && e.key.toLowerCase() === 'z' && e.shiftKey) {
           e.preventDefault();
           store.redo();
           return;
         }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        if (mod && e.key === 'z' && !e.shiftKey) {
           e.preventDefault();
           store.undo();
           return;
         }
+
+        // Copy / Cut / Paste / Duplicate
+        if (mod && e.key === 'c' && !e.shiftKey) {
+          e.preventDefault();
+          store.copySelectedObjects();
+          return;
+        }
+        if (mod && e.key === 'x' && !e.shiftKey) {
+          e.preventDefault();
+          store.copySelectedObjects();
+          for (const id of store.selectedObjectIds) {
+            store.removeCanvasObject(id);
+          }
+          return;
+        }
+        if (mod && e.key === 'v' && !e.shiftKey) {
+          e.preventDefault();
+          // Paste at center of viewport
+          const { viewport } = store;
+          const centerX = (window.innerWidth / 2 - viewport.offsetX) / viewport.scale;
+          const centerY = (window.innerHeight / 2 - viewport.offsetY) / viewport.scale;
+          store.pasteObjects({ x: centerX, y: centerY });
+          return;
+        }
+        if (mod && e.key === 'd' && !e.shiftKey) {
+          e.preventDefault();
+          store.duplicateSelectedObjects();
+          return;
+        }
+
+        // Select All
+        if (mod && e.key === 'a' && !e.shiftKey) {
+          e.preventDefault();
+          store.selectAllObjects();
+          return;
+        }
+
+        // Group / Ungroup
+        if (mod && e.key === 'g' && !e.shiftKey) {
+          e.preventDefault();
+          store.groupSelectedObjects();
+          return;
+        }
+        if (mod && e.key === 'g' && e.shiftKey) {
+          e.preventDefault();
+          // Ungroup: find the group of any selected object
+          for (const id of store.selectedObjectIds) {
+            const obj = store.canvasObjects.get(id);
+            if (obj?.groupId) {
+              store.ungroupObjects(obj.groupId);
+              break;
+            }
+          }
+          return;
+        }
+
+        // Lock / Unlock
+        if (mod && e.key === 'l' && !e.shiftKey) {
+          e.preventDefault();
+          if (store.selectedObjectIds.size > 0) {
+            store.toggleLockObjects(store.selectedObjectIds);
+          }
+          return;
+        }
+
+        // Z-order: brackets
+        if (e.key === ']' && !mod) {
+          e.preventDefault();
+          for (const id of store.selectedObjectIds) {
+            store.bringForward(id);
+          }
+          return;
+        }
+        if (e.key === '[' && !mod) {
+          e.preventDefault();
+          for (const id of store.selectedObjectIds) {
+            store.sendBackward(id);
+          }
+          return;
+        }
+        if (mod && e.key === ']') {
+          e.preventDefault();
+          for (const id of store.selectedObjectIds) {
+            store.bringToFront(id);
+          }
+          return;
+        }
+        if (mod && e.key === '[') {
+          e.preventDefault();
+          for (const id of store.selectedObjectIds) {
+            store.sendToBack(id);
+          }
+          return;
+        }
+
+        // Zoom
+        if (mod && (e.key === '=' || e.key === '+')) {
+          e.preventDefault();
+          const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+          store.zoom(1.2, center);
+          return;
+        }
+        if (mod && e.key === '-') {
+          e.preventDefault();
+          const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+          store.zoom(0.8, center);
+          return;
+        }
+        if (mod && e.key === '0') {
+          e.preventDefault();
+          store.fitToScreen({ width: window.innerWidth, height: window.innerHeight });
+          return;
+        }
+        if (mod && e.key === '1') {
+          e.preventDefault();
+          // Reset to 100% zoom centered on current view
+          const { viewport } = store;
+          const centerX = window.innerWidth / 2;
+          const centerY = window.innerHeight / 2;
+          const factor = 1 / viewport.scale;
+          store.zoom(factor, { x: centerX, y: centerY });
+          return;
+        }
+
+        // Tool shortcuts (single keys, no modifiers)
+        if (!mod && !e.shiftKey && !e.altKey) {
+          switch (e.key.toLowerCase()) {
+            case 'v':
+              e.preventDefault();
+              store.setActiveTool('pointer');
+              return;
+            case 'c':
+              e.preventDefault();
+              store.setActiveTool('connector');
+              return;
+            case 'l':
+              e.preventDefault();
+              store.setActiveTool('line');
+              return;
+            case 't':
+              e.preventDefault();
+              store.setActiveTool('text');
+              return;
+          }
+        }
       }
 
+      // --- Delete / Backspace (works with special isTyping rules) ---
       if (e.key === 'Delete' || e.key === 'Backspace') {
         // If typing inside an inline canvas editor (textarea/contenteditable), let it behave normally
         if (isTyping && (e.target as HTMLElement)?.closest('[data-testid="viewport-transform-container"]')) return;
@@ -57,7 +216,6 @@ export default function DiagramEditorPage() {
             }
             return;
           }
-          // No objects selected — let the input handle delete/backspace normally
           return;
         }
 
@@ -77,6 +235,7 @@ export default function DiagramEditorPage() {
         return;
       }
 
+      // --- Escape ---
       if (!isTyping && e.key === 'Escape') {
         e.preventDefault();
         store.selectConnector(null);
@@ -205,6 +364,10 @@ export default function DiagramEditorPage() {
       />
       <ToastProvider />
       <OnboardingTour />
+      <KeyboardShortcutsOverlay
+        isOpen={shortcutsOverlayOpen}
+        onClose={() => setShortcutsOverlayOpen(false)}
+      />
     </div>
   );
 }
