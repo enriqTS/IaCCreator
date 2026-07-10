@@ -54,7 +54,7 @@ export interface UseSnapDragOptions {
 }
 
 export interface UseSnapDragResult {
-  handleMouseDown: (e: React.MouseEvent) => void;
+  handleMouseDown: (e: React.PointerEvent | React.MouseEvent) => void;
   alignmentGuides: AlignmentGuide[];
   distributionGuides: DistributionGuide[];
 }
@@ -80,7 +80,7 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
   const shiftHeld = useRef(false);
 
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.PointerEvent | React.MouseEvent) => {
       if (e.button !== 0) return;
 
       const store = useDiagramStore.getState();
@@ -155,7 +155,7 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
         shiftHeld.current = false;
       };
 
-      const handleMouseMove = (ev: MouseEvent) => {
+      const handleMouseMove = (ev: PointerEvent | MouseEvent) => {
         if (!isDragging.current || !lastMouse.current) return;
 
         const rawDx = (ev.clientX - lastMouse.current.x) / viewport.scale;
@@ -275,7 +275,9 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
         }
       };
 
-      const handleMouseUp = (ev: MouseEvent) => {
+      const handleMouseUp = (ev: PointerEvent | MouseEvent) => {
+        window.removeEventListener('pointermove', handleMouseMove);
+        window.removeEventListener('pointerup', handleMouseUp);
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
         window.removeEventListener('keydown', handleKeyDown);
@@ -314,8 +316,8 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
         onDragEnd?.();
       };
 
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('pointermove', handleMouseMove);
+      window.addEventListener('pointerup', handleMouseUp);
       window.addEventListener('keydown', handleKeyDown);
       window.addEventListener('keyup', handleKeyUp);
       window.addEventListener('blur', handleBlur);

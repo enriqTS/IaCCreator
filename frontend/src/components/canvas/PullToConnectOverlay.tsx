@@ -31,7 +31,7 @@ export default function PullToConnectOverlay() {
   const [mousePos, setMousePos] = useState<Point | null>(null);
 
   const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+    (e: PointerEvent | MouseEvent) => {
       if (!pullConnectState) return;
       // Convert screen coordinates to canvas coordinates
       const canvasX = (e.clientX - viewport.offsetX) / viewport.scale;
@@ -42,7 +42,7 @@ export default function PullToConnectOverlay() {
   );
 
   const handleMouseUp = useCallback(
-    (e: MouseEvent) => {
+    (e: PointerEvent | MouseEvent) => {
       if (!pullConnectState) return;
 
       const canvasX = (e.clientX - viewport.offsetX) / viewport.scale;
@@ -124,11 +124,11 @@ export default function PullToConnectOverlay() {
   useEffect(() => {
     if (!pullConnectState) return;
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('pointermove', handleMouseMove);
+    window.addEventListener('pointerup', handleMouseUp);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('pointermove', handleMouseMove);
+      window.removeEventListener('pointerup', handleMouseUp);
     };
   }, [pullConnectState, handleMouseMove, handleMouseUp]);
 

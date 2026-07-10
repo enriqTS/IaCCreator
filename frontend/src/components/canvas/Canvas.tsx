@@ -173,8 +173,8 @@ export default function Canvas() {
   }, [zoom]);
 
   // --- Middle-click drag → Pan ---
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
       // Middle-click (button 1) starts pan
       if (e.button === 1) {
         e.preventDefault();
@@ -283,9 +283,9 @@ export default function Canvas() {
     [activeTool, viewport, lineStart, addCanvasObject, selectConnector, clearSelection],
   );
 
-  // Mouse move handler for line preview and pan
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
+  // Pointer move handler for line preview and pan
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
       // Update line preview end position when in line mode with a start point
       if (activeTool === 'line' && lineStart) {
         const rect = containerRef.current?.getBoundingClientRect();
@@ -318,7 +318,7 @@ export default function Canvas() {
 
   // Global mousemove/mouseup for pan (attached on mount)
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
       if (!isPanning.current || !panStart.current) return;
       const dx = e.clientX - panStart.current.x;
       const dy = e.clientY - panStart.current.y;
@@ -326,24 +326,24 @@ export default function Canvas() {
       pan(dx, dy);
     };
 
-    const handleMouseUp = (e: MouseEvent) => {
+    const handlePointerUp = (e: PointerEvent) => {
       if (e.button === 1 || (e.button === 0 && isSpaceHeld.current)) {
         isPanning.current = false;
         panStart.current = null;
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     };
   }, [pan]);
 
-  // Global mouseup for place-line drag mode (creates line on drag end)
+  // Global pointerup for place-line drag mode (creates line on drag end)
   useEffect(() => {
-    const handlePlaceLineMouseUp = (e: MouseEvent) => {
+    const handlePlaceLinePointerUp = (e: PointerEvent) => {
       if (e.button !== 0) return;
       if (!isLineDragging.current) return;
       if (!lineDragStartRef.current) return;
@@ -398,15 +398,15 @@ export default function Canvas() {
       setLineDragPreviewEnd(null);
     };
 
-    window.addEventListener('mouseup', handlePlaceLineMouseUp);
+    window.addEventListener('pointerup', handlePlaceLinePointerUp);
     return () => {
-      window.removeEventListener('mouseup', handlePlaceLineMouseUp);
+      window.removeEventListener('pointerup', handlePlaceLinePointerUp);
     };
   }, []);
 
-  // Global mouseup for place-arrow drag mode (creates arrow on drag end)
+  // Global pointerup for place-arrow drag mode (creates arrow on drag end)
   useEffect(() => {
-    const handlePlaceArrowMouseUp = (e: MouseEvent) => {
+    const handlePlaceArrowPointerUp = (e: PointerEvent) => {
       if (e.button !== 0) return;
       if (!isArrowDragging.current) return;
       if (!arrowDragStartRef.current) return;
@@ -461,9 +461,9 @@ export default function Canvas() {
       setArrowDragPreviewEnd(null);
     };
 
-    window.addEventListener('mouseup', handlePlaceArrowMouseUp);
+    window.addEventListener('pointerup', handlePlaceArrowPointerUp);
     return () => {
-      window.removeEventListener('mouseup', handlePlaceArrowMouseUp);
+      window.removeEventListener('pointerup', handlePlaceArrowPointerUp);
     };
   }, []);
 
@@ -691,8 +691,8 @@ export default function Canvas() {
   return (
     <div
       ref={containerRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
       onAuxClick={handleAuxClick}
       onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
