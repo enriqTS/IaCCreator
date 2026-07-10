@@ -5,6 +5,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { useToastStore } from '@/store/toast-store';
 import { useTourStore } from '@/store/tour-store';
 import Canvas from '@/components/canvas/Canvas';
+import Minimap from '@/components/canvas/Minimap';
 import Toolbar from '@/components/toolbar/Toolbar';
 import HamburgerMenu from '@/components/menu/HamburgerMenu';
 import SidebarPanel from '@/components/config/SidebarPanel';
@@ -339,6 +340,7 @@ export default function DiagramEditorPage() {
       }}
     >
       <Canvas />
+      <Minimap />
       <Toolbar />
       <HamburgerMenu
         onNewDiagram={handleNewDiagram}
