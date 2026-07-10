@@ -85,7 +85,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const viewportScale = useDiagramStore((s) => s.viewport.scale);
 
-  const { handleMouseDown, alignmentGuides } = useSnapDrag({
+  const { handleMouseDown, alignmentGuides, distributionGuides } = useSnapDrag({
     objectId: line.id,
     isSelected,
     locked: line.locked,

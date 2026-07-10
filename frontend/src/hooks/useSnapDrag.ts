@@ -8,8 +8,10 @@ import {
   constrainToAxis,
   detectAlignmentGuides,
   applyAlignmentSnap,
+  detectDistributionGuides,
+  applyDistributionSnap,
 } from '@/utils/snap';
-import type { AlignmentGuide } from '@/utils/snap';
+import type { AlignmentGuide, DistributionGuide } from '@/utils/snap';
 import { getObjectBounds } from '@/types/diagram';
 import type { Point, Rect, CanvasObject } from '@/types/diagram';
 
@@ -54,12 +56,14 @@ export interface UseSnapDragOptions {
 export interface UseSnapDragResult {
   handleMouseDown: (e: React.MouseEvent) => void;
   alignmentGuides: AlignmentGuide[];
+  distributionGuides: DistributionGuide[];
 }
 
 export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
   const { objectId, isSelected, locked, onDragStart, onDragEnd } = options;
 
   const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
+  const [distributionGuides, setDistributionGuides] = useState<DistributionGuide[]>([]);
 
   const isDragging = useRef(false);
   const didDrag = useRef(false);
@@ -191,6 +195,7 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
         };
 
         let currentGuides: AlignmentGuide[] = [];
+        let currentDistGuides: DistributionGuide[] = [];
 
         if (snapEnabled) {
           // Snap to grid first
@@ -227,6 +232,26 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
               if (currentGuides.length > 0) {
                 candidatePos = applyAlignmentSnap(candidatePos, currentGuides);
               }
+
+              // Detect distribution (equal-spacing) guides
+              const updatedBounds = computeCandidateBounds(primaryObj, candidatePos);
+              currentDistGuides = detectDistributionGuides(
+                updatedBounds,
+                otherBounds,
+                ALIGNMENT_THRESHOLD,
+              );
+
+              // Apply distribution snap if no alignment guides took effect on that axis
+              if (currentDistGuides.length > 0) {
+                const hasHAlign = currentGuides.some((g) => g.axis === 'vertical');
+                const hasVAlign = currentGuides.some((g) => g.axis === 'horizontal');
+                const filteredDist = currentDistGuides.filter((g) =>
+                  g.axis === 'horizontal' ? !hasHAlign : !hasVAlign,
+                );
+                if (filteredDist.length > 0) {
+                  candidatePos = applyDistributionSnap(candidatePos, filteredDist);
+                }
+              }
             }
           }
         }
@@ -234,9 +259,11 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
         // Hide guides when Alt is held
         if (altHeld.current) {
           currentGuides = [];
+          currentDistGuides = [];
         }
 
         setAlignmentGuides(currentGuides);
+        setDistributionGuides(currentDistGuides);
 
         // Compute effective delta from last snapped position
         const effectiveDx = candidatePos.x - lastSnappedPosition.current.x;
@@ -258,6 +285,7 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
         isDragging.current = false;
         lastMouse.current = null;
         setAlignmentGuides([]);
+        setDistributionGuides([]);
 
         // Final snap: ensure the object's stored position is grid-aligned
         const prefs = useLayoutPreferencesStore.getState();
@@ -295,5 +323,5 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
     [objectId, isSelected, locked, onDragStart, onDragEnd],
   );
 
-  return { handleMouseDown, alignmentGuides };
+  return { handleMouseDown, alignmentGuides, distributionGuides };
 }

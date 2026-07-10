@@ -52,7 +52,7 @@ export default function TextObjectComponent({ object, isSelected }: TextObjectCo
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { handleMouseDown, alignmentGuides } = useSnapDrag({
+  const { handleMouseDown, alignmentGuides, distributionGuides } = useSnapDrag({
     objectId: object.id,
     isSelected,
     locked: object.locked,
@@ -193,7 +193,7 @@ export default function TextObjectComponent({ object, isSelected }: TextObjectCo
           </div>
         )}
       </div>
-      {alignmentGuides.length > 0 && <AlignmentGuides guides={alignmentGuides} />}
+      {(alignmentGuides.length > 0 || distributionGuides.length > 0) && <AlignmentGuides guides={alignmentGuides} distributionGuides={distributionGuides} />}
     </>
   );
 }

@@ -12,7 +12,7 @@ interface UMLObjectComponentProps {
 export default function UMLObjectComponent({ object, isSelected }: UMLObjectComponentProps) {
   const { width, height, fillColor, borderColor, borderWidth, headerColor } = object.visualConfig;
 
-  const { handleMouseDown, alignmentGuides } = useSnapDrag({
+  const { handleMouseDown, alignmentGuides, distributionGuides } = useSnapDrag({
     objectId: object.id,
     isSelected,
     locked: object.locked,
@@ -43,7 +43,9 @@ export default function UMLObjectComponent({ object, isSelected }: UMLObjectComp
     </span>
   ) : null;
 
-  const guidesOverlay = alignmentGuides.length > 0 ? <AlignmentGuides guides={alignmentGuides} /> : null;
+  const guidesOverlay = (alignmentGuides.length > 0 || distributionGuides.length > 0)
+    ? <AlignmentGuides guides={alignmentGuides} distributionGuides={distributionGuides} />
+    : null;
 
   // --- Class / Interface ---
   if (object.umlKind === 'class' || object.umlKind === 'interface') {

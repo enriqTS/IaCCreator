@@ -240,3 +240,229 @@ export function constrainToAxis(
   }
   return { dx: 0, dy };
 }
+
+/** Distribution guide — indicates equal spacing between 3+ objects. */
+export interface DistributionGuide {
+  axis: 'horizontal' | 'vertical';
+  /** The gap (spacing) value in px that is matched. */
+  gap: number;
+  /** Segments to draw: each has start/end positions on the spacing axis. */
+  segments: Array<{
+    /** Start of the gap region (e.g., right edge of left object). */
+    from: number;
+    /** End of the gap region (e.g., left edge of right object). */
+    to: number;
+    /** Cross-axis position to center the spacing indicator. */
+    crossPosition: number;
+  }>;
+  /** How much to adjust the dragged object to match the distribution. */
+  snapDelta: number;
+}
+
+/**
+ * Detect distribution (equal-spacing) guides.
+ *
+ * Looks for groups of 3+ objects (including the dragged one) that are evenly
+ * spaced along the horizontal or vertical axis. If the dragged object can be
+ * nudged to create equal spacing, returns a distribution guide with the delta.
+ *
+ * @param draggedBounds - Bounds of the object being dragged
+ * @param otherBounds - Bounds of all other non-selected objects
+ * @param threshold - Snap threshold in pixels
+ * @returns Array of distribution guides (typically 0-2: one horizontal, one vertical)
+ */
+export function detectDistributionGuides(
+  draggedBounds: Rect,
+  otherBounds: Rect[],
+  threshold: number,
+): DistributionGuide[] {
+  const guides: DistributionGuide[] = [];
+
+  // --- Horizontal distribution (objects arranged left-to-right) ---
+  const hGuide = detectAxisDistribution(draggedBounds, otherBounds, threshold, 'horizontal');
+  if (hGuide) guides.push(hGuide);
+
+  // --- Vertical distribution (objects arranged top-to-bottom) ---
+  const vGuide = detectAxisDistribution(draggedBounds, otherBounds, threshold, 'vertical');
+  if (vGuide) guides.push(vGuide);
+
+  return guides;
+}
+
+/**
+ * Detect distribution along a single axis.
+ *
+ * Strategy:
+ * 1. Find objects that roughly overlap on the cross-axis (vertically for horizontal distribution)
+ * 2. Sort by position along the primary axis
+ * 3. Compute gaps between consecutive objects
+ * 4. For each pair of objects with the dragged object between them, check if
+ *    the dragged object can be placed to create equal gaps with its neighbors
+ */
+function detectAxisDistribution(
+  draggedBounds: Rect,
+  otherBounds: Rect[],
+  threshold: number,
+  axis: 'horizontal' | 'vertical',
+): DistributionGuide | null {
+  const isH = axis === 'horizontal';
+
+  // Extract coordinates
+  const dragStart = isH ? draggedBounds.x : draggedBounds.y;
+  const dragEnd = isH ? draggedBounds.x + draggedBounds.width : draggedBounds.y + draggedBounds.height;
+  const dragSize = isH ? draggedBounds.width : draggedBounds.height;
+  const dragCross = isH
+    ? draggedBounds.y + draggedBounds.height / 2
+    : draggedBounds.x + draggedBounds.width / 2;
+
+  // Filter to objects that overlap on the cross-axis (within a generous band)
+  const crossOverlapThreshold = isH ? draggedBounds.height * 2 : draggedBounds.width * 2;
+  const candidates = otherBounds.filter((b) => {
+    const otherCross = isH ? b.y + b.height / 2 : b.x + b.width / 2;
+    return Math.abs(otherCross - dragCross) < crossOverlapThreshold;
+  });
+
+  if (candidates.length < 2) return null;
+
+  // For each pair of candidates, check if dragged can be equally spaced between them
+  // Sort candidates by their start position on the primary axis
+  const sorted = [...candidates].sort((a, b) => {
+    const aStart = isH ? a.x : a.y;
+    const bStart = isH ? b.x : b.y;
+    return aStart - bStart;
+  });
+
+  // Check if placing the dragged object between consecutive pair creates equal gap
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const leftObj = sorted[i];
+    const rightObj = sorted[i + 1];
+
+    const leftEnd = isH ? leftObj.x + leftObj.width : leftObj.y + leftObj.height;
+    const rightStart = isH ? rightObj.x : rightObj.y;
+
+    // Space between the two objects
+    const totalSpace = rightStart - leftEnd;
+    if (totalSpace < dragSize + 2) continue; // Not enough room for the dragged object
+
+    // If we place dragged equally between them:
+    // gap = (totalSpace - dragSize) / 2
+    const equalGap = (totalSpace - dragSize) / 2;
+    const idealStart = leftEnd + equalGap;
+    const delta = idealStart - dragStart;
+
+    if (Math.abs(delta) <= threshold) {
+      // Found equal spacing! Build segments for visualization.
+      const crossPos = isH
+        ? Math.min(leftObj.y, rightObj.y, draggedBounds.y)
+          + (Math.max(leftObj.y + leftObj.height, rightObj.y + rightObj.height, draggedBounds.y + draggedBounds.height)
+            - Math.min(leftObj.y, rightObj.y, draggedBounds.y)) / 2
+        : Math.min(leftObj.x, rightObj.x, draggedBounds.x)
+          + (Math.max(leftObj.x + leftObj.width, rightObj.x + rightObj.width, draggedBounds.x + draggedBounds.width)
+            - Math.min(leftObj.x, rightObj.x, draggedBounds.x)) / 2;
+
+      const segments = [
+        { from: leftEnd, to: idealStart, crossPosition: crossPos },
+        { from: idealStart + dragSize, to: rightStart, crossPosition: crossPos },
+      ];
+
+      return {
+        axis,
+        gap: equalGap,
+        segments,
+        snapDelta: delta,
+      };
+    }
+  }
+
+  // Also check if the dragged object is at the edge and matches an existing gap
+  // Check left side: is gap between dragged and its right neighbor equal to gap between the two objects after it?
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const obj1 = sorted[i];
+    const obj2 = sorted[i + 1];
+
+    const obj1End = isH ? obj1.x + obj1.width : obj1.y + obj1.height;
+    const obj2Start = isH ? obj2.x : obj2.y;
+    const existingGap = obj2Start - obj1End;
+    if (existingGap <= 0) continue;
+
+    // Check if placing dragged to the left of obj1 with the same gap works
+    const idealDragEnd = (isH ? obj1.x : obj1.y) - existingGap;
+    const idealDragStart = idealDragEnd - dragSize;
+    const deltaLeft = idealDragStart - dragStart;
+
+    if (Math.abs(deltaLeft) <= threshold) {
+      const crossPos = isH
+        ? (obj1.y + obj1.height / 2 + obj2.y + obj2.height / 2) / 2
+        : (obj1.x + obj1.width / 2 + obj2.x + obj2.width / 2) / 2;
+
+      const segments = [
+        { from: idealDragStart + dragSize, to: isH ? obj1.x : obj1.y, crossPosition: crossPos },
+        { from: obj1End, to: obj2Start, crossPosition: crossPos },
+      ];
+
+      return {
+        axis,
+        gap: existingGap,
+        segments,
+        snapDelta: deltaLeft,
+      };
+    }
+
+    // Check if placing dragged to the right of obj2 with the same gap works
+    const idealDragStartRight = (isH ? obj2.x + obj2.width : obj2.y + obj2.height) + existingGap;
+    const deltaRight = idealDragStartRight - dragStart;
+
+    if (Math.abs(deltaRight) <= threshold) {
+      const crossPos = isH
+        ? (obj1.y + obj1.height / 2 + obj2.y + obj2.height / 2) / 2
+        : (obj1.x + obj1.width / 2 + obj2.x + obj2.width / 2) / 2;
+
+      const segments = [
+        { from: obj1End, to: obj2Start, crossPosition: crossPos },
+        { from: isH ? obj2.x + obj2.width : obj2.y + obj2.height, to: idealDragStartRight, crossPosition: crossPos },
+      ];
+
+      return {
+        axis,
+        gap: existingGap,
+        segments,
+        snapDelta: deltaRight,
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Apply distribution snap adjustment to a position.
+ * Uses the smallest absolute snapDelta across all distribution guides.
+ */
+export function applyDistributionSnap(
+  position: Point,
+  guides: DistributionGuide[],
+): Point {
+  let dx = 0;
+  let dy = 0;
+  let hasDx = false;
+  let hasDy = false;
+
+  for (const guide of guides) {
+    if (guide.axis === 'horizontal') {
+      if (!hasDx || Math.abs(guide.snapDelta) < Math.abs(dx)) {
+        dx = guide.snapDelta;
+        hasDx = true;
+      }
+    } else {
+      if (!hasDy || Math.abs(guide.snapDelta) < Math.abs(dy)) {
+        dy = guide.snapDelta;
+        hasDy = true;
+      }
+    }
+  }
+
+  return {
+    x: position.x + dx,
+    y: position.y + dy,
+  };
+}

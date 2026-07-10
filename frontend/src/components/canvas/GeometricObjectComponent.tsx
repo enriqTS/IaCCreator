@@ -17,7 +17,7 @@ const MIN_STROKE_HIT_WIDTH = 8;
 export default function GeometricObjectComponent({ object, isSelected }: GeometricObjectComponentProps) {
   const { width, height, fill, fillColor, borderColor, borderWidth, shape } = object.visualConfig;
 
-  const { handleMouseDown, alignmentGuides } = useSnapDrag({
+  const { handleMouseDown, alignmentGuides, distributionGuides } = useSnapDrag({
     objectId: object.id,
     isSelected,
     locked: object.locked,
@@ -96,7 +96,7 @@ export default function GeometricObjectComponent({ object, isSelected }: Geometr
           />
         </svg>
       </div>
-      {alignmentGuides.length > 0 && <AlignmentGuides guides={alignmentGuides} />}
+      {(alignmentGuides.length > 0 || distributionGuides.length > 0) && <AlignmentGuides guides={alignmentGuides} distributionGuides={distributionGuides} />}
     </>
   );
 }

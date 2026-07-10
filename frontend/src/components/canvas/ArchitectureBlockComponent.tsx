@@ -80,7 +80,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
 
   const displayName = getBlockDisplayName(block);
 
-  const { handleMouseDown, alignmentGuides } = useSnapDrag({
+  const { handleMouseDown, alignmentGuides, distributionGuides } = useSnapDrag({
     objectId: block.id,
     isSelected,
     locked: block.locked,
@@ -169,7 +169,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
           {displayName}
         </div>
       )}
-      {alignmentGuides.length > 0 && <AlignmentGuides guides={alignmentGuides} />}
+      {(alignmentGuides.length > 0 || distributionGuides.length > 0) && <AlignmentGuides guides={alignmentGuides} distributionGuides={distributionGuides} />}
     </>
   );
 }
