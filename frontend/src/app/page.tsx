@@ -64,9 +64,7 @@ export default function DiagramEditorPage() {
         if (mod && e.key === 'x' && !e.shiftKey) {
           e.preventDefault();
           store.copySelectedObjects();
-          for (const id of store.selectedObjectIds) {
-            store.removeCanvasObject(id);
-          }
+          store.removeMultipleCanvasObjects(store.selectedObjectIds);
           return;
         }
         if (mod && e.key === 'v' && !e.shiftKey) {
@@ -212,9 +210,7 @@ export default function DiagramEditorPage() {
           if (store.selectedObjectIds.size > 0) {
             e.preventDefault();
             (document.activeElement as HTMLElement)?.blur();
-            for (const id of store.selectedObjectIds) {
-              store.removeCanvasObject(id);
-            }
+            store.removeMultipleCanvasObjects(store.selectedObjectIds);
             return;
           }
           return;
@@ -225,9 +221,7 @@ export default function DiagramEditorPage() {
 
         e.preventDefault();
         if (store.selectedObjectIds.size > 0) {
-          for (const id of store.selectedObjectIds) {
-            store.removeCanvasObject(id);
-          }
+          store.removeMultipleCanvasObjects(store.selectedObjectIds);
         } else if (store.selectedConnectorId) {
           const id = store.selectedConnectorId;
           store.removeConnector(id);

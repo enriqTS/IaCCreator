@@ -95,6 +95,7 @@ export interface DiagramStore {
   addCanvasObject: (obj: CanvasObjectCreationPayload) => string;
   updateCanvasObject: (id: string, updates: Partial<CanvasObject>) => void;
   removeCanvasObject: (id: string) => void;
+  removeMultipleCanvasObjects: (ids: Set<string>) => void;
   selectObject: (id: string | null) => void;
   toggleObjectSelection: (id: string) => void;
   selectObjectsByRect: (rect: Rect) => void;
@@ -392,6 +393,86 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             needsUpdate = true;
           }
           if (line.targetAnchor?.objectId === id) {
+            newTargetAnchor = null;
+            needsUpdate = true;
+          }
+          if (needsUpdate) {
+            next.set(lineId, { ...line, sourceAnchor: newSourceAnchor, targetAnchor: newTargetAnchor });
+          }
+        }
+
+        return { canvasObjects: next, connectors: nextConnectors, selectedObjectIds: nextSelectedObjectIds, objectGroups: nextGroups };
+      });
+    },
+
+    removeMultipleCanvasObjects: (ids: Set<string>): void => {
+      if (ids.size === 0) return;
+
+      // Verify at least one exists
+      const { canvasObjects } = get();
+      let anyExists = false;
+      for (const id of ids) {
+        if (canvasObjects.has(id)) { anyExists = true; break; }
+      }
+      if (!anyExists) return;
+
+      pushHistory();
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        let nextConnectors = new Map(state.connectors);
+        const nextGroups = new Map(state.objectGroups);
+        const nextSelectedObjectIds = new Set(state.selectedObjectIds);
+
+        for (const id of ids) {
+          const obj = next.get(id);
+          if (!obj) continue;
+
+          next.delete(id);
+          nextSelectedObjectIds.delete(id);
+
+          // Cascade-delete connectors for architecture blocks
+          if (obj.objectType === 'architecture-block') {
+            for (const [cid, conn] of nextConnectors) {
+              if (conn.sourceId === id || conn.targetId === id) {
+                nextConnectors.delete(cid);
+              }
+            }
+          }
+
+          // Handle group membership
+          if (obj.groupId) {
+            const group = nextGroups.get(obj.groupId);
+            if (group) {
+              const updatedMembers = group.memberIds.filter((mid) => !ids.has(mid));
+              if (updatedMembers.length < 2) {
+                for (const memberId of updatedMembers) {
+                  const member = next.get(memberId);
+                  if (member) {
+                    next.set(memberId, { ...member, groupId: undefined } as CanvasObject);
+                  }
+                }
+                nextGroups.delete(obj.groupId);
+              } else {
+                nextGroups.set(obj.groupId, { ...group, memberIds: updatedMembers });
+              }
+            }
+          }
+        }
+
+        // Detach anchors on remaining lines that reference any deleted object
+        for (const [lineId, lineObj] of next) {
+          if (lineObj.objectType !== 'line') continue;
+          const line = lineObj as LineObject;
+          let needsUpdate = false;
+          let newSourceAnchor = line.sourceAnchor;
+          let newTargetAnchor = line.targetAnchor;
+
+          if (newSourceAnchor && ids.has(newSourceAnchor.objectId)) {
+            newSourceAnchor = null;
+            needsUpdate = true;
+          }
+          if (newTargetAnchor && ids.has(newTargetAnchor.objectId)) {
             newTargetAnchor = null;
             needsUpdate = true;
           }
