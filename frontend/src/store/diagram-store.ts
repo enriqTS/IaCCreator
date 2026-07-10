@@ -146,6 +146,8 @@ export interface DiagramStore {
   // Waypoint and anchor position management
   updateLineWaypoints: (lineId: string, waypoints: Point[] | null) => void;
   updateLineAnchorPosition: (lineId: string, endpoint: 'source' | 'target', position: AnchorPosition) => void;
+  updateLineLabelOffset: (lineId: string, offset: Point | null) => void;
+  updateLineCustomLabel: (lineId: string, label: string | null) => void;
 
   // Pull-to-connect state
   pullConnectState: { sourceObjectId: string; sourceAnchorPoint: Point; sourceAnchorPosition: AnchorPosition } | null;
@@ -1181,6 +1183,31 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         [anchorKey]: { ...currentAnchor, anchorPosition: position },
       };
 
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(lineId, updated);
+        return { canvasObjects: next };
+      });
+    },
+
+    updateLineLabelOffset: (lineId: string, offset: Point | null): void => {
+      const existing = get().canvasObjects.get(lineId);
+      if (!existing || existing.objectType !== 'line') return;
+
+      const updated: LineObject = { ...existing, labelOffset: offset };
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(lineId, updated);
+        return { canvasObjects: next };
+      });
+    },
+
+    updateLineCustomLabel: (lineId: string, label: string | null): void => {
+      const existing = get().canvasObjects.get(lineId);
+      if (!existing || existing.objectType !== 'line') return;
+      pushHistory();
+
+      const updated: LineObject = { ...existing, customLabel: label };
       set((state) => {
         const next = new Map(state.canvasObjects);
         next.set(lineId, updated);

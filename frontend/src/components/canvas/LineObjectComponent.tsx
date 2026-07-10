@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState, useRef, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { useSnapDrag } from '@/hooks/useSnapDrag';
@@ -84,6 +84,8 @@ function shortenPath(points: Point[], startInset: number, endInset: number): Poi
 export default function LineObjectComponent({ line, isSelected, onAlignmentGuidesChange }: LineObjectComponentProps) {
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const viewportScale = useDiagramStore((s) => s.viewport.scale);
+  const updateLineLabelOffset = useDiagramStore((s) => s.updateLineLabelOffset);
+  const updateLineCustomLabel = useDiagramStore((s) => s.updateLineCustomLabel);
 
   const { handleMouseDown, alignmentGuides, distributionGuides } = useSnapDrag({
     objectId: line.id,
@@ -100,11 +102,76 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   // Resolve connection label and dashed override from connector config
   const { label: connectionLabel, dashed: connectionDashed } = useConnectionLabel(line);
 
+  // Effective label: custom label overrides connector-derived label
+  const effectiveLabel = line.customLabel ?? connectionLabel;
+
+  // Label position with offset support
+  const labelOffset = line.labelOffset ?? { x: 0, y: 0 };
+
+  // Label editing state
+  const [isEditingLabel, setIsEditingLabel] = useState(false);
+  const [editLabelValue, setEditLabelValue] = useState('');
+  const labelInputRef = useRef<HTMLInputElement>(null);
+  const labelDragRef = useRef<{ startX: number; startY: number; startOffset: Point } | null>(null);
+
+  // Focus the input when entering edit mode
+  useEffect(() => {
+    if (isEditingLabel && labelInputRef.current) {
+      labelInputRef.current.focus();
+      labelInputRef.current.select();
+    }
+  }, [isEditingLabel]);
+
+  // Handle label double-click to start editing
+  const handleLabelDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setEditLabelValue(effectiveLabel ?? '');
+    setIsEditingLabel(true);
+  }, [effectiveLabel]);
+
+  // Handle label edit commit
+  const handleLabelEditCommit = useCallback(() => {
+    setIsEditingLabel(false);
+    const trimmed = editLabelValue.trim();
+    updateLineCustomLabel(line.id, trimmed || null);
+  }, [editLabelValue, line.id, updateLineCustomLabel]);
+
+  // Handle label drag for offset
+  const handleLabelDragStart = useCallback((e: React.PointerEvent) => {
+    if (line.locked) return;
+    e.stopPropagation();
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    labelDragRef.current = { startX, startY, startOffset: { ...labelOffset } };
+
+    const handleMove = (ev: PointerEvent) => {
+      if (!labelDragRef.current) return;
+      const dx = (ev.clientX - labelDragRef.current.startX) / viewportScale;
+      const dy = (ev.clientY - labelDragRef.current.startY) / viewportScale;
+      updateLineLabelOffset(line.id, {
+        x: labelDragRef.current.startOffset.x + dx,
+        y: labelDragRef.current.startOffset.y + dy,
+      });
+    };
+
+    const handleUp = () => {
+      labelDragRef.current = null;
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+    };
+
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+  }, [line.id, line.locked, labelOffset, viewportScale, updateLineLabelOffset]);
+
   // Get service name label bounding boxes for knockout masks
   const serviceNameLabels = useServiceNameLabels();
 
   // Determine if the knockout mask should be applied
-  const hasMask = !!(connectionLabel || serviceNameLabels.length > 0);
+  const hasMask = !!(effectiveLabel || serviceNameLabels.length > 0);
 
   const { color, borderWidth, strokeStyle, startArrow, endArrow, routingMode } = line.visualConfig;
 
@@ -335,11 +402,11 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
               {/* White = show everything */}
               <rect x="-99999" y="-99999" width="199998" height="199998" fill="white" />
               {/* Black rect at connection label position = hide line there */}
-              {connectionLabel && (
+              {effectiveLabel && (
                 <rect
-                  x={midPt.x - (connectionLabel.length * 3.5 + 8)}
-                  y={midPt.y - 12}
-                  width={connectionLabel.length * 7 + 16}
+                  x={midPt.x + labelOffset.x - (effectiveLabel.length * 3.5 + 8)}
+                  y={midPt.y + labelOffset.y - 12}
+                  width={effectiveLabel.length * 7 + 16}
                   height={20}
                   rx={4}
                   ry={4}
@@ -376,14 +443,14 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
         )}
 
         {/* Connection label — text only, line and glow are knocked out behind it via mask */}
-        {connectionLabel && (
+        {effectiveLabel && !isEditingLabel && (
           <>
             {/* Selection border around label */}
             {isSelected && (
               <rect
-                x={midPt.x - (connectionLabel.length * 3.5 + 8)}
-                y={midPt.y - 12}
-                width={connectionLabel.length * 7 + 16}
+                x={midPt.x + labelOffset.x - (effectiveLabel.length * 3.5 + 8)}
+                y={midPt.y + labelOffset.y - 12}
+                width={effectiveLabel.length * 7 + 16}
                 height={20}
                 rx={4}
                 ry={4}
@@ -393,30 +460,56 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
                 pointerEvents="none"
               />
             )}
-            {/* Invisible hit area for clicking the label to select the line */}
+            {/* Invisible hit area for clicking/dragging the label */}
             <rect
-              x={midPt.x - (connectionLabel.length * 3.5 + 6)}
-              y={midPt.y - 10}
-              width={connectionLabel.length * 7 + 12}
+              x={midPt.x + labelOffset.x - (effectiveLabel.length * 3.5 + 6)}
+              y={midPt.y + labelOffset.y - 10}
+              width={effectiveLabel.length * 7 + 12}
               height={16}
               fill="transparent"
-              className="cursor-pointer"
-              onMouseDown={handleMouseDown}
+              className="cursor-grab"
+              onPointerDown={handleLabelDragStart}
+              onDoubleClick={handleLabelDoubleClick}
             />
             <text
-              x={midPt.x}
-              y={midPt.y + 3}
+              x={midPt.x + labelOffset.x}
+              y={midPt.y + labelOffset.y + 3}
               textAnchor="middle"
               fontSize="11"
               fontFamily="sans-serif"
               fill="#ffffff"
-              className="cursor-pointer"
-              onMouseDown={handleMouseDown}
+              className="cursor-grab"
+              onPointerDown={handleLabelDragStart}
+              onDoubleClick={handleLabelDoubleClick}
               style={{ userSelect: 'none' }}
             >
-              {connectionLabel}
+              {effectiveLabel}
             </text>
           </>
+        )}
+        {/* Inline label editor */}
+        {isEditingLabel && (
+          <foreignObject
+            x={midPt.x + labelOffset.x - 60}
+            y={midPt.y + labelOffset.y - 12}
+            width={120}
+            height={24}
+          >
+            <input
+              ref={labelInputRef}
+              type="text"
+              value={editLabelValue}
+              onChange={(e) => setEditLabelValue(e.target.value)}
+              onBlur={handleLabelEditCommit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleLabelEditCommit();
+                if (e.key === 'Escape') setIsEditingLabel(false);
+                e.stopPropagation();
+              }}
+              className="w-full h-full text-center text-xs bg-neutral-800 text-white border border-blue-500 rounded px-1 outline-none"
+              style={{ fontSize: '11px' }}
+            />
+          </foreignObject>
         )}
       </g>
     );

@@ -460,6 +460,10 @@ export interface LineObject {
   sourceAnchor: AnchorRef | null;
   targetAnchor: AnchorRef | null;
   waypoints?: Point[] | null;
+  /** User-defined label text (overrides connector-derived label when set). */
+  customLabel?: string | null;
+  /** Pixel offset from the path midpoint for label positioning (draggable). */
+  labelOffset?: Point | null;
   visualConfig: LineVisualConfig;
   zIndex: number;
   groupId?: string;
