@@ -46,6 +46,9 @@ export default function Canvas() {
   // Context menu state
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
+  // Cursor state (reactive — updates re-render for grab/grabbing feedback)
+  const [cursorOverride, setCursorOverride] = useState<string | null>(null);
+
   // Inline rename overlay state
   const [renamingObjectId, setRenamingObjectId] = useState<string | null>(null);
 
@@ -180,6 +183,7 @@ export default function Canvas() {
         e.preventDefault();
         isPanning.current = true;
         panStart.current = { x: e.clientX, y: e.clientY };
+        setCursorOverride('grabbing');
         return;
       }
 
@@ -188,6 +192,7 @@ export default function Canvas() {
         e.preventDefault();
         isPanning.current = true;
         panStart.current = { x: e.clientX, y: e.clientY };
+        setCursorOverride('grabbing');
         return;
       }
 
@@ -330,6 +335,7 @@ export default function Canvas() {
       if (e.button === 1 || (e.button === 0 && isSpaceHeld.current)) {
         isPanning.current = false;
         panStart.current = null;
+        setCursorOverride(isSpaceHeld.current ? 'grab' : null);
       }
     };
 
@@ -481,6 +487,7 @@ export default function Canvas() {
           e.preventDefault();
         }
         isSpaceHeld.current = true;
+        setCursorOverride('grab');
       }
     };
 
@@ -492,6 +499,7 @@ export default function Canvas() {
           isPanning.current = false;
           panStart.current = null;
         }
+        setCursorOverride(null);
       }
     };
 
@@ -645,19 +653,15 @@ export default function Canvas() {
 
   // Determine cursor based on state
   let cursor = 'default';
-  if (isSpaceHeld.current || isPanning.current) {
-    cursor = 'grab';
+  if (cursorOverride) {
+    cursor = cursorOverride;
+  } else if (activeTool === 'connector') {
+    cursor = 'crosshair';
+  } else if (activeTool === 'text') {
+    cursor = 'text';
   } else if (activeTool === 'line') {
     cursor = 'crosshair';
-  } else if (typeof activeTool === 'object' && activeTool.type === 'place-line') {
-    cursor = 'crosshair';
-  } else if (typeof activeTool === 'object' && activeTool.type === 'place-service') {
-    cursor = 'crosshair';
-  } else if (typeof activeTool === 'object' && activeTool.type === 'place-shape') {
-    cursor = 'crosshair';
-  } else if (typeof activeTool === 'object' && activeTool.type === 'place-uml') {
-    cursor = 'crosshair';
-  } else if (typeof activeTool === 'object' && activeTool.type === 'place-arrow') {
+  } else if (typeof activeTool === 'object') {
     cursor = 'crosshair';
   }
 
