@@ -327,7 +327,7 @@ function MultiSelectionView({
         variant="destructive"
         size="sm"
         data-testid="delete-object-button"
-        onClick={() => { for (const id of selectedObjectIds) removeCanvasObject(id); }}
+        onClick={() => { useDiagramStore.getState().removeMultipleCanvasObjects(selectedObjectIds); }}
         className="w-full"
       >
         <Trash2 className="size-4" /> Delete ({selectedObjectIds.size})

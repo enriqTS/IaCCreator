@@ -57,7 +57,6 @@ export default function Canvas() {
   const pan = useDiagramStore((s) => s.pan);
   const selectConnector = useDiagramStore((s) => s.selectConnector);
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
-  const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const clearSelection = useDiagramStore((s) => s.clearSelection);
   const setActiveTool = useDiagramStore((s) => s.setActiveTool);
@@ -511,54 +510,8 @@ export default function Canvas() {
     };
   }, []);
 
-  // Delete/Backspace key handler for removing selected objects
-  // Note: The primary handler is in page.tsx; this is a fallback for when
-  // Canvas is rendered outside the page context (e.g., tests).
-  useEffect(() => {
-    const handleDeleteKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Delete' && e.key !== 'Backspace') return;
-
-      const target = e.target as HTMLElement;
-      const isTyping =
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'SELECT' ||
-        target.isContentEditable;
-
-      // If typing inside an inline canvas editor, let it behave normally
-      if (isTyping && target.closest('[data-testid="viewport-transform-container"]')) return;
-
-      // If typing inside the sidebar, blur and delete the selected objects
-      if (isTyping && target.closest('[data-testid="sidebar-panel"]')) {
-        if (e.key === 'Backspace') return; // Let browser handle normal text editing
-        const currentSelectedIds = useDiagramStore.getState().selectedObjectIds;
-        if (currentSelectedIds.size > 0) {
-          e.preventDefault();
-          (document.activeElement as HTMLElement)?.blur();
-          for (const id of currentSelectedIds) {
-            useDiagramStore.getState().removeCanvasObject(id);
-          }
-        }
-        return;
-      }
-
-      // If typing in some other input (e.g. dialog), let it behave normally
-      if (isTyping) return;
-
-      const currentSelectedIds = useDiagramStore.getState().selectedObjectIds;
-      if (currentSelectedIds.size > 0) {
-        e.preventDefault();
-        for (const id of currentSelectedIds) {
-          useDiagramStore.getState().removeCanvasObject(id);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleDeleteKey);
-    return () => {
-      window.removeEventListener('keydown', handleDeleteKey);
-    };
-  }, []);
+  // Delete/Backspace key handling is centralized in page.tsx.
+  // No duplicate handler needed here.
 
   // Prevent default middle-click auto-scroll behavior
   const handleAuxClick = useCallback((e: React.MouseEvent) => {

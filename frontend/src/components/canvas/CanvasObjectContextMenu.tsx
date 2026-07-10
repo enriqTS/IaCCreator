@@ -166,7 +166,7 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
       <div className={separatorClass} />
 
       {/* Delete */}
-      <Item destructive onClick={() => { for (const id of selectedObjectIds) removeCanvasObject(id); onClose(); }}>
+      <Item destructive onClick={() => { useDiagramStore.getState().removeMultipleCanvasObjects(selectedObjectIds); onClose(); }}>
         <Trash2 className="size-4" /> Delete
       </Item>
     </div>
