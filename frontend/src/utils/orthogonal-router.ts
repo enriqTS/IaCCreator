@@ -13,7 +13,7 @@ import type { Point } from '@/types/diagram';
 import type { AnchorPosition } from '@/utils/anchor';
 import type { RoutingRect } from '@/utils/routing-grid';
 import { buildRoutingSpots, inflateRect } from '@/utils/routing-grid';
-import { findShortestPath, simplifyPath, findSpotIndex } from '@/utils/routing-pathfinder';
+import { findShortestPath, simplifyPath, findSpotIndex, anchorToExitDirection } from '@/utils/routing-pathfinder';
 import { computeOrthogonalWaypoints } from '@/utils/routing';
 import { snapToGrid } from '@/utils/snap';
 
@@ -87,6 +87,22 @@ export function routeOrthogonalConnector(request: RoutingRequest): RoutingResult
     return selfConnectionRoute(sourcePoint, sourceSide, targetPoint, targetSide, sourceRect, shapeMargin, gridSize);
   }
 
+  // Short-distance optimization: skip full router for very close shapes
+  const shortResult = shortDistanceRoute(
+    sourcePoint, sourceSide, targetPoint, targetSide,
+    sourceRect, targetRect, shapeMargin,
+  );
+  if (shortResult) {
+    // Apply grid snap if requested
+    if (gridSize && gridSize > 0) {
+      shortResult.waypoints = shortResult.waypoints.map((p) => ({
+        x: snapToGrid(p.x, gridSize),
+        y: snapToGrid(p.y, gridSize),
+      }));
+    }
+    return shortResult;
+  }
+
   // Large-diagram optimization: limit obstacles to those within proximity
   // of the source-target bounding box to keep pathfinding fast.
   const filteredObstacles = filterObstaclesByProximity(
@@ -122,7 +138,11 @@ export function routeOrthogonalConnector(request: RoutingRequest): RoutingResult
   const inflatedSource = inflateRect(sourceRect, shapeMargin);
   const inflatedTarget = inflateRect(targetRect, shapeMargin);
   const allBlockers = [inflatedSource, inflatedTarget, ...inflatedObstacles];
-  const path = findShortestPath(spots, sourceIdx, targetIdx, allBlockers);
+
+  // Backward visit prevention: constrain first/last hops to compatible directions
+  const sourceExitDir = anchorToExitDirection(sourceSide);
+  const targetEntryDir = anchorToExitDirection(targetSide);
+  const path = findShortestPath(spots, sourceIdx, targetIdx, allBlockers, sourceExitDir, targetEntryDir);
 
   // If no path found, fall back
   if (path.length === 0) {
@@ -139,6 +159,9 @@ export function routeOrthogonalConnector(request: RoutingRequest): RoutingResult
   // simplified[0] === sourcePoint, simplified[last] === targetPoint
   let waypoints = simplified.slice(1, simplified.length - 1);
 
+  // Balance S-shaped routes: center the shared segment between shapes
+  waypoints = balancePath(waypoints, sourcePoint, targetPoint, sourceRect, targetRect);
+
   // Apply grid snap if requested
   if (gridSize && gridSize > 0) {
     waypoints = waypoints.map((p) => ({
@@ -148,6 +171,197 @@ export function routeOrthogonalConnector(request: RoutingRequest): RoutingResult
   }
 
   return { waypoints, success: true };
+}
+
+/**
+ * Balance S-shaped routes by centering the shared (middle) segment.
+ *
+ * An S-shaped route has exactly 2 waypoints forming 2 turns. The middle
+ * segment connects the two waypoints. This function repositions that
+ * segment to be centered between the source and target shapes' relevant edges.
+ *
+ * For more complex routes (>2 waypoints), no balancing is applied.
+ */
+export function balancePath(
+  waypoints: Point[],
+  sourcePoint: Point,
+  targetPoint: Point,
+  sourceRect: RoutingRect,
+  targetRect: RoutingRect,
+): Point[] {
+  // Only balance S-shaped routes (exactly 2 waypoints = 2 turns)
+  if (waypoints.length !== 2) return waypoints;
+
+  const [wp1, wp2] = waypoints;
+
+  // Determine if the middle segment is horizontal or vertical
+  if (wp1.x === wp2.x) {
+    // Middle segment is vertical (shared X). Balance the X coordinate.
+    // The range is between the nearest edges of source and target on the X axis.
+    const sourceRight = sourceRect.left + sourceRect.width;
+    const targetRight = targetRect.left + targetRect.width;
+
+    let minX: number;
+    let maxX: number;
+
+    if (sourcePoint.x <= targetPoint.x) {
+      // Source is to the left, target is to the right
+      minX = sourceRight;
+      maxX = targetRect.left;
+    } else {
+      // Source is to the right, target is to the left
+      minX = targetRight;
+      maxX = sourceRect.left;
+    }
+
+    // Only balance if there's actual space between the shapes
+    if (minX < maxX) {
+      const centeredX = Math.round((minX + maxX) / 2);
+      return [
+        { x: centeredX, y: wp1.y },
+        { x: centeredX, y: wp2.y },
+      ];
+    }
+  } else if (wp1.y === wp2.y) {
+    // Middle segment is horizontal (shared Y). Balance the Y coordinate.
+    const sourceBottom = sourceRect.top + sourceRect.height;
+    const targetBottom = targetRect.top + targetRect.height;
+
+    let minY: number;
+    let maxY: number;
+
+    if (sourcePoint.y <= targetPoint.y) {
+      // Source is above, target is below
+      minY = sourceBottom;
+      maxY = targetRect.top;
+    } else {
+      // Source is below, target is above
+      minY = targetBottom;
+      maxY = sourceRect.top;
+    }
+
+    // Only balance if there's actual space between the shapes
+    if (minY < maxY) {
+      const centeredY = Math.round((minY + maxY) / 2);
+      return [
+        { x: wp1.x, y: centeredY },
+        { x: wp2.x, y: centeredY },
+      ];
+    }
+  }
+
+  return waypoints;
+}
+
+/**
+ * Handle short-distance routing without invoking the full grid router.
+ *
+ * When shapes are very close (Manhattan distance between connection points < 2 * shapeMargin)
+ * and don't overlap, use simple geometric rules:
+ * - Facing anchors: 0 waypoints (straight line)
+ * - Perpendicular anchors: 1 waypoint (single corner)
+ * - Same-side anchors: minimal U-shape with reduced offset
+ *
+ * Returns null if not applicable (shapes too far apart or overlapping).
+ */
+export function shortDistanceRoute(
+  sourcePoint: Point,
+  sourceSide: AnchorPosition,
+  targetPoint: Point,
+  targetSide: AnchorPosition,
+  sourceRect: RoutingRect,
+  targetRect: RoutingRect,
+  shapeMargin: number,
+): RoutingResult | null {
+  const manhattan = Math.abs(targetPoint.x - sourcePoint.x) + Math.abs(targetPoint.y - sourcePoint.y);
+
+  // Only apply for very close shapes
+  if (manhattan >= 2 * shapeMargin) return null;
+
+  // Don't apply if shapes overlap (let the full router handle it)
+  if (rectsOverlap(sourceRect, targetRect)) return null;
+
+  if (areOppositeSides(sourceSide, targetSide)) {
+    // Facing anchors: can potentially connect directly
+    if (isFacingDirect(sourcePoint, sourceSide, targetPoint)) {
+      return { waypoints: [], success: true };
+    }
+    // Not directly facing — use a single-segment S with minimal offset
+    const midOffset = Math.max(shapeMargin / 2, 4);
+    if (isVerticalAnchor(sourceSide)) {
+      const midY = Math.round((sourcePoint.y + targetPoint.y) / 2);
+      return {
+        waypoints: [
+          { x: sourcePoint.x, y: midY },
+          { x: targetPoint.x, y: midY },
+        ],
+        success: true,
+      };
+    } else {
+      const midX = Math.round((sourcePoint.x + targetPoint.x) / 2);
+      return {
+        waypoints: [
+          { x: midX, y: sourcePoint.y },
+          { x: midX, y: targetPoint.y },
+        ],
+        success: true,
+      };
+    }
+  }
+
+  if (sourceSide === targetSide) {
+    // Same-side anchors: minimal U-shape
+    const offset = Math.max(shapeMargin / 2, 8);
+    const exitPt = extrudeFromSide(sourcePoint, sourceSide, offset);
+    const entryPt = extrudeFromSide(targetPoint, targetSide, offset);
+    return { waypoints: [exitPt, entryPt], success: true };
+  }
+
+  // Perpendicular anchors: single corner
+  const corner = computePerpendicularCorner(sourcePoint, sourceSide, targetPoint, targetSide);
+  if (corner) {
+    return { waypoints: [corner], success: true };
+  }
+
+  return null;
+}
+
+/** Check if a source point directly faces the target point (correct direction). */
+function isFacingDirect(sourcePoint: Point, sourceSide: AnchorPosition, targetPoint: Point): boolean {
+  switch (sourceSide) {
+    case 'right': return targetPoint.x >= sourcePoint.x && targetPoint.y === sourcePoint.y;
+    case 'left': return targetPoint.x <= sourcePoint.x && targetPoint.y === sourcePoint.y;
+    case 'bottom': return targetPoint.y >= sourcePoint.y && targetPoint.x === sourcePoint.x;
+    case 'top': return targetPoint.y <= sourcePoint.y && targetPoint.x === sourcePoint.x;
+  }
+}
+
+/** Compute a single corner point for perpendicular anchor connections. */
+function computePerpendicularCorner(
+  sourcePoint: Point,
+  sourceSide: AnchorPosition,
+  targetPoint: Point,
+  targetSide: AnchorPosition,
+): Point | null {
+  // Source exits horizontally, target exits vertically → corner at (sourceExit.x-direction, targetEntry.y-direction)
+  if (!isVerticalAnchor(sourceSide) && isVerticalAnchor(targetSide)) {
+    return { x: targetPoint.x, y: sourcePoint.y };
+  }
+  // Source exits vertically, target exits horizontally → corner at (source.x, target.y)
+  if (isVerticalAnchor(sourceSide) && !isVerticalAnchor(targetSide)) {
+    return { x: sourcePoint.x, y: targetPoint.y };
+  }
+  return null;
+}
+
+/** Check if two rects overlap (any intersection). */
+function rectsOverlap(a: RoutingRect, b: RoutingRect): boolean {
+  return (
+    a.left < b.left + b.width &&
+    a.left + a.width > b.left &&
+    a.top < b.top + b.height &&
+    a.top + a.height > b.top
+  );
 }
 
 /**

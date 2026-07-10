@@ -182,6 +182,9 @@ function buildAdjacency(spots: Point[], obstacles: ObstacleRect[] = []): Map<num
   return adjacency;
 }
 
+/** Anchor exit direction hint for backward prevention. */
+export type ExitDirection = 'up' | 'down' | 'left' | 'right';
+
 /**
  * Run Dijkstra's algorithm with bend penalty.
  *
@@ -194,6 +197,8 @@ function buildAdjacency(spots: Point[], obstacles: ObstacleRect[] = []): Map<num
  * @param sourceIndex - Index of the source spot
  * @param targetIndex - Index of the target spot
  * @param obstacles - Obstacle rects for edge intersection checking
+ * @param sourceExitDir - Optional: direction the path should initially exit from source (backward prevention)
+ * @param targetEntryDir - Optional: direction the path should arrive at target from (backward prevention)
  * @returns Array of points forming the shortest path, or empty array if no path found
  */
 export function findShortestPath(
@@ -201,6 +206,8 @@ export function findShortestPath(
   sourceIndex: number,
   targetIndex: number,
   obstacles: ObstacleRect[] = [],
+  sourceExitDir?: ExitDirection,
+  targetEntryDir?: ExitDirection,
 ): Point[] {
   if (sourceIndex === targetIndex) {
     return [spots[sourceIndex]];
@@ -257,6 +264,20 @@ export function findShortestPath(
       // Determine the direction of this edge
       const edgeDirection = getDirection(current.point, neighbor);
 
+      // Backward visit prevention: penalize first hop from source going opposite to exit direction
+      let backwardPenalty = 0;
+      if (currentIdx === sourceIndex && sourceExitDir && edgeDirection) {
+        if (isBackwardDirection(sourceExitDir, current.point, neighbor)) {
+          backwardPenalty = Infinity;
+        }
+      }
+      // Backward visit prevention: penalize arriving at target from incompatible direction
+      if (neighborIdx === targetIndex && targetEntryDir && edgeDirection) {
+        if (isBackwardDirection(targetEntryDir, neighbor, current.point)) {
+          backwardPenalty = Infinity;
+        }
+      }
+
       // Compute bend penalty: if the direction changes, add extra cost
       let penalty = 0;
       if (current.arrivalDirection !== null && edgeDirection !== null && current.arrivalDirection !== edgeDirection) {
@@ -264,7 +285,7 @@ export function findShortestPath(
         penalty = (edgeDistance + 1) * (edgeDistance + 1);
       }
 
-      const totalCost = current.distance + edgeDistance + penalty;
+      const totalCost = current.distance + edgeDistance + penalty + backwardPenalty;
 
       if (totalCost < nodes[neighborIdx].distance) {
         nodes[neighborIdx].distance = totalCost;
@@ -329,4 +350,31 @@ export function findSpotIndex(spots: Point[], target: Point): number {
     }
   }
   return -1;
+}
+
+/**
+ * Determine if moving from `from` to `to` goes backward relative to the
+ * expected exit direction. Used for backward visit prevention.
+ *
+ * For example, if the exit direction is 'right', moving left is backward.
+ */
+function isBackwardDirection(exitDir: ExitDirection, from: Point, to: Point): boolean {
+  switch (exitDir) {
+    case 'right': return to.x < from.x;
+    case 'left': return to.x > from.x;
+    case 'down': return to.y < from.y;
+    case 'up': return to.y > from.y;
+  }
+}
+
+/**
+ * Convert an AnchorPosition to an ExitDirection for use with backward prevention.
+ */
+export function anchorToExitDirection(side: 'top' | 'right' | 'bottom' | 'left'): ExitDirection {
+  switch (side) {
+    case 'top': return 'up';
+    case 'right': return 'right';
+    case 'bottom': return 'down';
+    case 'left': return 'left';
+  }
 }

@@ -172,6 +172,44 @@ export function findNearestAnchorPosition(
 }
 
 /**
+ * Compute the optimal exit side from a source shape toward a target center point,
+ * using a heading-based approach. This produces more intuitive anchor selections
+ * than nearest-distance when shapes are at angles.
+ *
+ * Determines which cardinal direction (top/right/bottom/left) the target center
+ * lies in relative to the source center, favoring the dominant axis.
+ *
+ * @param sourceBounds - Bounding rect of the source shape
+ * @param targetCenter - Center point of the target shape
+ * @param currentPosition - If provided and the result is ambiguous (45° angle), retain this
+ */
+export function computeOptimalExitSide(
+  sourceBounds: Rect,
+  targetCenter: Point,
+  currentPosition?: AnchorPosition,
+): AnchorPosition {
+  const cx = sourceBounds.x + sourceBounds.width / 2;
+  const cy = sourceBounds.y + sourceBounds.height / 2;
+  const dx = targetCenter.x - cx;
+  const dy = targetCenter.y - cy;
+
+  // Exact tie (same center): retain current or default to 'right'
+  if (dx === 0 && dy === 0) {
+    return currentPosition ?? 'right';
+  }
+
+  // At exactly 45°, retain current position to avoid flickering
+  if (Math.abs(dx) === Math.abs(dy) && currentPosition) {
+    return currentPosition;
+  }
+
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx >= 0 ? 'right' : 'left';
+  }
+  return dy >= 0 ? 'bottom' : 'top';
+}
+
+/**
  * Check if a point is within snap threshold of any anchor on a rect.
  * Returns the closest anchor point and its position if within threshold, or null otherwise.
  */

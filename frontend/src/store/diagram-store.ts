@@ -58,7 +58,7 @@ import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 import type { DiagramSummary } from '@/types/api';
 import { zoomAtPoint } from '@/utils/viewport';
 import { generateDefaultName } from '@/utils/name-utils';
-import { getAnchorPoints, findNearestAnchorPosition } from '@/utils/anchor';
+import { getAnchorPoints, findNearestAnchorPosition, computeOptimalExitSide } from '@/utils/anchor';
 import { getConnectionBounds } from '@/utils/bounds-utils';
 import type { AnchorPosition } from '@/utils/anchor';
 import { apiClient } from '@/utils/api-client';
@@ -1087,7 +1087,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
               otherPt = { x: tb.x + tb.width / 2, y: tb.y + tb.height / 2 };
             }
           }
-          const bestPos = findNearestAnchorPosition(otherPt, movedBounds, line.sourceAnchor.anchorPosition);
+          const bestPos = computeOptimalExitSide(movedBounds, otherPt, line.sourceAnchor.anchorPosition);
           updatedLine.sourceAnchor = { ...line.sourceAnchor, anchorPosition: bestPos };
           updatedLine.start = getAnchorPoints(movedBounds)[bestPos];
           updated = true;
@@ -1104,7 +1104,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
               otherPt = { x: sb.x + sb.width / 2, y: sb.y + sb.height / 2 };
             }
           }
-          const bestPos = findNearestAnchorPosition(otherPt, movedBounds, line.targetAnchor.anchorPosition);
+          const bestPos = computeOptimalExitSide(movedBounds, otherPt, line.targetAnchor.anchorPosition);
           updatedLine.targetAnchor = { ...line.targetAnchor, anchorPosition: bestPos };
           updatedLine.end = getAnchorPoints(movedBounds)[bestPos];
           updated = true;
@@ -1117,7 +1117,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             if (sourceObj) {
               const sourceBounds = getConnectionBounds(sourceObj);
               const movedCenter = { x: movedBounds.x + movedBounds.width / 2, y: movedBounds.y + movedBounds.height / 2 };
-              const bestSourcePos = findNearestAnchorPosition(movedCenter, sourceBounds, updatedLine.sourceAnchor.anchorPosition);
+              const bestSourcePos = computeOptimalExitSide(sourceBounds, movedCenter, updatedLine.sourceAnchor.anchorPosition);
               updatedLine.sourceAnchor = { ...updatedLine.sourceAnchor, anchorPosition: bestSourcePos };
               updatedLine.start = getAnchorPoints(sourceBounds)[bestSourcePos];
             }
@@ -1127,7 +1127,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             if (targetObj) {
               const targetBounds = getConnectionBounds(targetObj);
               const movedCenter = { x: movedBounds.x + movedBounds.width / 2, y: movedBounds.y + movedBounds.height / 2 };
-              const bestTargetPos = findNearestAnchorPosition(movedCenter, targetBounds, updatedLine.targetAnchor.anchorPosition);
+              const bestTargetPos = computeOptimalExitSide(targetBounds, movedCenter, updatedLine.targetAnchor.anchorPosition);
               updatedLine.targetAnchor = { ...updatedLine.targetAnchor, anchorPosition: bestTargetPos };
               updatedLine.end = getAnchorPoints(targetBounds)[bestTargetPos];
             }

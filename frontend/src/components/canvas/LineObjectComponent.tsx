@@ -16,6 +16,7 @@ import type { AlignmentGuide } from '@/utils/snap';
 import { snapPointToGrid } from '@/utils/snap';
 import { routeOrthogonalConnector } from '@/utils/orthogonal-router';
 import { collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing-obstacles';
+import { computeParallelIndex, applyParallelOffset } from '@/utils/parallel-offset';
 
 interface LineObjectComponentProps {
   line: LineObject;
@@ -204,7 +205,16 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
     return [effectiveStart, effectiveEnd];
   }, [useOrthogonal, startPt, endPt, line.sourceAnchor, line.targetAnchor, line.waypoints, line.id, canvasObjects, snapToGridEnabled, gridCellSize]);
 
-  const pathD = useMemo(() => buildPathD(pathPoints), [pathPoints]);
+  // Apply parallel offset for lines connecting the same object pair
+  const offsetPathPoints = useMemo((): Point[] => {
+    const sourceObjId = line.sourceAnchor?.objectId;
+    const targetObjId = line.targetAnchor?.objectId;
+    const parallelIdx = computeParallelIndex(line.id, sourceObjId, targetObjId, canvasObjects);
+    if (parallelIdx === 0) return pathPoints;
+    return applyParallelOffset(pathPoints, parallelIdx);
+  }, [pathPoints, line.id, line.sourceAnchor?.objectId, line.targetAnchor?.objectId, canvasObjects]);
+
+  const pathD = useMemo(() => buildPathD(offsetPathPoints), [offsetPathPoints]);
 
   // Override strokeStyle to dashed when connector schema says so (e.g., authorizer connections)
   const effectiveStrokeStyle = connectionDashed ? 'dashed' : strokeStyle;
@@ -216,9 +226,9 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
 
   // Build a shortened path for the visible line so arrows sit flush at endpoints
   const visiblePathD = useMemo(() => {
-    const shortened = shortenPath(pathPoints, startArrow ? arrowSize : 0, endArrow ? arrowSize : 0);
+    const shortened = shortenPath(offsetPathPoints, startArrow ? arrowSize : 0, endArrow ? arrowSize : 0);
     return buildPathD(shortened);
-  }, [pathPoints, startArrow, endArrow, arrowSize]);
+  }, [offsetPathPoints, startArrow, endArrow, arrowSize]);
 
   // Diagonal mode: compute shortened endpoints for the visible line
   // Must be called unconditionally (before any conditional return) to satisfy React's Rules of Hooks
@@ -231,12 +241,12 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   const endMarkerId = `${markerId}-end`;
 
   // Midpoint for lock indicator — use the geometric center of the path
-  const midIdx = Math.floor(pathPoints.length / 2);
-  const midPt = pathPoints.length % 2 === 1
-    ? pathPoints[midIdx]
+  const midIdx = Math.floor(offsetPathPoints.length / 2);
+  const midPt = offsetPathPoints.length % 2 === 1
+    ? offsetPathPoints[midIdx]
     : {
-        x: (pathPoints[midIdx - 1].x + pathPoints[midIdx].x) / 2,
-        y: (pathPoints[midIdx - 1].y + pathPoints[midIdx].y) / 2,
+        x: (offsetPathPoints[midIdx - 1].x + offsetPathPoints[midIdx].x) / 2,
+        y: (offsetPathPoints[midIdx - 1].y + offsetPathPoints[midIdx].y) / 2,
       };
 
   // Render orthogonal path (SVG <path>) or diagonal line (SVG <line>)
