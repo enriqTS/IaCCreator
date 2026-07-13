@@ -189,10 +189,10 @@ export function ImportOpenApiDialog({ open, onOpenChange }: ImportOpenApiDialogP
 
         // Filter imported routes to only those with unique (method, path)
         const existingRouteKeys = new Set(
-          existingRoutes.map((r: RouteItem) => `${r.method}:${r.path}`)
+          existingRoutes.map((r: RouteItem) => `${r.methods.join(',')}:${r.path}`)
         );
         const uniqueRoutes = mapResult.routes.filter(
-          (r) => !existingRouteKeys.has(`${r.method}:${r.path}`)
+          (r) => !existingRouteKeys.has(`${r.methods.join(',')}:${r.path}`)
         );
 
         // Append unique routes
@@ -421,11 +421,11 @@ export function ImportOpenApiDialog({ open, onOpenChange }: ImportOpenApiDialogP
                 <div className="flex flex-col gap-0.5">
                   {tagRoutes.map((route) => (
                     <div
-                      key={`${route.method}-${route.path}`}
+                      key={`${route.methods.join(',')}-${route.path}`}
                       className="flex items-center gap-2 text-xs"
                     >
                       <span className="inline-flex w-16 shrink-0 items-center justify-center rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase">
-                        {route.method}
+                        {route.methods.join(', ')}
                       </span>
                       <span className="font-mono text-muted-foreground">
                         {route.path}

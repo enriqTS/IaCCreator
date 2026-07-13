@@ -91,7 +91,7 @@ export default function RouteDetailFields({ route, onUpdate }: RouteDetailFields
         <Label>Methods</Label>
         <MethodToggleGroup
           value={route.methods}
-          onChange={(methods) => onUpdate({ methods })}
+          onChange={(methods) => onUpdate({ methods: methods as RouteItem['methods'] })}
         />
       </div>
 

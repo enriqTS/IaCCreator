@@ -26,7 +26,7 @@ describe('mapOpenApiToConfig', () => {
       const result = mapOpenApiToConfig(spec);
       expect(result.routes).toHaveLength(2);
 
-      const methods = result.routes.map((r) => r.method).sort();
+      const methods = result.routes.map((r) => r.methods[0]).sort();
       expect(methods).toEqual(['GET', 'POST']);
       expect(result.routes.every((r) => r.path === '/users')).toBe(true);
     });

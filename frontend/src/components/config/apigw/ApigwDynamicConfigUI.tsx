@@ -100,7 +100,7 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
         const route = routes.find((r) => r.id === selectedItemId);
         if (!route) return null;
         return {
-          title: `Route: ${route.method} ${route.path}`,
+          title: `Route: ${route.methods.join(', ')} ${route.path}`,
           content: (
             <RouteDetailFields
               route={route}

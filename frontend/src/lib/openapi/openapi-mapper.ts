@@ -65,7 +65,7 @@ export function mapOpenApiToConfig(spec: OpenApiSpec, options?: MapOptions): Map
 
       const route: RouteItem = {
         id: crypto.randomUUID(),
-        method: method.toUpperCase() as RouteItem['method'],
+        methods: [method.toUpperCase() as RouteItem['methods'][number]],
         path,
         integration_ref: '',
         integration_type: 'HTTP_PROXY',

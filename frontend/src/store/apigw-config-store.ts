@@ -154,7 +154,7 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
       vpc_link_name: state.vpc_link_name,
       subnet_ids: state.subnet_ids,
       security_group_ids: state.security_group_ids,
-      routes: state.routes,
+      routes: state.routes as unknown as Record<string, unknown>[],
       stages: state.stages,
       authorizers: state.authorizers,
       api_keys: state.api_keys,
@@ -177,7 +177,7 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
 
       // Parse collections, ensuring each item has an ID
       const routes = Array.isArray(cfg.routes)
-        ? (cfg.routes as RouteItem[]).map(ensureId).map((route) => {
+        ? (cfg.routes as unknown as RouteItem[]).map(ensureId).map((route) => {
             // Normalize legacy `method` field to `methods` array
             const r = route as RouteItem & { method?: string };
             if (!Array.isArray(r.methods) && typeof r.method === 'string') {
