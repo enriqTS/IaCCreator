@@ -563,7 +563,7 @@ class TestRouteAuthorizationTypeAndScopes:
             protocol_type="HTTP",
             routes=[
                 {
-                    "method": "GET",
+                    "methods": ["GET"],
                     "path": "/users",
                     "authorization_type": "AWS_IAM",
                 }

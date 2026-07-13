@@ -177,15 +177,7 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
 
       // Parse collections, ensuring each item has an ID
       const routes = Array.isArray(cfg.routes)
-        ? (cfg.routes as unknown as RouteItem[]).map(ensureId).map((route) => {
-            // Normalize legacy `method` field to `methods` array
-            const r = route as RouteItem & { method?: string };
-            if (!Array.isArray(r.methods) && typeof r.method === 'string') {
-              const { method, ...rest } = r;
-              return { ...rest, methods: [method] } as RouteItem;
-            }
-            return r as RouteItem;
-          })
+        ? (cfg.routes as unknown as RouteItem[]).map(ensureId)
         : [];
 
       const stages = Array.isArray(cfg.stages)

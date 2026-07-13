@@ -345,7 +345,7 @@ class TestConnectionProcessorWithRoutes:
     def test_single_route_produces_three_files(self):
         """Single route produces exactly 3 files: integration, route, permission."""
         project = self._make_apigw_lambda_project(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         files = self.processor.process_all(project)
 
@@ -358,7 +358,7 @@ class TestConnectionProcessorWithRoutes:
     def test_route_key_uses_method_and_path(self):
         """Route resource has correct route_key from method and path."""
         project = self._make_apigw_lambda_project(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         files = self.processor.process_all(project)
 
@@ -368,7 +368,7 @@ class TestConnectionProcessorWithRoutes:
     def test_file_paths_follow_categorized_pattern(self):
         """File paths follow the categorized pattern: modules/networking/api-gateway/{source}/..."""
         project = self._make_apigw_lambda_project(
-            {"routes": [{"method": "DELETE", "path": "/data"}]}
+            {"routes": [{"methods": ["DELETE"], "path": "/data"}]}
         )
         files = self.processor.process_all(project)
 
@@ -385,7 +385,7 @@ class TestConnectionProcessorWithRoutes:
     def test_permission_file_content(self):
         """Permission file has the same structure."""
         project = self._make_apigw_lambda_project(
-            {"routes": [{"method": "GET", "path": "/test"}]}
+            {"routes": [{"methods": ["GET"], "path": "/test"}]}
         )
         files = self.processor.process_all(project)
 
@@ -533,7 +533,7 @@ class TestByteForByteIdenticalOutput:
             source_service=ServiceType.API_GATEWAY,
             target_service=ServiceType.LAMBDA,
             connection_type="triggers",
-            connection_config={"routes": [{"method": "GET", "path": "/users"}]},
+            connection_config={"routes": [{"methods": ["GET"], "path": "/users"}]},
         )
         project = _make_project([apigw, func], [conn])
         files = processor.process_all(project)
@@ -564,7 +564,7 @@ class TestByteForByteIdenticalOutput:
             source_service=ServiceType.API_GATEWAY,
             target_service=ServiceType.LAMBDA,
             connection_type="triggers",
-            connection_config={"routes": [{"method": "GET", "path": "/users"}]},
+            connection_config={"routes": [{"methods": ["GET"], "path": "/users"}]},
         )
         project2 = _make_project([apigw2, func2], [conn2])
         files2 = processor.process_all(project2)

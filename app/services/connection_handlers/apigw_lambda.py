@@ -11,10 +11,8 @@ Supports two connection roles dispatched via ``connection_config["connection_rol
   integration or route resources.
 
 Multi-route and multi-method support via ``connection_config["routes"]``:
-    Each entry is a dict with either ``methods`` (array, e.g. ["GET", "POST"]) or
-    legacy ``method`` (string, e.g. "GET") and a ``path`` (e.g. "/users/{id}").
-    When ``methods`` (array) is present it takes precedence; otherwise the legacy
-    ``method`` string is wrapped into a single-element array for backward compatibility.
+    Each entry is a dict with ``methods`` (array, e.g. ["GET", "POST"]) and a
+    ``path`` (e.g. "/users/{id}").
     One route resource is generated per method-path combination.
 
     Optional route-level fields:
@@ -84,8 +82,8 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
     ) -> list[GeneratedFile]:
         """Generate integration, route(s), route responses, and permission.
 
-        Uses the ``routes`` array from connection_config. Each entry may have either
-        ``methods`` (array of HTTP methods) or legacy ``method`` (single string).
+        Uses the ``routes`` array from connection_config. Each entry must have
+        ``methods`` (array of HTTP methods) and a ``path``.
         Generates one integration shared across all routes, one route resource per
         method-path pair, optional route responses, and one Lambda permission.
         """
@@ -130,8 +128,8 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
 
         route_files: list[GeneratedFile] = []
         for route in routes:
-            # Normalize: support both `methods` (array) and legacy `method` (string)
-            methods: list[str] = route.get("methods") or [route["method"]]
+            # Read methods array directly
+            methods: list[str] = route["methods"]
             path: str = route["path"]
             sanitized = _sanitize_path(path)
             route_response_key = route.get("route_response_key")

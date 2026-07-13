@@ -34,8 +34,8 @@ class TestGenerateRoutesHTTP:
         config = ApiGatewayConfig(api_name="test-api", 
             protocol_type="HTTP",
             routes=[
-                {"method": "GET", "path": "/users"},
-                {"method": "POST", "path": "/users"},
+                {"methods": ["GET"], "path": "/users"},
+                {"methods": ["POST"], "path": "/users"},
             ],
         )
         instance = _make_instance("my_api", config)
@@ -51,7 +51,7 @@ class TestGenerateRoutesHTTP:
         """Route key is formatted as '{METHOD} {path}'."""
         config = ApiGatewayConfig(api_name="test-api", 
             protocol_type="HTTP",
-            routes=[{"method": "DELETE", "path": "/items/{id}"}],
+            routes=[{"methods": ["DELETE"], "path": "/items/{id}"}],
         )
         instance = _make_instance("api", config)
         gen = APIGatewayGenerator()
@@ -64,7 +64,7 @@ class TestGenerateRoutesHTTP:
         config = ApiGatewayConfig(api_name="test-api", 
             protocol_type="HTTP",
             routes=[
-                {"method": "GET", "path": "/secure", "authorizer_name": "jwt_auth"}
+                {"methods": ["GET"], "path": "/secure", "authorizer_name": "jwt_auth"}
             ],
             authorizers=[
                 {
@@ -88,7 +88,7 @@ class TestGenerateRoutesHTTP:
             protocol_type="HTTP",
             routes=[
                 {
-                    "method": "GET",
+                    "methods": ["GET"],
                     "path": "/protected",
                     "authorizer_name": "lambda_auth",
                 }
@@ -112,7 +112,7 @@ class TestGenerateRoutesHTTP:
         """When api_key_required is True, all routes get api_key_required = true."""
         config = ApiGatewayConfig(api_name="test-api", 
             protocol_type="HTTP",
-            routes=[{"method": "GET", "path": "/data"}],
+            routes=[{"methods": ["GET"], "path": "/data"}],
             api_key_required=True,
         )
         instance = _make_instance("api", config)
@@ -140,7 +140,7 @@ class TestGenerateRoutesHTTP:
             protocol_type="HTTP",
             routes=[
                 {
-                    "method": "GET",
+                    "methods": ["GET"],
                     "path": "/users",
                     "integration_name": "lambda_backend",
                 }
@@ -159,7 +159,7 @@ class TestGenerateRoutesHTTP:
         config = ApiGatewayConfig(api_name="test-api", 
             protocol_type="HTTP",
             routes=[
-                {"method": "GET", "path": "/data", "authorizer_name": "nonexistent"}
+                {"methods": ["GET"], "path": "/data", "authorizer_name": "nonexistent"}
             ],
             authorizers=[],
         )

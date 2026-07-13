@@ -59,21 +59,31 @@ class APIGatewayValidator:
         seen_route_keys: set[str] = set()
 
         for i, route in enumerate(routes):
-            method = route.get("method", "")
+            methods = route.get("methods", [])
             path = route.get("path", "")
 
-            # Validate method
-            if method.upper() not in ALLOWED_METHODS:
+            # Validate methods
+            if not isinstance(methods, list) or not methods:
                 errors.append(
                     ValidationError(
-                        field=f"routes[{i}].method",
-                        message=(
-                            f"Invalid HTTP method '{method}'. "
-                            f"Allowed methods: {', '.join(sorted(ALLOWED_METHODS))}"
-                        ),
+                        field=f"routes[{i}].methods",
+                        message="Route must have a non-empty 'methods' array.",
                         code="INVALID_METHOD",
                     )
                 )
+            else:
+                for method in methods:
+                    if method.upper() not in ALLOWED_METHODS:
+                        errors.append(
+                            ValidationError(
+                                field=f"routes[{i}].methods",
+                                message=(
+                                    f"Invalid HTTP method '{method}'. "
+                                    f"Allowed methods: {', '.join(sorted(ALLOWED_METHODS))}"
+                                ),
+                                code="INVALID_METHOD",
+                            )
+                        )
 
             # Validate path
             if not PATH_PATTERN.match(path):
@@ -91,17 +101,19 @@ class APIGatewayValidator:
                 )
 
             # Check for duplicate route_keys
-            route_key = f"{method.upper()} {path}"
-            if route_key in seen_route_keys:
-                errors.append(
-                    ValidationError(
-                        field=f"routes[{i}]",
-                        message=f"Duplicate route_key '{route_key}'.",
-                        code="DUPLICATE_ROUTE",
-                    )
-                )
-            else:
-                seen_route_keys.add(route_key)
+            if isinstance(methods, list):
+                for method in methods:
+                    route_key = f"{method.upper()} {path}"
+                    if route_key in seen_route_keys:
+                        errors.append(
+                            ValidationError(
+                                field=f"routes[{i}]",
+                                message=f"Duplicate route_key '{route_key}'.",
+                                code="DUPLICATE_ROUTE",
+                            )
+                        )
+                    else:
+                        seen_route_keys.add(route_key)
 
         # Validate authorizer references on routes
         defined_authorizers: set[str] = set()

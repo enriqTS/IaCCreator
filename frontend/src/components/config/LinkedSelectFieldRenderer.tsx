@@ -170,11 +170,6 @@ export default function LinkedSelectFieldRenderer({
     if (Array.isArray(methods)) {
       return (methods as string[]).join(', ');
     }
-    // Legacy single method field
-    const method = entry.method;
-    if (typeof method === 'string' && method.length > 0) {
-      return method;
-    }
     return 'ANY';
   };
 

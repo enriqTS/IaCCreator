@@ -206,7 +206,7 @@ class TestMultiRoute:
     def test_single_route_file_count(self):
         """Single route produces 3 files (integration + 1 route + permission)."""
         conn, project = self._make_connection(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         files = self.handler.handle(conn, project)
         assert len(files) == 3
@@ -214,7 +214,7 @@ class TestMultiRoute:
     def test_single_route_has_correct_route_key(self):
         """Single route has the expected route_key."""
         conn, project = self._make_connection(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         files = self.handler.handle(conn, project)
         route_file = next(f for f in files if "route_" in f.path)
@@ -225,8 +225,8 @@ class TestMultiRoute:
         conn, project = self._make_connection(
             {
                 "routes": [
-                    {"method": "GET", "path": "/users"},
-                    {"method": "POST", "path": "/users"},
+                    {"methods": ["GET"], "path": "/users"},
+                    {"methods": ["POST"], "path": "/users"},
                 ]
             }
         )
@@ -238,8 +238,8 @@ class TestMultiRoute:
         conn, project = self._make_connection(
             {
                 "routes": [
-                    {"method": "GET", "path": "/users"},
-                    {"method": "POST", "path": "/users"},
+                    {"methods": ["GET"], "path": "/users"},
+                    {"methods": ["POST"], "path": "/users"},
                 ]
             }
         )
@@ -261,8 +261,8 @@ class TestMultiRoute:
         conn, project = self._make_connection(
             {
                 "routes": [
-                    {"method": "GET", "path": "/users"},
-                    {"method": "POST", "path": "/users"},
+                    {"methods": ["GET"], "path": "/users"},
+                    {"methods": ["POST"], "path": "/users"},
                 ]
             }
         )
@@ -275,8 +275,8 @@ class TestMultiRoute:
         conn, project = self._make_connection(
             {
                 "routes": [
-                    {"method": "GET", "path": "/users"},
-                    {"method": "POST", "path": "/users"},
+                    {"methods": ["GET"], "path": "/users"},
+                    {"methods": ["POST"], "path": "/users"},
                 ]
             }
         )
@@ -287,7 +287,7 @@ class TestMultiRoute:
     def test_path_parameters_sanitized_in_name(self):
         """Path parameters {id} are sanitized to produce valid resource names."""
         conn, project = self._make_connection(
-            {"routes": [{"method": "GET", "path": "/users/{id}"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users/{id}"}]}
         )
         files = self.handler.handle(conn, project)
         route_file = next(f for f in files if "route_" in f.path)
@@ -304,7 +304,7 @@ class TestMultiRoute:
     def test_path_parameters_resource_name_sanitized(self):
         """Terraform resource name for path with params is properly sanitized."""
         conn, project = self._make_connection(
-            {"routes": [{"method": "GET", "path": "/users/{id}"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users/{id}"}]}
         )
         files = self.handler.handle(conn, project)
         route_file = next(f for f in files if "route_" in f.path)
@@ -317,9 +317,9 @@ class TestMultiRoute:
         conn, project = self._make_connection(
             {
                 "routes": [
-                    {"method": "GET", "path": "/users"},
-                    {"method": "POST", "path": "/users"},
-                    {"method": "GET", "path": "/users/{id}"},
+                    {"methods": ["GET"], "path": "/users"},
+                    {"methods": ["POST"], "path": "/users"},
+                    {"methods": ["GET"], "path": "/users/{id}"},
                 ]
             }
         )

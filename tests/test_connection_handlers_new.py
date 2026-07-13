@@ -146,7 +146,7 @@ class TestHandleApigwLambda:
     def test_single_route_generates_three_files(self):
         """APIGW→Lambda with one route produces 3 files: integration, route, permission."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         assert len(files) == 3
 
@@ -163,7 +163,7 @@ class TestHandleApigwLambda:
     def test_integration_file_path(self):
         """Integration file is placed at the correct path."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         paths = [f.path for f in files]
         assert (
@@ -174,7 +174,7 @@ class TestHandleApigwLambda:
     def test_route_file_path(self):
         """Route file is placed at the correct path."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         paths = [f.path for f in files]
         assert any("route_my-func_get_users.tf" in p for p in paths)
@@ -182,7 +182,7 @@ class TestHandleApigwLambda:
     def test_permission_file_path(self):
         """Permission file is placed at the correct path."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         paths = [f.path for f in files]
         assert (
@@ -193,7 +193,7 @@ class TestHandleApigwLambda:
     def test_route_file_contains_route_resource(self):
         """Route file contains aws_apigatewayv2_route resource."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         route_file = next(f for f in files if "route_" in f.path)
         assert "aws_apigatewayv2_route" in route_file.content
@@ -201,7 +201,7 @@ class TestHandleApigwLambda:
     def test_route_file_contains_correct_route_key(self):
         """Route file contains the correct route_key."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         route_file = next(f for f in files if "route_" in f.path)
         assert "GET /users" in route_file.content
@@ -209,7 +209,7 @@ class TestHandleApigwLambda:
     def test_permission_file_contains_permission_resource(self):
         """Permission file contains aws_lambda_permission resource."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         perm_file = next(f for f in files if "permission_" in f.path)
         assert "aws_lambda_permission" in perm_file.content
@@ -217,7 +217,7 @@ class TestHandleApigwLambda:
     def test_permission_has_apigateway_principal(self):
         """Permission resource has principal = apigateway.amazonaws.com."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         perm_file = next(f for f in files if "permission_" in f.path)
         assert "apigateway.amazonaws.com" in perm_file.content
@@ -225,7 +225,7 @@ class TestHandleApigwLambda:
     def test_integration_file_contains_integration_resource(self):
         """Integration file contains aws_apigatewayv2_integration resource."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         integration_file = next(f for f in files if "integration_" in f.path)
         assert "aws_apigatewayv2_integration" in integration_file.content
@@ -233,7 +233,7 @@ class TestHandleApigwLambda:
     def test_integration_has_aws_proxy_type(self):
         """Integration resource defaults to AWS_PROXY type."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         integration_file = next(f for f in files if "integration_" in f.path)
         assert "AWS_PROXY" in integration_file.content
@@ -241,7 +241,7 @@ class TestHandleApigwLambda:
     def test_integration_references_lambda_invoke_arn(self):
         """Integration resource references the Lambda invoke_arn."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         integration_file = next(f for f in files if "integration_" in f.path)
         assert "aws_lambda_function.my-func.invoke_arn" in integration_file.content
@@ -249,7 +249,7 @@ class TestHandleApigwLambda:
     def test_permission_has_source_arn_with_execution_arn(self):
         """Permission resource references the API Gateway execution ARN."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         perm_file = next(f for f in files if "permission_" in f.path)
         assert "execution_arn" in perm_file.content
@@ -257,7 +257,7 @@ class TestHandleApigwLambda:
     def test_permission_has_invoke_function_action(self):
         """Permission resource has action = lambda:InvokeFunction."""
         files = self._handle_apigw_lambda(
-            {"routes": [{"method": "GET", "path": "/users"}]}
+            {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         perm_file = next(f for f in files if "permission_" in f.path)
         assert "lambda:InvokeFunction" in perm_file.content
@@ -435,7 +435,7 @@ class TestHandleApigwLambdaAuthorizer:
             connection_type="triggers",
             connection_config={
                 "connection_role": "route_handler",
-                "routes": [{"method": "ANY", "path": "/$default"}],
+                "routes": [{"methods": ["ANY"], "path": "/$default"}],
             },
         )
         project = _make_project([apigw, func], [conn])
@@ -832,7 +832,7 @@ class TestTerraformReferenceConsistency:
             source_service=ServiceType.API_GATEWAY,
             target_service=ServiceType.LAMBDA,
             connection_type="triggers",
-            connection_config={"routes": [{"method": "GET", "path": "/test"}]},
+            connection_config={"routes": [{"methods": ["GET"], "path": "/test"}]},
         )
         project = _make_project([apigw, func], [conn])
         files = handler.handle(conn, project)

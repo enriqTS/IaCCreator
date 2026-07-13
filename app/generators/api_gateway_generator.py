@@ -757,68 +757,70 @@ class APIGatewayGenerator:
             # HTTP API
             if routes:
                 for route_cfg in routes:
-                    method = route_cfg.get("method", "ANY")
+                    methods = route_cfg.get("methods", ["ANY"])
                     path = route_cfg.get("path", "/")
-                    route_key = f"{method} {path}"
-                    route_name = self._sanitize_route_name(f"{method}_{path}")
-                    resource_name = f"{instance.name}_{route_name}_route"
 
-                    attrs = {
-                        "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
-                        "route_key": route_key,
-                    }
+                    for method in methods:
+                        route_key = f"{method} {path}"
+                        route_name = self._sanitize_route_name(f"{method}_{path}")
+                        resource_name = f"{instance.name}_{route_name}_route"
 
-                    # Target integration
-                    integration_name = route_cfg.get("integration_name")
-                    if integration_name and integration_name in integration_names:
-                        attrs["target"] = (
-                            f"integrations/${{aws_apigatewayv2_integration."
-                            f"{instance.name}_{integration_name}_integration.id}}"
-                        )
-
-                    # Authorization
-                    authorizer_name = route_cfg.get("authorizer_name")
-                    if authorizer_name and authorizer_name in authorizer_map:
-                        auth_cfg = authorizer_map[authorizer_name]
-                        auth_type = auth_cfg.get("type", "JWT")
-                        if auth_type in ("JWT", "COGNITO_USER_POOLS"):
-                            attrs["authorization_type"] = "JWT"
-                        elif auth_type == "REQUEST":
-                            attrs["authorization_type"] = "CUSTOM"
-                        attrs["authorizer_id"] = (
-                            f"aws_apigatewayv2_authorizer."
-                            f"{instance.name}_{authorizer_name}_authorizer.id"
-                        )
-
-                    # API key required — per-route or config-level
-                    if route_cfg.get("api_key_required") or config.api_key_required:
-                        attrs["api_key_required"] = True
-
-                    # New optional route fields from TerraformField config
-                    self._apply_route_optional_fields(attrs, route_cfg, routes, route_key, config)
-
-                    parts.append(
-                        self._r.render_resource(
-                            "aws_apigatewayv2_route", resource_name, attrs
-                        )
-                    )
-
-                    # Route response generation when route_response_key is present
-                    route_response_key = route_cfg.get("route_response_key")
-                    if route_response_key:
-                        response_resource_name = f"{instance.name}_{route_name}_route_response"
-                        response_attrs = {
+                        attrs = {
                             "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
-                            "route_id": f"aws_apigatewayv2_route.{resource_name}.id",
-                            "route_response_key": route_response_key,
+                            "route_key": route_key,
                         }
+
+                        # Target integration
+                        integration_name = route_cfg.get("integration_name")
+                        if integration_name and integration_name in integration_names:
+                            attrs["target"] = (
+                                f"integrations/${{aws_apigatewayv2_integration."
+                                f"{instance.name}_{integration_name}_integration.id}}"
+                            )
+
+                        # Authorization
+                        authorizer_name = route_cfg.get("authorizer_name")
+                        if authorizer_name and authorizer_name in authorizer_map:
+                            auth_cfg = authorizer_map[authorizer_name]
+                            auth_type = auth_cfg.get("type", "JWT")
+                            if auth_type in ("JWT", "COGNITO_USER_POOLS"):
+                                attrs["authorization_type"] = "JWT"
+                            elif auth_type == "REQUEST":
+                                attrs["authorization_type"] = "CUSTOM"
+                            attrs["authorizer_id"] = (
+                                f"aws_apigatewayv2_authorizer."
+                                f"{instance.name}_{authorizer_name}_authorizer.id"
+                            )
+
+                        # API key required — per-route or config-level
+                        if route_cfg.get("api_key_required") or config.api_key_required:
+                            attrs["api_key_required"] = True
+
+                        # New optional route fields from TerraformField config
+                        self._apply_route_optional_fields(attrs, route_cfg, routes, route_key, config)
+
                         parts.append(
                             self._r.render_resource(
-                                "aws_apigatewayv2_route_response",
-                                response_resource_name,
-                                response_attrs,
+                                "aws_apigatewayv2_route", resource_name, attrs
                             )
                         )
+
+                        # Route response generation when route_response_key is present
+                        route_response_key = route_cfg.get("route_response_key")
+                        if route_response_key:
+                            response_resource_name = f"{instance.name}_{route_name}_route_response"
+                            response_attrs = {
+                                "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                                "route_id": f"aws_apigatewayv2_route.{resource_name}.id",
+                                "route_response_key": route_response_key,
+                            }
+                            parts.append(
+                                self._r.render_resource(
+                                    "aws_apigatewayv2_route_response",
+                                    response_resource_name,
+                                    response_attrs,
+                                )
+                            )
             else:
                 # No routes configured — generate $default route
                 resource_name = f"{instance.name}_default_route"

@@ -15,7 +15,7 @@ interface ConnectionConfigPanelProps {
 }
 
 /** Keys that belong exclusively to the route_handler role */
-const ROUTE_HANDLER_KEYS = ['route_path', 'http_method'];
+const ROUTE_HANDLER_KEYS = ['route_path'];
 /** Keys that belong exclusively to the authorizer role */
 const AUTHORIZER_KEYS = ['authorizer_name', 'payload_format_version'];
 
