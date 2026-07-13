@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { SchemaField } from '@/config/connection-schemas';
 import type { ArchitectureBlock } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Check, X, Plus } from 'lucide-react';
+import { Check, X, Plus, Route } from 'lucide-react';
 
 export interface LinkedSelectFieldRendererProps {
   field: SchemaField;
@@ -156,6 +156,28 @@ export default function LinkedSelectFieldRenderer({
     [handleConfirmCreate, handleCancelCreate],
   );
 
+  // Compute routes belonging to this connection (matching target block's name)
+  const connectedRoutes = useMemo(() => {
+    if (!Array.isArray(sourceArray)) return [];
+    return sourceArray.filter(
+      (entry) => String(entry.integration_name ?? '') === targetBlock.name,
+    );
+  }, [sourceArray, targetBlock.name]);
+
+  // Format methods display for a route entry
+  const formatRouteMethods = (entry: Record<string, unknown>): string => {
+    const methods = entry.methods;
+    if (Array.isArray(methods)) {
+      return (methods as string[]).join(', ');
+    }
+    // Legacy single method field
+    const method = entry.method;
+    if (typeof method === 'string' && method.length > 0) {
+      return method;
+    }
+    return 'ANY';
+  };
+
   // Inline create mode
   if (isCreating) {
     return (
@@ -235,6 +257,35 @@ export default function LinkedSelectFieldRenderer({
           </SelectItem>
         </SelectContent>
       </Select>
+
+      {/* Routes on this connection — read-only list of all routes targeting this Lambda */}
+      {connectedRoutes.length > 0 && (
+        <div data-testid="connected-routes-list" className="mt-2 flex flex-col gap-1">
+          <div className="flex items-center gap-1.5">
+            <Route className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">
+              Routes on this connection ({connectedRoutes.length})
+            </span>
+          </div>
+          <ul className="flex flex-col gap-0.5 pl-4">
+            {connectedRoutes.map((entry, idx) => {
+              const path = String(entry[displayKey] ?? '');
+              const methods = formatRouteMethods(entry);
+              const label = `${methods} ${path}`;
+              const truncated = label.length > 40 ? label.slice(0, 37) + '...' : label;
+              return (
+                <li
+                  key={`${path}-${idx}`}
+                  className="text-xs text-foreground/80 font-mono truncate"
+                  title={label}
+                >
+                  {truncated}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
