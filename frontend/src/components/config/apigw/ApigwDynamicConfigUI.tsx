@@ -29,8 +29,8 @@ interface ApigwDynamicConfigUIProps {
 }
 
 const TABS_BY_PROTOCOL: Record<ProtocolType, string[]> = {
-  HTTP: ['Settings', 'Routes', 'Stages', 'Authorizers', 'API Keys', 'Domain'],
-  REST: ['Settings', 'Routes', 'Stages', 'Authorizers', 'API Keys', 'Domain'],
+  HTTP: ['Settings', 'Routes', 'Stages', 'Authorizers', 'Domain'],
+  REST: ['Settings', 'Routes', 'Stages', 'Authorizers', 'Domain'],
   WEBSOCKET: ['Settings', 'Expressions', 'Stages', 'Authorizers'],
 };
 
@@ -171,7 +171,7 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
   return (
     <>
       <Tabs value={effectiveTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList data-testid="apigw-tab-bar" className={cn('w-full h-auto grid gap-0', tabs.length === 4 ? 'grid-cols-4' : tabs.length === 6 ? 'grid-cols-6' : 'grid-cols-5')}>
+        <TabsList data-testid="apigw-tab-bar" className={cn('w-full h-auto grid gap-0', tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5')}>
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab}
@@ -198,10 +198,10 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
 
         <TabsContent value="Authorizers">
           <AuthorizersTab />
-        </TabsContent>
-
-        <TabsContent value="API Keys">
-          <ApiKeysTab />
+          <div className="mt-4 border-t pt-4">
+            <h4 className="mb-2 text-xs font-medium text-muted-foreground">API Keys</h4>
+            <ApiKeysTab />
+          </div>
         </TabsContent>
 
         <TabsContent value="Domain">
