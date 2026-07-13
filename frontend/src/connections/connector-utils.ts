@@ -13,7 +13,7 @@ import {
   CONNECTION_SCHEMA_REGISTRY,
   type ConnectionSchema,
   type SchemaRegistryKey,
-} from '@/config/connection-schemas';
+} from './registry';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
