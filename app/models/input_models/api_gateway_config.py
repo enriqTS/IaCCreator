@@ -227,17 +227,13 @@ class ApiGatewayConfig(BaseServiceConfig):
         None,
         group="Authorizers",
         description="Cognito User Pool endpoint URL",
-        visible_when=VisibleWhen(
-            field="authorizer_type", equals="COGNITO_USER_POOLS"
-        ),
+        visible_when=VisibleWhen(field="authorizer_type", equals="COGNITO_USER_POOLS"),
     )
     cognito_client_ids: list[str] | None = TerraformField(
         None,
         group="Authorizers",
         description="List of Cognito User Pool client IDs",
-        visible_when=VisibleWhen(
-            field="authorizer_type", equals="COGNITO_USER_POOLS"
-        ),
+        visible_when=VisibleWhen(field="authorizer_type", equals="COGNITO_USER_POOLS"),
     )
     authorizer_result_ttl_in_seconds: int | None = TerraformField(
         None,
@@ -297,6 +293,11 @@ class ApiGatewayConfig(BaseServiceConfig):
         None,
         group="Custom Domain",
         description="Version of the truststore for mutual TLS authentication",
+    )
+    mutual_tls_authentication: dict | None = TerraformField(
+        None,
+        group="Custom Domain",
+        description="Mutual TLS authentication configuration",
     )
 
     # ─── Integrations ──────────────────────────────────────────────────────
@@ -444,6 +445,7 @@ class ApiGatewayConfig(BaseServiceConfig):
     routes: list[dict] | None = None
     stages: list[dict] | None = None
     authorizers: list[dict] | None = None
+    api_keys: list[dict] | None = None
     custom_domain: dict | None = None
     vpc_links: list[dict] | None = None
     integrations: list[dict] | None = None
@@ -499,6 +501,7 @@ class ApiGatewayConfig(BaseServiceConfig):
         "security_policy",
         "mutual_tls_truststore_uri",
         "mutual_tls_truststore_version",
+        "mutual_tls_authentication",
         # Integrations
         "integration_type",
         "integration_uri",
