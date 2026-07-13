@@ -420,7 +420,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
       set((state) => {
         const next = new Map(state.canvasObjects);
-        let nextConnectors = new Map(state.connectors);
+        const nextConnectors = new Map(state.connectors);
         const nextGroups = new Map(state.objectGroups);
         const nextSelectedObjectIds = new Set(state.selectedObjectIds);
 

@@ -25,8 +25,26 @@ class LambdaGenerator:
             return instance.config  # type: ignore[return-value]
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        """Generate lambda.tf with aws_lambda_function resource."""
+        """Generate lambda.tf with aws_lambda_function and related resources."""
         config = self._resolve_config(instance)
+
+        parts = [self._generate_function_resource(instance, config)]
+
+        # Additional resources
+        function_url_tf = self._generate_function_url(instance, config)
+        if function_url_tf:
+            parts.append(function_url_tf)
+
+        provisioned_tf = self._generate_provisioned_concurrency(instance, config)
+        if provisioned_tf:
+            parts.append(provisioned_tf)
+
+        return "\n".join(parts)
+
+    def _generate_function_resource(
+        self, instance: ResourceInstanceIR, config: LambdaConfig
+    ) -> str:
+        """Generate the main aws_lambda_function resource block."""
         attrs: dict = {
             "function_name": "var.function_name",
             "role": f"aws_iam_role.{instance.name}_role.arn",
@@ -146,7 +164,76 @@ class LambdaGenerator:
         if config.code_signing_config_arn is not None:
             attrs["code_signing_config_arn"] = "var.code_signing_config_arn"
 
+        # Runtime management config block
+        if config.runtime_management_config is not None:
+            rmc_block: dict = {}
+            update_on = config.runtime_management_config.get("update_runtime_on")
+            if update_on:
+                rmc_block["update_runtime_on"] = "var.runtime_management_update_runtime_on"
+            if update_on == "Manual":
+                rmc_block["runtime_version_arn"] = "var.runtime_management_runtime_version_arn"
+            if rmc_block:
+                attrs["runtime_management_config"] = rmc_block
+
         return self._r.render_resource("aws_lambda_function", instance.name, attrs)
+
+    def _generate_function_url(
+        self, instance: ResourceInstanceIR, config: LambdaConfig
+    ) -> str:
+        """Emit aws_lambda_function_url resource when function_url_config is set."""
+        if config.function_url_config is None:
+            return ""
+
+        attrs: dict = {
+            "function_name": f"aws_lambda_function.{instance.name}.function_name",
+            "authorization_type": config.function_url_config.get(
+                "authorization_type", "NONE"
+            ),
+        }
+
+        # Optional CORS block
+        cors_config = config.function_url_config.get("cors")
+        if cors_config and isinstance(cors_config, dict):
+            cors_block: dict = {}
+            if "allow_origins" in cors_config:
+                cors_block["allow_origins"] = cors_config["allow_origins"]
+            if "allow_methods" in cors_config:
+                cors_block["allow_methods"] = cors_config["allow_methods"]
+            if "allow_headers" in cors_config:
+                cors_block["allow_headers"] = cors_config["allow_headers"]
+            if "expose_headers" in cors_config:
+                cors_block["expose_headers"] = cors_config["expose_headers"]
+            if "max_age" in cors_config:
+                cors_block["max_age"] = cors_config["max_age"]
+            if "allow_credentials" in cors_config:
+                cors_block["allow_credentials"] = cors_config["allow_credentials"]
+            if cors_block:
+                attrs["cors"] = cors_block
+
+        return self._r.render_resource(
+            "aws_lambda_function_url", f"{instance.name}_url", attrs
+        )
+
+    def _generate_provisioned_concurrency(
+        self, instance: ResourceInstanceIR, config: LambdaConfig
+    ) -> str:
+        """Emit aws_lambda_provisioned_concurrency_config resource when configured."""
+        if config.provisioned_concurrency_config is None:
+            return ""
+
+        attrs: dict = {
+            "function_name": f"aws_lambda_function.{instance.name}.function_name",
+            "qualifier": f"aws_lambda_function.{instance.name}.version",
+            "provisioned_concurrent_executions": config.provisioned_concurrency_config.get(
+                "provisioned_concurrent_executions", 1
+            ),
+        }
+
+        return self._r.render_resource(
+            "aws_lambda_provisioned_concurrency_config",
+            f"{instance.name}_provisioned",
+            attrs,
+        )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Lambda instance."""
@@ -489,10 +576,35 @@ class LambdaGenerator:
                     "Tags to apply to the Lambda function",
                 )
             )
+
+        # Runtime management config
+        if config.runtime_management_config is not None:
+            update_on = config.runtime_management_config.get("update_runtime_on")
+            if update_on:
+                parts.append(
+                    self._r.render_variable(
+                        "runtime_management_update_runtime_on",
+                        "string",
+                        "Runtime update mode (Auto, Manual, or FunctionUpdate)",
+                        default=update_on,
+                    )
+                )
+            if update_on == "Manual":
+                arn = config.runtime_management_config.get("runtime_version_arn", "")
+                parts.append(
+                    self._r.render_variable(
+                        "runtime_management_runtime_version_arn",
+                        "string",
+                        "Runtime version ARN for manual runtime management",
+                        default=arn if arn else None,
+                    )
+                )
+
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate outputs.tf for a Lambda instance."""
+        config = self._resolve_config(instance)
         parts = [
             self._r.render_output(
                 "function_arn",
@@ -505,6 +617,16 @@ class LambdaGenerator:
                 "Name of the Lambda function",
             ),
         ]
+
+        if config.function_url_config is not None:
+            parts.append(
+                self._r.render_output(
+                    "function_url",
+                    f"aws_lambda_function_url.{instance.name}_url.function_url",
+                    "Lambda Function URL endpoint",
+                )
+            )
+
         return "\n".join(parts)
 
     def generate_iam_tf(self, instance: ResourceInstanceIR) -> str:

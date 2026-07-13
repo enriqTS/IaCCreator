@@ -357,7 +357,7 @@ class LambdaConfig(BaseServiceConfig):
     # ── Validators ────────────────────────────────────────────────────────
 
     @model_validator(mode="after")
-    def validate_zip_requires_handler_runtime(self) -> "LambdaConfig":
+    def validate_zip_requires_handler_runtime(self) -> LambdaConfig:
         """handler and runtime are required when package_type is Zip or unset."""
         if self.package_type in (None, "Zip"):
             if not self.handler:
@@ -371,15 +371,14 @@ class LambdaConfig(BaseServiceConfig):
         return self
 
     @model_validator(mode="after")
-    def validate_provisioned_concurrency_requires_publish(self) -> "LambdaConfig":
+    def validate_provisioned_concurrency_requires_publish(self) -> LambdaConfig:
         """provisioned_concurrency_config requires publish = True."""
-        if self.provisioned_concurrency_config is not None:
-            if self.publish is not True:
-                raise ValueError("Provisioned concurrency requires publish = true")
+        if self.provisioned_concurrency_config is not None and self.publish is not True:
+            raise ValueError("Provisioned concurrency requires publish = true")
         return self
 
     @model_validator(mode="after")
-    def validate_runtime_management_manual_requires_arn(self) -> "LambdaConfig":
+    def validate_runtime_management_manual_requires_arn(self) -> LambdaConfig:
         """Manual runtime management requires runtime_version_arn."""
         if self.runtime_management_config is not None:
             update_on = self.runtime_management_config.get("update_runtime_on")
