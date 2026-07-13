@@ -12,21 +12,26 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     { name: 'function_name', type: 'string', description: 'Name of the Lambda function', group: 'General' },
     { name: 'handler', type: 'string', description: 'Lambda function handler (module.function)', default: 'lambda_function.lambda_handler', group: 'General' },
     {
-      name: 'runtime', type: 'string', description: 'Lambda function runtime', default: 'python3.12', group: 'General',
+      name: 'runtime', type: 'string', description: 'Lambda function runtime', default: 'python3.14', group: 'General',
       options: [
+        { value: 'python3.14', label: 'Python 3.14', group: 'Python' },
+        { value: 'python3.13', label: 'Python 3.13', group: 'Python' },
         { value: 'python3.12', label: 'Python 3.12', group: 'Python' },
         { value: 'python3.11', label: 'Python 3.11', group: 'Python' },
         { value: 'python3.10', label: 'Python 3.10', group: 'Python' },
-        { value: 'python3.9', label: 'Python 3.9', group: 'Python' },
-        { value: 'nodejs20.x', label: 'Node.js 20.x', group: 'Node.js' },
-        { value: 'nodejs18.x', label: 'Node.js 18.x', group: 'Node.js' },
+        { value: 'nodejs24.x', label: 'Node.js 24.x', group: 'Node.js' },
+        { value: 'nodejs22.x', label: 'Node.js 22.x', group: 'Node.js' },
+        { value: 'java25', label: 'Java 25', group: 'Java' },
         { value: 'java21', label: 'Java 21', group: 'Java' },
         { value: 'java17', label: 'Java 17', group: 'Java' },
         { value: 'java11', label: 'Java 11', group: 'Java' },
+        { value: 'java8.al2', label: 'Java 8 (AL2)', group: 'Java' },
+        { value: 'dotnet10', label: '.NET 10', group: '.NET' },
+        { value: 'dotnet9', label: '.NET 9 (container only)', group: '.NET' },
         { value: 'dotnet8', label: '.NET 8', group: '.NET' },
-        { value: 'dotnet6', label: '.NET 6', group: '.NET' },
+        { value: 'ruby4.0', label: 'Ruby 4.0', group: 'Ruby' },
+        { value: 'ruby3.4', label: 'Ruby 3.4', group: 'Ruby' },
         { value: 'ruby3.3', label: 'Ruby 3.3', group: 'Ruby' },
-        { value: 'ruby3.2', label: 'Ruby 3.2', group: 'Ruby' },
         { value: 'provided.al2023', label: 'Custom Runtime (AL2023)', group: 'Custom' },
         { value: 'provided.al2', label: 'Custom Runtime (AL2)', group: 'Custom' },
       ],
@@ -43,13 +48,78 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         { value: 'arm64', label: 'ARM64 (Graviton2)' },
       ],
     },
+    {
+      name: 'snap_start_apply_on', type: 'string', description: 'SnapStart setting for the function', group: 'Performance',
+      options: [
+        { value: 'PublishedVersions', label: 'Published Versions' },
+      ],
+    },
+    { name: 'provisioned_concurrency_config', type: 'map', description: 'Provisioned concurrency configuration', group: 'Performance' },
+    {
+      name: 'package_type', type: 'string', description: 'Lambda deployment package type', group: 'Deployment',
+      options: [
+        { value: 'Zip', label: 'Zip' },
+        { value: 'Image', label: 'Container Image' },
+      ],
+    },
+    { name: 'image_uri', type: 'string', description: 'ECR image URI for container-based Lambda', group: 'Deployment', visible_when: { field: 'package_type', equals: 'Image' } },
+    { name: 'image_config', type: 'map', description: 'Container image configuration overrides', group: 'Deployment', visible_when: { field: 'package_type', equals: 'Image' } },
     { name: 'publish', type: 'bool', description: 'Whether to publish creation/change as a new Lambda function version', default: false, group: 'Deployment' },
     { name: 'layers', type: 'list', description: 'List of Lambda layer ARNs to attach to the function', group: 'Deployment' },
+    { name: 's3_bucket', type: 'string', description: 'S3 bucket containing the function deployment package', group: 'Deployment' },
+    { name: 's3_key', type: 'string', description: 'S3 object key of the function deployment package', group: 'Deployment' },
+    { name: 's3_object_version', type: 'string', description: 'S3 object version of the function deployment package', group: 'Deployment' },
+    { name: 'source_code_hash', type: 'string', description: 'Base64-encoded SHA256 hash of the deployment package', group: 'Deployment' },
+    { name: 'filename', type: 'string', description: 'Path to the function deployment package within the local filesystem', group: 'Deployment' },
+    { name: 'vpc_subnet_ids', type: 'list', description: 'List of subnet IDs for VPC configuration', group: 'VPC' },
+    { name: 'vpc_security_group_ids', type: 'list', description: 'List of security group IDs for VPC configuration', group: 'VPC' },
+    { name: 'kms_key_arn', type: 'string', description: 'KMS key ARN for environment variable encryption', group: 'Encryption' },
+    {
+      name: 'tracing_mode', type: 'string', description: 'X-Ray tracing mode for the function', group: 'Observability',
+      options: [
+        { value: 'Active', label: 'Active' },
+        { value: 'PassThrough', label: 'Pass Through' },
+      ],
+    },
+    {
+      name: 'logging_log_format', type: 'string', description: 'Log format for the function (Text or JSON)', group: 'Observability',
+      options: [
+        { value: 'Text', label: 'Text' },
+        { value: 'JSON', label: 'JSON' },
+      ],
+    },
+    { name: 'logging_log_group', type: 'string', description: 'CloudWatch log group for the function', group: 'Observability' },
+    {
+      name: 'logging_application_log_level', type: 'string', description: 'Application log level for the function', group: 'Observability',
+      options: [
+        { value: 'TRACE', label: 'TRACE' },
+        { value: 'DEBUG', label: 'DEBUG' },
+        { value: 'INFO', label: 'INFO' },
+        { value: 'WARN', label: 'WARN' },
+        { value: 'ERROR', label: 'ERROR' },
+        { value: 'FATAL', label: 'FATAL' },
+      ],
+    },
+    {
+      name: 'logging_system_log_level', type: 'string', description: 'System log level for the function', group: 'Observability',
+      options: [
+        { value: 'DEBUG', label: 'DEBUG' },
+        { value: 'INFO', label: 'INFO' },
+        { value: 'WARN', label: 'WARN' },
+      ],
+    },
+    { name: 'dead_letter_target_arn', type: 'string', description: 'ARN of the dead letter queue (SQS or SNS) for failed invocations', group: 'Error Handling' },
+    { name: 'file_system_arn', type: 'string', description: 'ARN of the EFS access point for the function', group: 'Storage' },
+    { name: 'file_system_local_mount_path', type: 'string', description: 'Local mount path for the EFS file system (must start with /mnt/)', group: 'Storage', validation: { pattern: '^/mnt/', pattern_description: 'Must start with /mnt/' } },
+    { name: 'code_signing_config_arn', type: 'string', description: 'ARN of the code signing configuration for the function', group: 'Security' },
+    { name: 'runtime_management_config', type: 'map', description: 'Runtime management configuration', group: 'Runtime Management' },
+    { name: 'function_url_config', type: 'map', description: 'Lambda Function URL configuration', group: 'URL Config' },
     { name: 'environment_variables', type: 'map', description: 'Environment variables for the Lambda function', group: 'Metadata' },
     { name: 'tags', type: 'map', description: 'Tags to apply to the Lambda function', group: 'Metadata' },
   ],
   s3: [
     { name: 'bucket_name', type: 'string', description: 'Name of the S3 bucket', group: 'General' },
+    { name: 'bucket_prefix', type: 'string', description: 'Creates a unique bucket name beginning with the specified prefix', group: 'General' },
     {
       name: 'versioning', type: 'string', description: 'Versioning status for the S3 bucket', default: 'Enabled', group: 'General',
       options: [
@@ -67,7 +137,224 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         { value: 'Suspended', label: 'Suspended' },
       ],
     },
+    {
+      name: 'sse_algorithm', type: 'string', description: 'Server-side encryption algorithm to use', group: 'Encryption',
+      options: [
+        { value: 'AES256', label: 'AES256' },
+        { value: 'aws:kms', label: 'aws:kms' },
+        { value: 'aws:kms:dsse', label: 'aws:kms:dsse' },
+      ],
+    },
+    { name: 'sse_kms_key_id', type: 'string', description: 'ARN of the KMS key to use for server-side encryption', group: 'Encryption', visible_when: { field: 'sse_algorithm', equals: 'aws:kms' } },
+    { name: 'sse_bucket_key_enabled', type: 'bool', description: 'Whether to enable S3 Bucket Key for SSE-KMS', group: 'Encryption' },
+    { name: 'lifecycle_rules', type: 'list', description: 'Lifecycle rules for object management', group: 'Lifecycle' },
+    { name: 'cors_allowed_headers', type: 'list', description: 'List of headers allowed in CORS requests', group: 'CORS' },
+    {
+      name: 'cors_allowed_methods', type: 'list', description: 'List of HTTP methods allowed in CORS requests', group: 'CORS',
+      options: [
+        { value: 'GET', label: 'GET' },
+        { value: 'PUT', label: 'PUT' },
+        { value: 'POST', label: 'POST' },
+        { value: 'DELETE', label: 'DELETE' },
+        { value: 'HEAD', label: 'HEAD' },
+      ],
+    },
+    { name: 'cors_allowed_origins', type: 'list', description: 'List of origins allowed to make CORS requests', group: 'CORS' },
+    { name: 'cors_expose_headers', type: 'list', description: 'List of headers exposed to the browser in CORS responses', group: 'CORS' },
+    { name: 'cors_max_age_seconds', type: 'number', description: 'Time in seconds the browser can cache the preflight response', group: 'CORS' },
+    { name: 'logging_target_bucket', type: 'string', description: 'Name of the bucket to receive access logs', group: 'Logging' },
+    { name: 'logging_target_prefix', type: 'string', description: 'Prefix for access log object keys', group: 'Logging' },
+    { name: 'website_index_document', type: 'string', description: 'Name of the index document for the website', group: 'Website' },
+    { name: 'website_error_document', type: 'string', description: 'Name of the error document for the website', group: 'Website' },
+    { name: 'website_redirect_all_requests_to', type: 'string', description: 'Hostname to redirect all website requests to', group: 'Website' },
+    { name: 'block_public_acls', type: 'bool', description: 'Whether to block public ACLs for the bucket', default: true, group: 'Public Access' },
+    { name: 'block_public_policy', type: 'bool', description: 'Whether to block public bucket policies', default: true, group: 'Public Access' },
+    { name: 'ignore_public_acls', type: 'bool', description: 'Whether to ignore public ACLs for the bucket', default: true, group: 'Public Access' },
+    { name: 'restrict_public_buckets', type: 'bool', description: 'Whether to restrict public bucket policies', default: true, group: 'Public Access' },
+    { name: 'notification_lambda_arn', type: 'string', description: 'ARN of the Lambda function for bucket notifications', group: 'Notifications' },
+    { name: 'notification_lambda_events', type: 'list', description: 'S3 events that trigger the Lambda notification', group: 'Notifications' },
+    { name: 'notification_sqs_arn', type: 'string', description: 'ARN of the SQS queue for bucket notifications', group: 'Notifications' },
+    { name: 'notification_sqs_events', type: 'list', description: 'S3 events that trigger the SQS notification', group: 'Notifications' },
+    { name: 'notification_sns_arn', type: 'string', description: 'ARN of the SNS topic for bucket notifications', group: 'Notifications' },
+    { name: 'notification_sns_events', type: 'list', description: 'S3 events that trigger the SNS notification', group: 'Notifications' },
+    { name: 'replication_role_arn', type: 'string', description: 'ARN of the IAM role for S3 replication', group: 'Replication' },
+    { name: 'replication_destination_bucket', type: 'string', description: 'ARN of the destination bucket for replication', group: 'Replication' },
+    {
+      name: 'replication_destination_storage_class', type: 'string', description: 'Storage class for replicated objects in the destination bucket', group: 'Replication',
+      options: [
+        { value: 'STANDARD', label: 'Standard' },
+        { value: 'REDUCED_REDUNDANCY', label: 'Reduced Redundancy' },
+        { value: 'STANDARD_IA', label: 'Standard-IA' },
+        { value: 'ONEZONE_IA', label: 'One Zone-IA' },
+        { value: 'INTELLIGENT_TIERING', label: 'Intelligent-Tiering' },
+        { value: 'GLACIER', label: 'Glacier Flexible Retrieval' },
+        { value: 'GLACIER_IR', label: 'Glacier Instant Retrieval' },
+        { value: 'DEEP_ARCHIVE', label: 'Glacier Deep Archive' },
+      ],
+    },
     { name: 'tags', type: 'map', description: 'Tags to apply to the S3 bucket', group: 'Metadata' },
+  ],
+  'api-gateway': [
+    { name: 'api_name', type: 'string', description: 'Name of the API Gateway', group: 'General' },
+    {
+      name: 'protocol_type', type: 'string', description: 'API protocol type', group: 'General',
+      options: [
+        { value: 'HTTP', label: 'HTTP' },
+        { value: 'WEBSOCKET', label: 'WebSocket' },
+      ],
+    },
+    { name: 'description', type: 'string', description: 'Description of the API', group: 'General' },
+    { name: 'api_key_selection_expression', type: 'string', description: 'API key selection expression for the API', group: 'General' },
+    {
+      name: 'ip_address_type', type: 'string', description: 'IP address type for the API endpoint', group: 'General',
+      options: [
+        { value: 'ipv4', label: 'IPv4' },
+        { value: 'dualstack', label: 'Dualstack (IPv4 + IPv6)' },
+      ],
+    },
+    { name: 'version', type: 'string', description: 'Version identifier for the API', group: 'General' },
+    { name: 'body', type: 'string', description: 'OpenAPI specification body for the API', group: 'General' },
+    { name: 'fail_on_warnings', type: 'bool', description: 'Whether to roll back the API creation when a warning is encountered', group: 'General' },
+    {
+      name: 'route_method', type: 'string', description: 'HTTP method for the route', default: 'ANY', group: 'Routes',
+      options: [
+        { value: 'GET', label: 'GET' },
+        { value: 'POST', label: 'POST' },
+        { value: 'PUT', label: 'PUT' },
+        { value: 'DELETE', label: 'DELETE' },
+        { value: 'PATCH', label: 'PATCH' },
+        { value: 'HEAD', label: 'HEAD' },
+        { value: 'OPTIONS', label: 'OPTIONS' },
+        { value: 'ANY', label: 'ANY' },
+      ],
+    },
+    { name: 'route_path', type: 'string', description: 'Route path (e.g., /users/{id})', group: 'Routes' },
+    { name: 'route_selection_expression', type: 'string', description: 'Route selection expression for WebSocket APIs', group: 'Routes', visible_when: { field: 'protocol_type', equals: 'WEBSOCKET' } },
+    {
+      name: 'authorization_type', type: 'string', description: 'Authorization type for the route', group: 'Routes',
+      options: [
+        { value: 'NONE', label: 'None' },
+        { value: 'JWT', label: 'JWT' },
+        { value: 'AWS_IAM', label: 'AWS IAM' },
+        { value: 'CUSTOM', label: 'Custom' },
+      ],
+    },
+    { name: 'authorization_scopes', type: 'list', description: 'Authorization scopes for the route', group: 'Routes' },
+    { name: 'operation_name', type: 'string', description: 'Operation name for the route', group: 'Routes' },
+    { name: 'model_selection_expression', type: 'string', description: 'Model selection expression for the route', group: 'Routes' },
+    { name: 'route_response_selection_expression', type: 'string', description: 'Route response selection expression', group: 'Routes' },
+    { name: 'stage_name', type: 'string', description: 'Name of the deployment stage (e.g., $default, dev, prod)', group: 'Stages' },
+    { name: 'auto_deploy', type: 'bool', description: 'Whether to auto-deploy changes to this stage', default: true, group: 'Stages' },
+    { name: 'stage_variables', type: 'map', description: 'Stage variables as key-value pairs (max 50 entries)', group: 'Stages' },
+    { name: 'access_log_destination_arn', type: 'string', description: 'ARN of the CloudWatch log group for access logging', group: 'Stages' },
+    { name: 'access_log_format', type: 'string', description: 'Access log format string for the stage', group: 'Stages' },
+    { name: 'default_route_data_trace_enabled', type: 'bool', description: 'Whether data trace logging is enabled for the default route', group: 'Stages' },
+    { name: 'default_route_detailed_metrics_enabled', type: 'bool', description: 'Whether detailed metrics are enabled for the default route', group: 'Stages' },
+    {
+      name: 'default_route_logging_level', type: 'string', description: 'Logging level for the default route', group: 'Stages',
+      options: [
+        { value: 'ERROR', label: 'ERROR' },
+        { value: 'INFO', label: 'INFO' },
+        { value: 'OFF', label: 'OFF' },
+      ],
+    },
+    { name: 'default_route_throttling_burst_limit', type: 'number', description: 'Throttling burst limit for the default route', group: 'Stages' },
+    { name: 'default_route_throttling_rate_limit', type: 'number', description: 'Throttling rate limit for the default route', group: 'Stages' },
+    {
+      name: 'authorizer_type', type: 'string', description: 'Type of authorizer to attach to the API', group: 'Authorizers',
+      options: [
+        { value: 'JWT', label: 'JWT' },
+        { value: 'REQUEST', label: 'Lambda (REQUEST)' },
+        { value: 'COGNITO_USER_POOLS', label: 'Cognito User Pools' },
+      ],
+    },
+    { name: 'jwt_issuer', type: 'string', description: 'Issuer URL for the JWT authorizer', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'JWT' } },
+    { name: 'jwt_audience', type: 'string', description: 'Audience value(s) for the JWT authorizer', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'JWT' } },
+    { name: 'lambda_authorizer_uri', type: 'string', description: 'Lambda function invoke ARN for the REQUEST authorizer', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'REQUEST' } },
+    {
+      name: 'authorizer_payload_format_version', type: 'string', description: 'Payload format version for the Lambda authorizer', group: 'Authorizers',
+      options: [
+        { value: '1.0', label: '1.0' },
+        { value: '2.0', label: '2.0' },
+      ],
+      visible_when: { field: 'authorizer_type', equals: 'REQUEST' },
+    },
+    { name: 'cognito_user_pool_endpoint', type: 'string', description: 'Cognito User Pool endpoint URL', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'COGNITO_USER_POOLS' } },
+    { name: 'cognito_client_ids', type: 'list', description: 'List of Cognito User Pool client IDs', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'COGNITO_USER_POOLS' } },
+    { name: 'authorizer_result_ttl_in_seconds', type: 'number', description: 'Time to live (TTL) for cached authorizer results in seconds', group: 'Authorizers', validation: { min: 0, max: 3600 } },
+    { name: 'enable_simple_responses', type: 'bool', description: 'Whether to enable simple responses for the authorizer', group: 'Authorizers' },
+    { name: 'authorizer_credentials_arn', type: 'string', description: 'Credentials ARN for the authorizer', group: 'Authorizers' },
+    { name: 'identity_sources', type: 'list', description: 'Identity sources for the authorizer', group: 'Authorizers' },
+    { name: 'custom_domain_name', type: 'string', description: 'Custom domain name for the API (e.g., api.example.com)', group: 'Custom Domain' },
+    { name: 'certificate_arn', type: 'string', description: 'ARN of the ACM certificate for the custom domain', group: 'Custom Domain' },
+    {
+      name: 'endpoint_type', type: 'string', description: 'Endpoint type for the custom domain', group: 'Custom Domain',
+      options: [
+        { value: 'REGIONAL', label: 'Regional' },
+      ],
+    },
+    {
+      name: 'security_policy', type: 'string', description: 'TLS security policy for the custom domain', group: 'Custom Domain',
+      options: [
+        { value: 'TLS_1_2', label: 'TLS 1.2' },
+      ],
+    },
+    { name: 'mutual_tls_truststore_uri', type: 'string', description: 'S3 URI of the truststore for mutual TLS authentication', group: 'Custom Domain' },
+    { name: 'mutual_tls_truststore_version', type: 'string', description: 'Version of the truststore for mutual TLS authentication', group: 'Custom Domain' },
+    { name: 'mutual_tls_authentication', type: 'map', description: 'Mutual TLS authentication configuration', group: 'Custom Domain' },
+    {
+      name: 'integration_type', type: 'string', description: 'Type of backend integration', group: 'Integrations',
+      options: [
+        { value: 'AWS_PROXY', label: 'AWS Lambda (AWS_PROXY)' },
+        { value: 'HTTP_PROXY', label: 'HTTP Proxy (HTTP_PROXY)' },
+        { value: 'HTTP', label: 'HTTP Custom (HTTP)' },
+      ],
+    },
+    { name: 'integration_uri', type: 'string', description: 'URI of the integration target', group: 'Integrations' },
+    { name: 'integration_method', type: 'string', description: 'HTTP method for the integration (required for HTTP_PROXY and HTTP)', group: 'Integrations', visible_when: { field: 'integration_type', equals: 'HTTP_PROXY' } },
+    {
+      name: 'connection_type', type: 'string', description: 'Connection type for the integration', group: 'Integrations',
+      options: [
+        { value: 'INTERNET', label: 'Internet' },
+        { value: 'VPC_LINK', label: 'VPC Link' },
+      ],
+    },
+    { name: 'connection_id', type: 'string', description: 'Connection ID for VPC link integrations', group: 'Integrations' },
+    {
+      name: 'content_handling_strategy', type: 'string', description: 'Content handling strategy for the integration', group: 'Integrations',
+      options: [
+        { value: 'CONVERT_TO_BINARY', label: 'Convert to Binary' },
+        { value: 'CONVERT_TO_TEXT', label: 'Convert to Text' },
+      ],
+    },
+    { name: 'credentials_arn', type: 'string', description: 'Credentials ARN for the integration', group: 'Integrations' },
+    {
+      name: 'passthrough_behavior', type: 'string', description: 'Passthrough behavior for the integration', group: 'Integrations',
+      options: [
+        { value: 'WHEN_NO_MATCH', label: 'When No Match' },
+        { value: 'WHEN_NO_TEMPLATES', label: 'When No Templates' },
+        { value: 'NEVER', label: 'Never' },
+      ],
+    },
+    {
+      name: 'payload_format_version', type: 'string', description: 'Payload format version for the integration', group: 'Integrations',
+      options: [
+        { value: '1.0', label: '1.0' },
+        { value: '2.0', label: '2.0' },
+      ],
+    },
+    { name: 'timeout_milliseconds', type: 'number', description: 'Integration timeout in milliseconds', group: 'Integrations', validation: { min: 50, max: 30000 } },
+    { name: 'tls_server_name_to_verify', type: 'string', description: 'TLS server name to verify for the integration', group: 'Integrations' },
+    { name: 'integration_subtype', type: 'string', description: 'Integration subtype for AWS service integrations', group: 'Integrations' },
+    { name: 'throttling_burst_limit', type: 'number', description: 'Maximum number of concurrent requests (burst)', group: 'Rate Limiting', validation: { min: 1, max: 5000 } },
+    { name: 'throttling_rate_limit', type: 'number', description: 'Maximum number of requests per second (steady-state)', group: 'Rate Limiting', validation: { min: 1.0, max: 10000.0 } },
+    { name: 'vpc_link_name', type: 'string', description: 'Name of the VPC link for private integrations', group: 'VPC Link' },
+    { name: 'vpc_link_subnet_ids', type: 'list', description: 'List of subnet IDs for the VPC link (1-3 entries)', group: 'VPC Link' },
+    { name: 'vpc_link_security_group_ids', type: 'list', description: 'List of security group IDs for the VPC link (1-5 entries)', group: 'VPC Link' },
+    { name: 'cors_configuration', type: 'map', description: 'CORS configuration for the API', group: 'Metadata' },
+    { name: 'disable_execute_api_endpoint', type: 'bool', description: 'Disable the default execute-api endpoint', default: false, group: 'Metadata' },
+    { name: 'api_key_required', type: 'bool', description: 'Whether API key is required for routes', default: false, group: 'Metadata' },
+    { name: 'tags', type: 'map', description: 'Tags to apply to the API Gateway', group: 'Metadata' },
   ],
   dynamodb: [
     { name: 'table_name', type: 'string', description: 'Name of the DynamoDB table', group: 'General' },
@@ -87,7 +374,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     },
     { name: 'hash_key', type: 'string', description: 'Attribute name for the partition (hash) key', group: 'Key Schema' },
     {
-      name: 'hash_key_type', type: 'string', description: 'Attribute type for the partition (hash) key', default: 'S', group: 'Key Schema',
+      name: 'hash_key_type', type: 'string', description: 'Attribute type for the partition (hash) key', group: 'Key Schema',
       options: [
         { value: 'S', label: 'String' },
         { value: 'N', label: 'Number' },
@@ -105,90 +392,29 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     },
     { name: 'read_capacity', type: 'number', description: 'Provisioned read capacity units', default: 5, group: 'Capacity', validation: { min: 1, max: 40000 }, visible_when: { field: 'billing_mode', equals: 'PROVISIONED' } },
     { name: 'write_capacity', type: 'number', description: 'Provisioned write capacity units', default: 5, group: 'Capacity', validation: { min: 1, max: 40000 }, visible_when: { field: 'billing_mode', equals: 'PROVISIONED' } },
+    { name: 'on_demand_max_read_request_units', type: 'number', description: 'Maximum read request units for on-demand capacity mode', group: 'Capacity', visible_when: { field: 'billing_mode', equals: 'PAY_PER_REQUEST' } },
+    { name: 'on_demand_max_write_request_units', type: 'number', description: 'Maximum write request units for on-demand capacity mode', group: 'Capacity', visible_when: { field: 'billing_mode', equals: 'PAY_PER_REQUEST' } },
+    { name: 'stream_enabled', type: 'bool', description: 'Enable DynamoDB Streams on the table', group: 'Streams' },
+    {
+      name: 'stream_view_type', type: 'string', description: 'Type of information written to the stream', group: 'Streams',
+      options: [
+        { value: 'NEW_IMAGE', label: 'New Image' },
+        { value: 'OLD_IMAGE', label: 'Old Image' },
+        { value: 'NEW_AND_OLD_IMAGES', label: 'New and Old Images' },
+        { value: 'KEYS_ONLY', label: 'Keys Only' },
+      ],
+      visible_when: { field: 'stream_enabled', equals: true },
+    },
+    { name: 'ttl_enabled', type: 'bool', description: 'Enable Time to Live (TTL) for the table', group: 'TTL' },
+    { name: 'ttl_attribute_name', type: 'string', description: 'Name of the TTL attribute', group: 'TTL', visible_when: { field: 'ttl_enabled', equals: true } },
+    { name: 'global_secondary_indexes', type: 'list', description: 'List of global secondary index definitions', group: 'Indexes' },
+    { name: 'local_secondary_indexes', type: 'list', description: 'List of local secondary index definitions', group: 'Indexes' },
+    { name: 'server_side_encryption_enabled', type: 'bool', description: 'Enable server-side encryption with a KMS key', group: 'Encryption' },
+    { name: 'server_side_encryption_kms_key_arn', type: 'string', description: 'ARN of the KMS key for server-side encryption', group: 'Encryption', visible_when: { field: 'server_side_encryption_enabled', equals: true } },
+    { name: 'replica_regions', type: 'list', description: 'List of regions for global table replicas', group: 'Global Tables' },
     { name: 'tags', type: 'map', description: 'Tags to apply to the DynamoDB table', group: 'Metadata' },
     { name: 'point_in_time_recovery_enabled', type: 'bool', description: 'Enable point-in-time recovery for the table', default: false, group: 'Metadata' },
     { name: 'deletion_protection_enabled', type: 'bool', description: 'Enable deletion protection for the table', default: false, group: 'Metadata' },
-  ],
-  'api-gateway': [
-    // ─── General ───────────────────────────────────────────────────
-    { name: 'api_name', type: 'string', description: 'Name of the API Gateway', group: 'General' },
-    {
-      name: 'protocol_type', type: 'string', description: 'API protocol type', default: 'HTTP', group: 'General',
-      options: [
-        { value: 'HTTP', label: 'HTTP' },
-        { value: 'WEBSOCKET', label: 'WebSocket' },
-        { value: 'REST', label: 'REST' },
-      ],
-    },
-    { name: 'description', type: 'string', description: 'Description of the API', group: 'General' },
-    // ─── Routes ───────────────────────────────────────────────────
-    {
-      name: 'route_method', type: 'string', description: 'HTTP method for the route', default: 'ANY', group: 'Routes',
-      options: [
-        { value: 'GET', label: 'GET' },
-        { value: 'POST', label: 'POST' },
-        { value: 'PUT', label: 'PUT' },
-        { value: 'DELETE', label: 'DELETE' },
-        { value: 'PATCH', label: 'PATCH' },
-        { value: 'HEAD', label: 'HEAD' },
-        { value: 'OPTIONS', label: 'OPTIONS' },
-        { value: 'ANY', label: 'ANY' },
-      ],
-    },
-    { name: 'route_path', type: 'string', description: 'Route path (e.g., /users/{id})', group: 'Routes' },
-    { name: 'route_selection_expression', type: 'string', description: 'Route selection expression for WebSocket APIs', group: 'Routes', visible_when: { field: 'protocol_type', equals: 'WEBSOCKET' } },
-    // ─── Stages ───────────────────────────────────────────────────
-    { name: 'stage_name', type: 'string', description: 'Name of the deployment stage (e.g., $default, dev, prod)', group: 'Stages' },
-    { name: 'auto_deploy', type: 'bool', description: 'Whether to auto-deploy changes to this stage', default: true, group: 'Stages' },
-    { name: 'stage_variables', type: 'map', description: 'Stage variables as key-value pairs (max 50 entries)', group: 'Stages' },
-    // ─── Authorizers ──────────────────────────────────────────────
-    {
-      name: 'authorizer_type', type: 'string', description: 'Type of authorizer to attach to the API', group: 'Authorizers',
-      options: [
-        { value: 'JWT', label: 'JWT' },
-        { value: 'REQUEST', label: 'Lambda (REQUEST)' },
-        { value: 'COGNITO_USER_POOLS', label: 'Cognito User Pools' },
-      ],
-    },
-    { name: 'jwt_issuer', type: 'string', description: 'Issuer URL for the JWT authorizer', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'JWT' } },
-    { name: 'jwt_audience', type: 'string', description: 'Audience value(s) for the JWT authorizer', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'JWT' } },
-    { name: 'lambda_authorizer_uri', type: 'string', description: 'Lambda function invoke ARN for the REQUEST authorizer', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'REQUEST' } },
-    {
-      name: 'authorizer_payload_format_version', type: 'string', description: 'Payload format version for the Lambda authorizer', group: 'Authorizers',
-      visible_when: { field: 'authorizer_type', equals: 'REQUEST' },
-      options: [
-        { value: '1.0', label: '1.0' },
-        { value: '2.0', label: '2.0' },
-      ],
-    },
-    { name: 'cognito_user_pool_endpoint', type: 'string', description: 'Cognito User Pool endpoint URL', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'COGNITO_USER_POOLS' } },
-    { name: 'cognito_client_ids', type: 'list', description: 'List of Cognito User Pool client IDs', group: 'Authorizers', visible_when: { field: 'authorizer_type', equals: 'COGNITO_USER_POOLS' } },
-    // ─── Custom Domain ────────────────────────────────────────────
-    { name: 'custom_domain_name', type: 'string', description: 'Custom domain name for the API (e.g., api.example.com)', group: 'Custom Domain' },
-    { name: 'certificate_arn', type: 'string', description: 'ARN of the ACM certificate for the custom domain', group: 'Custom Domain' },
-    // ─── Integrations ─────────────────────────────────────────────
-    {
-      name: 'integration_type', type: 'string', description: 'Type of backend integration', group: 'Integrations',
-      options: [
-        { value: 'AWS_PROXY', label: 'AWS Lambda (AWS_PROXY)' },
-        { value: 'HTTP_PROXY', label: 'HTTP Proxy (HTTP_PROXY)' },
-        { value: 'HTTP', label: 'HTTP Custom (HTTP)' },
-      ],
-    },
-    { name: 'integration_uri', type: 'string', description: 'URI of the integration target', group: 'Integrations' },
-    { name: 'integration_method', type: 'string', description: 'HTTP method for the integration (required for HTTP_PROXY and HTTP)', group: 'Integrations', visible_when: { field: 'integration_type', equals: 'HTTP_PROXY' } },
-    // ─── Rate Limiting ────────────────────────────────────────────
-    { name: 'throttling_burst_limit', type: 'number', description: 'Maximum number of concurrent requests (burst)', group: 'Rate Limiting', validation: { min: 1, max: 5000 } },
-    { name: 'throttling_rate_limit', type: 'number', description: 'Maximum number of requests per second (steady-state)', group: 'Rate Limiting', validation: { min: 1, max: 10000 } },
-    // ─── VPC Link ─────────────────────────────────────────────────
-    { name: 'vpc_link_name', type: 'string', description: 'Name of the VPC link for private integrations', group: 'VPC Link' },
-    { name: 'vpc_link_subnet_ids', type: 'list', description: 'List of subnet IDs for the VPC link (1-3 entries)', group: 'VPC Link' },
-    { name: 'vpc_link_security_group_ids', type: 'list', description: 'List of security group IDs for the VPC link (1-5 entries)', group: 'VPC Link' },
-    // ─── Metadata ─────────────────────────────────────────────────
-    { name: 'cors_configuration', type: 'map', description: 'CORS configuration for the API', group: 'Metadata' },
-    { name: 'disable_execute_api_endpoint', type: 'bool', description: 'Disable the default execute-api endpoint', default: false, group: 'Metadata' },
-    { name: 'api_key_required', type: 'bool', description: 'Whether API key is required for routes', default: false, group: 'Metadata' },
-    { name: 'tags', type: 'map', description: 'Tags to apply to the API Gateway', group: 'Metadata' },
   ],
   cloudwatch: [
     { name: 'log_group_name', type: 'string', description: 'Name of the CloudWatch log group', group: 'General' },
@@ -219,9 +445,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         { value: 3288, label: '9 years' },
         { value: 3653, label: '10 years' },
       ],
-      validation: {
-        allowed_values: [0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653],
-      },
+      validation: { allowed_values: [0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653] },
     },
     { name: 'kms_key_id', type: 'string', description: 'ARN of the KMS key to use for encrypting log data', group: 'Configuration' },
     {
@@ -232,6 +456,24 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       ],
     },
     { name: 'tags', type: 'map', description: 'Tags to apply to the CloudWatch log group', group: 'Metadata' },
+  ],
+  sns: [
+    { name: 'topic_name', type: 'string', description: 'Name of the SNS topic', group: 'General' },
+    { name: 'display_name', type: 'string', description: 'Display name for the SNS topic', group: 'General' },
+    { name: 'fifo_topic', type: 'bool', description: 'Whether the SNS topic is a FIFO topic', group: 'Configuration' },
+    { name: 'content_based_deduplication', type: 'bool', description: 'Enable content-based deduplication for the SNS topic', group: 'Configuration' },
+    { name: 'kms_master_key_id', type: 'string', description: 'ARN of the KMS key to use for encrypting SNS messages', group: 'Configuration' },
+    { name: 'tags', type: 'map', description: 'Tags to apply to the SNS topic', group: 'Metadata' },
+  ],
+  sqs: [
+    { name: 'queue_name', type: 'string', description: 'Name of the SQS queue', group: 'General' },
+    { name: 'fifo_queue', type: 'bool', description: 'Whether the SQS queue is a FIFO queue', group: 'General' },
+    { name: 'visibility_timeout_seconds', type: 'number', description: 'The visibility timeout for the queue in seconds', group: 'Configuration', validation: { min: 0, max: 43200 } },
+    { name: 'message_retention_seconds', type: 'number', description: 'The number of seconds to retain a message', group: 'Configuration', validation: { min: 60, max: 1209600 } },
+    { name: 'delay_seconds', type: 'number', description: 'The time in seconds that delivery of all messages is delayed', group: 'Configuration', validation: { min: 0, max: 900 } },
+    { name: 'max_message_size', type: 'number', description: 'The limit of how many bytes a message can contain', group: 'Configuration', validation: { min: 1024, max: 262144 } },
+    { name: 'content_based_deduplication', type: 'bool', description: 'Enable content-based deduplication for the SQS queue', group: 'Configuration' },
+    { name: 'tags', type: 'map', description: 'Tags to apply to the SQS queue', group: 'Metadata' },
   ],
   ec2: [
     { name: 'instance_name', type: 'string', description: 'Name tag for the EC2 instance', group: 'General' },
@@ -275,7 +517,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
   ecr: [
     { name: 'repository_name', type: 'string', description: 'Name of the ECR repository', group: 'General' },
   ],
-  // Analytics
   athena: [
     { name: 'workgroup_name', type: 'string', description: 'Name of the Athena workgroup', group: 'General' },
   ],
@@ -311,7 +552,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     { name: 'node_type', type: 'string', description: 'Node type for the Redshift cluster', group: 'General' },
     { name: 'master_username', type: 'string', description: 'Master username for the Redshift cluster', group: 'General' },
   ],
-  // Business Applications
   connect: [
     { name: 'identity_management_type', type: 'string', description: 'Identity management type for the Connect instance', group: 'General' },
     { name: 'inbound_calls_enabled', type: 'bool', description: 'Whether inbound calls are enabled', group: 'General' },
@@ -323,7 +563,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
   pinpoint: [
     { name: 'app_name', type: 'string', description: 'Name of the Pinpoint application', group: 'General' },
   ],
-  // Database
   aurora: [
     { name: 'cluster_identifier', type: 'string', description: 'Identifier for the Aurora cluster', group: 'General' },
     { name: 'engine', type: 'string', description: 'Database engine for the Aurora cluster', group: 'General' },
@@ -352,7 +591,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
   timestream: [
     { name: 'database_name', type: 'string', description: 'Name of the Timestream database', group: 'General' },
   ],
-  // Developer Tools
   codebuild: [
     { name: 'project_name', type: 'string', description: 'Name of the CodeBuild project', group: 'General' },
     { name: 'service_role', type: 'string', description: 'IAM service role ARN for CodeBuild', group: 'General' },
@@ -369,23 +607,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     { name: 'pipeline_name', type: 'string', description: 'Name of the CodePipeline pipeline', group: 'General' },
     { name: 'role_arn', type: 'string', description: 'IAM role ARN for CodePipeline', group: 'General' },
   ],
-  // End User Computing
   appstream: [
     { name: 'fleet_name', type: 'string', description: 'Name of the AppStream fleet', group: 'General' },
     { name: 'instance_type', type: 'string', description: 'Instance type for the AppStream fleet', group: 'General' },
   ],
-  // Front End Web Mobile
   amplify: [
     { name: 'app_name', type: 'string', description: 'Name of the Amplify application', group: 'General' },
   ],
-  // Games
   gamelift: [
     { name: 'fleet_name', type: 'string', description: 'Name of the GameLift fleet', group: 'General' },
     { name: 'ec2_instance_type', type: 'string', description: 'EC2 instance type for the GameLift fleet', group: 'General' },
   ],
-  // Machine Learning
   bedrock: [
-    // General
     { name: 'model_name', type: 'string', description: 'Name of the custom model', group: 'General' },
     {
       name: 'base_model_identifier', type: 'string', description: 'Base model identifier for customization', group: 'General',
@@ -397,15 +630,12 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       ],
     },
     { name: 'role_arn', type: 'string', description: 'IAM role ARN for Bedrock', group: 'General' },
-    // Training
     { name: 'training_data_s3_uri', type: 'string', description: 'S3 URI of the training data', group: 'Training', validation: { pattern: '^s3://', pattern_description: 'Must be an S3 URI starting with s3://' } },
     { name: 'output_data_s3_uri', type: 'string', description: 'S3 URI for the output data', group: 'Training', validation: { pattern: '^s3://', pattern_description: 'Must be an S3 URI starting with s3://' } },
     { name: 'hyperparameters', type: 'map', description: 'Key-value pairs for training hyperparameters such as epoch count, batch size, and learning rate', group: 'Training' },
-    // Metadata
     { name: 'tags', type: 'map', description: 'String key-value pairs for resource tagging', group: 'Metadata' },
   ],
   sagemaker: [
-    // General
     { name: 'notebook_instance_name', type: 'string', description: 'Name of the SageMaker notebook instance', group: 'General' },
     {
       name: 'instance_type', type: 'string', description: 'Instance type for the notebook instance', group: 'General',
@@ -419,15 +649,12 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       ],
     },
     { name: 'role_arn', type: 'string', description: 'IAM role ARN for the notebook instance', group: 'General' },
-    // Configuration
     { name: 'volume_size', type: 'number', description: 'Volume size for the notebook instance in GB', default: 5, group: 'Configuration', validation: { min: 5, max: 16384 } },
     { name: 'direct_internet_access', type: 'bool', description: 'Whether direct internet access is enabled for the notebook instance', default: true, group: 'Configuration' },
     { name: 'root_access', type: 'bool', description: 'Whether root access is enabled for the notebook instance', default: true, group: 'Configuration' },
-    // Metadata
     { name: 'tags', type: 'map', description: 'Tags to apply to the SageMaker notebook instance', group: 'Metadata' },
   ],
   'amazon-q': [
-    // General
     { name: 'application_name', type: 'string', description: 'Name of the Amazon Q application', group: 'General' },
     { name: 'description', type: 'string', description: 'Description of the Amazon Q application', group: 'General' },
     {
@@ -439,11 +666,9 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       ],
     },
     { name: 'role_arn', type: 'string', description: 'IAM role ARN for the Amazon Q application', group: 'General' },
-    // Metadata
     { name: 'tags', type: 'map', description: 'Tags to apply to the Amazon Q application', group: 'Metadata' },
   ],
   'bedrock-agent': [
-    // General
     { name: 'agent_name', type: 'string', description: 'Name of the Bedrock Agent', group: 'General' },
     {
       name: 'foundation_model', type: 'string', description: 'Foundation model identifier for the agent', group: 'General',
@@ -458,13 +683,26 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     { name: 'description', type: 'string', description: 'Description of the Bedrock Agent', group: 'General' },
     { name: 'instruction', type: 'string', description: 'Instruction for the Bedrock Agent', group: 'General' },
     { name: 'agent_resource_role_arn', type: 'string', description: 'IAM role ARN for the Bedrock Agent', group: 'General' },
-    // Configuration
     { name: 'idle_session_ttl_in_seconds', type: 'number', description: 'Idle session timeout in seconds', default: 600, group: 'Configuration', validation: { min: 60, max: 3600 } },
-    // Metadata
     { name: 'tags', type: 'map', description: 'Tags to apply to the Bedrock Agent', group: 'Metadata' },
   ],
+  'bedrock-guardrail': [
+    { name: 'guardrail_name', type: 'string', description: 'Name of the Bedrock Guardrail', group: 'General' },
+    { name: 'description', type: 'string', description: 'Description of the guardrail', group: 'General' },
+    { name: 'blocked_input_messaging', type: 'string', description: 'Message to return when input is blocked', group: 'General' },
+    { name: 'blocked_outputs_messaging', type: 'string', description: 'Message to return when output is blocked', group: 'General' },
+    {
+      name: 'content_policy_strength', type: 'string', description: 'Content filtering strength level', default: 'MEDIUM', group: 'Content Policy',
+      options: [
+        { value: 'NONE', label: 'None' },
+        { value: 'LOW', label: 'Low' },
+        { value: 'MEDIUM', label: 'Medium' },
+        { value: 'HIGH', label: 'High' },
+      ],
+    },
+    { name: 'tags', type: 'map', description: 'Tags to apply to the Bedrock Guardrail', group: 'Metadata' },
+  ],
   'bedrock-knowledge-base': [
-    // General
     { name: 'knowledge_base_name', type: 'string', description: 'Name of the knowledge base', group: 'General' },
     { name: 'description', type: 'string', description: 'Description of the knowledge base', group: 'General' },
     { name: 'role_arn', type: 'string', description: 'IAM role ARN for the knowledge base', group: 'General' },
@@ -476,7 +714,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         { value: 'cohere.embed-english-v3', label: 'Cohere Embed English v3' },
       ],
     },
-    // Storage Configuration
     {
       name: 'storage_type', type: 'string', description: 'Vector storage type for the knowledge base', default: 'OPENSEARCH_SERVERLESS', group: 'Storage Configuration',
       options: [
@@ -488,30 +725,9 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     { name: 'vector_field', type: 'string', description: 'Name of the vector field in the storage', group: 'Storage Configuration' },
     { name: 'text_field', type: 'string', description: 'Name of the text field in the storage', group: 'Storage Configuration' },
     { name: 'metadata_field', type: 'string', description: 'Name of the metadata field in the storage', group: 'Storage Configuration' },
-    // Metadata
     { name: 'tags', type: 'map', description: 'Tags to apply to the Bedrock Knowledge Base', group: 'Metadata' },
   ],
-  'bedrock-guardrail': [
-    // General
-    { name: 'guardrail_name', type: 'string', description: 'Name of the Bedrock Guardrail', group: 'General' },
-    { name: 'description', type: 'string', description: 'Description of the guardrail', group: 'General' },
-    { name: 'blocked_input_messaging', type: 'string', description: 'Message to return when input is blocked', group: 'General' },
-    { name: 'blocked_outputs_messaging', type: 'string', description: 'Message to return when output is blocked', group: 'General' },
-    // Content Policy
-    {
-      name: 'content_policy_strength', type: 'string', description: 'Content filtering strength level', default: 'MEDIUM', group: 'Content Policy',
-      options: [
-        { value: 'NONE', label: 'None' },
-        { value: 'LOW', label: 'Low' },
-        { value: 'MEDIUM', label: 'Medium' },
-        { value: 'HIGH', label: 'High' },
-      ],
-    },
-    // Metadata
-    { name: 'tags', type: 'map', description: 'Tags to apply to the Bedrock Guardrail', group: 'Metadata' },
-  ],
   'bedrock-agentcore': [
-    // General
     { name: 'agent_runtime_name', type: 'string', description: 'Name of the AgentCore runtime', group: 'General' },
     {
       name: 'foundation_model', type: 'string', description: 'Foundation model for the agent runtime', group: 'General',
@@ -525,10 +741,8 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     },
     { name: 'role_arn', type: 'string', description: 'IAM role ARN for the AgentCore runtime', group: 'General' },
     { name: 'description', type: 'string', description: 'Description of the agent runtime', group: 'General' },
-    // Configuration
     { name: 'memory_id', type: 'string', description: 'Memory store identifier for session context', group: 'Configuration' },
     { name: 'idle_session_ttl', type: 'number', description: 'Idle session timeout in seconds', default: 600, group: 'Configuration', validation: { min: 60, max: 3600 } },
-    // Metadata
     { name: 'tags', type: 'map', description: 'Tags to apply to the AgentCore runtime', group: 'Metadata' },
   ],
 };
