@@ -35,6 +35,7 @@ class LambdaConfig(BaseServiceConfig):
         "reserved_concurrent_executions",
         "architectures",
         "snap_start_apply_on",
+        "provisioned_concurrency_config",
         # Deployment
         "package_type",
         "image_uri",
@@ -64,6 +65,10 @@ class LambdaConfig(BaseServiceConfig):
         "file_system_local_mount_path",
         # Security
         "code_signing_config_arn",
+        # Runtime Management
+        "runtime_management_config",
+        # URL Config
+        "function_url_config",
         # Metadata
         "environment_variables",
         "tags",
@@ -160,6 +165,11 @@ class LambdaConfig(BaseServiceConfig):
         options=[
             OptionEntry(value="PublishedVersions", label="Published Versions"),
         ],
+    )
+    provisioned_concurrency_config: dict | None = TerraformField(
+        None,
+        group="Performance",
+        description="Provisioned concurrency configuration",
     )
 
     # ── Deployment ────────────────────────────────────────────────────────
@@ -318,6 +328,20 @@ class LambdaConfig(BaseServiceConfig):
         description="ARN of the code signing configuration for the function",
     )
 
+    # ── Runtime Management ────────────────────────────────────────────────
+    runtime_management_config: dict | None = TerraformField(
+        None,
+        group="Runtime Management",
+        description="Runtime management configuration",
+    )
+
+    # ── URL Config ────────────────────────────────────────────────────────
+    function_url_config: dict | None = TerraformField(
+        None,
+        group="URL Config",
+        description="Lambda Function URL configuration",
+    )
+
     # ── Metadata ──────────────────────────────────────────────────────────
     environment_variables: dict[str, str] | None = TerraformField(
         None,
@@ -344,4 +368,25 @@ class LambdaConfig(BaseServiceConfig):
                 raise ValueError(
                     "runtime is required when package_type is 'Zip' or unset"
                 )
+        return self
+
+    @model_validator(mode="after")
+    def validate_provisioned_concurrency_requires_publish(self) -> "LambdaConfig":
+        """provisioned_concurrency_config requires publish = True."""
+        if self.provisioned_concurrency_config is not None:
+            if self.publish is not True:
+                raise ValueError("Provisioned concurrency requires publish = true")
+        return self
+
+    @model_validator(mode="after")
+    def validate_runtime_management_manual_requires_arn(self) -> "LambdaConfig":
+        """Manual runtime management requires runtime_version_arn."""
+        if self.runtime_management_config is not None:
+            update_on = self.runtime_management_config.get("update_runtime_on")
+            if update_on == "Manual":
+                arn = self.runtime_management_config.get("runtime_version_arn")
+                if not arn:
+                    raise ValueError(
+                        "Manual runtime management requires runtime_version_arn"
+                    )
         return self
