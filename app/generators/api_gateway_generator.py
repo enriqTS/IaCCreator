@@ -45,7 +45,7 @@ class APIGatewayGenerator:
 
         parts = [
             self._generate_api_resource(instance),
-            self._generate_api_key(instance),
+            self._generate_api_keys(instance),
         ]
 
         # Only include routes/stages/authorizers/domain/vpc_links/integrations
@@ -91,6 +91,11 @@ class APIGatewayGenerator:
         if config.api_key_required:
             attrs["api_key_selection_expression"] = "$request.header.x-api-key"
 
+        # API key selection expression for WEBSOCKET with api_keys list
+        api_keys = getattr(config, "api_keys", None)
+        if api_keys and config.protocol_type == "WEBSOCKET" and not config.api_key_required:
+            attrs["api_key_selection_expression"] = "$request.header.x-api-key"
+
         # New General-level optional fields
         if config.api_key_selection_expression is not None and not config.api_key_required:
             attrs["api_key_selection_expression"] = "var.api_key_selection_expression"
@@ -103,15 +108,87 @@ class APIGatewayGenerator:
         if config.fail_on_warnings is not None:
             attrs["fail_on_warnings"] = "var.fail_on_warnings"
 
+        # Mutual TLS authentication block
+        mutual_tls = getattr(config, "mutual_tls_authentication", None)
+        if mutual_tls and mutual_tls.get("truststore_uri"):
+            mutual_tls_block: dict = {
+                "truststore_uri": mutual_tls["truststore_uri"],
+            }
+            if mutual_tls.get("truststore_version"):
+                mutual_tls_block["truststore_version"] = mutual_tls["truststore_version"]
+            attrs["mutual_tls_authentication"] = mutual_tls_block
+
         return self._r.render_resource("aws_apigatewayv2_api", instance.name, attrs)
 
-    def _generate_api_key(self, instance: ResourceInstanceIR) -> str:
-        """Generate aws_apigatewayv2_api_key resource when api_key_required is true."""
+    def _generate_api_keys(self, instance: ResourceInstanceIR) -> str:
+        """Generate API key resources based on protocol type and configured keys.
+
+        - If `api_keys` list is configured, generates one resource per key:
+          - HTTP protocol: emits `aws_api_gateway_api_key` (REST v1 type) with a warning comment
+          - WEBSOCKET protocol: emits `aws_apigatewayv2_api_key` resources
+        - Falls back to legacy behavior (single key) when only `api_key_required` is set
+          without an explicit `api_keys` list.
+        """
         config = self._resolve_config(instance)
+        api_keys = getattr(config, "api_keys", None)
+
+        # Use the api_keys list if available
+        if api_keys:
+            protocol_type = config.protocol_type or "HTTP"
+            parts: list[str] = []
+
+            if protocol_type == "HTTP":
+                # HTTP APIs do not natively support API keys — emit REST v1 resource type
+                # with a warning comment
+                comment = (
+                    "# NOTE: HTTP APIs do not natively support API keys. "
+                    "Consider using a Lambda authorizer.\n"
+                )
+                parts.append(comment)
+                for key in api_keys:
+                    key_name = key.get("name", f"{instance.name}-api-key")
+                    sanitized_key_name = self._sanitize_route_name(key_name)
+                    resource_name = f"{instance.name}_{sanitized_key_name}_api_key"
+                    attrs: dict = {
+                        "name": key_name,
+                    }
+                    if key.get("description"):
+                        attrs["description"] = key["description"]
+                    if key.get("value"):
+                        attrs["value"] = key["value"]
+                    parts.append(
+                        self._r.render_resource(
+                            "aws_api_gateway_api_key", resource_name, attrs
+                        )
+                    )
+            else:
+                # WEBSOCKET — api_key_selection_expression is set on the API resource
+                # (handled in _generate_api_resource), generate aws_apigatewayv2_api_key blocks
+                for key in api_keys:
+                    key_name = key.get("name", f"{instance.name}-api-key")
+                    sanitized_key_name = self._sanitize_route_name(key_name)
+                    resource_name = f"{instance.name}_{sanitized_key_name}_api_key"
+                    attrs = {
+                        "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                        "name": key_name,
+                    }
+                    if key.get("description"):
+                        attrs["description"] = key["description"]
+                    if key.get("value"):
+                        attrs["value"] = key["value"]
+                    parts.append(
+                        self._r.render_resource(
+                            "aws_apigatewayv2_api_key", resource_name, attrs
+                        )
+                    )
+
+            return "\n".join(parts)
+
+        # Legacy fallback: single key when api_key_required is set without api_keys list
         if not config.api_key_required:
             return ""
 
-        attrs: dict = {
+        attrs = {
             "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
             "name": f"{instance.name}-api-key",
         }
@@ -592,8 +669,9 @@ class APIGatewayGenerator:
                         is_connect=True,
                     )
 
-                # API key required
-                if config.api_key_required:
+                # API key required — per-route or config-level
+                ws_route_cfg = self._find_route_cfg(routes, route_key)
+                if (ws_route_cfg and ws_route_cfg.get("api_key_required")) or config.api_key_required:
                     attrs["api_key_required"] = True
 
                 # New optional route fields from TerraformField config
@@ -604,6 +682,24 @@ class APIGatewayGenerator:
                         "aws_apigatewayv2_route", resource_name, attrs
                     )
                 )
+
+                # Route response generation for WebSocket special routes
+                if ws_route_cfg:
+                    route_response_key = ws_route_cfg.get("route_response_key")
+                    if route_response_key:
+                        response_resource_name = f"{instance.name}_{route_name}_route_response"
+                        response_attrs = {
+                            "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                            "route_id": f"aws_apigatewayv2_route.{resource_name}.id",
+                            "route_response_key": route_response_key,
+                        }
+                        parts.append(
+                            self._r.render_resource(
+                                "aws_apigatewayv2_route_response",
+                                response_resource_name,
+                                response_attrs,
+                            )
+                        )
 
             # Custom WebSocket routes (non-special)
             for route_cfg in custom_routes:
@@ -627,8 +723,8 @@ class APIGatewayGenerator:
 
                 # WebSocket non-$connect routes do NOT get authorization (Property 4)
 
-                # API key required
-                if config.api_key_required:
+                # API key required — per-route or config-level
+                if route_cfg.get("api_key_required") or config.api_key_required:
                     attrs["api_key_required"] = True
 
                 # New optional route fields from TerraformField config
@@ -639,6 +735,23 @@ class APIGatewayGenerator:
                         "aws_apigatewayv2_route", resource_name, attrs
                     )
                 )
+
+                # Route response generation for custom WebSocket routes
+                route_response_key = route_cfg.get("route_response_key")
+                if route_response_key:
+                    response_resource_name = f"{instance.name}_{route_name}_route_response"
+                    response_attrs = {
+                        "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                        "route_id": f"aws_apigatewayv2_route.{resource_name}.id",
+                        "route_response_key": route_response_key,
+                    }
+                    parts.append(
+                        self._r.render_resource(
+                            "aws_apigatewayv2_route_response",
+                            response_resource_name,
+                            response_attrs,
+                        )
+                    )
 
         else:
             # HTTP API
@@ -677,8 +790,8 @@ class APIGatewayGenerator:
                             f"{instance.name}_{authorizer_name}_authorizer.id"
                         )
 
-                    # API key required
-                    if config.api_key_required:
+                    # API key required — per-route or config-level
+                    if route_cfg.get("api_key_required") or config.api_key_required:
                         attrs["api_key_required"] = True
 
                     # New optional route fields from TerraformField config
@@ -689,6 +802,23 @@ class APIGatewayGenerator:
                             "aws_apigatewayv2_route", resource_name, attrs
                         )
                     )
+
+                    # Route response generation when route_response_key is present
+                    route_response_key = route_cfg.get("route_response_key")
+                    if route_response_key:
+                        response_resource_name = f"{instance.name}_{route_name}_route_response"
+                        response_attrs = {
+                            "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                            "route_id": f"aws_apigatewayv2_route.{resource_name}.id",
+                            "route_response_key": route_response_key,
+                        }
+                        parts.append(
+                            self._r.render_resource(
+                                "aws_apigatewayv2_route_response",
+                                response_resource_name,
+                                response_attrs,
+                            )
+                        )
             else:
                 # No routes configured — generate $default route
                 resource_name = f"{instance.name}_default_route"
@@ -743,6 +873,18 @@ class APIGatewayGenerator:
                         f"integrations/${{aws_apigatewayv2_integration."
                         f"{instance_name}_{integration_name}_integration.id}}"
                     )
+        return None
+
+    def _find_route_cfg(
+        self, routes: list[dict] | None, route_key: str
+    ) -> dict | None:
+        """Find a route config dict by route_key from the routes list."""
+        if not routes:
+            return None
+        for route_cfg in routes:
+            cfg_route_key = route_cfg.get("path", route_cfg.get("route_key", ""))
+            if cfg_route_key == route_key:
+                return route_cfg
         return None
 
     def _apply_authorization(
