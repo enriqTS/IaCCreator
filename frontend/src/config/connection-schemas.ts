@@ -74,30 +74,12 @@ const apiGatewayLambdaSchema: ConnectionSchema = {
       ],
     },
     {
-      key: 'http_method',
-      label: 'HTTP Methods',
-      type: 'multiSelect',
-      defaultValue: 'ANY',
-      options: [
-        { value: 'GET', label: 'GET' },
-        { value: 'POST', label: 'POST' },
-        { value: 'PUT', label: 'PUT' },
-        { value: 'DELETE', label: 'DELETE' },
-        { value: 'PATCH', label: 'PATCH' },
-        { value: 'OPTIONS', label: 'OPTIONS' },
-        { value: 'HEAD', label: 'HEAD' },
-        { value: 'ANY', label: 'ANY' },
-      ],
-      multiSelectExclusive: ['ANY'],
-      visibleWhen: { field: 'connection_role', value: 'route_handler' },
-    },
-    {
       key: 'route_path',
       label: 'Route',
       type: 'linkedSelect',
       linkedConfigPath: 'routes',
       displayKey: 'path',
-      createTemplate: { method: 'ANY', path: '', integration_name: '' },
+      createTemplate: { methods: ['ANY'], path: '', integration_name: '' },
       validation: {
         required: true,
         pattern: /^\/[\w\-/{}\$]*$/,
@@ -137,9 +119,12 @@ const apiGatewayLambdaSchema: ConnectionSchema = {
       return `Authorizer: ${name}`;
     }
     if (role === 'route_handler' || !role) {
-      const methods = config.http_method || 'ANY';
+      const routeCount = config.route_count as number | undefined;
+      if (routeCount && routeCount > 1) {
+        return `${routeCount} routes`;
+      }
       const path = config.route_path || '/$default';
-      const label = `${methods} ${path}`;
+      const label = path as string;
       return label.length > 30 ? label.slice(0, 27) + '...' : label;
     }
     return null;
