@@ -209,8 +209,8 @@ CORS_ORIGIN=http://localhost:3000  # default
 
 ```bash
 cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 The diagram editor will be available at `http://localhost:3000`.
@@ -229,11 +229,11 @@ Next.js rewrites automatically proxy `/api/*` and `/generate/*` requests to the 
 
 ```bash
 # Backend
-pytest
+pytest -n auto
 
 # Frontend
 cd frontend
-npx vitest run
+pnpm vitest run
 ```
 
 ## Frontend

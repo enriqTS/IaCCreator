@@ -1,14 +1,17 @@
 FROM node:24-alpine AS frontend-deps
 WORKDIR /app
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci
+RUN corepack enable pnpm
+COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 FROM node:24-alpine AS frontend-builder
 WORKDIR /app
+RUN corepack enable pnpm
 COPY --from=frontend-deps /app/node_modules ./node_modules
 COPY frontend/ .
 ENV NEXT_PUBLIC_API_URL=http://localhost:8000
-RUN npm run build
+RUN pnpm run build
 
 # --- Final image with both services ---
 FROM python:3.14-slim
@@ -29,7 +32,8 @@ WORKDIR /app
 
 # Install Python dependencies with uv
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --no-editable
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-editable
 
 ENV PATH="/app/.venv/bin:$PATH"
 

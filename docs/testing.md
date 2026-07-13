@@ -4,7 +4,9 @@ Test suites for both the Python backend (`tests/`) and the Next.js frontend (`fr
 
 ## Backend Tests (`tests/`)
 
-Run with: `pytest`
+Run with: `pytest -n auto` (parallelized via `pytest-xdist`; plain `pytest` also works but is slower)
+
+Tests that need a `TestClient` against the real `app.main.app` (as opposed to a purpose-built minimal app) must isolate persistence with a `tmp_path`-backed repo — see the `client` fixtures in `test_cors_and_wiring.py`, `test_variable_schemas_endpoint.py`, and `test_properties.py`, and the note in `AGENTS.md`. Skipping this leaks writes into the real `data/db.json`, which gets corrupted under parallel test workers.
 
 ### Test Configuration
 
@@ -46,7 +48,7 @@ Run with: `pytest`
 
 ### Property-Based Tests (`frontend/__tests__/properties/`)
 
-Run with: `cd frontend && npx vitest run`
+Run with: `cd frontend && pnpm vitest run`
 
 Uses fast-check for property-based testing (100+ iterations each).
 

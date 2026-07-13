@@ -2,7 +2,8 @@
 
 import re
 
-from hypothesis import given, settings
+import pytest
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from app.generators.hcl_renderer import HCLRenderer
@@ -1349,9 +1350,39 @@ import zipfile
 
 from fastapi.testclient import TestClient
 
-from app.main import app as fastapi_app
 
-_client = TestClient(fastapi_app)
+@pytest.fixture()
+def client(tmp_path, monkeypatch):
+    """Build a TestClient from the real app, using an isolated temp TinyDB file.
+
+    Uses the same tmp_path + monkeypatch + reload pattern as
+    tests/test_cors_and_wiring.py and tests/test_variable_schemas_endpoint.py.
+    Must NOT use the real app.main.app / data/db.json directly: these tests
+    run many Hypothesis examples against /generate/*, and sharing the
+    production TinyDB file across pytest-xdist worker processes causes
+    concurrent writers to corrupt it (see AGENTS.md).
+    """
+    import importlib
+
+    from app.persistence.tinydb_repo import TinyDBRepository
+
+    db_path = str(tmp_path / "test_db.json")
+    temp_repo = TinyDBRepository(db_path=db_path)
+    monkeypatch.setattr("app.persistence.factory.get_repository", lambda: temp_repo)
+
+    import app.main as main_mod
+
+    importlib.reload(main_mod)
+
+    # See tests/test_cors_and_wiring.py for why this override is also needed:
+    # app.routers.diagrams binds get_repository at its own import time, which
+    # can predate this patch depending on test collection order.
+    from app.routers.diagrams import get_repo
+
+    main_mod.app.dependency_overrides[get_repo] = lambda: temp_repo
+
+    yield TestClient(main_mod.app)
+    temp_repo._db.close()
 
 
 def _arch_to_payload(arch: ArchitectureDescription) -> dict:
@@ -1364,12 +1395,12 @@ def _arch_to_payload(arch: ArchitectureDescription) -> dict:
 # Validates: Requirements 1.1, 1.4
 
 
-@settings(max_examples=100)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(arch=_architecture_description_st())
-def test_property_1_valid_input_acceptance(arch):
+def test_property_1_valid_input_acceptance(client, arch):
     """Any valid ArchitectureDescription with supported service types is accepted without errors."""
     payload = _arch_to_payload(arch)
-    response = _client.post("/generate/json", json=payload)
+    response = client.post("/generate/json", json=payload)
     assert response.status_code == 200, (
         f"Valid input rejected with status {response.status_code}: {response.text}"
     )
@@ -1383,13 +1414,13 @@ def test_property_1_valid_input_acceptance(arch):
 # Validates: Requirements 1.2
 
 
-@settings(max_examples=100)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(arch=_architecture_description_st())
-def test_property_2_invalid_input_missing_project_name(arch):
+def test_property_2_invalid_input_missing_project_name(client, arch):
     """Removing project_name from a valid input yields a 422 identifying the missing field."""
     payload = _arch_to_payload(arch)
     del payload["project_name"]
-    response = _client.post("/generate/json", json=payload)
+    response = client.post("/generate/json", json=payload)
     assert response.status_code == 422
     body = response.json()
     assert "detail" in body
@@ -1397,23 +1428,23 @@ def test_property_2_invalid_input_missing_project_name(arch):
     assert any("project_name" in loc for loc in field_locs)
 
 
-@settings(max_examples=100)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(arch=_architecture_description_st())
-def test_property_2_invalid_input_empty_environments(arch):
+def test_property_2_invalid_input_empty_environments(client, arch):
     """Setting environments to an empty list yields a 422."""
     payload = _arch_to_payload(arch)
     payload["environments"] = []
-    response = _client.post("/generate/json", json=payload)
+    response = client.post("/generate/json", json=payload)
     assert response.status_code == 422
 
 
-@settings(max_examples=100)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(arch=_architecture_description_st())
-def test_property_2_invalid_input_empty_resources(arch):
+def test_property_2_invalid_input_empty_resources(client, arch):
     """Setting resources to an empty list yields a 422."""
     payload = _arch_to_payload(arch)
     payload["resources"] = []
-    response = _client.post("/generate/json", json=payload)
+    response = client.post("/generate/json", json=payload)
     assert response.status_code == 422
 
 
@@ -1422,12 +1453,12 @@ def test_property_2_invalid_input_empty_resources(arch):
 # Validates: Requirements 6.2, 6.3, 6.4
 
 
-@settings(max_examples=100)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(arch=_architecture_description_st())
-def test_property_14_json_output_format(arch):
+def test_property_14_json_output_format(client, arch):
     """JSON endpoint returns files and summary keys with correct counts."""
     payload = _arch_to_payload(arch)
-    response = _client.post("/generate/json", json=payload)
+    response = client.post("/generate/json", json=payload)
     assert response.status_code == 200
 
     body = response.json()
@@ -1522,19 +1553,19 @@ def test_property_13_ir_serialization_round_trip(arch):
     assert len(project_ir.connections) == len(arch.connections)
 
 
-@settings(max_examples=100)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(arch=_architecture_description_st())
-def test_property_14_zip_output_format(arch):
+def test_property_14_zip_output_format(client, arch):
     """ZIP endpoint returns a valid ZIP archive containing all files from the file tree."""
     payload = _arch_to_payload(arch)
 
     # Get the JSON response to know expected files
-    json_response = _client.post("/generate/json", json=payload)
+    json_response = client.post("/generate/json", json=payload)
     assert json_response.status_code == 200
     expected_files = set(json_response.json()["files"].keys())
 
     # Get the ZIP response
-    zip_response = _client.post("/generate/zip", json=payload)
+    zip_response = client.post("/generate/zip", json=payload)
     assert zip_response.status_code == 200
     assert zip_response.headers["content-type"] == "application/zip"
 

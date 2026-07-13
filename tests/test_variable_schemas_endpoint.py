@@ -27,6 +27,14 @@ def client(tmp_path, monkeypatch):
     import app.main as main_mod
 
     importlib.reload(main_mod)
+
+    # See tests/test_cors_and_wiring.py for why this override is also needed:
+    # app.routers.diagrams binds get_repository at its own import time, which
+    # can predate this patch depending on test collection order.
+    from app.routers.diagrams import get_repo
+
+    main_mod.app.dependency_overrides[get_repo] = lambda: temp_repo
+
     yield TestClient(main_mod.app)
     temp_repo._db.close()
 

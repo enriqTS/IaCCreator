@@ -29,6 +29,18 @@ def client(tmp_path, monkeypatch):
     import app.main as main_mod
 
     importlib.reload(main_mod)
+
+    # app.routers.diagrams does `from app.persistence.factory import
+    # get_repository`, binding its own name at import time. If that module
+    # was already imported (e.g. by another test module during collection)
+    # before this fixture patches the factory, its get_repo() dependency
+    # still points at the original, unpatched function and would silently
+    # write to the real data/db.json. Override the dependency directly so
+    # isolation holds regardless of import order.
+    from app.routers.diagrams import get_repo
+
+    main_mod.app.dependency_overrides[get_repo] = lambda: temp_repo
+
     yield TestClient(main_mod.app)
     temp_repo._db.close()
 
