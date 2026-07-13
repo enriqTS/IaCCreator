@@ -119,6 +119,9 @@ const ALL_CATEGORIES = buildAllPickerItems();
 // Flat list for search
 const ALL_ITEMS: PickerItem[] = ALL_CATEGORIES.flatMap((c) => c.items);
 
+// All category names for initial collapse state
+const ALL_CATEGORY_NAMES = ALL_CATEGORIES.map((c) => c.category);
+
 /**
  * Filter picker items by search term (case-insensitive name match).
  * Exported for testing (Property 10).
@@ -219,7 +222,8 @@ export function sortCategories(
 export default function ObjectPickerMenu() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  // Start with all categories collapsed for performance - SVGs load only when expanded
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set(ALL_CATEGORY_NAMES));
   const setActiveTool = useDiagramStore((s) => s.setActiveTool);
   const recentItems = useRecentlyUsedStore((s) => s.recentItems);
   const addRecentItem = useRecentlyUsedStore((s) => s.addRecentItem);
@@ -239,6 +243,11 @@ export default function ObjectPickerMenu() {
 
   const filteredItems = smartSearch(ALL_ITEMS, search, ABBREVIATION_MAP);
   const filteredItemNames = new Set(filteredItems.map((i) => i.name + '|' + i.category));
+
+  // Auto-expand categories that have matching items when searching
+  const categoriesWithMatches = new Set(
+    filteredItems.map((item) => item.category)
+  );
 
   const toggleCategory = (name: string) => {
     setCollapsedCategories((prev) => {
@@ -350,7 +359,10 @@ export default function ObjectPickerMenu() {
           )}
 
           {visibleCategories.map((cat) => {
-            const isCollapsed = collapsedCategories.has(cat.category);
+            // Auto-expand when searching and category has matches
+            const isCollapsed = search.trim() !== '' && categoriesWithMatches.has(cat.category)
+              ? false
+              : collapsedCategories.has(cat.category);
             return (
               <div key={cat.category} data-testid={`picker-category-${cat.category}`}>
                 <button
@@ -425,7 +437,7 @@ export default function ObjectPickerMenu() {
                           <div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             {item.icon ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={item.icon} alt={item.name} width={28} height={28} />
+                              <img src={item.icon} alt={item.name} width={28} height={28} loading="lazy" />
                             ) : (
                               getItemIcon(item.name) || (
                                 <span

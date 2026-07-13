@@ -60,6 +60,10 @@ describe('ObjectPickerMenu edge cases', () => {
     // The dropdown should be open
     expect(screen.getByTestId('object-picker-dropdown')).toBeTruthy();
 
+    // Expand the Shapes category (categories start collapsed by default)
+    const shapesToggle = screen.getByTestId('picker-category-toggle-Shapes');
+    fireEvent.click(shapesToggle);
+
     // Click the first available picker item
     const firstItem = screen.getAllByTestId(/^picker-item-/)[0];
     fireEvent.click(firstItem);
