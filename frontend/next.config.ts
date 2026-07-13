@@ -7,8 +7,10 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   async rewrites() {
+    // BACKEND_URL is server-only (no NEXT_PUBLIC_ prefix) — never exposed to the browser.
+    // The client uses relative paths; Next.js proxies them to the backend via these rewrites.
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
     return [
       { source: "/api/:path*", destination: `${backendUrl}/api/:path*` },
       {

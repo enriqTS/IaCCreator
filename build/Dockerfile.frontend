@@ -16,7 +16,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY frontend/ .
 
-ENV NEXT_PUBLIC_API_URL=http://backend:8000
+# BACKEND_URL is server-only (used by next.config.ts rewrites to proxy to the backend).
+# Client code uses relative paths — the browser never sees this Docker hostname.
+ENV BACKEND_URL=http://backend:8000
 
 EXPOSE 3000
 
@@ -29,8 +31,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY frontend/ .
 
-# Set the backend URL for the build (internal Docker network)
-ENV NEXT_PUBLIC_API_URL=http://backend:8000
+# BACKEND_URL is only needed at runtime for rewrites, but set it here so next.config.ts
+# doesn't error during build. Client-side NEXT_PUBLIC_API_URL is intentionally unset
+# so the browser uses relative paths.
+ENV BACKEND_URL=http://backend:8000
 
 RUN pnpm run build
 
@@ -39,7 +43,7 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_PUBLIC_API_URL=http://backend:8000
+ENV BACKEND_URL=http://backend:8000
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \

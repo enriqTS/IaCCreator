@@ -27,6 +27,7 @@ describe("Next.js rewrite configuration", () => {
 
   it("should use default backend URL http://localhost:8000 when env var is not set", async () => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "");
+    vi.stubEnv("BACKEND_URL", "");
 
     const { default: config } = await import("../next.config.ts");
     const rewrites = (await config.rewrites!()) as Array<{
@@ -43,7 +44,27 @@ describe("Next.js rewrite configuration", () => {
     );
   });
 
-  it("should use NEXT_PUBLIC_API_URL when set", async () => {
+  it("should use BACKEND_URL when set", async () => {
+    vi.stubEnv("BACKEND_URL", "http://my-backend:9000");
+    vi.stubEnv("NEXT_PUBLIC_API_URL", "");
+
+    const { default: config } = await import("../next.config.ts");
+    const rewrites = (await config.rewrites!()) as Array<{
+      source: string;
+      destination: string;
+    }>;
+
+    const apiRule = rewrites.find((r) => r.source === "/api/:path*");
+    const generateRule = rewrites.find((r) => r.source === "/generate/:path*");
+
+    expect(apiRule!.destination).toBe("http://my-backend:9000/api/:path*");
+    expect(generateRule!.destination).toBe(
+      "http://my-backend:9000/generate/:path*"
+    );
+  });
+
+  it("should fall back to NEXT_PUBLIC_API_URL when BACKEND_URL is not set", async () => {
+    vi.stubEnv("BACKEND_URL", "");
     vi.stubEnv("NEXT_PUBLIC_API_URL", "http://my-backend:9000");
 
     const { default: config } = await import("../next.config.ts");
