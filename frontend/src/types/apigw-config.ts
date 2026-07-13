@@ -13,13 +13,13 @@ export type ProtocolType = 'HTTP' | 'REST' | 'WEBSOCKET';
 
 /**
  * A single route entry in the Routes collection.
- * Represents an HTTP/REST API route with method, path, and integration settings.
+ * Represents an HTTP/REST API route with method(s), path, and integration settings.
  */
 export interface RouteItem {
   /** Unique identifier for stable list rendering and selection tracking. */
   id: string;
-  /** HTTP method for this route. */
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'ANY';
+  /** HTTP methods for this route (one or more). */
+  methods: ('GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'ANY')[];
   /** URL path pattern for this route (e.g., "/users/{id}"). */
   path: string;
   /** Reference to the integration ID or empty string if unset. */
@@ -36,8 +36,40 @@ export interface RouteItem {
   authorizer_name?: string;
   /** Whether this route requires an API key. */
   api_key_required?: boolean;
+  /** Route-level request parameters mapping (max 50 entries). */
+  request_parameters?: Record<string, string>;
+  /** Route response key for generating aws_apigatewayv2_route_response resource. */
+  route_response_key?: string;
   /** Tag from OpenAPI spec for grouping (optional, set during import). */
   tag?: string;
+}
+
+/**
+ * An API Key entry in the API Keys collection.
+ * Represents a managed API key for access control on routes.
+ */
+export interface ApiKeyItem {
+  /** Unique identifier for stable list rendering and selection tracking. */
+  id: string;
+  /** Display name for this API key (1–128 alphanumeric/hyphen/underscore characters). */
+  name: string;
+  /** Optional description for this API key (0–1024 characters). */
+  description?: string;
+  /** Whether the key value is auto-generated or user-specified. */
+  value_mode: 'auto' | 'user_specified';
+  /** The key value when mode is 'user_specified' (20–128 characters). */
+  value?: string;
+}
+
+/**
+ * A route entry in the connection config payload sent to the backend.
+ * Represents a method-path combination for a route_handler connection.
+ */
+export interface ConnectionRouteEntry {
+  /** HTTP methods for this route entry. */
+  methods: string[];
+  /** URL path pattern for this route entry. */
+  path: string;
 }
 
 /**
