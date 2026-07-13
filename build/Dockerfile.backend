@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS base
 
 WORKDIR /app
 
@@ -7,6 +7,26 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # Copy dependency files first for better layer caching
 COPY pyproject.toml uv.lock ./
+
+# --- Dev stage (hot reload, used by docker-compose.override.yml) ---
+FROM base AS dev
+
+# Install dependencies including dev deps (test tooling, etc.)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project
+
+# Copy application code (overridden at runtime by a bind mount for hot reload)
+COPY app/ ./app/
+
+# Create data directory for TinyDB persistence
+RUN mkdir -p /app/data
+
+EXPOSE 8000
+
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# --- Production stage (default) ---
+FROM base AS production
 
 # Install dependencies (no dev deps in production)
 RUN --mount=type=cache,target=/root/.cache/uv \

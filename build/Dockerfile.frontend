@@ -9,6 +9,19 @@ COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 
+# --- Dev stage (hot reload, used by docker-compose.override.yml) ---
+FROM base AS dev
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY frontend/ .
+
+ENV NEXT_PUBLIC_API_URL=http://backend:8000
+
+EXPOSE 3000
+
+CMD ["pnpm", "dev", "-H", "0.0.0.0"]
+
 # --- Build stage ---
 FROM base AS builder
 WORKDIR /app

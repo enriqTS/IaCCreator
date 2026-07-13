@@ -147,7 +147,7 @@ my-project/
 docker compose up --build
 ```
 
-This starts both the frontend and backend. Open `http://localhost:3000` in your browser.
+This starts both the frontend and backend with hot reload enabled (backend via `uvicorn --reload`, frontend via `next dev`) — source changes on the host are picked up automatically, no rebuild needed. Both services' logs stream to your terminal. Open `http://localhost:3000` in your browser.
 
 To run in the background:
 
@@ -163,16 +163,11 @@ docker compose down
 
 Diagram data is persisted in a Docker volume, so it survives container restarts.
 
-### Pulling the latest version (testers)
-
-If you received the `docker-compose.testers.yml` file:
+To run the production-like build instead (no hot reload, optimized frontend build), bypass the dev overrides:
 
 ```bash
-docker compose -f docker-compose.testers.yml pull
-docker compose -f docker-compose.testers.yml up
+docker compose -f docker-compose.yml up --build
 ```
-
-This pulls pre-built images from the container registry — no source code or build step needed.
 
 ### Running without Docker (manual setup)
 
