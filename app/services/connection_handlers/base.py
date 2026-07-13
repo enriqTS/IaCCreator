@@ -36,7 +36,9 @@ class BaseConnectionHandler:
     def __init__(self) -> None:
         self._renderer = HCLRenderer()
 
-    def handle(self, connection: ConnectionIR, project: ProjectIR) -> list[GeneratedFile]:
+    def handle(
+        self, connection: ConnectionIR, project: ProjectIR
+    ) -> list[GeneratedFile]:
         raise NotImplementedError
 
     def _attach_iam_statement(
