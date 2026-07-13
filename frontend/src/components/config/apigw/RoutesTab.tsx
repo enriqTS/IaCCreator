@@ -27,7 +27,11 @@ export default function RoutesTab() {
       onSelect={(id) => selectItem(id, 'route')}
       onAdd={handleAdd}
       onRemove={removeRoute}
-      renderSummary={(item) => `${item.method} ${item.path}`}
+      renderSummary={(item) => {
+        const label = item.methods.join(', ') + ' ' + item.path;
+        const truncated = label.length > 30 ? label.slice(0, 27) + '...' : label;
+        return item.api_key_required ? `🔑 ${truncated}` : truncated;
+      }}
       addLabel="Add Route"
       emptyMessage="No routes configured. Add a route to get started."
     />
