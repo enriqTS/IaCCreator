@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, Field, SerializeAsAny, model_validator
 
@@ -254,7 +255,7 @@ class Connection(BaseModel):
     connection_type: str = Field(
         ..., description="e.g., 'triggers', 'reads_from', 'writes_to'"
     )
-    connection_config: dict[str, str | int | float | bool] = Field(default_factory=dict)
+    connection_config: dict[str, Any] = Field(default_factory=dict)
 
 
 class EnvironmentConfig(BaseModel):
