@@ -2,10 +2,10 @@
 
 import { useCallback, useRef } from 'react';
 import type { Connector, ArchitectureBlock } from '@/types/diagram';
-import type { ConnectionSchema, SchemaField } from '@/config/connection-schemas';
+import type { ConnectionSchema, SchemaField } from './registry';
 import { useDiagramStore } from '@/store/diagram-store';
 import { Label } from '@/components/ui/label';
-import SchemaFieldRenderer from './SchemaFieldRenderer';
+import SchemaFieldRenderer from '@/components/config/SchemaFieldRenderer';
 
 interface ConnectionConfigPanelProps {
   connector: Connector;
