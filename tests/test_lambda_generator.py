@@ -311,3 +311,180 @@ class TestDeploymentSourceVariables:
         assert "s3_key" in result
         assert "s3_object_version" in result
         assert "source_code_hash" in result
+
+
+# ---------------------------------------------------------------------------
+# Function URL generation
+# ---------------------------------------------------------------------------
+
+
+class TestFunctionUrl:
+    """Test aws_lambda_function_url resource emission."""
+
+    def test_function_url_emitted_with_none_auth(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            function_url_config={"authorization_type": "NONE"}
+        )
+        result = gen.generate_resource_tf(instance)
+        assert "aws_lambda_function_url" in result
+        assert "authorization_type" in result
+        assert "NONE" in result
+        assert "function_name" in result
+
+    def test_function_url_emitted_with_aws_iam_auth(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            function_url_config={"authorization_type": "AWS_IAM"}
+        )
+        result = gen.generate_resource_tf(instance)
+        assert "aws_lambda_function_url" in result
+        assert "AWS_IAM" in result
+
+    def test_function_url_with_cors_block(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            function_url_config={
+                "authorization_type": "NONE",
+                "cors": {
+                    "allow_origins": ["https://example.com"],
+                    "allow_methods": ["GET", "POST"],
+                    "allow_headers": ["Content-Type"],
+                    "expose_headers": ["X-Custom"],
+                    "max_age": 3600,
+                    "allow_credentials": True,
+                },
+            }
+        )
+        result = gen.generate_resource_tf(instance)
+        assert "cors" in result
+        assert "allow_origins" in result
+        assert "allow_methods" in result
+        assert "allow_headers" in result
+        assert "expose_headers" in result
+        assert "max_age" in result
+        assert "allow_credentials" in result
+
+    def test_function_url_without_cors(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            function_url_config={"authorization_type": "NONE"}
+        )
+        result = gen.generate_resource_tf(instance)
+        assert "cors" not in result
+
+    def test_function_url_not_emitted_when_missing(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance()
+        result = gen.generate_resource_tf(instance)
+        assert "aws_lambda_function_url" not in result
+
+    def test_function_url_output_emitted(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            function_url_config={"authorization_type": "NONE"}
+        )
+        result = gen.generate_outputs_tf(instance)
+        assert "function_url" in result
+
+    def test_function_url_output_not_emitted_when_missing(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance()
+        result = gen.generate_outputs_tf(instance)
+        assert "function_url" not in result
+
+
+# ---------------------------------------------------------------------------
+# Provisioned concurrency generation
+# ---------------------------------------------------------------------------
+
+
+class TestProvisionedConcurrency:
+    """Test aws_lambda_provisioned_concurrency_config resource emission."""
+
+    def test_provisioned_concurrency_emitted(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            publish=True,
+            provisioned_concurrency_config={
+                "provisioned_concurrent_executions": 10,
+            },
+        )
+        result = gen.generate_resource_tf(instance)
+        assert "aws_lambda_provisioned_concurrency_config" in result
+        assert "function_name" in result
+        assert "qualifier" in result
+        assert "provisioned_concurrent_executions" in result
+
+    def test_provisioned_concurrency_references_function(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            name="my_func",
+            publish=True,
+            provisioned_concurrency_config={
+                "provisioned_concurrent_executions": 5,
+            },
+        )
+        result = gen.generate_resource_tf(instance)
+        assert "aws_lambda_function.my_func.function_name" in result
+        assert "aws_lambda_function.my_func.version" in result
+
+    def test_provisioned_concurrency_not_emitted_when_missing(
+        self, gen: LambdaGenerator
+    ):
+        instance = _make_lambda_instance()
+        result = gen.generate_resource_tf(instance)
+        assert "aws_lambda_provisioned_concurrency_config" not in result
+
+
+# ---------------------------------------------------------------------------
+# Runtime management config block
+# ---------------------------------------------------------------------------
+
+
+class TestRuntimeManagementConfig:
+    """Test runtime_management_config block within aws_lambda_function."""
+
+    def test_runtime_management_auto_emitted(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            runtime_management_config={"update_runtime_on": "Auto"}
+        )
+        result = gen.generate_resource_tf(instance)
+        assert "runtime_management_config" in result
+        assert "update_runtime_on" in result
+
+    def test_runtime_management_manual_includes_arn(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            runtime_management_config={
+                "update_runtime_on": "Manual",
+                "runtime_version_arn": "arn:aws:lambda:us-east-1::runtime:python3.12:v42",
+            }
+        )
+        result = gen.generate_resource_tf(instance)
+        assert "runtime_management_config" in result
+        assert "update_runtime_on" in result
+        assert "runtime_version_arn" in result
+
+    def test_runtime_management_function_update_emitted(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            runtime_management_config={"update_runtime_on": "FunctionUpdate"}
+        )
+        result = gen.generate_resource_tf(instance)
+        assert "runtime_management_config" in result
+        assert "update_runtime_on" in result
+
+    def test_runtime_management_not_emitted_when_missing(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance()
+        result = gen.generate_resource_tf(instance)
+        assert "runtime_management_config" not in result
+
+    def test_runtime_management_variables_emitted(self, gen: LambdaGenerator):
+        instance = _make_lambda_instance(
+            runtime_management_config={"update_runtime_on": "Auto"}
+        )
+        result = gen.generate_variables_tf(instance)
+        assert "runtime_management_update_runtime_on" in result
+
+    def test_runtime_management_manual_variables_include_arn(
+        self, gen: LambdaGenerator
+    ):
+        instance = _make_lambda_instance(
+            runtime_management_config={
+                "update_runtime_on": "Manual",
+                "runtime_version_arn": "arn:aws:lambda:us-east-1::runtime:python3.12:v42",
+            }
+        )
+        result = gen.generate_variables_tf(instance)
+        assert "runtime_management_update_runtime_on" in result
+        assert "runtime_management_runtime_version_arn" in result
