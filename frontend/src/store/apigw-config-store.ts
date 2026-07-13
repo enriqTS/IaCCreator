@@ -5,6 +5,7 @@ import type {
   AuthorizerItem,
   WebSocketRouteItem,
   ProtocolType,
+  ApiKeyItem,
 } from '@/types/apigw-config';
 import type { ResourceConfig } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
@@ -24,11 +25,12 @@ export interface ApigwConfigState {
   routes: RouteItem[];
   stages: StageItem[];
   authorizers: AuthorizerItem[];
+  api_keys: ApiKeyItem[];
   websocket_routes: WebSocketRouteItem[];
 
   // Selection tracking
   selectedItemId: string | null;
-  selectedItemType: 'route' | 'stage' | 'authorizer' | 'websocket_route' | null;
+  selectedItemType: 'route' | 'stage' | 'authorizer' | 'api_key' | 'websocket_route' | null;
 
   // Settings fields
   api_name: string;
@@ -64,6 +66,10 @@ export interface ApigwConfigState {
   updateAuthorizer: (id: string, updates: Partial<AuthorizerItem>) => void;
   removeAuthorizer: (id: string) => void;
 
+  addApiKey: () => void;
+  updateApiKey: (id: string, updates: Partial<ApiKeyItem>) => void;
+  removeApiKey: (id: string) => void;
+
   addWebSocketRoute: () => void;
   updateWebSocketRoute: (id: string, updates: Partial<WebSocketRouteItem>) => void;
   removeWebSocketRoute: (id: string) => void;
@@ -75,7 +81,7 @@ export interface ApigwConfigState {
   updateVpcLink: (updates: Partial<Pick<ApigwConfigState, 'vpc_link_name' | 'subnet_ids' | 'security_group_ids'>>) => void;
 
   // Selection
-  selectItem: (id: string | null, type: 'route' | 'stage' | 'authorizer' | 'websocket_route' | null) => void;
+  selectItem: (id: string | null, type: 'route' | 'stage' | 'authorizer' | 'api_key' | 'websocket_route' | null) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -88,6 +94,7 @@ const DEFAULT_STATE = {
   routes: [] as RouteItem[],
   stages: [] as StageItem[],
   authorizers: [] as AuthorizerItem[],
+  api_keys: [] as ApiKeyItem[],
   websocket_routes: [] as WebSocketRouteItem[],
   selectedItemId: null,
   selectedItemType: null,
@@ -150,6 +157,7 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
       routes: state.routes,
       stages: state.stages,
       authorizers: state.authorizers,
+      api_keys: state.api_keys,
       websocket_routes: state.websocket_routes,
     };
 
@@ -169,7 +177,15 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
 
       // Parse collections, ensuring each item has an ID
       const routes = Array.isArray(cfg.routes)
-        ? (cfg.routes as RouteItem[]).map(ensureId)
+        ? (cfg.routes as RouteItem[]).map(ensureId).map((route) => {
+            // Normalize legacy `method` field to `methods` array
+            const r = route as RouteItem & { method?: string };
+            if (!Array.isArray(r.methods) && typeof r.method === 'string') {
+              const { method, ...rest } = r;
+              return { ...rest, methods: [method] } as RouteItem;
+            }
+            return r as RouteItem;
+          })
         : [];
 
       const stages = Array.isArray(cfg.stages)
@@ -178,6 +194,10 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
 
       const authorizers = Array.isArray(cfg.authorizers)
         ? (cfg.authorizers as AuthorizerItem[]).map(ensureId)
+        : [];
+
+      const apiKeys = Array.isArray(cfg.api_keys)
+        ? (cfg.api_keys as ApiKeyItem[]).map(ensureId)
         : [];
 
       let websocketRoutes = Array.isArray(cfg.websocket_routes)
@@ -195,6 +215,7 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
         routes,
         stages,
         authorizers,
+        api_keys: apiKeys,
         websocket_routes: websocketRoutes,
         selectedItemId: null,
         selectedItemType: null,
@@ -225,7 +246,7 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
     addRoute: () => {
       const newRoute: RouteItem = {
         id: crypto.randomUUID(),
-        method: 'ANY',
+        methods: ['ANY'],
         path: '/',
         integration_ref: '',
       };
@@ -329,6 +350,35 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
     },
 
     // -----------------------------------------------------------------------
+    // API Key CRUD
+    // -----------------------------------------------------------------------
+    addApiKey: () => {
+      const newApiKey: ApiKeyItem = {
+        id: crypto.randomUUID(),
+        name: '',
+        value_mode: 'auto',
+      };
+      set((state) => ({ api_keys: [...state.api_keys, newApiKey] }));
+      _syncToCanvas();
+    },
+
+    updateApiKey: (id: string, updates: Partial<ApiKeyItem>) => {
+      set((state) => ({
+        api_keys: state.api_keys.map((k) => (k.id === id ? { ...k, ...updates } : k)),
+      }));
+      _syncToCanvas();
+    },
+
+    removeApiKey: (id: string) => {
+      set((state) => ({
+        api_keys: state.api_keys.filter((k) => k.id !== id),
+        selectedItemId: state.selectedItemId === id ? null : state.selectedItemId,
+        selectedItemType: state.selectedItemId === id ? null : state.selectedItemType,
+      }));
+      _syncToCanvas();
+    },
+
+    // -----------------------------------------------------------------------
     // WebSocket Route CRUD
     // -----------------------------------------------------------------------
     addWebSocketRoute: () => {
@@ -393,7 +443,7 @@ export const useApigwConfigStore = create<ApigwConfigState>((set, get) => {
     // -----------------------------------------------------------------------
     // Selection
     // -----------------------------------------------------------------------
-    selectItem: (id: string | null, type: 'route' | 'stage' | 'authorizer' | 'websocket_route' | null) => {
+    selectItem: (id: string | null, type: 'route' | 'stage' | 'authorizer' | 'api_key' | 'websocket_route' | null) => {
       set({ selectedItemId: id, selectedItemType: type });
     },
   };
