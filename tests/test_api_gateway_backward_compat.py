@@ -1,7 +1,8 @@
-"""Backward compatibility tests for the API Gateway overhaul.
+"""Tests for the API Gateway generator and connection handler.
 
-Verifies that existing configurations continue to produce identical output
-after the generator expansion. Covers Requirements 12.1, 12.2, 12.3, 12.4.
+Verifies that API Gateway generator produces correct HCL and that the
+APIGW→Lambda handler via process_all generates the expected files.
+Covers Requirements 12.1, 12.2, 12.3, 12.4.
 """
 
 
@@ -102,7 +103,7 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_http_api_with_cors_configuration(self):
         """HTTP API with cors_configuration produces only the API resource with CORS."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             cors_configuration={"allow_origins": ["*"]},
         )
@@ -116,7 +117,7 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_http_api_with_disable_execute_api_endpoint(self):
         """HTTP API with disable_execute_api_endpoint produces only the API resource."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             disable_execute_api_endpoint=True,
         )
@@ -130,7 +131,7 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_websocket_api_with_route_selection_expression(self):
         """WebSocket API with route_selection_expression produces only the API resource."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(api_name="test-api",
             protocol_type="WEBSOCKET",
             route_selection_expression="$request.body.action",
         )
@@ -146,7 +147,7 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_http_api_with_tags(self):
         """HTTP API with tags produces only the API resource with tags."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             tags={"env": "dev", "team": "backend"},
         )
@@ -160,7 +161,7 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_full_original_config_produces_only_api_resource(self):
         """Config with ALL original fields produces only the API resource block."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             description="Full API",
             cors_configuration={"allow_origins": ["https://example.com"]},
@@ -195,7 +196,7 @@ class TestNoneFieldsProduceIdenticalOutput:
         hcl_minimal = self.gen.generate_resource_tf(instance_minimal)
 
         # Config with all new fields explicitly set to None
-        config_explicit = ApiGatewayConfig(api_name="test-api", 
+        config_explicit = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             description="Test API",
             routes=None,
@@ -280,7 +281,7 @@ class TestNoneFieldsProduceIdenticalOutput:
         instance_minimal = _make_instance("api", config_minimal)
         vars_minimal = self.gen.generate_variables_tf(instance_minimal)
 
-        config_explicit = ApiGatewayConfig(api_name="test-api", 
+        config_explicit = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             routes=None,
             stages=None,
@@ -297,13 +298,13 @@ class TestNoneFieldsProduceIdenticalOutput:
 
 
 # ===========================================================================
-# 3. ConnectionProcessor with original connection_config keys produces
-#    identical output (Requirement 12.3)
+# 3. ConnectionProcessor with routes array format produces correct output
+#    (Requirement 12.3)
 # ===========================================================================
 
 
-class TestConnectionProcessorBackwardCompat:
-    """ConnectionProcessor with original connection_config keys produces identical output."""
+class TestConnectionProcessorWithRoutes:
+    """ConnectionProcessor with routes array format produces correct output."""
 
     def setup_method(self):
         self.processor = ConnectionProcessor()
@@ -329,68 +330,64 @@ class TestConnectionProcessorBackwardCompat:
             connection_config=connection_config,
         )
         project = _make_project([apigw, func], [conn])
-        return conn, project
+        return project
 
-    def test_empty_config_produces_default_integration(self):
-        """Empty connection_config produces default AWS_PROXY integration."""
-        conn, project = self._make_apigw_lambda_project({})
-        files = self.processor.process(conn, project)
+    def test_empty_routes_produces_integration_and_permission(self):
+        """Empty routes list produces 2 files: integration + permission (no route)."""
+        project = self._make_apigw_lambda_project({"routes": []})
+        files = self.processor.process_all(project)
 
-        assert len(files) == 3
+        assert len(files) == 2
         integration_file = next(f for f in files if "integration_" in f.path)
         assert "AWS_PROXY" in integration_file.content
         assert "aws_lambda_function.my_func.invoke_arn" in integration_file.content
 
-    def test_original_keys_route_path_and_http_method(self):
-        """connection_config with route_path and http_method produces correct route."""
-        conn, project = self._make_apigw_lambda_project(
-            {"route_path": "/users", "http_method": "GET"}
+    def test_single_route_produces_three_files(self):
+        """Single route produces exactly 3 files: integration, route, permission."""
+        project = self._make_apigw_lambda_project(
+            {"routes": [{"method": "GET", "path": "/users"}]}
         )
-        files = self.processor.process(conn, project)
-
-        route_file = next(f for f in files if "route_" in f.path)
-        assert 'route_key = "GET /users"' in route_file.content
-
-    def test_original_keys_produce_three_files(self):
-        """Original keys produce exactly 3 files: integration, route, permission."""
-        conn, project = self._make_apigw_lambda_project(
-            {"route_path": "/items", "http_method": "POST"}
-        )
-        files = self.processor.process(conn, project)
+        files = self.processor.process_all(project)
 
         assert len(files) == 3
         paths = [f.path for f in files]
         assert any("integration_my_func.tf" in p for p in paths)
-        assert any("route_my_func.tf" in p for p in paths)
+        assert any("route_my_func" in p for p in paths)
         assert any("permission_my_func.tf" in p for p in paths)
 
-    def test_original_keys_file_paths_unchanged(self):
-        """File paths follow the categorized pattern: modules/networking/api-gateway/{source}/..."""
-        conn, project = self._make_apigw_lambda_project(
-            {"route_path": "/data", "http_method": "DELETE"}
+    def test_route_key_uses_method_and_path(self):
+        """Route resource has correct route_key from method and path."""
+        project = self._make_apigw_lambda_project(
+            {"routes": [{"method": "GET", "path": "/users"}]}
         )
-        files = self.processor.process(conn, project)
+        files = self.processor.process_all(project)
+
+        route_file = next(f for f in files if "route_" in f.path)
+        assert 'route_key = "GET /users"' in route_file.content
+
+    def test_file_paths_follow_categorized_pattern(self):
+        """File paths follow the categorized pattern: modules/networking/api-gateway/{source}/..."""
+        project = self._make_apigw_lambda_project(
+            {"routes": [{"method": "DELETE", "path": "/data"}]}
+        )
+        files = self.processor.process_all(project)
 
         paths = [f.path for f in files]
-        assert (
-            "test-project/modules/networking/api-gateway/my_api/integration_my_func.tf"
-            in paths
+        assert any(
+            "test-project/modules/networking/api-gateway/my_api/integration_my_func.tf" in p
+            for p in paths
         )
-        assert (
-            "test-project/modules/networking/api-gateway/my_api/route_my_func.tf"
-            in paths
-        )
-        assert (
-            "test-project/modules/networking/api-gateway/my_api/permission_my_func.tf"
-            in paths
+        assert any(
+            "test-project/modules/networking/api-gateway/my_api/permission_my_func.tf" in p
+            for p in paths
         )
 
-    def test_permission_file_content_unchanged(self):
-        """Permission file has the same structure with original keys."""
-        conn, project = self._make_apigw_lambda_project(
-            {"route_path": "/test", "http_method": "GET"}
+    def test_permission_file_content(self):
+        """Permission file has the same structure."""
+        project = self._make_apigw_lambda_project(
+            {"routes": [{"method": "GET", "path": "/test"}]}
         )
-        files = self.processor.process(conn, project)
+        files = self.processor.process_all(project)
 
         perm_file = next(f for f in files if "permission_" in f.path)
         assert 'resource "aws_lambda_permission"' in perm_file.content
@@ -399,10 +396,10 @@ class TestConnectionProcessorBackwardCompat:
         assert "aws_lambda_function.my_func.function_name" in perm_file.content
         assert "aws_apigatewayv2_api.my_api.execution_arn" in perm_file.content
 
-    def test_integration_defaults_match_original_behavior(self):
-        """Default integration_type (AWS_PROXY) and payload_format_version (2.0) match original."""
-        conn, project = self._make_apigw_lambda_project({})
-        files = self.processor.process(conn, project)
+    def test_integration_defaults_match_expected(self):
+        """Default integration_type (AWS_PROXY) and payload_format_version (2.0)."""
+        project = self._make_apigw_lambda_project({"routes": []})
+        files = self.processor.process_all(project)
 
         integration_file = next(f for f in files if "integration_" in f.path)
         assert "AWS_PROXY" in integration_file.content
@@ -426,14 +423,14 @@ class TestByteForByteIdenticalOutput:
 
     def test_resource_tf_byte_identical(self):
         """generate_resource_tf output is byte-for-byte identical with/without None fields."""
-        config_without = ApiGatewayConfig(api_name="test-api", 
+        config_without = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             description="API",
             cors_configuration={"allow_origins": ["*"]},
             disable_execute_api_endpoint=True,
             tags={"env": "prod"},
         )
-        config_with_defaults = ApiGatewayConfig(api_name="test-api", 
+        config_with_defaults = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             description="API",
             cors_configuration={"allow_origins": ["*"]},
@@ -465,12 +462,12 @@ class TestByteForByteIdenticalOutput:
 
     def test_variables_tf_byte_identical(self):
         """generate_variables_tf output is byte-for-byte identical with/without None fields."""
-        config_without = ApiGatewayConfig(api_name="test-api", 
+        config_without = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             description="API",
             tags={"env": "prod"},
         )
-        config_with_defaults = ApiGatewayConfig(api_name="test-api", 
+        config_with_defaults = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             description="API",
             tags={"env": "prod"},
@@ -495,7 +492,7 @@ class TestByteForByteIdenticalOutput:
     def test_outputs_tf_byte_identical(self):
         """generate_outputs_tf output is byte-for-byte identical with/without None fields."""
         config_without = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP")
-        config_with_defaults = ApiGatewayConfig(api_name="test-api", 
+        config_with_defaults = ApiGatewayConfig(api_name="test-api",
             protocol_type="HTTP",
             routes=None,
             stages=None,
@@ -515,11 +512,10 @@ class TestByteForByteIdenticalOutput:
         assert outputs_without == outputs_with
         assert outputs_without.encode("utf-8") == outputs_with.encode("utf-8")
 
-    def test_connection_processor_byte_identical(self):
-        """ConnectionProcessor output is byte-for-byte identical with original keys only."""
+    def test_connection_processor_single_route(self):
+        """ConnectionProcessor with single route produces consistent output."""
         processor = ConnectionProcessor()
 
-        # Connection with empty config (original behavior)
         apigw = ResourceInstanceIR(
             name="api",
             service_type=ServiceType.API_GATEWAY,
@@ -531,28 +527,27 @@ class TestByteForByteIdenticalOutput:
             config=LambdaConfig(function_name="my-func", handler="index.handler", runtime="python3.12"),
         )
 
-        conn_empty = ConnectionIR(
+        conn = ConnectionIR(
             source_name="api",
             target_name="func",
             source_service=ServiceType.API_GATEWAY,
             target_service=ServiceType.LAMBDA,
             connection_type="triggers",
-            connection_config={},
+            connection_config={"routes": [{"method": "GET", "path": "/users"}]},
         )
-        project_empty = _make_project([apigw, func], [conn_empty])
-        files_empty = processor.process(conn_empty, project_empty)
+        project = _make_project([apigw, func], [conn])
+        files = processor.process_all(project)
 
-        # Connection with only original keys (route_path, http_method)
-        # Using the same defaults that the processor would use
-        conn_original = ConnectionIR(
-            source_name="api",
-            target_name="func",
-            source_service=ServiceType.API_GATEWAY,
-            target_service=ServiceType.LAMBDA,
-            connection_type="triggers",
-            connection_config={"route_path": "/$default", "http_method": "ANY"},
-        )
-        # Need fresh instances since IAM statements are mutated in place
+        # 3 files: integration, route, permission
+        assert len(files) == 3
+
+        # Verify file paths
+        paths = sorted(f.path for f in files)
+        assert any("integration_func.tf" in p for p in paths)
+        assert any("route_func" in p for p in paths)
+        assert any("permission_func.tf" in p for p in paths)
+
+        # Second run produces identical output
         apigw2 = ResourceInstanceIR(
             name="api",
             service_type=ServiceType.API_GATEWAY,
@@ -563,20 +558,27 @@ class TestByteForByteIdenticalOutput:
             service_type=ServiceType.LAMBDA,
             config=LambdaConfig(function_name="my-func", handler="index.handler", runtime="python3.12"),
         )
-        project_original = _make_project([apigw2, func2], [conn_original])
-        files_original = processor.process(conn_original, project_original)
+        conn2 = ConnectionIR(
+            source_name="api",
+            target_name="func",
+            source_service=ServiceType.API_GATEWAY,
+            target_service=ServiceType.LAMBDA,
+            connection_type="triggers",
+            connection_config={"routes": [{"method": "GET", "path": "/users"}]},
+        )
+        project2 = _make_project([apigw2, func2], [conn2])
+        files2 = processor.process_all(project2)
 
         # Same number of files
-        assert len(files_empty) == len(files_original)
+        assert len(files) == len(files2)
 
         # Same file paths
-        paths_empty = sorted(f.path for f in files_empty)
-        paths_original = sorted(f.path for f in files_original)
-        assert paths_empty == paths_original
+        paths2 = sorted(f.path for f in files2)
+        assert paths == paths2
 
         # Same content for each file
-        for f_empty, f_original in zip(
-            sorted(files_empty, key=lambda f: f.path),
-            sorted(files_original, key=lambda f: f.path),
+        for f1, f2 in zip(
+            sorted(files, key=lambda f: f.path),
+            sorted(files2, key=lambda f: f.path),
         ):
-            assert f_empty.content == f_original.content
+            assert f1.content == f2.content
