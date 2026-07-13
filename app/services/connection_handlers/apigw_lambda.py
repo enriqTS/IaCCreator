@@ -3,17 +3,29 @@
 Supports two connection roles dispatched via ``connection_config["connection_role"]``:
 
 - **route_handler** (default): generates a single ``aws_apigatewayv2_integration``
-  shared across all routes, one ``aws_apigatewayv2_route`` per entry in the
-  ``routes`` array, and one ``aws_lambda_permission``.
+  shared across all routes, one ``aws_apigatewayv2_route`` per method-path pair in
+  the ``routes`` array, optional ``aws_apigatewayv2_route_response`` resources, and
+  one ``aws_lambda_permission``.
 - **authorizer**: generates an ``aws_apigatewayv2_authorizer`` resource (type REQUEST)
   and an ``aws_lambda_permission`` for authorizer invocation. Does NOT generate
   integration or route resources.
 
-Multi-route support via ``connection_config["routes"]``:
-    Each entry is a dict with ``method`` (e.g. "GET") and ``path`` (e.g. "/users/{id}").
+Multi-route and multi-method support via ``connection_config["routes"]``:
+    Each entry is a dict with either ``methods`` (array, e.g. ["GET", "POST"]) or
+    legacy ``method`` (string, e.g. "GET") and a ``path`` (e.g. "/users/{id}").
+    When ``methods`` (array) is present it takes precedence; otherwise the legacy
+    ``method`` string is wrapped into a single-element array for backward compatibility.
+    One route resource is generated per method-path combination.
+
+    Optional route-level fields:
+    - ``route_response_key``: when present, generates an
+      ``aws_apigatewayv2_route_response`` resource for each method-path route
+    - ``api_key_required``: when True, adds ``api_key_required = true`` attribute
+      to the route resource
+
     Route resource names use path sanitization: ``/``, ``{``, ``}`` are replaced with
     ``_``, consecutive underscores are collapsed, and leading/trailing underscores are
-    stripped.
+    stripped. Resource names include the method: ``{source}_{target}_route_{method}_{path}``.
 
 Enhanced integration configuration:
     - ``integration_type``: defaults to "AWS_PROXY"
@@ -23,7 +35,8 @@ Enhanced integration configuration:
 
 Generated resources (route_handler role):
     - aws_apigatewayv2_integration (1 per connection)
-    - aws_apigatewayv2_route (1 per route entry)
+    - aws_apigatewayv2_route (1 per method-path pair)
+    - aws_apigatewayv2_route_response (1 per route with route_response_key)
     - aws_lambda_permission (1 per connection)
 
 Generated resources (authorizer role):
@@ -69,11 +82,12 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
     def _handle_route_handler(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> list[GeneratedFile]:
-        """Generate integration, route(s), and permission.
+        """Generate integration, route(s), route responses, and permission.
 
-        Uses the ``routes`` array from connection_config. Each entry must have
-        ``method`` and ``path`` keys. Generates one integration shared across all
-        routes, one route resource per entry, and one Lambda permission.
+        Uses the ``routes`` array from connection_config. Each entry may have either
+        ``methods`` (array of HTTP methods) or legacy ``method`` (single string).
+        Generates one integration shared across all routes, one route resource per
+        method-path pair, optional route responses, and one Lambda permission.
         """
         source = connection.source_name
         target = connection.target_name
@@ -112,34 +126,68 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
         )
 
         # --- Route(s) via routes array ---
-        routes: list[dict[str, str]] = connection.connection_config.get("routes", [])
+        routes: list[dict] = connection.connection_config.get("routes", [])
 
         route_files: list[GeneratedFile] = []
         for route in routes:
-            method = route["method"]
-            path = route["path"]
-            route_key = f"{method} {path}"
+            # Normalize: support both `methods` (array) and legacy `method` (string)
+            methods: list[str] = route.get("methods") or [route["method"]]
+            path: str = route["path"]
             sanitized = _sanitize_path(path)
-            route_name = f"{source}_{target}_route_{method.lower()}_{sanitized}"
-            route_file_name = f"route_{target}_{method.lower()}_{sanitized}.tf"
+            route_response_key = route.get("route_response_key")
+            api_key_required = route.get("api_key_required", False)
 
-            route_attrs = {
-                "api_id": f"aws_apigatewayv2_api.{source}.id",
-                "route_key": route_key,
-                "target": (
-                    f"integrations/${{aws_apigatewayv2_integration.{integration_name}.id}}"
-                ),
-            }
-            route_content = self._renderer.render_resource(
-                "aws_apigatewayv2_route", route_name, route_attrs
-            )
-            route_file_path = (
-                f"{project.project_name}/modules/{category}/api-gateway/{source}/"
-                f"{route_file_name}"
-            )
-            route_files.append(
-                GeneratedFile(path=route_file_path, content=route_content)
-            )
+            for method in methods:
+                method_upper = method.upper()
+                route_key = f"{method_upper} {path}"
+                route_name = (
+                    f"{source}_{target}_route_{method_upper.lower()}_{sanitized}"
+                )
+                route_file_name = (
+                    f"route_{target}_{method_upper.lower()}_{sanitized}.tf"
+                )
+
+                route_attrs: dict[str, str | bool] = {
+                    "api_id": f"aws_apigatewayv2_api.{source}.id",
+                    "route_key": route_key,
+                    "target": (
+                        f"integrations/${{aws_apigatewayv2_integration.{integration_name}.id}}"
+                    ),
+                }
+
+                if api_key_required:
+                    route_attrs["api_key_required"] = True
+
+                route_content = self._renderer.render_resource(
+                    "aws_apigatewayv2_route", route_name, route_attrs
+                )
+
+                # Generate route response if route_response_key is present
+                if route_response_key:
+                    response_name = (
+                        f"{source}_{target}_route_response_"
+                        f"{method_upper.lower()}_{sanitized}"
+                    )
+                    response_attrs: dict[str, str] = {
+                        "api_id": f"aws_apigatewayv2_api.{source}.id",
+                        "route_id": (
+                            f"aws_apigatewayv2_route.{route_name}.id"
+                        ),
+                        "route_response_key": route_response_key,
+                    }
+                    route_content += "\n" + self._renderer.render_resource(
+                        "aws_apigatewayv2_route_response",
+                        response_name,
+                        response_attrs,
+                    )
+
+                route_file_path = (
+                    f"{project.project_name}/modules/{category}/api-gateway/{source}/"
+                    f"{route_file_name}"
+                )
+                route_files.append(
+                    GeneratedFile(path=route_file_path, content=route_content)
+                )
 
         # --- Lambda Permission ---
         permission_name = f"{source}_{target}_permission"
