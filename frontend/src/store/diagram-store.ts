@@ -156,7 +156,7 @@ export interface DiagramStore {
 
   // Connector state
   connectors: Map<string, Connector>;
-  addConnector: (sourceId: string, targetId: string, connectionType?: string) => string;
+  addConnector: (sourceId: string, targetId: string, connectionType?: string, connectionConfig?: Record<string, string | number | boolean>) => string;
   updateConnectorType: (id: string, connectionType: string) => void;
   removeConnector: (id: string) => void;
   updateConnectorConfig: (id: string, key: string, value: string | number | boolean) => void;
@@ -1390,7 +1390,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     // placement on the canvas without requiring connection to existing blocks.
     // (Satisfies Requirements 3.2 and 4.3)
 
-    addConnector: (sourceId: string, targetId: string, connectionType?: string): string => {
+    addConnector: (sourceId: string, targetId: string, connectionType?: string, connectionConfig?: Record<string, string | number | boolean>): string => {
       if (sourceId === targetId) {
         throw new Error('Cannot create a connector from an element to itself');
       }
@@ -1416,7 +1416,43 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         sourceId,
         targetId,
         connectionType: connectionType ?? 'triggers',
+        ...(connectionConfig !== undefined && { connectionConfig }),
       };
+
+      // Auto-integration side effect: when creating an api-gateway → lambda connector
+      // with role route_handler and a route_path, auto-set integration_type and
+      // payload_format_version on the matching route in the source block's config
+      const routePath = connectionConfig?.route_path as string | undefined;
+      const connectionRole = connectionConfig?.connection_role as string | undefined;
+
+      if (routePath && (connectionRole === 'route_handler' || !connectionRole)) {
+        const sourceBlock = canvasObjects.get(sourceId)!;
+        const targetBlock = canvasObjects.get(targetId)!;
+        if (
+          sourceBlock.objectType === 'architecture-block' &&
+          targetBlock.objectType === 'architecture-block' &&
+          sourceBlock.serviceType === 'api-gateway' &&
+          targetBlock.serviceType === 'lambda'
+        ) {
+          const routes = (sourceBlock.config.routes as Record<string, unknown>[] | undefined) ?? [];
+          const updatedRoutes = routes.map((route) =>
+            route.path === routePath
+              ? { ...route, integration_type: 'AWS_PROXY', payload_format_version: '2.0' }
+              : route,
+          );
+          set((state) => {
+            const nextConnectors = new Map(state.connectors);
+            nextConnectors.set(id, connector);
+            const nextCanvasObjects = new Map(state.canvasObjects);
+            nextCanvasObjects.set(sourceId, {
+              ...sourceBlock,
+              config: { ...sourceBlock.config, routes: updatedRoutes },
+            } as CanvasObject);
+            return { connectors: nextConnectors, canvasObjects: nextCanvasObjects };
+          });
+          return id;
+        }
+      }
 
       set((state) => {
         const next = new Map(state.connectors);
@@ -1440,7 +1476,49 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     removeConnector: (id: string): void => {
       if (!get().connectors.has(id)) return;
+
+      // Auto-integration side effect: when removing an api-gateway → lambda connector
+      // with role route_handler, reset integration_type and clear payload_format_version
+      // on the matched route
+      const connector = get().connectors.get(id)!;
+      const connectionRole = connector.connectionConfig?.connection_role;
+      const routePath = connector.connectionConfig?.route_path as string | undefined;
+
       pushHistory();
+
+      if (connectionRole === 'route_handler' && routePath) {
+        const sourceBlock = get().canvasObjects.get(connector.sourceId);
+        const targetBlock = get().canvasObjects.get(connector.targetId);
+        if (
+          sourceBlock?.objectType === 'architecture-block' &&
+          targetBlock?.objectType === 'architecture-block' &&
+          sourceBlock.serviceType === 'api-gateway' &&
+          targetBlock.serviceType === 'lambda'
+        ) {
+          const routes = (sourceBlock.config.routes as Record<string, unknown>[] | undefined) ?? [];
+          const updatedRoutes = routes.map((route) => {
+            if (route.path === routePath) {
+              const cleaned = { ...route };
+              delete cleaned.integration_type;
+              delete cleaned.payload_format_version;
+              return cleaned;
+            }
+            return route;
+          });
+          set((state) => {
+            const nextConnectors = new Map(state.connectors);
+            nextConnectors.delete(id);
+            const nextCanvasObjects = new Map(state.canvasObjects);
+            nextCanvasObjects.set(connector.sourceId, {
+              ...sourceBlock,
+              config: { ...sourceBlock.config, routes: updatedRoutes },
+            } as CanvasObject);
+            return { connectors: nextConnectors, canvasObjects: nextCanvasObjects };
+          });
+          return;
+        }
+      }
+
       set((state) => {
         const next = new Map(state.connectors);
         next.delete(id);
@@ -1490,6 +1568,37 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           ...current,
           connectionConfig: { ...current.connectionConfig, ...updates },
         });
+
+        // Auto-integration side effect: when route_path is set on an api-gateway → lambda
+        // connector with role route_handler, auto-set integration_type and payload_format_version
+        const mergedConfig = { ...current.connectionConfig, ...updates };
+        const routePath = (updates.route_path ?? mergedConfig.route_path) as string | undefined;
+        const connectionRole = (updates.connection_role ?? mergedConfig.connection_role) as string | undefined;
+
+        if (routePath && connectionRole === 'route_handler') {
+          const sourceBlock = state.canvasObjects.get(current.sourceId);
+          const targetBlock = state.canvasObjects.get(current.targetId);
+          if (
+            sourceBlock?.objectType === 'architecture-block' &&
+            targetBlock?.objectType === 'architecture-block' &&
+            sourceBlock.serviceType === 'api-gateway' &&
+            targetBlock.serviceType === 'lambda'
+          ) {
+            const routes = (sourceBlock.config.routes as Record<string, unknown>[] | undefined) ?? [];
+            const updatedRoutes = routes.map((route) =>
+              route.path === routePath
+                ? { ...route, integration_type: 'AWS_PROXY', payload_format_version: '2.0' }
+                : route,
+            );
+            const nextCanvasObjects = new Map(state.canvasObjects);
+            nextCanvasObjects.set(current.sourceId, {
+              ...sourceBlock,
+              config: { ...sourceBlock.config, routes: updatedRoutes },
+            } as CanvasObject);
+            return { connectors: next, canvasObjects: nextCanvasObjects };
+          }
+        }
+
         return { connectors: next };
       });
     },
@@ -1510,11 +1619,29 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
       pushHistory();
 
+      // Auto-integration side effect: when creating a route entry on an api-gateway block
+      // via a lambda connector with role route_handler, auto-set integration fields
+      let entryToAdd = newEntry;
+      if (
+        configPath === 'routes' &&
+        block.serviceType === 'api-gateway'
+      ) {
+        const targetBlock = get().canvasObjects.get(connector.targetId);
+        const connectionRole = connector.connectionConfig?.connection_role;
+        if (
+          targetBlock?.objectType === 'architecture-block' &&
+          targetBlock.serviceType === 'lambda' &&
+          (connectionRole === 'route_handler' || !connectionRole)
+        ) {
+          entryToAdd = { ...newEntry, integration_type: 'AWS_PROXY', payload_format_version: '2.0' };
+        }
+      }
+
       set((state) => {
         // Update block config: read existing array at configPath, append newEntry
         const currentBlock = state.canvasObjects.get(blockId) as ArchitectureBlock;
         const existingArray = (currentBlock.config[configPath as keyof ResourceConfig] as unknown as Record<string, unknown>[] | undefined) ?? [];
-        const updatedArray = [...existingArray, newEntry];
+        const updatedArray = [...existingArray, entryToAdd];
         const updatedBlock: ArchitectureBlock = {
           ...currentBlock,
           config: { ...currentBlock.config, [configPath]: updatedArray },
