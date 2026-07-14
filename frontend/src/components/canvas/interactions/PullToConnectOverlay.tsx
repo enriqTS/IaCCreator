@@ -7,9 +7,7 @@ import type { AnchorPosition } from '@/utils/anchor';
 import { getConnectionBounds } from '@/utils/bounds-utils';
 import { DEFAULT_LINE_VISUAL, getObjectBounds } from '@/types/diagram';
 import type { Point } from '@/types/diagram';
-import { inferAnchorPosition } from '@/utils/routing';
-import { routeOrthogonalConnector } from '@/utils/orthogonal-router';
-import { collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing-obstacles';
+import { inferAnchorPosition, routeOrthogonalConnector, collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing';
 
 /** Build an SVG path `d` attribute from an array of points using M and L commands */
 export function buildPathD(points: Point[]): string {
