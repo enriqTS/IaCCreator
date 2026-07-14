@@ -7,7 +7,7 @@
 
 import type { CanvasObject, Rect } from '@/types/diagram';
 import { getObjectBounds } from '@/types/diagram';
-import type { RoutingRect } from '@/utils/routing-grid';
+import type { RoutingRect } from './routing-grid';
 
 /**
  * Convert a Rect (x, y, width, height where x/y is top-left) to RoutingRect format.

@@ -11,10 +11,10 @@
 
 import type { Point } from '@/types/diagram';
 import type { AnchorPosition } from '@/utils/anchor';
-import type { RoutingRect } from '@/utils/routing-grid';
-import { buildRoutingSpots, inflateRect } from '@/utils/routing-grid';
-import { findShortestPath, simplifyPath, findSpotIndex, anchorToExitDirection } from '@/utils/routing-pathfinder';
-import { computeOrthogonalWaypoints } from '@/utils/routing';
+import type { RoutingRect } from './routing-grid';
+import { buildRoutingSpots, inflateRect } from './routing-grid';
+import { findShortestPath, simplifyPath, findSpotIndex, anchorToExitDirection } from './routing-pathfinder';
+import { computeOrthogonalWaypoints } from './routing';
 import { snapToGrid } from '@/utils/snap';
 
 /** Input for the orthogonal router. */
