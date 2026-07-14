@@ -9,13 +9,13 @@ import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { snapPointToGrid } from '@/utils/snap';
 import CanvasBackground from './CanvasBackground';
 import ElementLayer from './ElementLayer';
-import PlacementPreview from './PlacementPreview';
-import DragSizingOverlay from './DragSizingOverlay';
-import MarqueeSelection from './MarqueeSelection';
-import CanvasObjectContextMenu from './CanvasObjectContextMenu';
-import CanvasContextMenu from './CanvasContextMenu';
-import InlineRenameOverlay from './InlineRenameOverlay';
-import PullToConnectOverlay from './PullToConnectOverlay';
+import PlacementPreview from './interactions/PlacementPreview';
+import DragSizingOverlay from './interactions/DragSizingOverlay';
+import MarqueeSelection from './interactions/MarqueeSelection';
+import CanvasObjectContextMenu from './interactions/CanvasObjectContextMenu';
+import CanvasContextMenu from './interactions/CanvasContextMenu';
+import InlineRenameOverlay from './interactions/InlineRenameOverlay';
+import PullToConnectOverlay from './interactions/PullToConnectOverlay';
 
 type ContextMenuState =
   | { type: 'object'; objectId: string; x: number; y: number }

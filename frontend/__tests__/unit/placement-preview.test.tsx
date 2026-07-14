@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { createRef } from 'react';
-import PlacementPreview from '@/components/canvas/PlacementPreview';
+import PlacementPreview from '@/components/canvas/interactions/PlacementPreview';
 import { useDiagramStore } from '@/store/diagram-store';
 
 function makeContainerRef() {

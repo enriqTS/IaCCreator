@@ -15,7 +15,7 @@ import type { Point } from '@/types/diagram';
 import {
   computeDraggableSegments,
   computeNewWaypoints,
-} from '@/components/canvas/SegmentHandles';
+} from '@/components/canvas/interactions/SegmentHandles';
 
 /**
  * Generator for orthogonal paths with at least 4 points.

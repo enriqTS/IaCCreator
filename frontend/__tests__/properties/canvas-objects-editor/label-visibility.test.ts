@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, it, expect } from 'vitest';
-import { shouldShowLabel } from '@/components/canvas/ArchitectureBlockComponent';
+import { shouldShowLabel } from '@/components/canvas/objects/ArchitectureBlockComponent';
 
 /**
  * Feature: canvas-objects-editor, Property 2: Label visibility depends on name value

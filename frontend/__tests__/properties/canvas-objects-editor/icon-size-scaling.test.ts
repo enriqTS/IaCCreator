@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, it, expect } from 'vitest';
-import { ICON_PADDING, shouldShowLabel } from '@/components/canvas/ArchitectureBlockComponent';
+import { ICON_PADDING, shouldShowLabel } from '@/components/canvas/objects/ArchitectureBlockComponent';
 
 /**
  * Feature: canvas-objects-editor, Property 1: Icon size scales with block dimensions

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import DragSizingOverlay from '@/components/canvas/DragSizingOverlay';
+import DragSizingOverlay from '@/components/canvas/interactions/DragSizingOverlay';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 

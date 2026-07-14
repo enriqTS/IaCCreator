@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ArchitectureBlockComponent from '@/components/canvas/ArchitectureBlockComponent';
+import ArchitectureBlockComponent from '@/components/canvas/objects/ArchitectureBlockComponent';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock } from '@/types/diagram';
 

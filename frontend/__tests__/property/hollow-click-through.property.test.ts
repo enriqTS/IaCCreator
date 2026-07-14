@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import fc from 'fast-check';
 import { render, screen, cleanup } from '@testing-library/react';
 import React from 'react';
-import GeometricObjectComponent from '@/components/canvas/GeometricObjectComponent';
+import GeometricObjectComponent from '@/components/canvas/objects/GeometricObjectComponent';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { GeometricObject, GeometricShape } from '@/types/diagram';
 

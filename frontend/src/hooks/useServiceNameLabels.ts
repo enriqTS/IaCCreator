@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { getBlockDisplayName } from '@/components/canvas/ArchitectureBlockComponent';
+import { getBlockDisplayName } from '@/components/canvas/objects/ArchitectureBlockComponent';
 import type { ArchitectureBlock } from '@/types/diagram';
 
 /** Vertical gap between block bottom edge and label top (px) */

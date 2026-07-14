@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import fc from 'fast-check';
-import AnchorIndicators from '@/components/canvas/AnchorIndicators';
+import AnchorIndicators from '@/components/canvas/interactions/AnchorIndicators';
 import { useDiagramStore } from '@/store/diagram-store';
 import { getAnchorPoints } from '@/utils/anchor';
 import type { Rect, Point } from '@/types/diagram';
