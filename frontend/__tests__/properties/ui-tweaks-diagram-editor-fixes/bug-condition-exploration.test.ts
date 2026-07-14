@@ -67,7 +67,7 @@ describe('Bug 2: Routing mode switch hooks violation', () => {
     // is defined after the conditional return. This is a static analysis check.
     const fs = await import('fs');
     const path = await import('path');
-    const componentPath = path.resolve(__dirname, '../../../src/components/canvas/LineObjectComponent.tsx');
+    const componentPath = path.resolve(__dirname, '../../../src/components/canvas/objects/LineObjectComponent.tsx');
     const source = fs.readFileSync(componentPath, 'utf-8');
 
     // Find the positions of the orthogonal conditional return and diagShortened useMemo

@@ -56,7 +56,7 @@ describe('Property 2: Preservation — Existing Diagram Editor Behavior', () => 
 
   describe('3.2 Stable orthogonal rendering', () => {
     test('LineObjectComponent source contains pathPoints useMemo with orthogonal waypoint computation', () => {
-      const srcPath = path.resolve(__dirname, '../../../src/components/canvas/LineObjectComponent.tsx');
+      const srcPath = path.resolve(__dirname, '../../../src/components/canvas/objects/LineObjectComponent.tsx');
       const source = fs.readFileSync(srcPath, 'utf-8');
 
       // The pathPoints useMemo must exist and handle orthogonal routing
@@ -70,7 +70,7 @@ describe('Property 2: Preservation — Existing Diagram Editor Behavior', () => 
     test('shortenPath with 2-point input produces a 2-element result', () => {
       // Import shortenPath by reading the source and verifying the logic inline
       // shortenPath is not exported, so we verify via the source structure
-      const srcPath = path.resolve(__dirname, '../../../src/components/canvas/LineObjectComponent.tsx');
+      const srcPath = path.resolve(__dirname, '../../../src/components/canvas/objects/LineObjectComponent.tsx');
       const source = fs.readFileSync(srcPath, 'utf-8');
 
       // diagShortened useMemo calls shortenPath([startPt, endPt], ...) producing a 2-element array
