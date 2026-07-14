@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import type { SchemaField } from '@/config/connection-schemas';
+import type { SchemaField } from '@/connections';
 import type { ArchitectureBlock } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
 import { Label } from '@/components/ui/label';

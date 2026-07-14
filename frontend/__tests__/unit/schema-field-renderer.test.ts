@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { isFieldVisible, validateField } from '@/components/config/schema-field-utils';
-import type { SchemaField } from '@/config/connection-schemas';
+import type { SchemaField } from '@/connections';
 
 describe('SchemaFieldRenderer - isFieldVisible', () => {
   it('returns true when field has no visibleWhen condition', () => {

@@ -3,8 +3,8 @@ import {
   findConnectorForLine,
   getSchemaForConnector,
   ensureConnectorForLine,
-} from '@/utils/connector-utils';
-import { CONNECTION_SCHEMA_REGISTRY } from '@/config/connection-schemas';
+} from '@/connections/connector-utils';
+import { CONNECTION_SCHEMA_REGISTRY } from '@/connections';
 import type {
   LineObject,
   Connector,

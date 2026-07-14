@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { findConnectorForLine, getSchemaForConnector } from '@/utils/connector-utils';
+import { findConnectorForLine, getSchemaForConnector } from '@/connections/connector-utils';
 import type { LineObject } from '@/types/diagram';
 
 interface ConnectionLabelResult {

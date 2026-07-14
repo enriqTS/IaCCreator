@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { SchemaField } from '@/config/connection-schemas';
+import type { SchemaField } from '@/connections';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';

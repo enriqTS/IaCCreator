@@ -16,8 +16,8 @@ import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
 import SchemaConfigForm from './SchemaConfigForm';
 import ApigwDynamicConfigUI from './apigw/ApigwDynamicConfigUI';
 import VisualTab from './VisualTab';
-import ConnectionConfigPanel from './ConnectionConfigPanel';
-import { findConnectorForLine, getSchemaForConnector } from '@/utils/connector-utils';
+import ConnectionConfigPanel from '@/connections/ConnectionConfigPanel';
+import { findConnectorForLine, getSchemaForConnector } from '@/connections/connector-utils';
 import { Label } from '@/components/ui/label';
 
 /** Determine available tabs for a given canvas object type. */
@@ -422,7 +422,7 @@ function ConnectionTabContent({
 }: {
   lineConnectorData: {
     connector: import('@/types/diagram').Connector | null;
-    schema: import('@/config/connection-schemas').ConnectionSchema | null;
+    schema: import('@/connections').ConnectionSchema | null;
     sourceBlock: ArchitectureBlock | null;
     targetBlock: ArchitectureBlock | null;
   } | null;

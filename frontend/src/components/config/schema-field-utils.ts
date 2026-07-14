@@ -3,7 +3,7 @@
  * Extracted from SchemaFieldRenderer for testability and reuse.
  */
 
-import type { SchemaField } from '@/config/connection-schemas';
+import type { SchemaField } from '@/connections';
 
 /**
  * Evaluates whether a field should be visible based on its visibleWhen condition.
