@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import KeyValueEditor from '@/components/config/KeyValueEditor';
+import KeyValueEditor from '@/components/config/editors/KeyValueEditor';
 import type { StageItem } from '@/types/apigw-config';
 
 interface StageDetailFieldsProps {

@@ -15,7 +15,7 @@ import { PanelLeftOpen, PanelRightOpen, PanelLeftClose, PanelRightClose, Trash2 
 import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
 import SchemaConfigForm from './schema/SchemaConfigForm';
 import ApigwDynamicConfigUI from './apigw/ApigwDynamicConfigUI';
-import VisualTab from './VisualTab';
+import VisualTab from './visual/VisualTab';
 import ConnectionConfigPanel from '@/connections/ConnectionConfigPanel';
 import { findConnectorForLine, getSchemaForConnector } from '@/connections/connector-utils';
 import { Label } from '@/components/ui/label';

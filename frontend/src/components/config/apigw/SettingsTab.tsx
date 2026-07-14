@@ -14,8 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import KeyValueEditor from '@/components/config/KeyValueEditor';
-import ListEditor from '@/components/config/ListEditor';
+import KeyValueEditor from '@/components/config/editors/KeyValueEditor';
+import ListEditor from '@/components/config/editors/ListEditor';
 import { ImportOpenApiDialog } from './ImportOpenApiDialog';
 import type { ProtocolType } from '@/types/apigw-config';
 

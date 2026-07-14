@@ -5,7 +5,7 @@ import type { Connector, ArchitectureBlock } from '@/types/diagram';
 import type { ConnectionSchema, SchemaField } from './registry';
 import { useDiagramStore } from '@/store/diagram-store';
 import { Label } from '@/components/ui/label';
-import SchemaFieldRenderer from '@/components/config/SchemaFieldRenderer';
+import SchemaFieldRenderer from '@/components/config/schema/SchemaFieldRenderer';
 
 interface ConnectionConfigPanelProps {
   connector: Connector;

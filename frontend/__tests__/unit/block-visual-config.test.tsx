@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import BlockVisualConfig from '@/components/config/BlockVisualConfig';
+import BlockVisualConfig from '@/components/config/visual/BlockVisualConfig';
 import type { ArchitectureBlock } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL, MIN_OBJECT_WIDTH, MIN_OBJECT_HEIGHT } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';

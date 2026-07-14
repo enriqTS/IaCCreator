@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import VisualTab from '@/components/config/VisualTab';
+import VisualTab from '@/components/config/visual/VisualTab';
 import type { ArchitectureBlock, LineObject, GeometricObject } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL } from '@/types/diagram';
 

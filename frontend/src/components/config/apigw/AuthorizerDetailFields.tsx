@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import ListEditor from '@/components/config/ListEditor';
+import ListEditor from '@/components/config/editors/ListEditor';
 import type { AuthorizerItem } from '@/types/apigw-config';
 
 interface AuthorizerDetailFieldsProps {
