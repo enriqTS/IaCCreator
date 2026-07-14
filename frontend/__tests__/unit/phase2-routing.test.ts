@@ -3,11 +3,11 @@ import {
   routeOrthogonalConnector,
   balancePath,
   shortDistanceRoute,
-} from '@/utils/orthogonal-router';
-import type { RoutingRequest } from '@/utils/orthogonal-router';
-import type { RoutingRect } from '@/utils/routing-grid';
+} from '@/utils/routing/orthogonal-router';
+import type { RoutingRequest } from '@/utils/routing/orthogonal-router';
+import type { RoutingRect } from '@/utils/routing/routing-grid';
 import { computeOptimalExitSide } from '@/utils/anchor';
-import { findShortestPath, anchorToExitDirection } from '@/utils/routing-pathfinder';
+import { findShortestPath, anchorToExitDirection } from '@/utils/routing/routing-pathfinder';
 import { computeParallelIndex, applyParallelOffset } from '@/utils/parallel-offset';
 import type { Point } from '@/types/diagram';
 

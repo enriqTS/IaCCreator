@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
-import { validateValue, isVisible } from '@/components/config/SchemaConfigForm';
+import { validateValue, isVisible } from '@/components/config/schema/SchemaConfigForm';
 import type {
   TerraformVariableSchema,
   TerraformVariableType,

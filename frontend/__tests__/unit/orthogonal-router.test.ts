@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { routeOrthogonalConnector, filterObstaclesByProximity } from '@/utils/orthogonal-router';
-import type { RoutingRequest, RoutingResult } from '@/utils/orthogonal-router';
-import type { RoutingRect } from '@/utils/routing-grid';
+import { routeOrthogonalConnector, filterObstaclesByProximity } from '@/utils/routing/orthogonal-router';
+import type { RoutingRequest, RoutingResult } from '@/utils/routing/orthogonal-router';
+import type { RoutingRect } from '@/utils/routing/routing-grid';
 import type { Point } from '@/types/diagram';
 
 /** Helper: check every consecutive pair in the full path shares X or Y */

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isFieldVisible, validateField } from '@/components/config/schema-field-utils';
+import { isFieldVisible, validateField } from '@/components/config/schema/schema-field-utils';
 import type { SchemaField } from '@/connections';
 
 describe('SchemaFieldRenderer - isFieldVisible', () => {

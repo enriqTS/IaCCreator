@@ -35,13 +35,12 @@ uv run ruff format .                       # format
 
 ### Frontend (run from `frontend/`)
 
-Always use `pnpm` for the frontend — never `npm`/`npx`/`yarn`. When invoking pnpm from outside the `frontend/` directory (e.g., from repo root), use `npx pnpm` instead of standalone `pnpm`.
+Always use `pnpm` for the frontend — never `npm`/`npx`/`yarn`.
 
 ```bash
-npx pnpm install    # from repo root
-pnpm install        # from frontend/ directory
+pnpm install    # from repo root
 
-pnpm dev         # dev server, http://localhost:3000
+npx pnpm dev      # dev server, http://localhost:3000
 pnpm build
 pnpm lint         # eslint
 pnpm vitest run   # run all tests

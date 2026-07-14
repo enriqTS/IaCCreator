@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { findShortestPath, simplifyPath, findSpotIndex } from '@/utils/routing-pathfinder';
-import type { ObstacleRect } from '@/utils/routing-pathfinder';
+import { findShortestPath, simplifyPath, findSpotIndex } from '@/utils/routing/routing-pathfinder';
+import type { ObstacleRect } from '@/utils/routing/routing-pathfinder';
 import type { Point } from '@/types/diagram';
 
 describe('simplifyPath', () => {

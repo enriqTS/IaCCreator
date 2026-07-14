@@ -4,8 +4,8 @@ import {
   inflateRect,
   rectsIntersect,
   extrudePoint,
-} from '@/utils/routing-grid';
-import type { RoutingRect } from '@/utils/routing-grid';
+} from '@/utils/routing/routing-grid';
+import type { RoutingRect } from '@/utils/routing/routing-grid';
 import type { Point } from '@/types/diagram';
 
 describe('inflateRect', () => {

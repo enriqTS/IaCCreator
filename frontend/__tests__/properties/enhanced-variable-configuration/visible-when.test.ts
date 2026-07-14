@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
-import { isVisible } from '@/components/config/SchemaConfigForm';
+import { isVisible } from '@/components/config/schema/SchemaConfigForm';
 import type { TerraformVariableSchema } from '@/types/terraform-variables';
 import type { ResourceConfig } from '@/types/diagram';
 
