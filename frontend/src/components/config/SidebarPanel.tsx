@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PanelLeftOpen, PanelRightOpen, PanelLeftClose, PanelRightClose, Trash2 } from 'lucide-react';
 import GlobalTerraformConfigPanel from './GlobalTerraformConfigPanel';
-import SchemaConfigForm from './SchemaConfigForm';
+import SchemaConfigForm from './schema/SchemaConfigForm';
 import ApigwDynamicConfigUI from './apigw/ApigwDynamicConfigUI';
 import VisualTab from './VisualTab';
 import ConnectionConfigPanel from '@/connections/ConnectionConfigPanel';

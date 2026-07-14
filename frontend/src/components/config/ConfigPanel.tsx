@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import SchemaConfigForm from './SchemaConfigForm';
+import SchemaConfigForm from './schema/SchemaConfigForm';
 
 /** Look up the icon path for a given service type from the registry. */
 function getIconPath(serviceType: ServiceType): string {
