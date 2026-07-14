@@ -5,8 +5,8 @@
  * Consumers can import from `@/utils/routing` instead of individual files.
  */
 
-// routing.ts — legacy orthogonal waypoint computation
-export { computeOrthogonalWaypoints, inferAnchorPosition, MIN_OFFSET } from './routing';
+// routing.ts — orthogonal waypoint helpers
+export { inferAnchorPosition, MIN_OFFSET } from './routing';
 
 // orthogonal-router.ts — primary obstacle-aware router
 export { routeOrthogonalConnector, balancePath, shortDistanceRoute, filterObstaclesByProximity } from './orthogonal-router';

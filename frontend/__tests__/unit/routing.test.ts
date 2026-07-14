@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeOrthogonalWaypoints, MIN_OFFSET } from '@/utils/routing';
+import { computeOrthogonalWaypoints, MIN_OFFSET } from '@/utils/routing/routing';
 import type { Point } from '@/types/diagram';
 import type { AnchorPosition } from '@/utils/anchor';
 

@@ -123,17 +123,6 @@ const ALL_ITEMS: PickerItem[] = ALL_CATEGORIES.flatMap((c) => c.items);
 const ALL_CATEGORY_NAMES = ALL_CATEGORIES.map((c) => c.category);
 
 /**
- * Filter picker items by search term (case-insensitive name match).
- * Exported for testing (Property 10).
- * @deprecated Use smartSearch() instead, which adds abbreviation-aware matching.
- */
-export function filterPickerItems(items: PickerItem[], searchTerm: string): PickerItem[] {
-  if (!searchTerm || searchTerm.trim() === '') return items;
-  const lower = searchTerm.toLowerCase();
-  return items.filter((item) => item.name.toLowerCase().includes(lower));
-}
-
-/**
  * Smart search: matches items by case-insensitive substring on name,
  * and also expands abbreviation map keys to their full service names.
  *

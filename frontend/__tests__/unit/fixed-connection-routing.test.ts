@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
 import { getAnchorPoints, findSnapAnchorWithPosition, SNAP_THRESHOLD } from '@/utils/anchor';
-import { computeOrthogonalWaypoints, MIN_OFFSET } from '@/utils/routing';
+import { computeOrthogonalWaypoints, MIN_OFFSET } from '@/utils/routing/routing';
 import { DEFAULT_LINE_VISUAL } from '@/types/diagram';
 import type { DiagramState } from '@/types/serialization';
 import type { LineObject, Rect } from '@/types/diagram';

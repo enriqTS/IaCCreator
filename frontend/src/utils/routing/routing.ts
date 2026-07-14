@@ -64,9 +64,8 @@ function opposite(position: AnchorPosition): AnchorPosition {
  * When `gridSize` is provided, all computed waypoint coordinates are snapped to the grid
  * and `gridSize` is used as the `minOffset` value.
  *
- * @deprecated Use `routeOrthogonalConnector` from `@/utils/routing/orthogonal-router` instead.
- * This function is kept as a fallback when the grid-based pathfinder cannot find a route.
- * It has no obstacle awareness and produces fixed topologies only.
+ * Internal: used as a fallback by `routeOrthogonalConnector` when the grid-based
+ * pathfinder cannot find a route. Not part of the public routing API.
  */
 export function computeOrthogonalWaypoints(
   start: Point,

@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { computeOrthogonalWaypoints } from '@/utils/routing';
+import { computeOrthogonalWaypoints } from '@/utils/routing/routing';
 import type { AnchorPosition } from '@/utils/anchor';
 import type { Point } from '@/types/diagram';
 

@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, it, expect } from 'vitest';
-import { filterPickerItems } from '@/components/toolbar/ObjectPickerMenu';
+import { smartSearch } from '@/components/toolbar/ObjectPickerMenu';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 import type { Tool } from '@/types/diagram';
 
@@ -22,7 +22,7 @@ describe('Property 10: Object picker search filters correctly', () => {
         fc.array(pickerItemArb, { minLength: 0, maxLength: 30 }),
         fc.string({ minLength: 0, maxLength: 20 }),
         (items, searchTerm) => {
-          const result = filterPickerItems(items, searchTerm);
+          const result = smartSearch(items, searchTerm, {});
           const lower = searchTerm.toLowerCase();
           const isEmptySearch = !searchTerm || searchTerm.trim() === '';
 

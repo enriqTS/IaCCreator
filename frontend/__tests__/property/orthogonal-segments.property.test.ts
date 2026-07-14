@@ -12,7 +12,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing';
+import { computeOrthogonalWaypoints, inferAnchorPosition } from '@/utils/routing/routing';
 import type { AnchorPosition } from '@/utils/anchor';
 import type { Point } from '@/types/diagram';
 
