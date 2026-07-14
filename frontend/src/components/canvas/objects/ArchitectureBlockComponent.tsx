@@ -2,7 +2,7 @@
 
 import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
 import { useSnapDrag } from '@/hooks/useSnapDrag';
-import AlignmentGuides from '@/components/canvas/AlignmentGuides';
+import AlignmentGuides from '@/components/canvas/interactions/AlignmentGuides';
 import { GAP } from '@/hooks/useServiceNameLabels';
 import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
 import type { ArchitectureBlock } from '@/types/diagram';

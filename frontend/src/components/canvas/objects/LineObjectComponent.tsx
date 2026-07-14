@@ -8,14 +8,12 @@ import { useConnectionLabel } from '@/hooks/useConnectionLabel';
 import { useServiceNameLabels } from '@/hooks/useServiceNameLabels';
 import { getAnchorPoints } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
-import { inferAnchorPosition } from '@/utils/routing';
+import { inferAnchorPosition, routeOrthogonalConnector, collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing';
 import { getConnectionBounds, computeShapeEdgePoint } from '@/utils/bounds-utils';
 import { getObjectBounds } from '@/types/diagram';
 import type { LineObject, Point, CanvasObject } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
 import { snapPointToGrid } from '@/utils/snap';
-import { routeOrthogonalConnector } from '@/utils/orthogonal-router';
-import { collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing-obstacles';
 import { computeParallelIndex, applyParallelOffset } from '@/utils/parallel-offset';
 
 interface LineObjectComponentProps {

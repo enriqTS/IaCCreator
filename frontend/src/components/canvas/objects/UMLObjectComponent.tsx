@@ -1,7 +1,7 @@
 'use client';
 
 import { useSnapDrag } from '@/hooks/useSnapDrag';
-import AlignmentGuides from '@/components/canvas/AlignmentGuides';
+import AlignmentGuides from '@/components/canvas/interactions/AlignmentGuides';
 import type { UMLObject } from '@/types/diagram';
 
 interface UMLObjectComponentProps {

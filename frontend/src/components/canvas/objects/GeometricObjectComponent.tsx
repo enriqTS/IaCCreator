@@ -1,7 +1,7 @@
 'use client';
 
 import { useSnapDrag } from '@/hooks/useSnapDrag';
-import AlignmentGuides from '@/components/canvas/AlignmentGuides';
+import AlignmentGuides from '@/components/canvas/interactions/AlignmentGuides';
 import { SHAPE_PATH_REGISTRY } from '@/utils/shape-paths';
 import { getShapeTightBounds } from '@/utils/bounds-utils';
 import type { GeometricObject } from '@/types/diagram';

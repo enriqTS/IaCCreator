@@ -3,7 +3,7 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useSnapDrag } from '@/hooks/useSnapDrag';
-import AlignmentGuides from '@/components/canvas/AlignmentGuides';
+import AlignmentGuides from '@/components/canvas/interactions/AlignmentGuides';
 import type { TextObject } from '@/types/diagram';
 
 interface TextObjectComponentProps {
