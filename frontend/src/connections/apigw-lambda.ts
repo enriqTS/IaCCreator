@@ -59,14 +59,11 @@ export const apiGatewayLambdaSchema: ConnectionSchema = {
       const name = config.authorizer_name || 'auth';
       return `Authorizer: ${name}`;
     }
+    // route_handler connections have no label on the line - routes are shown
+    // in the "connected routes" read-only list within the connection panel instead.
+    // This avoids showing a single route path when multiple routes may target the same lambda.
     if (role === 'route_handler' || !role) {
-      const routeCount = config.route_count as number | undefined;
-      if (routeCount && routeCount > 1) {
-        return `${routeCount} routes`;
-      }
-      const path = config.route_path || '/$default';
-      const label = path as string;
-      return label.length > 30 ? label.slice(0, 27) + '...' : label;
+      return null;
     }
     return null;
   },

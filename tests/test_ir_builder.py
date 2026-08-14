@@ -330,3 +330,255 @@ class TestIAMStatementDerivation:
         )
         api_ir = api_module.instances[0]
         assert len(api_ir.iam_statements) == 0
+
+
+class TestAPIGatewayLambdaRouteDerivation:
+    """Test that IRBuilder derives routes from gateway config for apigw-lambda connections."""
+
+    def test_derives_single_route_from_gateway_config(self):
+        """A single route in gateway config targeting the lambda becomes connection_config['routes']."""
+        from app.models.input_models.api_gateway_config import ApiGatewayConfig
+
+        desc = _make_input(
+            resources=[
+                ResourceInstance(
+                    name="my-api",
+                    service_type=ServiceType.API_GATEWAY,
+                    config=ApiGatewayConfig(
+                        api_name="test-api",
+                        protocol_type="HTTP",
+                        routes=[
+                            {
+                                "methods": ["GET"],
+                                "path": "/users",
+                                "integration_name": "my-func",
+                            }
+                        ],
+                    ),
+                ),
+                ResourceInstance(
+                    name="my-func",
+                    service_type=ServiceType.LAMBDA,
+                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                ),
+            ],
+            connections=[
+                Connection(
+                    source="my-api",
+                    target="my-func",
+                    connection_type="triggers",
+                )
+            ],
+        )
+        ir = IRBuilder().build(desc)
+        assert len(ir.connections) == 1
+        conn = ir.connections[0]
+        assert "routes" in conn.connection_config
+        assert len(conn.connection_config["routes"]) == 1
+        assert conn.connection_config["routes"][0] == {
+            "methods": ["GET"],
+            "path": "/users",
+        }
+
+    def test_derives_multiple_routes_from_gateway_config(self):
+        """Multiple routes in gateway config targeting the lambda all become connection_config['routes']."""
+        from app.models.input_models.api_gateway_config import ApiGatewayConfig
+
+        desc = _make_input(
+            resources=[
+                ResourceInstance(
+                    name="my-api",
+                    service_type=ServiceType.API_GATEWAY,
+                    config=ApiGatewayConfig(
+                        api_name="test-api",
+                        protocol_type="HTTP",
+                        routes=[
+                            {"methods": ["GET"], "path": "/users", "integration_name": "my-func"},
+                            {"methods": ["POST"], "path": "/users", "integration_name": "my-func"},
+                            {"methods": ["GET"], "path": "/items", "integration_name": "other-func"},
+                        ],
+                    ),
+                ),
+                ResourceInstance(
+                    name="my-func",
+                    service_type=ServiceType.LAMBDA,
+                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                ),
+                ResourceInstance(
+                    name="other-func",
+                    service_type=ServiceType.LAMBDA,
+                    config=LambdaConfig(function_name="other-func", handler="h", runtime="python3.12"),
+                ),
+            ],
+            connections=[
+                Connection(
+                    source="my-api",
+                    target="my-func",
+                    connection_type="triggers",
+                )
+            ],
+        )
+        ir = IRBuilder().build(desc)
+        conn = ir.connections[0]
+        assert len(conn.connection_config["routes"]) == 2
+        assert conn.connection_config["routes"][0] == {"methods": ["GET"], "path": "/users"}
+        assert conn.connection_config["routes"][1] == {"methods": ["POST"], "path": "/users"}
+
+    def test_preserves_explicit_routes_in_connection_config(self):
+        """Explicit routes in connection_config take precedence over derived routes."""
+        from app.models.input_models.api_gateway_config import ApiGatewayConfig
+
+        desc = _make_input(
+            resources=[
+                ResourceInstance(
+                    name="my-api",
+                    service_type=ServiceType.API_GATEWAY,
+                    config=ApiGatewayConfig(
+                        api_name="test-api",
+                        protocol_type="HTTP",
+                        routes=[
+                            {"methods": ["GET"], "path": "/users", "integration_name": "my-func"},
+                        ],
+                    ),
+                ),
+                ResourceInstance(
+                    name="my-func",
+                    service_type=ServiceType.LAMBDA,
+                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                ),
+            ],
+            connections=[
+                Connection(
+                    source="my-api",
+                    target="my-func",
+                    connection_type="triggers",
+                    connection_config={
+                        "routes": [{"methods": ["POST"], "path": "/custom"}],
+                    },
+                )
+            ],
+        )
+        ir = IRBuilder().build(desc)
+        conn = ir.connections[0]
+        # Explicit routes should be preserved, not overwritten by derived routes
+        assert len(conn.connection_config["routes"]) == 1
+        assert conn.connection_config["routes"][0] == {"methods": ["POST"], "path": "/custom"}
+
+    def test_skips_route_derivation_for_authorizer_role(self):
+        """Authorizer connections should not derive routes from gateway config."""
+        from app.models.input_models.api_gateway_config import ApiGatewayConfig
+
+        desc = _make_input(
+            resources=[
+                ResourceInstance(
+                    name="my-api",
+                    service_type=ServiceType.API_GATEWAY,
+                    config=ApiGatewayConfig(
+                        api_name="test-api",
+                        protocol_type="HTTP",
+                        routes=[
+                            {"methods": ["GET"], "path": "/users", "integration_name": "my-auth"},
+                        ],
+                    ),
+                ),
+                ResourceInstance(
+                    name="my-auth",
+                    service_type=ServiceType.LAMBDA,
+                    config=LambdaConfig(function_name="auth-func", handler="h", runtime="python3.12"),
+                ),
+            ],
+            connections=[
+                Connection(
+                    source="my-api",
+                    target="my-auth",
+                    connection_type="triggers",
+                    connection_config={"connection_role": "authorizer"},
+                )
+            ],
+        )
+        ir = IRBuilder().build(desc)
+        conn = ir.connections[0]
+        # Authorizer connections should not have routes derived
+        assert "routes" not in conn.connection_config
+
+    def test_skips_route_derivation_for_websocket(self):
+        """WebSocket connections should not derive routes from gateway config."""
+        from app.models.input_models.api_gateway_config import ApiGatewayConfig
+
+        desc = _make_input(
+            resources=[
+                ResourceInstance(
+                    name="my-api",
+                    service_type=ServiceType.API_GATEWAY,
+                    config=ApiGatewayConfig(
+                        api_name="test-api",
+                        protocol_type="WEBSOCKET",
+                        routes=[
+                            {"methods": ["ANY"], "path": "$connect", "integration_name": "my-func"},
+                        ],
+                    ),
+                ),
+                ResourceInstance(
+                    name="my-func",
+                    service_type=ServiceType.LAMBDA,
+                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                ),
+            ],
+            connections=[
+                Connection(
+                    source="my-api",
+                    target="my-func",
+                    connection_type="triggers",
+                )
+            ],
+        )
+        ir = IRBuilder().build(desc)
+        conn = ir.connections[0]
+        # WebSocket connections should not have routes derived
+        assert "routes" not in conn.connection_config
+
+    def test_includes_optional_route_fields(self):
+        """Derived routes should include route_response_key and api_key_required when present."""
+        from app.models.input_models.api_gateway_config import ApiGatewayConfig
+
+        desc = _make_input(
+            resources=[
+                ResourceInstance(
+                    name="my-api",
+                    service_type=ServiceType.API_GATEWAY,
+                    config=ApiGatewayConfig(
+                        api_name="test-api",
+                        protocol_type="HTTP",
+                        routes=[
+                            {
+                                "methods": ["GET"],
+                                "path": "/users",
+                                "integration_name": "my-func",
+                                "route_response_key": "$default",
+                                "api_key_required": True,
+                            }
+                        ],
+                    ),
+                ),
+                ResourceInstance(
+                    name="my-func",
+                    service_type=ServiceType.LAMBDA,
+                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                ),
+            ],
+            connections=[
+                Connection(
+                    source="my-api",
+                    target="my-func",
+                    connection_type="triggers",
+                )
+            ],
+        )
+        ir = IRBuilder().build(desc)
+        conn = ir.connections[0]
+        assert len(conn.connection_config["routes"]) == 1
+        route = conn.connection_config["routes"][0]
+        assert route["methods"] == ["GET"]
+        assert route["path"] == "/users"
+        assert route["route_response_key"] == "$default"
+        assert route["api_key_required"] is True

@@ -170,6 +170,48 @@ class TestGenerateRoutesHTTP:
         assert "authorization_type" not in hcl
         assert "authorizer_id" not in hcl
 
+    def test_skips_connection_derived_routes(self):
+        """Routes with connection-derived integration_name (not in config.integrations) are skipped.
+
+        These routes are handled by ApiGatewayLambdaHandler which generates both
+        the route and its integration target properly.
+        """
+        config = ApiGatewayConfig(api_name="test-api", 
+            protocol_type="HTTP",
+            routes=[
+                {"methods": ["GET"], "path": "/users", "integration_name": "lambda_backend"},
+                {"methods": ["POST"], "path": "/users", "integration_name": "lambda_backend"},
+            ],
+            # No config.integrations - routes reference lambda by name only (connection-derived)
+            integrations=[],
+        )
+        instance = _make_instance("api", config)
+        gen = APIGatewayGenerator()
+        hcl = gen._generate_routes(instance)
+
+        # Routes should be skipped entirely (not emitted at all)
+        assert "GET /users" not in hcl
+        assert "POST /users" not in hcl
+        assert hcl.strip() == "" or '$default' in hcl  # Should fall back to default route
+
+    def test_emits_routes_with_matching_manual_integrations(self):
+        """Routes with integration_name found in config.integrations are emitted."""
+        config = ApiGatewayConfig(api_name="test-api", 
+            protocol_type="HTTP",
+            routes=[
+                {"methods": ["GET"], "path": "/users", "integration_name": "manual_integration"},
+            ],
+            integrations=[{"name": "manual_integration", "type": "HTTP_PROXY"}],
+        )
+        instance = _make_instance("api", config)
+        gen = APIGatewayGenerator()
+        hcl = gen._generate_routes(instance)
+
+        # Route with matching manual integration should be emitted
+        assert 'route_key = "GET /users"' in hcl
+        assert "target" in hcl
+        assert "aws_apigatewayv2_integration.api_manual_integration_integration.id" in hcl
+
 
 class TestGenerateRoutesWebSocket:
     """Tests for WebSocket API route generation."""

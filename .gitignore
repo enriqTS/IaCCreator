@@ -24,3 +24,6 @@ data/db.json
 
 #aws-icons (root source only, not frontend/public/aws-icons)
 /aws-icons/
+
+# pnpm store
+.pnpm-store/

@@ -757,6 +757,14 @@ class APIGatewayGenerator:
             # HTTP API
             if routes:
                 for route_cfg in routes:
+                    # Skip connection-derived routes (no matching integration in config.integrations).
+                    # These are handled by ApiGatewayLambdaHandler which generates both the route
+                    # and its integration target properly. Only emit routes here that have a
+                    # manually-declared integration in config.integrations.
+                    integration_name = route_cfg.get("integration_name")
+                    if integration_name and integration_name not in integration_names:
+                        continue
+
                     methods = route_cfg.get("methods", ["ANY"])
                     path = route_cfg.get("path", "/")
 
@@ -770,8 +778,7 @@ class APIGatewayGenerator:
                             "route_key": route_key,
                         }
 
-                        # Target integration
-                        integration_name = route_cfg.get("integration_name")
+                        # Target integration (only for manually-declared integrations)
                         if integration_name and integration_name in integration_names:
                             attrs["target"] = (
                                 f"integrations/${{aws_apigatewayv2_integration."

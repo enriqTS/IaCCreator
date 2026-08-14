@@ -8,6 +8,8 @@ services:
   frontend:
     build:
       target: dev
+    environment:
+      - CI=true
     volumes:
       - ./frontend:/app
       - frontend-node-modules:/app/node_modules

@@ -137,6 +137,14 @@ class IRBuilder:
                     target_service_type=target_resource.service_type.value,
                 )
 
+            connection_config = conn.connection_config
+
+            # Derive routes from API Gateway config for route_handler connections
+            if pair == (ServiceType.API_GATEWAY, ServiceType.LAMBDA):
+                connection_config = self._derive_apigw_lambda_routes(
+                    conn, source_resource, target_resource
+                )
+
             result.append(
                 ConnectionIR(
                     source_name=conn.source,
@@ -144,11 +152,83 @@ class IRBuilder:
                     source_service=source_resource.service_type,
                     target_service=target_resource.service_type,
                     connection_type=conn.connection_type,
-                    connection_config=conn.connection_config,
+                    connection_config=connection_config,
                 )
             )
 
         return result
+
+    def _derive_apigw_lambda_routes(
+        self,
+        conn: Connection,
+        source_resource,
+        target_resource,
+    ) -> dict:
+        """Derive routes array from API Gateway config for route_handler connections.
+
+        For API_GATEWAY -> LAMBDA connections with role 'route_handler' (default),
+        derives connection_config['routes'] from the gateway's config.routes
+        entries where integration_name matches the target lambda name.
+
+        Preserves explicit connection_config['routes'] if already present
+        (direct API/back-compat use).
+        """
+        config = conn.connection_config or {}
+
+        # Skip if routes already explicitly provided (direct API/back-compat)
+        if config.get("routes"):
+            return config
+
+        # Only process route_handler role (default when not specified)
+        role = config.get("connection_role", "route_handler")
+        if role != "route_handler":
+            return config
+
+        # Get source gateway's routes configuration
+        source_config = source_resource.config
+        if not source_config:
+            return config
+
+        # Skip WebSocket APIs (handled separately)
+        protocol_type = getattr(source_config, "protocol_type", None)
+        if protocol_type == "WEBSOCKET":
+            return config
+
+        # Get the routes array from gateway config
+        routes = getattr(source_config, "routes", None)
+        if not routes:
+            return config
+
+        target_name = target_resource.name
+        derived_routes: list[dict] = []
+
+        for route in routes:
+            # Check if this route targets the lambda
+            if route.get("integration_name") != target_name:
+                continue
+
+            # Build route entry for connection_config
+            methods = route.get("methods", ["ANY"])
+            path = route.get("path", "/")
+
+            route_entry: dict = {
+                "methods": methods if isinstance(methods, list) else [str(methods)],
+                "path": path,
+            }
+
+            # Optional fields
+            if route.get("route_response_key"):
+                route_entry["route_response_key"] = route["route_response_key"]
+            if route.get("api_key_required"):
+                route_entry["api_key_required"] = True
+
+            derived_routes.append(route_entry)
+
+        if derived_routes:
+            config = dict(config)  # Shallow copy to avoid mutating original
+            config["routes"] = derived_routes
+
+        return config
 
     def _resolve_config(
         self,
