@@ -1,5 +1,6 @@
 """Single source of truth for per-service IAM action definitions."""
 
+from app.exceptions import GeneratorConfigError
 from app.models.input_models import ServiceType
 
 # Full IAM actions per target service type (read + write combined)
@@ -72,35 +73,24 @@ IAM_WRITE_ACTIONS: dict[ServiceType, list[str]] = {
 }
 
 
-def get_actions(
-    service_type: ServiceType, access_pattern: str = "full"
-) -> list[str] | None:
-    """Return IAM actions for a service type and access pattern, or None if not registered.
+def get_actions(service_type: ServiceType, access_pattern: str = "full") -> list[str]:
+    """Return the IAM actions for a service type and access pattern."""
+    table = {
+        "read": IAM_READ_ACTIONS,
+        "write": IAM_WRITE_ACTIONS,
+    }.get(access_pattern, IAM_ACTIONS)
 
-    Args:
-        service_type: The target AWS service type.
-        access_pattern: One of "full", "read", or "write".
-
-    Returns:
-        List of IAM action strings, or None if the service type has no entry.
-    """
-    if access_pattern == "read":
-        return IAM_READ_ACTIONS.get(service_type)
-    elif access_pattern == "write":
-        return IAM_WRITE_ACTIONS.get(service_type)
-    return IAM_ACTIONS.get(service_type)
+    actions = table.get(service_type)
+    if actions is None:
+        raise GeneratorConfigError(
+            f"No IAM actions registered for service '{service_type.value}' "
+            f"with access pattern '{access_pattern}'"
+        )
+    return actions
 
 
 def get_resources(target_name: str, target_service: ServiceType) -> list[str]:
-    """Build Terraform resource references for IAM statement resources.
-
-    Args:
-        target_name: The name of the target resource.
-        target_service: The service type of the target resource.
-
-    Returns:
-        List of Terraform resource ARN references.
-    """
+    """Build the ARN references an IAM statement should target."""
     if target_service == ServiceType.DYNAMODB:
         return [f"${{aws_dynamodb_table.{target_name}.arn}}"]
     elif target_service == ServiceType.S3:
