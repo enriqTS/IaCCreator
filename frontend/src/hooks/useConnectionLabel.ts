@@ -1,13 +1,14 @@
 /**
  * Hook that resolves the connection label and dashed state for a LineObject.
  *
- * Uses the diagram store to find the associated connector and schema,
- * then computes the label text and whether the line should be dashed.
+ * Uses the diagram store to find the associated connector, then applies the
+ * presentation rules for that connection kind.
  */
 
 import { useMemo } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { findConnectorForLine, getSchemaForConnector } from '@/connections/connector-utils';
+import { findConnectorForLine } from '@/connections/connector-utils';
+import { getPresentation } from '@/connections/presentation';
 import type { LineObject } from '@/types/diagram';
 
 interface ConnectionLabelResult {
@@ -33,14 +34,27 @@ export function useConnectionLabel(line: LineObject): ConnectionLabelResult {
       return { label: null, dashed: false };
     }
 
-    const schema = getSchemaForConnector(connector, canvasObjects);
-    if (!schema) {
+    const source = canvasObjects.get(connector.sourceId);
+    const target = canvasObjects.get(connector.targetId);
+    if (
+      source?.objectType !== 'architecture-block' ||
+      target?.objectType !== 'architecture-block'
+    ) {
       return { label: null, dashed: false };
     }
 
-    const label = schema.getLabel(config);
-    const dashed = schema.getDashed ? schema.getDashed(config) : false;
+    const presentation = getPresentation(
+      source.serviceType,
+      target.serviceType,
+      connector.connectionType,
+    );
+    if (!presentation) {
+      return { label: null, dashed: false };
+    }
 
-    return { label, dashed };
+    return {
+      label: presentation.getLabel(config),
+      dashed: presentation.getDashed ? presentation.getDashed(config) : false,
+    };
   }, [line, connectors, canvasObjects]);
 }

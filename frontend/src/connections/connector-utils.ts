@@ -8,12 +8,9 @@
  * 3. A connector exists with sourceId matching the source block and targetId matching the target block
  */
 
-import type { LineObject, Connector, CanvasObject, ArchitectureBlock } from '@/types/diagram';
-import {
-  CONNECTION_SCHEMA_REGISTRY,
-  type ConnectionSchema,
-  type SchemaRegistryKey,
-} from './registry';
+import type { LineObject, Connector, CanvasObject } from '@/types/diagram';
+import type { ConnectionSchema } from './registry';
+import { getConnectionSchema } from './schema-store';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -68,7 +65,7 @@ export function findConnectorForLine(
  *
  * Returns null if:
  * - The source or target block cannot be found in canvasObjects
- * - The service pair has no entry in the schema registry
+ * - The service pair is not in the backend catalog (or it has not loaded yet)
  */
 export function getSchemaForConnector(
   connector: Connector,
@@ -84,16 +81,19 @@ export function getSchemaForConnector(
     return null;
   }
 
-  const key: SchemaRegistryKey =
-    `${sourceObj.serviceType}::${targetObj.serviceType}` as SchemaRegistryKey;
-
-  // Try the direct key first, then the reverse direction
-  const schema = CONNECTION_SCHEMA_REGISTRY.get(key);
-  if (schema) return schema;
-
-  const reverseKey: SchemaRegistryKey =
-    `${targetObj.serviceType}::${sourceObj.serviceType}` as SchemaRegistryKey;
-  return CONNECTION_SCHEMA_REGISTRY.get(reverseKey) ?? null;
+  // Try the drawn direction first, then the reverse, since a line has no inherent direction
+  return (
+    getConnectionSchema(
+      sourceObj.serviceType,
+      targetObj.serviceType,
+      connector.connectionType,
+    ) ??
+    getConnectionSchema(
+      targetObj.serviceType,
+      sourceObj.serviceType,
+      connector.connectionType,
+    )
+  );
 }
 
 /**

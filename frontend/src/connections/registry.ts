@@ -1,23 +1,10 @@
 /**
- * Connection Schema Registry
+ * Shared types for connection schemas.
  *
- * Central registry file containing shared types and the CONNECTION_SCHEMA_REGISTRY Map.
- * Each individual schema is imported from its own sibling file.
+ * The schemas themselves are served by the backend — see `schema-store.ts`.
  */
 
 import type { ServiceType } from '@/types/diagram';
-
-import { apiGatewayLambdaSchema } from './apigw-lambda';
-import { sqsLambdaSchema } from './sqs-lambda';
-import { lambdaDynamodbSchema } from './lambda-dynamodb';
-import { lambdaS3Schema } from './lambda-s3';
-import { lambdaSnsSchema } from './lambda-sns';
-import { lambdaSqsSchema } from './lambda-sqs';
-import { snsLambdaSchema } from './sns-lambda';
-import { snsSqsSchema } from './sns-sqs';
-import { lambdaCloudwatchSchema } from './lambda-cloudwatch';
-
-// --- Shared Types ---
 
 /** Field types supported by the schema renderer */
 export type SchemaFieldType = 'text' | 'number' | 'select' | 'radio' | 'multiSelect' | 'linkedSelect';
@@ -54,30 +41,11 @@ export interface SchemaField {
   createTemplate?: Record<string, unknown>;
 }
 
-/** Schema for a specific service pair */
+/** Schema for one kind of connection between two services */
 export interface ConnectionSchema {
   sourcePair: [ServiceType, ServiceType];
+  connectionType: string;
   label: string;
+  isDefault: boolean;
   fields: SchemaField[];
-  /** Function to generate the line label from connectionConfig */
-  getLabel: (config: Record<string, string | number | boolean>) => string | null;
-  /** Whether this connection type uses dashed stroke */
-  getDashed?: (config: Record<string, string | number | boolean>) => boolean;
 }
-
-/** Registry key is "sourceType::targetType" */
-export type SchemaRegistryKey = `${ServiceType}::${ServiceType}`;
-
-// --- Registry ---
-
-export const CONNECTION_SCHEMA_REGISTRY = new Map<SchemaRegistryKey, ConnectionSchema>([
-  ['api-gateway::lambda', apiGatewayLambdaSchema],
-  ['sqs::lambda', sqsLambdaSchema],
-  ['lambda::dynamodb', lambdaDynamodbSchema],
-  ['lambda::s3', lambdaS3Schema],
-  ['lambda::sns', lambdaSnsSchema],
-  ['lambda::sqs', lambdaSqsSchema],
-  ['sns::lambda', snsLambdaSchema],
-  ['sns::sqs', snsSqsSchema],
-  ['lambda::cloudwatch', lambdaCloudwatchSchema],
-]);

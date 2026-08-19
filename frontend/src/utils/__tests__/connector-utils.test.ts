@@ -1,10 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   findConnectorForLine,
   getSchemaForConnector,
   ensureConnectorForLine,
 } from '@/connections/connector-utils';
-import { CONNECTION_SCHEMA_REGISTRY } from '@/connections';
+import {
+  fetchConnectionSchemas,
+  clearConnectionSchemaCache,
+} from '@/connections/schema-store';
 import type {
   LineObject,
   Connector,
@@ -172,7 +175,50 @@ describe('findConnectorForLine', () => {
 
 // --- getSchemaForConnector ---
 
+const CATALOG = {
+  connections: [
+    {
+      source: 'api-gateway',
+      target: 'lambda',
+      connection_type: 'route_handler',
+      label: 'API Gateway → Lambda (route handler)',
+      is_default: true,
+      fields: [],
+    },
+    {
+      source: 'sqs',
+      target: 'lambda',
+      connection_type: 'triggers',
+      label: 'SQS → Lambda',
+      is_default: true,
+      fields: [],
+    },
+    {
+      source: 'lambda',
+      target: 'dynamodb',
+      connection_type: 'accesses',
+      label: 'Lambda → DynamoDB',
+      is_default: true,
+      fields: [],
+    },
+  ],
+};
+
 describe('getSchemaForConnector', () => {
+  beforeEach(async () => {
+    clearConnectionSchemaCache();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, json: async () => CATALOG })),
+    );
+    await fetchConnectionSchemas();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    clearConnectionSchemaCache();
+  });
+
   it('returns the correct schema for api-gateway → lambda', () => {
     const blockA = makeBlock('block-a', 'api-gateway');
     const blockB = makeBlock('block-b', 'lambda');
@@ -185,7 +231,7 @@ describe('getSchemaForConnector', () => {
 
     const schema = getSchemaForConnector(connector, canvasObjects);
     expect(schema).not.toBeNull();
-    expect(schema!.label).toBe('API Gateway → Lambda');
+    expect(schema!.label).toBe('API Gateway → Lambda (route handler)');
   });
 
   it('returns the correct schema for sqs → lambda', () => {
