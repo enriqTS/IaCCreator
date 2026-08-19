@@ -20,7 +20,10 @@ from app.models.ir_models import (
     ServiceModuleIR,
 )
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
-from app.services.connection_handlers.registry import CONNECTION_HANDLER_REGISTRY
+from app.services.connection_handlers.registry import (
+    COMPATIBLE_CONNECTIONS,
+    CONNECTION_REGISTRY,
+)
 from app.services.connection_processor import ConnectionProcessor
 
 
@@ -59,53 +62,62 @@ def _make_project(
 
 
 class TestRegistryCompleteness:
-    """Verify CONNECTION_HANDLER_REGISTRY contains all 9 expected entries."""
+    """Verify the registry covers every supported service pair."""
 
-    def test_registry_has_nine_entries(self):
-        """Registry must contain exactly 9 connection type pairs."""
-        assert len(CONNECTION_HANDLER_REGISTRY) == 9
+    def test_registry_covers_nine_pairs(self):
+        """Nine distinct service pairs are supported."""
+        assert len(COMPATIBLE_CONNECTIONS) == 9
+
+    def test_api_gateway_has_two_roles(self):
+        """API Gateway to Lambda is registered as both a route handler and an authorizer."""
+        types = {
+            key[2]
+            for key in CONNECTION_REGISTRY
+            if key[0] is ServiceType.API_GATEWAY and key[1] is ServiceType.LAMBDA
+        }
+        assert types == {"route_handler", "authorizer"}
 
     def test_apigw_lambda_registered(self):
         """API_GATEWAY → LAMBDA is registered."""
         assert (
             ServiceType.API_GATEWAY,
             ServiceType.LAMBDA,
-        ) in CONNECTION_HANDLER_REGISTRY
+        ) in COMPATIBLE_CONNECTIONS
 
     def test_lambda_dynamodb_registered(self):
         """LAMBDA → DYNAMODB is registered."""
-        assert (ServiceType.LAMBDA, ServiceType.DYNAMODB) in CONNECTION_HANDLER_REGISTRY
+        assert (ServiceType.LAMBDA, ServiceType.DYNAMODB) in COMPATIBLE_CONNECTIONS
 
     def test_lambda_s3_registered(self):
         """LAMBDA → S3 is registered."""
-        assert (ServiceType.LAMBDA, ServiceType.S3) in CONNECTION_HANDLER_REGISTRY
+        assert (ServiceType.LAMBDA, ServiceType.S3) in COMPATIBLE_CONNECTIONS
 
     def test_lambda_cloudwatch_registered(self):
         """LAMBDA → CLOUDWATCH is registered."""
         assert (
             ServiceType.LAMBDA,
             ServiceType.CLOUDWATCH,
-        ) in CONNECTION_HANDLER_REGISTRY
+        ) in COMPATIBLE_CONNECTIONS
 
     def test_lambda_sns_registered(self):
         """LAMBDA → SNS is registered."""
-        assert (ServiceType.LAMBDA, ServiceType.SNS) in CONNECTION_HANDLER_REGISTRY
+        assert (ServiceType.LAMBDA, ServiceType.SNS) in COMPATIBLE_CONNECTIONS
 
     def test_lambda_sqs_registered(self):
         """LAMBDA → SQS is registered."""
-        assert (ServiceType.LAMBDA, ServiceType.SQS) in CONNECTION_HANDLER_REGISTRY
+        assert (ServiceType.LAMBDA, ServiceType.SQS) in COMPATIBLE_CONNECTIONS
 
     def test_sqs_lambda_registered(self):
         """SQS → LAMBDA is registered."""
-        assert (ServiceType.SQS, ServiceType.LAMBDA) in CONNECTION_HANDLER_REGISTRY
+        assert (ServiceType.SQS, ServiceType.LAMBDA) in COMPATIBLE_CONNECTIONS
 
     def test_sns_sqs_registered(self):
         """SNS → SQS is registered."""
-        assert (ServiceType.SNS, ServiceType.SQS) in CONNECTION_HANDLER_REGISTRY
+        assert (ServiceType.SNS, ServiceType.SQS) in COMPATIBLE_CONNECTIONS
 
     def test_sns_lambda_registered(self):
         """SNS → LAMBDA is registered."""
-        assert (ServiceType.SNS, ServiceType.LAMBDA) in CONNECTION_HANDLER_REGISTRY
+        assert (ServiceType.SNS, ServiceType.LAMBDA) in COMPATIBLE_CONNECTIONS
 
 
 # ===========================================================================

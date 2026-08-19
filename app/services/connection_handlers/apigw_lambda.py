@@ -26,8 +26,7 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
     def handle(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> ConnectionContribution:
-        role = connection.connection_config.get("connection_role", "route_handler")
-        if role == "authorizer":
+        if connection.connection_type == "authorizer":
             return self._handle_authorizer(connection)
         return self._handle_route_handler(connection)
 

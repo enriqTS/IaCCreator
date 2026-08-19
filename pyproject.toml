@@ -47,6 +47,7 @@ ignore = [
 "app/services/connection_processor.py" = ["E402"]  # logger before imports
 "app/services/ir_builder.py" = ["E402"]  # logger before imports
 "app/models/input_models/_metadata.py" = ["N802"]  # TerraformField factory function
+"app/models/connection_configs/_metadata.py" = ["N802"]  # ConnectionField factory function
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

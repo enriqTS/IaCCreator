@@ -3,7 +3,13 @@
 import logging
 from collections import defaultdict
 
-from app.exceptions import IncompatibleConnectionError, ResourceNotFoundError
+from pydantic import ValidationError
+
+from app.exceptions import (
+    IncompatibleConnectionError,
+    InvalidConnectionConfigError,
+    ResourceNotFoundError,
+)
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import (
     _get_cached_service_config_models,
@@ -23,19 +29,10 @@ from app.models.ir_models import (
     ResourceInstanceIR,
     ServiceModuleIR,
 )
-
-# Compatible connection pairs: (source_service, target_service)
-COMPATIBLE_CONNECTIONS: set[tuple[ServiceType, ServiceType]] = {
-    (ServiceType.API_GATEWAY, ServiceType.LAMBDA),
-    (ServiceType.LAMBDA, ServiceType.DYNAMODB),
-    (ServiceType.LAMBDA, ServiceType.S3),
-    (ServiceType.LAMBDA, ServiceType.CLOUDWATCH),
-    (ServiceType.LAMBDA, ServiceType.SNS),
-    (ServiceType.LAMBDA, ServiceType.SQS),
-    (ServiceType.SQS, ServiceType.LAMBDA),
-    (ServiceType.SNS, ServiceType.SQS),
-    (ServiceType.SNS, ServiceType.LAMBDA),
-}
+from app.services.connection_handlers.registry import (
+    COMPATIBLE_CONNECTIONS,
+    resolve_spec,
+)
 
 
 class IRBuilder:
@@ -139,10 +136,19 @@ class IRBuilder:
                     target_service_type=target_resource.service_type.value,
                 )
 
+            spec = resolve_spec(
+                pair[0], pair[1], conn.connection_type, conn.connection_config
+            )
+            if spec is None:
+                raise IncompatibleConnectionError(
+                    source_service_type=source_resource.service_type.value,
+                    target_service_type=target_resource.service_type.value,
+                )
+
             connection_config = conn.connection_config
 
             # Derive routes from API Gateway config for route_handler connections
-            if pair == (ServiceType.API_GATEWAY, ServiceType.LAMBDA):
+            if spec.connection_type == "route_handler":
                 connection_config = self._derive_apigw_lambda_routes(
                     conn, source_resource, target_resource
                 )
@@ -153,12 +159,31 @@ class IRBuilder:
                     target_name=conn.target,
                     source_service=source_resource.service_type,
                     target_service=target_resource.service_type,
-                    connection_type=conn.connection_type,
-                    connection_config=connection_config,
+                    connection_type=spec.connection_type,
+                    connection_config=self._validate_config(
+                        conn, spec, connection_config
+                    ),
                 )
             )
 
         return result
+
+    @staticmethod
+    def _validate_config(conn: Connection, spec, connection_config: dict) -> dict:
+        """Validate a connection's config against its spec, then normalise it."""
+        payload = dict(connection_config)
+        # connection_role selected the spec; it is not part of the config itself
+        payload.pop("connection_role", None)
+        try:
+            validated = spec.config_model.model_validate(payload)
+        except ValidationError as exc:
+            raise InvalidConnectionConfigError(
+                source=conn.source,
+                target=conn.target,
+                connection_type=spec.connection_type,
+                errors=exc.errors(),
+            ) from exc
+        return validated.model_dump(exclude_none=True)
 
     def _derive_apigw_lambda_routes(
         self,

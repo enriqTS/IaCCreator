@@ -3,7 +3,7 @@
 import logging
 
 from app.models.ir_models import ConnectionContribution, ProjectIR
-from app.services.connection_handlers.registry import CONNECTION_HANDLER_REGISTRY
+from app.services.connection_handlers.registry import resolve_spec
 
 logger = logging.getLogger(__name__)
 
@@ -15,17 +15,20 @@ class ConnectionProcessor:
         """Process every connection and return one merged contribution."""
         merged = ConnectionContribution()
         for conn in project.connections:
-            handler = CONNECTION_HANDLER_REGISTRY.get(
-                (conn.source_service, conn.target_service)
+            spec = resolve_spec(
+                conn.source_service,
+                conn.target_service,
+                conn.connection_type,
+                conn.connection_config,
             )
-            if handler is None:
+            if spec is None:
                 logger.warning(
                     "No handler registered for connection type %s -> %s, skipping",
                     conn.source_service.value,
                     conn.target_service.value,
                 )
                 continue
-            merged.merge(handler.handle(conn, project))
+            merged.merge(spec.handler.handle(conn, project))
 
         self._attach_iam(merged, project)
         return merged

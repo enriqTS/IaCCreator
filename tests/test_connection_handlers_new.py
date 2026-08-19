@@ -275,7 +275,7 @@ class TestHandleApigwLambdaAuthorizer:
 
     def _handle_apigw_lambda_authorizer(self, connection_config=None):
         """Helper: create APIGW→Lambda connection with authorizer role."""
-        config = connection_config or {"connection_role": "authorizer"}
+        config = connection_config or {}
         apigw = _apigw_ir("my-api")
         func = _lambda_ir("my-func")
         conn = ConnectionIR(
@@ -283,7 +283,7 @@ class TestHandleApigwLambdaAuthorizer:
             target_name="my-func",
             source_service=ServiceType.API_GATEWAY,
             target_service=ServiceType.LAMBDA,
-            connection_type="triggers",
+            connection_type="authorizer",
             connection_config=config,
         )
         project = _make_project([apigw, func], [conn])

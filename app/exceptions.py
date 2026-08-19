@@ -33,3 +33,23 @@ class GeneratorConfigError(DomainError):
     """Raised when a generator receives a config instance of an unexpected type."""
 
     pass
+
+
+class InvalidConnectionConfigError(DomainError):
+    """Raised when a connection's configuration fails validation against its schema."""
+
+    def __init__(
+        self, source: str, target: str, connection_type: str, errors: list[dict]
+    ):
+        self.source = source
+        self.target = target
+        self.connection_type = connection_type
+        self.errors = errors
+        fields = ", ".join(
+            f"{'.'.join(str(p) for p in e.get('loc', ())) or 'config'}: {e.get('msg', '')}"
+            for e in errors
+        )
+        super().__init__(
+            f"Invalid configuration for connection '{source}' → '{target}' "
+            f"({connection_type}): {fields}"
+        )

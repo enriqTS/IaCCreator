@@ -579,7 +579,8 @@ class TestAPIGatewayLambdaRouteDerivation:
         )
         ir = IRBuilder().build(desc)
         conn = ir.connections[0]
-        # Authorizer connections should not have routes derived
+        # The authorizer config has no routes field at all
+        assert conn.connection_type == "authorizer"
         assert "routes" not in conn.connection_config
 
     def test_skips_route_derivation_for_websocket(self):
@@ -622,7 +623,7 @@ class TestAPIGatewayLambdaRouteDerivation:
         ir = IRBuilder().build(desc)
         conn = ir.connections[0]
         # WebSocket connections should not have routes derived
-        assert "routes" not in conn.connection_config
+        assert conn.connection_config["routes"] == []
 
     def test_includes_optional_route_fields(self):
         """Derived routes should include route_response_key and api_key_required when present."""
