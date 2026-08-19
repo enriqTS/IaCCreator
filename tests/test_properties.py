@@ -318,7 +318,9 @@ def _build_project_with_connections(
         ResourceInstanceIR(
             name=n,
             service_type=ServiceType.LAMBDA,
-            config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
+            config=LambdaConfig(
+                function_name="test-func", handler="index.handler", runtime="python3.12"
+            ),
         )
         for n in lambda_names
     ]
@@ -407,7 +409,9 @@ _lambda_with_iam_st = st.builds(
     lambda name, stmts: ResourceInstanceIR(
         name=name,
         service_type=ServiceType.LAMBDA,
-        config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(
+            function_name="test-func", handler="index.handler", runtime="python3.12"
+        ),
         iam_statements=stmts,
     ),
     name=_lambda_name_st,
@@ -474,7 +478,12 @@ _dynamodb_target_st = st.builds(
     lambda name: (
         name,
         ServiceType.DYNAMODB,
-        DynamoDBConfig(table_name="test-table", hash_key_type="S", hash_key="id", billing_mode="PAY_PER_REQUEST"),
+        DynamoDBConfig(
+            table_name="test-table",
+            hash_key_type="S",
+            hash_key="id",
+            billing_mode="PAY_PER_REQUEST",
+        ),
     ),
     name=st.from_regex(r"[a-z][a-z0-9\-]{0,9}", fullmatch=True),
 )
@@ -563,7 +572,9 @@ def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
     lambda_inst = ResourceInstanceIR(
         name=lambda_name,
         service_type=ServiceType.LAMBDA,
-        config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(
+            function_name="test-func", handler="index.handler", runtime="python3.12"
+        ),
     )
 
     conn = ConnectionIR(
@@ -628,7 +639,9 @@ def test_property_17_terraform_references_not_hardcoded(apigw_name, lambda_name)
     lambda_inst = ResourceInstanceIR(
         name=lambda_name,
         service_type=ServiceType.LAMBDA,
-        config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
+        config=LambdaConfig(
+            function_name="test-func", handler="index.handler", runtime="python3.12"
+        ),
     )
 
     conn = ConnectionIR(
@@ -1303,7 +1316,7 @@ def test_property_9_lambda_iam_tf_with_file_references(arch):
 @settings(max_examples=100)
 @given(arch=_architecture_description_st())
 def test_property_20_aws_provider_configuration(arch):
-    """Every environment main.tf contains a provider "aws" block with a configurable region."""
+    """Every environment provider.tf contains a provider "aws" block with a configurable region."""
     ir_builder = IRBuilder()
     code_gen = CodeGenerator()
 
@@ -1313,14 +1326,16 @@ def test_property_20_aws_provider_configuration(arch):
     root = arch.project_name
 
     for env in arch.environments:
-        main_tf_path = f"{root}/environments/{env.name}/main.tf"
-        assert main_tf_path in file_tree, f"Environment '{env.name}' missing main.tf"
+        provider_tf_path = f"{root}/environments/{env.name}/provider.tf"
+        assert provider_tf_path in file_tree, (
+            f"Environment '{env.name}' missing provider.tf"
+        )
 
-        content = file_tree[main_tf_path]
+        content = file_tree[provider_tf_path]
 
         # Must contain a provider "aws" block
         assert re.search(r'provider\s+"aws"', content), (
-            f"Environment '{env.name}' main.tf missing provider \"aws\" block"
+            f"Environment '{env.name}' provider.tf missing provider \"aws\" block"
         )
 
         # The provider block must contain a region attribute
@@ -1329,7 +1344,7 @@ def test_property_20_aws_provider_configuration(arch):
             r'provider\s+"aws"\s*\{([^}]*)\}', content, re.DOTALL
         )
         assert provider_match, (
-            f"Environment '{env.name}' main.tf has malformed provider \"aws\" block"
+            f"Environment '{env.name}' provider.tf has malformed provider \"aws\" block"
         )
 
         provider_body = provider_match.group(1)
@@ -1337,9 +1352,9 @@ def test_property_20_aws_provider_configuration(arch):
             f"Environment '{env.name}' provider \"aws\" block missing region attribute"
         )
 
-        # Region should be configurable (reference a variable, not hardcoded)
-        assert "var." in provider_body or "local." in provider_body, (
-            f"Environment '{env.name}' provider \"aws\" region is not configurable (should use var. or local.)"
+        # Region comes from the project's global Terraform configuration
+        assert arch.global_terraform_config.provider_region in provider_body, (
+            f"Environment '{env.name}' provider \"aws\" region does not match global config"
         )
 
 

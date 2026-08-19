@@ -77,8 +77,8 @@ class FileTreeAssembler:
         """Generate main.tf, variables.tf, outputs.tf, terraform.tfvars for an environment."""
         base = f"{root}/environments/{env.name}"
 
-        # main.tf — provider + module blocks
-        parts = [self._renderer.render_provider("aws", "var.aws_region")]
+        # provider.tf owns the provider block, so main.tf carries only module wiring
+        parts: list[str] = []
         for stype in env.module_refs:
             mod_name = stype.value
             source = f"../../modules/{get_category(stype)}/{mod_name}"
