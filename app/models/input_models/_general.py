@@ -8,6 +8,10 @@ from typing import Any
 from pydantic import BaseModel, Field, SerializeAsAny, model_validator
 
 from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models._naming import (
+    RESOURCE_NAME_DESCRIPTION,
+    is_valid_resource_name,
+)
 
 
 class ServiceType(str, Enum):
@@ -202,6 +206,9 @@ class ServiceType(str, Enum):
 class ResourceInstance(BaseModel):
     """A specific named resource within a service module."""
 
+    id: str | None = Field(
+        None, description="Stable client-side identifier, unaffected by renames"
+    )
     name: str = Field(
         ..., description="User-defined resource name, used as subfolder name"
     )
@@ -259,6 +266,12 @@ class Connection(BaseModel):
 
     source: str = Field(..., description="Name of the source resource instance")
     target: str = Field(..., description="Name of the target resource instance")
+    source_id: str | None = Field(
+        None, description="Stable id of the source, preferred over its name"
+    )
+    target_id: str | None = Field(
+        None, description="Stable id of the target, preferred over its name"
+    )
     connection_type: str = Field(
         ..., description="e.g., 'triggers', 'reads_from', 'writes_to'"
     )
@@ -295,6 +308,29 @@ class ArchitectureDescription(BaseModel):
     global_terraform_config: GlobalTerraformConfig = Field(
         default_factory=GlobalTerraformConfig
     )
+
+    @model_validator(mode="after")
+    def validate_resource_names(self) -> ArchitectureDescription:
+        """Resource names become directories and Terraform labels, so they must be safe and unique."""
+        invalid = [r.name for r in self.resources if not is_valid_resource_name(r.name)]
+        if invalid:
+            raise ValueError(
+                f"Invalid resource name(s): {', '.join(sorted(invalid))}. "
+                f"{RESOURCE_NAME_DESCRIPTION}."
+            )
+
+        seen: set[str] = set()
+        duplicates: set[str] = set()
+        for resource in self.resources:
+            if resource.name in seen:
+                duplicates.add(resource.name)
+            seen.add(resource.name)
+        if duplicates:
+            raise ValueError(
+                f"Duplicate resource name(s): {', '.join(sorted(duplicates))}. "
+                "Each resource needs a unique name."
+            )
+        return self
 
 
 def _build_service_config_models() -> dict:
