@@ -2,7 +2,7 @@
  * Terraform variable schemas and global configuration types.
  * Defines per-service variable schemas and project-level Terraform config.
  *
- * These types mirror the backend Pydantic models in variable_schemas.py exactly.
+ * These types mirror the schema the backend serves from its per-service config models.
  */
 
 export type TerraformVariableType = 'string' | 'number' | 'bool' | 'map' | 'list';
@@ -28,6 +28,7 @@ export interface VisibleWhen {
 
 export interface TerraformVariableSchema {
   name: string;
+  required?: boolean;
   type: TerraformVariableType;
   description: string;
   default?: string | number | boolean | null;
@@ -69,7 +70,7 @@ export const DEFAULT_GLOBAL_CONFIG: GlobalTerraformConfig = {
   globalVariables: [],
 };
 
-import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
+import { getSchemas } from '@/store/schema-store';
 
 /**
  * Returns a Record of variable names to their default values for a given service type.
@@ -77,7 +78,7 @@ import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
  * number variables default to 0, and bool variables default to false.
  */
 export function getDefaultVariables(serviceType: string): Record<string, string | number | boolean> {
-  const schemas = BUNDLED_SCHEMAS[serviceType];
+  const schemas = getSchemas()[serviceType];
   if (!schemas) return {};
 
   const defaults: Record<string, string | number | boolean> = {};

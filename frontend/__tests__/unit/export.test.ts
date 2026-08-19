@@ -35,7 +35,8 @@ function makeDynamoBlock(hashKey = ''): ArchitectureBlock {
     id: 'dynamo-1',
     serviceType: 'dynamodb',
     name: 'dynamodb-1',
-    config: { hash_key: hashKey },
+    // table_name and hash_key_type are required too, so a valid block sets them
+    config: { table_name: 'items', hash_key: hashKey, hash_key_type: 'S' },
   });
 }
 

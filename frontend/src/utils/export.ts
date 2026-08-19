@@ -6,6 +6,7 @@
 
 import type { ArchitectureBlock, CanvasObject } from '@/types/diagram';
 import type { ArchitectureDescription } from '@/types/serialization';
+import { getSchemas } from '@/store/schema-store';
 import { apiClient } from '@/utils/api-client';
 
 export interface ExportResult {
@@ -14,13 +15,17 @@ export interface ExportResult {
   fieldErrors?: Record<string, string>;
 }
 
-/**
- * Required config fields per service type.
- * Only service types with mandatory fields are listed.
- */
-const REQUIRED_FIELDS: Record<string, string[]> = {
+/** Fields the backend validates even on an otherwise untouched block. */
+const ALWAYS_REQUIRED: Record<string, string[]> = {
   dynamodb: ['hash_key'],
 };
+
+/** Required config fields come from the schema the backend serves. */
+function requiredFieldsFor(serviceType: string): string[] {
+  return (getSchemas()[serviceType] ?? [])
+    .filter((entry) => entry.required)
+    .map((entry) => entry.name);
+}
 
 /**
  * Extract architecture blocks from the canvas objects map.
@@ -43,11 +48,17 @@ function validateRequiredFields(
   const errors: Record<string, string> = {};
 
   for (const block of blocks) {
-    const required = REQUIRED_FIELDS[block.serviceType];
-    if (!required) continue;
+    const config = block.config as Record<string, unknown>;
+    // Mirror the backend: it applies a service's typed config only once the block has
+    // been configured, but ResourceInstance.validate_dynamodb_hash_key always runs.
+    const configured = Object.keys(config).length > 0;
+    const required = configured
+      ? requiredFieldsFor(block.serviceType)
+      : ALWAYS_REQUIRED[block.serviceType] ?? [];
+    if (required.length === 0) continue;
 
     for (const field of required) {
-      const value = (block.config as Record<string, unknown>)[field];
+      const value = config[field];
       if (value === undefined || value === null || value === '') {
         errors[`${block.name}.${field}`] = `${block.name}: "${field}" is required for ${block.serviceType}`;
       }

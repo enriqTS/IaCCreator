@@ -4,7 +4,7 @@ import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
 import { useSnapDrag } from '@/hooks/useSnapDrag';
 import AlignmentGuides from '@/components/canvas/interactions/AlignmentGuides';
 import { GAP } from '@/hooks/useServiceNameLabels';
-import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
+import { getSchemas } from '@/store/schema-store';
 import type { ArchitectureBlock } from '@/types/diagram';
 import type { ServiceType } from '@/types/diagram';
 
@@ -44,7 +44,7 @@ export function truncateLabel(label: string, maxLength: number = 40): string {
  */
 export function getBlockDisplayName(block: ArchitectureBlock): string | null {
   // Highest priority: config-driven name (first schema variable)
-  const schema = BUNDLED_SCHEMAS[block.serviceType];
+  const schema = getSchemas()[block.serviceType];
   if (schema && schema.length > 0) {
     const nameField = schema[0].name;
     const value = (block.config as Record<string, unknown>)[nameField];
