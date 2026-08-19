@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from app.models.connection_configs._metadata import (
     ConnectionFieldSchema,
@@ -15,6 +15,21 @@ class BaseConnectionConfig(BaseModel):
 
     # Unknown keys are rejected so a typo surfaces as a 422 instead of a silent default
     model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="after")
+    def _enforce_allowed_values(self):
+        """Reject values outside a field's declared option set."""
+        for name, field_info in type(self).model_fields.items():
+            meta = get_connection_meta(field_info)
+            if meta is None or meta.validation is None:
+                continue
+            allowed = meta.validation.allowed_values
+            value = getattr(self, name, None)
+            if allowed and value is not None and value not in allowed:
+                raise ValueError(
+                    f"{name} must be one of {', '.join(str(a) for a in allowed)}"
+                )
+        return self
 
     @classmethod
     def get_field_schema(cls) -> list[ConnectionFieldSchema]:

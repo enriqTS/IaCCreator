@@ -69,10 +69,20 @@ def ConnectionField(
         visible_when=visible_when,
         linked=linked,
     )
+    # The same rule drives frontend rendering and server-side enforcement
+    constraints: dict[str, Any] = {}
+    if validation is not None:
+        if validation.min is not None:
+            constraints["ge"] = validation.min
+        if validation.max is not None:
+            constraints["le"] = validation.max
+        if validation.pattern is not None:
+            constraints["pattern"] = validation.pattern
     return Field(
         default,
         description=description,
         json_schema_extra={_FIELD_META_KEY: meta.model_dump(exclude_none=True)},
+        **constraints,
     )
 
 

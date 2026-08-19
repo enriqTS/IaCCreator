@@ -5,19 +5,25 @@ import os
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import Response
 
 from app.exception_handlers import domain_error_handler
 from app.exceptions import DomainError
 from app.generators.schema_validator import validate_config_against_schema
 from app.logging_config import configure_logging
 from app.middleware.session_middleware import SessionMiddleware
+from app.models.connection_configs.schema_models import (
+    ConnectionSchemaEntry,
+    ConnectionSchemasResponse,
+)
 from app.models.input_models import ArchitectureDescription
 from app.models.input_models._general import _get_cached_service_config_models
 from app.models.ir_models import GenerationSummary
+from app.models.response_models import GenerationResponse, VariableSchemasResponse
 from app.persistence.factory import get_repository
 from app.routers.diagrams import router as diagram_router
 from app.services.code_generator import CodeGenerator
+from app.services.connection_handlers.registry import CONNECTION_SPECS
 from app.services.ir_builder import IRBuilder
 from app.services.output_serializer import OutputSerializer
 from app.services.session_manager import SessionManager
@@ -115,8 +121,8 @@ async def generate_zip(arch: ArchitectureDescription) -> Response:
         )
 
 
-@app.post("/generate/json")
-async def generate_json(arch: ArchitectureDescription) -> JSONResponse:
+@app.post("/generate/json", response_model=GenerationResponse)
+async def generate_json(arch: ArchitectureDescription) -> GenerationResponse:
     """Generate Terraform files and return them as JSON with a summary."""
     try:
         for resource in arch.resources:
@@ -124,8 +130,7 @@ async def generate_json(arch: ArchitectureDescription) -> JSONResponse:
         project_ir = _ir_builder.build(arch)
         file_tree = _code_gen.generate(project_ir)
         summary = _build_summary(arch, file_tree)
-        result = _serializer.to_json(file_tree, summary)
-        return JSONResponse(content=result)
+        return GenerationResponse(files=file_tree, summary=summary)
     except HTTPException:
         raise
     except Exception as exc:
@@ -140,22 +145,36 @@ async def generate_json(arch: ArchitectureDescription) -> JSONResponse:
         )
 
 
-@app.get("/api/variable-schemas")
-async def get_variable_schemas() -> dict[str, list[dict]]:
+@app.get("/api/connection-schemas", response_model=ConnectionSchemasResponse)
+async def get_connection_schemas() -> ConnectionSchemasResponse:
+    """Return every connection kind with the fields the editor should render."""
+    return ConnectionSchemasResponse(
+        connections=[
+            ConnectionSchemaEntry(
+                source=spec.source.value,
+                target=spec.target.value,
+                connection_type=spec.connection_type,
+                label=spec.label,
+                is_default=spec.is_default,
+                fields=spec.config_model.get_field_schema(),
+            )
+            for spec in CONNECTION_SPECS
+        ]
+    )
+
+
+@app.get("/api/variable-schemas", response_model=VariableSchemasResponse)
+async def get_variable_schemas() -> VariableSchemasResponse:
     """Return all variable schemas using model introspection.
 
     All services are now migrated to TerraformField annotations, so schemas
     are derived exclusively from per-service config models.
     """
-    result: dict[str, list[dict]] = {}
-    config_models = _get_cached_service_config_models()
-
-    for stype, config_cls in config_models.items():
-        if config_cls.has_terraform_schema():
-            try:
-                schema = config_cls.get_variable_schema()
-                result[stype.value] = [entry.model_dump() for entry in schema]
-            except Exception:
-                logger.error(f"Introspection failed for {stype.value}")
-
-    return result
+    # Introspection failures are bugs, so they surface rather than dropping a service
+    return VariableSchemasResponse(
+        {
+            stype.value: config_cls.get_variable_schema()
+            for stype, config_cls in _get_cached_service_config_models().items()
+            if config_cls.has_terraform_schema()
+        }
+    )
