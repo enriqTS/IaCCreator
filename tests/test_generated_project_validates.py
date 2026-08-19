@@ -13,6 +13,7 @@ from tests.hcl_assertions import assert_no_path_collisions, assert_tree_parses
 from tests.reference_project import (
     ENVIRONMENTS,
     PROJECT_NAME,
+    colliding_route_connection_files,
     reference_connection_files,
     reference_tree,
 )
@@ -41,6 +42,10 @@ def _run_terraform(args: list[str], cwd: Path) -> None:
 
 def test_connection_files_do_not_collide() -> None:
     assert_no_path_collisions(reference_connection_files())
+
+
+def test_distinct_route_paths_do_not_collide() -> None:
+    assert_no_path_collisions(colliding_route_connection_files())
 
 
 def test_generated_tree_is_syntactically_valid_hcl() -> None:

@@ -140,6 +140,47 @@ def reference_architecture() -> ArchitectureDescription:
     )
 
 
+def colliding_route_architecture() -> ArchitectureDescription:
+    """Two routes differing only in whether a segment is a path parameter."""
+    return ArchitectureDescription(
+        project_name=PROJECT_NAME,
+        environments=[EnvironmentConfig(name="dev")],
+        resources=[
+            ResourceInstance(
+                name="public-api",
+                service_type=ServiceType.API_GATEWAY,
+                config=ApiGatewayConfig(
+                    api_name="public-api",
+                    protocol_type="HTTP",
+                    routes=[
+                        {
+                            "methods": ["GET"],
+                            "path": "/users/{id}",
+                            "integration_name": "handler",
+                        },
+                        {
+                            "methods": ["GET"],
+                            "path": "/users/id",
+                            "integration_name": "handler",
+                        },
+                    ],
+                ),
+            ),
+            _lambda("handler"),
+        ],
+        connections=[
+            Connection(
+                source="public-api", target="handler", connection_type="route_handler"
+            )
+        ],
+    )
+
+
+def colliding_route_connection_files() -> list[GeneratedFile]:
+    """Return connection files for the colliding-route architecture."""
+    return ConnectionProcessor().process_all(IRBuilder().build(colliding_route_architecture()))
+
+
 def reference_ir() -> ProjectIR:
     """Build the IR for the reference architecture."""
     return IRBuilder().build(reference_architecture())
