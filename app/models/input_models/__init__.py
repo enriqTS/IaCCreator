@@ -1,7 +1,6 @@
 """Input models package — re-exports all public types for backward compatibility."""
 
 from app.models.input_models._base import BaseServiceConfig
-from app.models.input_models._connections import ConnectionInput
 from app.models.input_models._general import (
     ArchitectureDescription,
     Connection,
@@ -135,7 +134,6 @@ __all__ = [
     "ResourceInstance",
     "ServiceType",
     # Terraform field metadata
-    "ConnectionInput",
     "OptionEntry",
     "TerraformField",
     "TerraformMeta",

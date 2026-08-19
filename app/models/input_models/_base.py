@@ -6,7 +6,6 @@ from typing import ClassVar, get_type_hints
 
 from pydantic import BaseModel
 
-from app.models.input_models._connections import ConnectionInput
 from app.models.input_models._metadata import (
     VariableSchemaEntry,
     _infer_tf_type,
@@ -91,15 +90,6 @@ class BaseServiceConfig(BaseModel):
             entries.append(entry)
 
         return entries
-
-    @classmethod
-    def get_connections_schema(cls) -> list[ConnectionInput]:
-        """Return connection-derived inputs for this service.
-
-        Override in subclasses that receive inputs from service connections.
-        Default implementation returns an empty list.
-        """
-        return []
 
     @classmethod
     def has_terraform_schema(cls) -> bool:
