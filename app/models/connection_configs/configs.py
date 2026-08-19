@@ -40,7 +40,15 @@ class ApiGatewayRouteHandlerConfig(BaseConnectionConfig):
         linked=LinkedEntry(
             config_path="routes",
             display_key="path",
-            create_template={"methods": ["ANY"], "path": "", "integration_name": ""},
+            create_template={
+                "methods": ["ANY"],
+                "path": "",
+                "integration_name": "",
+                "integration_type": "AWS_PROXY",
+                "payload_format_version": "2.0",
+            },
+            target_name_key="integration_name",
+            target_id_key="integration_id",
         ),
     )
     integration_type: str = ConnectionField(

@@ -19,6 +19,9 @@ class LinkedEntry(BaseModel):
     config_path: str
     display_key: str
     create_template: dict[str, Any] = Field(default_factory=dict)
+    # Template keys that receive the connected resource's name and stable id
+    target_name_key: str | None = None
+    target_id_key: str | None = None
 
 
 class ConnectionFieldSchema(BaseModel):
