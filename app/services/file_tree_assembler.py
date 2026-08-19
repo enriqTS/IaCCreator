@@ -3,6 +3,7 @@
 from app.generators.global_config_generator import GlobalConfigGenerator
 from app.generators.hcl_renderer import HCLRenderer
 from app.generators.iam_policy_generator import IAMPolicyGenerator
+from app.generators.module_arguments import module_arguments
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.service_category_map import get_category
 from app.generators.tfvars_generator import TfvarsGenerator
@@ -79,10 +80,16 @@ class FileTreeAssembler:
 
         # provider.tf owns the provider block, so main.tf carries only module wiring
         parts: list[str] = []
-        for stype in env.module_refs:
-            mod_name = stype.value
-            source = f"../../modules/{get_category(stype)}/{mod_name}"
-            parts.append(self._renderer.render_module(mod_name, source, {}))
+        for inst in all_instances:
+            if inst.service_type not in GENERATOR_REGISTRY or inst.config.is_layer:
+                continue
+            parts.append(
+                self._renderer.render_module(
+                    inst.name,
+                    self._module_source(inst),
+                    self._module_arguments(inst),
+                )
+            )
         tree[f"{base}/main.tf"] = "\n".join(parts)
 
         # variables.tf — environment variables + resource terraform variables
@@ -102,13 +109,14 @@ class FileTreeAssembler:
 
         # outputs.tf
         out_parts = []
-        for stype in env.module_refs:
-            mod_name = stype.value
+        for inst in all_instances:
+            if inst.service_type not in GENERATOR_REGISTRY or inst.config.is_layer:
+                continue
             out_parts.append(
                 self._renderer.render_output(
-                    f"{mod_name}_outputs",
-                    f"module.{mod_name}",
-                    f"Outputs from the {mod_name} module",
+                    f"{self._safe_name(inst.name)}_outputs",
+                    f"module.{inst.name}",
+                    f"Outputs from {inst.name}",
                 )
             )
         tree[f"{base}/outputs.tf"] = "\n".join(out_parts) if out_parts else ""
@@ -138,13 +146,39 @@ class FileTreeAssembler:
         )
 
     # ------------------------------------------------------------------
-    # Service module root files
+    # Module wiring helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _safe_name(name: str) -> str:
+        """Convert a resource name into a Terraform identifier safe to reference."""
+        return name.replace("-", "_")
+
+    @staticmethod
+    def _module_source(instance: ResourceInstanceIR) -> str:
+        """Path from an environment directory to an instance module."""
+        category = get_category(instance.service_type)
+        return f"../../modules/{category}/{instance.service_type.value}/{instance.name}"
+
+    def _module_arguments(self, instance: ResourceInstanceIR) -> dict[str, str]:
+        """Render the argument assignments an instance module requires."""
+        generator = GENERATOR_REGISTRY.get(instance.service_type)
+        if generator is None:
+            return {}
+        variables_tf = generator.generate_variables_tf(instance)
+        return {
+            name: HCLRenderer._format_value(value)
+            for name, value in module_arguments(instance, variables_tf).items()
+        }
+
+    # ------------------------------------------------------------------
+    # Service module files
     # ------------------------------------------------------------------
 
     def _add_service_module_files(
         self, tree: FileTree, root: str, module: ServiceModuleIR
     ) -> None:
-        """Generate module-level main.tf, variables.tf, outputs.tf and per-instance files."""
+        """Generate the per-instance module files for one service type."""
         if module.service_type not in GENERATOR_REGISTRY:
             return
         stype_name = module.service_type.value
@@ -153,40 +187,6 @@ class FileTreeAssembler:
         # Separate layer instances from regular instances
         regular_instances = [i for i in module.instances if not i.config.is_layer]
         layer_instances = [i for i in module.instances if i.config.is_layer]
-
-        # Module root main.tf — one module block per regular instance
-        main_parts = []
-        for inst in regular_instances:
-            source = f"./{inst.name}"
-            main_parts.append(self._renderer.render_module(inst.name, source, {}))
-        tree[f"{mod_base}/main.tf"] = "\n".join(main_parts)
-
-        # Module root variables.tf
-        var_parts = []
-        for inst in regular_instances:
-            generator = GENERATOR_REGISTRY.get(module.service_type)
-            if generator:
-                # Collect variable names from the instance generator
-                var_parts.append(
-                    self._renderer.render_variable(
-                        f"{inst.name}_config",
-                        "any",
-                        f"Configuration for {inst.name}",
-                    )
-                )
-        tree[f"{mod_base}/variables.tf"] = "\n".join(var_parts)
-
-        # Module root outputs.tf — aggregate outputs from regular instances
-        out_parts = []
-        for inst in regular_instances:
-            out_parts.append(
-                self._renderer.render_output(
-                    f"{inst.name}_outputs",
-                    f"module.{inst.name}",
-                    f"Outputs from {inst.name}",
-                )
-            )
-        tree[f"{mod_base}/outputs.tf"] = "\n".join(out_parts)
 
         # Per-instance subfolders (regular instances only)
         for inst in regular_instances:

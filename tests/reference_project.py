@@ -34,6 +34,7 @@ def _lambda(name: str) -> ResourceInstance:
             function_name=name,
             handler="index.handler",
             runtime="python3.12",
+            filename="lambda.zip",
         ),
     )
 

@@ -7,6 +7,7 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from app.generators.hcl_renderer import HCLRenderer
+from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.service_category_map import get_category
 
 # --- Hypothesis strategies for HCL renderer inputs ---
@@ -1031,7 +1032,7 @@ def _parse_output_names(content: str) -> set[str]:
 @settings(max_examples=100)
 @given(arch=_architecture_description_st())
 def test_property_6_environment_module_references(arch):
-    """Environment main.tf has a module block per service type; outputs.tf exposes module outputs."""
+    """Environment main.tf has a module block per resource instance; outputs.tf exposes them."""
     ir_builder = IRBuilder()
     code_gen = CodeGenerator()
 
@@ -1039,33 +1040,33 @@ def test_property_6_environment_module_references(arch):
     file_tree = code_gen.generate(project_ir)
 
     root = arch.project_name
-    distinct_service_types = {r.service_type for r in arch.resources}
+    expected_instances = [
+        r.name
+        for r in arch.resources
+        if r.service_type in GENERATOR_REGISTRY and not r.config.is_layer
+    ]
 
     for env in arch.environments:
         env_prefix = f"{root}/environments/{env.name}"
 
-        # Verify main.tf contains a module block for each distinct service type
         main_tf_content = file_tree[f"{env_prefix}/main.tf"]
         module_names = _parse_module_names(main_tf_content)
 
-        for stype in distinct_service_types:
-            assert stype.value in module_names, (
-                f"Env '{env.name}': missing module block for service type '{stype.value}' in main.tf"
+        for name in expected_instances:
+            assert name in module_names, (
+                f"Env '{env.name}': missing module block for instance '{name}' in main.tf"
             )
 
-        # Verify outputs.tf contains output blocks referencing those modules
         outputs_tf_content = file_tree[f"{env_prefix}/outputs.tf"]
         output_names = _parse_output_names(outputs_tf_content)
 
-        for stype in distinct_service_types:
-            expected_output = f"{stype.value}_outputs"
+        for name in expected_instances:
+            expected_output = f"{name.replace('-', '_')}_outputs"
             assert expected_output in output_names, (
                 f"Env '{env.name}': missing output '{expected_output}' in outputs.tf"
             )
-
-            # Verify the output value references the module
-            assert f"module.{stype.value}" in outputs_tf_content, (
-                f"Env '{env.name}': output for '{stype.value}' doesn't reference module.{stype.value}"
+            assert f"module.{name}" in outputs_tf_content, (
+                f"Env '{env.name}': output for '{name}' doesn't reference module.{name}"
             )
 
 
@@ -1079,7 +1080,7 @@ EXPECTED_MODULE_ROOT_FILES = {"main.tf", "variables.tf", "outputs.tf"}
 @settings(max_examples=100)
 @given(arch=_architecture_description_st())
 def test_property_7_service_module_file_structure_and_content(arch):
-    """Each service module root has main.tf, variables.tf, outputs.tf with correct content."""
+    """Each instance module directory holds its own resource, variables and outputs files."""
     ir_builder = IRBuilder()
     code_gen = CodeGenerator()
 
@@ -1088,78 +1089,25 @@ def test_property_7_service_module_file_structure_and_content(arch):
 
     root = arch.project_name
 
-    # Group input resources by service type to know expected instance names
-    from collections import defaultdict
+    for resource in arch.resources:
+        if resource.service_type not in GENERATOR_REGISTRY or resource.config.is_layer:
+            continue
+        stype = resource.service_type
+        mod_base = f"{root}/modules/{get_category(stype)}/{stype.value}"
+        inst_base = f"{mod_base}/{resource.name}"
 
-    resources_by_type: dict[ServiceType, list[str]] = defaultdict(list)
-    for r in arch.resources:
-        resources_by_type[r.service_type].append(r.name)
+        for filename in (f"{stype.value}.tf", "variables.tf", "outputs.tf"):
+            assert f"{inst_base}/{filename}" in file_tree, (
+                f"Instance '{resource.name}' missing {filename}"
+            )
 
-    for stype, instance_names in resources_by_type.items():
-        category = get_category(stype)
-        mod_base = f"{root}/modules/{category}/{stype.value}"
-
-        # Separate layer instances from regular instances for Lambda
-        regular_names = instance_names
-        if stype == ServiceType.LAMBDA:
-            regular_names = [
-                name
-                for name, r in zip(
-                    instance_names,
-                    [res for res in arch.resources if res.service_type == stype],
-                )
-                if not r.config.is_layer
-            ]
-
-        # Req 3.3: module root should contain main.tf, variables.tf, outputs.tf
-        root_files = set()
+        # The service level is a plain folder now, so it holds no Terraform files
         for path in file_tree:
-            if path.startswith(f"{mod_base}/"):
-                # Only files directly under mod_base (not in instance subfolders)
-                remainder = path.removeprefix(f"{mod_base}/")
-                if "/" not in remainder:
-                    root_files.add(remainder)
-
-        expected_root_files = set(EXPECTED_MODULE_ROOT_FILES)
-        # If there are layer instances, layer.tf should also be at the root
-        if stype == ServiceType.LAMBDA:
-            has_layers = any(
-                r.config.is_layer for r in arch.resources if r.service_type == stype
-            )
-            if has_layers:
-                expected_root_files.add("layer.tf")
-
-        assert expected_root_files.issubset(root_files), (
-            f"Module '{stype.value}' root files {root_files} missing expected {expected_root_files - root_files}"
-        )
-
-        # Req 3.4: main.tf should have one module block per regular (non-layer) resource instance
-        main_tf = file_tree[f"{mod_base}/main.tf"]
-        module_names = _parse_module_names(main_tf)
-        for inst_name in regular_names:
-            assert inst_name in module_names, (
-                f"Module '{stype.value}' main.tf missing module block for instance '{inst_name}'"
-            )
-        assert len(module_names) == len(regular_names), (
-            f"Module '{stype.value}' main.tf has {len(module_names)} module blocks, "
-            f"expected {len(regular_names)}"
-        )
-
-        # Req 3.5: variables.tf exists (already checked above)
-
-        # Req 3.6: outputs.tf should have output blocks aggregating from regular instances
-        outputs_tf = file_tree[f"{mod_base}/outputs.tf"]
-        output_names = _parse_output_names(outputs_tf)
-        for inst_name in regular_names:
-            expected_output = f"{inst_name}_outputs"
-            assert expected_output in output_names, (
-                f"Module '{stype.value}' outputs.tf missing output '{expected_output}'"
-            )
-            # Verify the output references the instance module
-            assert f"module.{inst_name}" in outputs_tf, (
-                f"Module '{stype.value}' outputs.tf output for '{inst_name}' "
-                f"doesn't reference module.{inst_name}"
-            )
+            remainder = path.removeprefix(f"{mod_base}/")
+            if path.startswith(f"{mod_base}/") and "/" not in remainder:
+                assert remainder == "layer.tf", (
+                    f"Unexpected file '{remainder}' at the service level of '{stype.value}'"
+                )
 
 
 # --- Property 8: Resource instance subfolder structure ---
