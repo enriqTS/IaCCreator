@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import type { Connector, ArchitectureBlock } from '@/types/diagram';
 import type { ConnectionSchema, SchemaField } from './registry';
 import { useDiagramStore } from '@/store/diagram-store';
 import { Label } from '@/components/ui/label';
 import SchemaFieldRenderer from '@/components/config/schema/SchemaFieldRenderer';
+import { getConnectionSchemasForPair } from './schema-store';
 
 interface ConnectionConfigPanelProps {
   connector: Connector;
@@ -13,11 +14,6 @@ interface ConnectionConfigPanelProps {
   targetBlock: ArchitectureBlock;
   schema: ConnectionSchema;
 }
-
-/** Keys that belong exclusively to the route_handler role */
-const ROUTE_HANDLER_KEYS = ['route_path'];
-/** Keys that belong exclusively to the authorizer role */
-const AUTHORIZER_KEYS = ['authorizer_name', 'payload_format_version'];
 
 export default function ConnectionConfigPanel({
   connector,
@@ -27,12 +23,7 @@ export default function ConnectionConfigPanel({
 }: ConnectionConfigPanelProps) {
   const updateConnectorConfig = useDiagramStore((s) => s.updateConnectorConfig);
   const removeConnectorConfigKeys = useDiagramStore((s) => s.removeConnectorConfigKeys);
-
-  // Track previous role to detect role changes.
-  // Default to 'route_handler' when no role is set (per requirement 3.2).
-  const prevRoleRef = useRef<string>(
-    (connector.connectionConfig?.connection_role as string) ?? 'route_handler',
-  );
+  const updateConnectorType = useDiagramStore((s) => s.updateConnectorType);
 
   const config = connector.connectionConfig ?? {};
 
@@ -49,26 +40,31 @@ export default function ConnectionConfigPanel({
 
   const handleFieldChange = useCallback(
     (key: string, value: string | number | boolean) => {
-      // Handle role change — clear stale fields from previous role
-      if (key === 'connection_role') {
-        const prevRole = prevRoleRef.current;
-        const newRole = value as string;
-
-        if (prevRole !== newRole) {
-          if (prevRole === 'route_handler' && newRole === 'authorizer') {
-            // Switching to authorizer: remove route_handler-specific keys
-            removeConnectorConfigKeys(connector.id, ROUTE_HANDLER_KEYS);
-          } else if (prevRole === 'authorizer' && newRole === 'route_handler') {
-            // Switching to route_handler: remove authorizer-specific keys
-            removeConnectorConfigKeys(connector.id, AUTHORIZER_KEYS);
-          }
-          prevRoleRef.current = newRole;
-        }
-      }
-
       updateConnectorConfig(connector.id, key, value);
     },
-    [connector.id, updateConnectorConfig, removeConnectorConfigKeys],
+    [connector.id, updateConnectorConfig],
+  );
+
+  // A pair may offer several kinds of connection; switching drops the previous kind's keys
+  const alternatives = getConnectionSchemasForPair(
+    sourceBlock.serviceType,
+    targetBlock.serviceType,
+  );
+
+  const handleTypeChange = useCallback(
+    (nextType: string) => {
+      const next = alternatives.find((s) => s.connectionType === nextType);
+      if (!next) return;
+      const keep = new Set(next.fields.map((f) => f.key));
+      const stale = Object.keys(connector.connectionConfig ?? {}).filter(
+        (key) => !keep.has(key),
+      );
+      if (stale.length > 0) {
+        removeConnectorConfigKeys(connector.id, stale);
+      }
+      updateConnectorType(connector.id, nextType);
+    },
+    [alternatives, connector.id, connector.connectionConfig, removeConnectorConfigKeys, updateConnectorType],
   );
 
   /** Determine if a field should be visible based on its visibleWhen condition */
@@ -93,8 +89,26 @@ export default function ConnectionConfigPanel({
         </Label>
       </div>
 
-      {/* Schema label */}
-      <span className="text-xs text-muted-foreground">{schema.label}</span>
+      {/* Connection kind — only shown when the pair offers more than one */}
+      {alternatives.length > 1 ? (
+        <div className="flex flex-col gap-1">
+          <Label className="text-xs text-muted-foreground">Connection type</Label>
+          <select
+            data-testid="connection-type-select"
+            className="border-input bg-background h-8 rounded-md border px-2 text-sm"
+            value={schema.connectionType}
+            onChange={(e) => handleTypeChange(e.target.value)}
+          >
+            {alternatives.map((option) => (
+              <option key={option.connectionType} value={option.connectionType}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <span className="text-xs text-muted-foreground">{schema.label}</span>
+      )}
 
       {/* Schema fields */}
       {visibleFields.length > 0 ? (

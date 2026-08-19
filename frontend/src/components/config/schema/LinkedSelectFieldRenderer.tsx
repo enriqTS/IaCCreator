@@ -102,10 +102,12 @@ export default function LinkedSelectFieldRenderer({
     if (displayKey) {
       template[displayKey] = newValue;
     }
-    // Record the stable id so a later rename cannot orphan the entry
-    if ('integration_name' in template) {
-      template.integration_name = targetBlock.name;
-      template.integration_id = targetBlock.id;
+    // The schema names the keys that bind an entry to the connected resource
+    if (field.targetNameKey) {
+      template[field.targetNameKey] = targetBlock.name;
+    }
+    if (field.targetIdKey) {
+      template[field.targetIdKey] = targetBlock.id;
     }
     // Set method from current allValues if available
     if ('method' in template && allValues.http_method) {
@@ -130,6 +132,8 @@ export default function LinkedSelectFieldRenderer({
     field.createTemplate,
     field.key,
     displayKey,
+    field.targetNameKey,
+    field.targetIdKey,
     targetBlock.name,
     targetBlock.id,
     allValues,
@@ -158,15 +162,19 @@ export default function LinkedSelectFieldRenderer({
     [handleConfirmCreate, handleCancelCreate],
   );
 
-  // Routes belonging to this connection, matched by id where one was recorded
+  // Entries belonging to this connection, matched by id where one was recorded
   const connectedRoutes = useMemo(() => {
     if (!Array.isArray(sourceArray)) return [];
+    const idKey = field.targetIdKey;
+    const nameKey = field.targetNameKey;
     return sourceArray.filter((entry) =>
-      entry.integration_id
-        ? entry.integration_id === targetBlock.id
-        : String(entry.integration_name ?? '') === targetBlock.name,
+      idKey && entry[idKey]
+        ? entry[idKey] === targetBlock.id
+        : nameKey
+          ? String(entry[nameKey] ?? '') === targetBlock.name
+          : false,
     );
-  }, [sourceArray, targetBlock.id, targetBlock.name]);
+  }, [sourceArray, field.targetIdKey, field.targetNameKey, targetBlock.id, targetBlock.name]);
 
   // Format methods display for a route entry
   const formatRouteMethods = (entry: Record<string, unknown>): string => {

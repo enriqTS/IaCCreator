@@ -39,6 +39,10 @@ export interface SchemaField {
   displayKey?: string;
   /** Template object for creating new entries (displayKey is overwritten with user input) */
   createTemplate?: Record<string, unknown>;
+  /** Template key that receives the connected resource's name */
+  targetNameKey?: string;
+  /** Template key that receives the connected resource's stable id */
+  targetIdKey?: string;
 }
 
 /** Schema for one kind of connection between two services */

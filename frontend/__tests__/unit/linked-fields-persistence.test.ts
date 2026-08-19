@@ -206,8 +206,8 @@ describe('Linked Fields Persistence - source block config.routes', () => {
     // Auto-integration side effect sets integration_type and payload_format_version
     // on routes whose path matches the connector's route_path
     expect(serializedBlock.config!.routes).toEqual([
-      { methods: ['GET'], path: '/users', integration_name: 'my-lambda', integration_type: 'AWS_PROXY', payload_format_version: '2.0' },
-      { methods: ['POST'], path: '/users', integration_name: 'my-lambda', integration_type: 'AWS_PROXY', payload_format_version: '2.0' },
+      { methods: ['GET'], path: '/users', integration_name: 'my-lambda' },
+      { methods: ['POST'], path: '/users', integration_name: 'my-lambda' },
     ]);
   });
 
@@ -229,9 +229,9 @@ describe('Linked Fields Persistence - source block config.routes', () => {
     useDiagramStore.getState().loadDiagramState(serialized);
 
     const restoredBlock = useDiagramStore.getState().canvasObjects.get(sourceId)!;
-    // Auto-integration sets fields on routes matching the connector's route_path
+    // Routes round-trip exactly as configured; the store no longer rewrites them
     expect((restoredBlock as any).config.routes).toEqual([
-      { methods: ['GET', 'POST'], path: '/items/{id}', integration_name: 'my-lambda', integration_type: 'AWS_PROXY', payload_format_version: '2.0' },
+      { methods: ['GET', 'POST'], path: '/items/{id}', integration_name: 'my-lambda' },
       { methods: ['ANY'], path: '/products', integration_name: 'products-fn' },
     ]);
   });
@@ -244,7 +244,13 @@ describe('Linked Fields Persistence - source block config.routes', () => {
     useDiagramStore.getState().createLinkedEntry(
       sourceId,
       'routes',
-      { methods: ['GET'], path: '/users', integration_name: 'my-lambda' },
+      {
+        methods: ['GET'],
+        path: '/users',
+        integration_name: 'my-lambda',
+        integration_type: 'AWS_PROXY',
+        payload_format_version: '2.0',
+      },
       connectorId,
       'route_path',
       '/users',
@@ -258,9 +264,15 @@ describe('Linked Fields Persistence - source block config.routes', () => {
       (c) => c.id === connectorId
     )!;
 
-    // Block config should have the new route with auto-integration fields
+    // The entry is persisted exactly as the schema template described it
     expect(serializedBlock.config!.routes).toEqual([
-      { methods: ['GET'], path: '/users', integration_name: 'my-lambda', integration_type: 'AWS_PROXY', payload_format_version: '2.0' },
+      {
+        methods: ['GET'],
+        path: '/users',
+        integration_name: 'my-lambda',
+        integration_type: 'AWS_PROXY',
+        payload_format_version: '2.0',
+      },
     ]);
     // Connector should reference the route
     expect(serializedConnector.connection_config!.route_path).toBe('/users');
@@ -287,7 +299,7 @@ describe('Linked Fields Persistence - source block config.routes', () => {
     // Verify block config routes restored with auto-integration fields
     const restoredBlock = useDiagramStore.getState().canvasObjects.get(sourceId)!;
     expect((restoredBlock as any).config.routes).toEqual([
-      { methods: ['POST', 'PUT'], path: '/orders/{id}', integration_name: 'my-lambda', integration_type: 'AWS_PROXY', payload_format_version: '2.0' },
+      { methods: ['POST', 'PUT'], path: '/orders/{id}', integration_name: 'my-lambda' },
     ]);
 
     // Verify connector config restored
@@ -303,7 +315,13 @@ describe('Linked Fields Persistence - source block config.routes', () => {
     useDiagramStore.getState().createLinkedEntry(
       sourceId,
       'routes',
-      { methods: ['GET'], path: '/users', integration_name: 'my-lambda' },
+      {
+        methods: ['GET'],
+        path: '/users',
+        integration_name: 'my-lambda',
+        integration_type: 'AWS_PROXY',
+        payload_format_version: '2.0',
+      },
       connectorId,
       'route_path',
       '/users',
@@ -334,10 +352,16 @@ describe('Linked Fields Persistence - source block config.routes', () => {
     useDiagramStore.getState().loadDiagramState(serialized);
 
     const restoredBlock = useDiagramStore.getState().canvasObjects.get(sourceId)!;
-    // Auto-integration sets fields on routes created via createLinkedEntry
+    // Each entry round-trips exactly as it was created
     expect((restoredBlock as any).config.routes).toEqual([
-      { methods: ['GET'], path: '/users', integration_name: 'my-lambda', integration_type: 'AWS_PROXY', payload_format_version: '2.0' },
-      { methods: ['POST'], path: '/orders', integration_name: 'other-lambda', integration_type: 'AWS_PROXY', payload_format_version: '2.0' },
+      {
+        methods: ['GET'],
+        path: '/users',
+        integration_name: 'my-lambda',
+        integration_type: 'AWS_PROXY',
+        payload_format_version: '2.0',
+      },
+      { methods: ['POST'], path: '/orders', integration_name: 'other-lambda' },
     ]);
   });
 });

@@ -26,6 +26,8 @@ interface ApiLinked {
   config_path: string;
   display_key: string;
   create_template: Record<string, unknown>;
+  target_name_key?: string | null;
+  target_id_key?: string | null;
 }
 
 interface ApiField {
@@ -95,6 +97,12 @@ function toField(field: ApiField): SchemaField {
           linkedConfigPath: field.linked.config_path,
           displayKey: field.linked.display_key,
           createTemplate: field.linked.create_template,
+          ...(field.linked.target_name_key
+            ? { targetNameKey: field.linked.target_name_key }
+            : {}),
+          ...(field.linked.target_id_key
+            ? { targetIdKey: field.linked.target_id_key }
+            : {}),
         }
       : {}),
   };
@@ -147,6 +155,17 @@ export function getConnectionSchema(
     }
   }
   return null;
+}
+
+/** Every connection kind offered for a service pair, in catalog order. */
+export function getConnectionSchemasForPair(
+  source: ServiceType,
+  target: ServiceType,
+): ConnectionSchema[] {
+  if (!catalog) return [];
+  return [...catalog.values()].filter(
+    (schema) => schema.sourcePair[0] === source && schema.sourcePair[1] === target,
+  );
 }
 
 /** Clear the cached catalog (used by tests). */
