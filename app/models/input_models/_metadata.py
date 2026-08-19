@@ -51,6 +51,7 @@ class VariableSchemaEntry(BaseModel):
     name: str
     type: str  # "string" | "number" | "bool" | "map" | "list"
     description: str
+    required: bool = False
     default: str | int | float | bool | None = None
     group: str = "General"
     options: list[OptionEntry] | None = None

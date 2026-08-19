@@ -84,6 +84,7 @@ class BaseServiceConfig(BaseModel):
             entry = VariableSchemaEntry(
                 name=field_name,
                 type=tf_type,
+                required=field_info.is_required(),
                 description=field_info.description or "",
                 default=default if not isinstance(default, (dict, list)) else None,
                 group=meta.group,
