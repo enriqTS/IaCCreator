@@ -18,8 +18,17 @@ from app.models.connection_configs.schema_models import (
 )
 from app.models.input_models import ArchitectureDescription
 from app.models.input_models._general import _get_cached_service_config_models
+from app.models.input_models._naming import (
+    RESOURCE_NAME_DESCRIPTION,
+    RESOURCE_NAME_MAX_LENGTH,
+    RESOURCE_NAME_PATTERN,
+)
 from app.models.ir_models import GenerationSummary
-from app.models.response_models import GenerationResponse, VariableSchemasResponse
+from app.models.response_models import (
+    GenerationResponse,
+    NamingRulesResponse,
+    VariableSchemasResponse,
+)
 from app.persistence.factory import get_repository
 from app.routers.diagrams import router as diagram_router
 from app.services.code_generator import CodeGenerator
@@ -143,6 +152,16 @@ async def generate_json(arch: ArchitectureDescription) -> GenerationResponse:
             status_code=500,
             detail=f"Generation failed: {exc}",
         )
+
+
+@app.get("/api/naming-rules", response_model=NamingRulesResponse)
+async def get_naming_rules() -> NamingRulesResponse:
+    """Return the rules the backend enforces on resource names."""
+    return NamingRulesResponse(
+        pattern=RESOURCE_NAME_PATTERN,
+        description=RESOURCE_NAME_DESCRIPTION,
+        max_length=RESOURCE_NAME_MAX_LENGTH,
+    )
 
 
 @app.get("/api/connection-schemas", response_model=ConnectionSchemasResponse)

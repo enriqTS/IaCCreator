@@ -12,6 +12,14 @@ class VariableSchemasResponse(RootModel[dict[str, list[VariableSchemaEntry]]]):
     """Variable schemas keyed by service type."""
 
 
+class NamingRulesResponse(BaseModel):
+    """The rules a resource name must satisfy, so clients can check before submitting."""
+
+    pattern: str
+    description: str
+    max_length: int
+
+
 class GenerationResponse(BaseModel):
     """Generated Terraform files plus a summary of the run."""
 
