@@ -12,7 +12,6 @@ class CloudSearchConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.CLOUDSEARCH] = ServiceType.CLOUDSEARCH
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.CLOUDSEARCH] exactly.
     _schema_field_order: ClassVar[tuple[str, ...]] = ("domain_name",)
 
     # ── General ───────────────────────────────────────────────────────────

@@ -33,7 +33,7 @@ class BaseServiceConfig(BaseModel):
     # Subclasses may define _schema_field_order as a ClassVar tuple of field names
     # to control the order of entries returned by get_variable_schema(). This is
     # needed when inherited fields (e.g. tags) must appear in a specific
-    # position to match the legacy VARIABLE_SCHEMAS ordering.
+    # position to match the order the editor renders them in.
     _schema_field_order: ClassVar[tuple[str, ...] | None] = None
 
     @classmethod
@@ -104,8 +104,7 @@ class BaseServiceConfig(BaseModel):
     def has_terraform_schema(cls) -> bool:
         """Return True if this config model has any TerraformField-annotated fields.
 
-        Used to determine whether to use model introspection or fall back to
-        the legacy VARIABLE_SCHEMAS dict during the migration.
+        Icon-only services have no annotated fields and expose no variables.
         """
         for field_info in cls.model_fields.values():
             if get_terraform_meta(field_info) is not None:

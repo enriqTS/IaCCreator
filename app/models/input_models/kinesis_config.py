@@ -12,7 +12,6 @@ class KinesisConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.KINESIS] = ServiceType.KINESIS
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.KINESIS] exactly.
     _schema_field_order: ClassVar[tuple[str, ...]] = (
         "stream_name",
         "shard_count",

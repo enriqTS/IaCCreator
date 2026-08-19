@@ -12,7 +12,6 @@ class OpenSearchConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.OPENSEARCH] = ServiceType.OPENSEARCH
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.OPENSEARCH] exactly.
     _schema_field_order: ClassVar[tuple[str, ...]] = ("domain_name",)
 
     # ── General ───────────────────────────────────────────────────────────

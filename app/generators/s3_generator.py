@@ -274,7 +274,11 @@ class S3Generator:
         """Generate s3.tf with aws_s3_bucket resource and companion resources."""
         config = _resolve_config(instance)
 
-        attrs: dict = {"bucket": Expr("var.bucket_name")}
+        # bucket and bucket_prefix are mutually exclusive in AWS
+        if config.bucket_name is None and config.bucket_prefix is not None:
+            attrs: dict = {"bucket_prefix": Expr("var.bucket_prefix")}
+        else:
+            attrs = {"bucket": Expr("var.bucket_name")}
         if config.force_destroy is not None:
             attrs["force_destroy"] = Expr("var.force_destroy")
         if config.object_lock_enabled is not None:
@@ -318,8 +322,21 @@ class S3Generator:
         """Generate variables.tf for an S3 instance."""
         config = _resolve_config(instance)
 
+        # Declare whichever naming variable the resource actually references
+        if config.bucket_name is None and config.bucket_prefix is not None:
+            naming_variable = self._r.render_variable(
+                "bucket_prefix",
+                "string",
+                "Prefix AWS uses to generate a unique bucket name",
+                default=config.bucket_prefix,
+            )
+        else:
+            naming_variable = self._r.render_variable(
+                "bucket_name", "string", "Name of the S3 bucket"
+            )
+
         parts = [
-            self._r.render_variable("bucket_name", "string", "Name of the S3 bucket"),
+            naming_variable,
             self._r.render_variable(
                 "versioning_enabled",
                 "string",

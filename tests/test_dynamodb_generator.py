@@ -104,7 +104,7 @@ class TestDynamoDBTTLBlock:
         ]
         # No dedicated TTL block lines
         assert not any(
-            "ttl" == l.strip().split()[0] if l.strip() else False for l in lines
+            l.strip().split()[0] == "ttl" if l.strip() else False for l in lines
         )
 
     def test_ttl_variables_emitted(self):

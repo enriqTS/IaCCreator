@@ -22,7 +22,6 @@ from app.models.ir_models import (
     ServiceModuleIR,
 )
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
-from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
 from app.services.connection_handlers.lambda_dynamodb import LambdaDynamoDBHandler
 from app.services.connection_handlers.lambda_s3 import LambdaS3Handler
 from app.services.connection_handlers.lambda_sns import LambdaSNSHandler
@@ -30,7 +29,6 @@ from app.services.connection_handlers.lambda_sqs import LambdaSQSHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
-from app.services.connection_processor import ConnectionProcessor
 
 # ---------------------------------------------------------------------------
 # Helpers

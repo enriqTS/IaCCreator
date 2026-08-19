@@ -93,19 +93,21 @@ def test_schema_serialization_roundtrip(entry: VariableSchemaEntry) -> None:
 
 import pytest
 
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
+from tests.schema_helpers import service_schemas
+
+_SCHEMAS = service_schemas()
 from app.models.input_models import ServiceType
 
 
 @pytest.mark.parametrize(
     "service_type,entry",
-    [(st, entry) for st in VARIABLE_SCHEMAS for entry in VARIABLE_SCHEMAS[st]],
+    [(st, entry) for st in _SCHEMAS for entry in _SCHEMAS[st]],
     ids=lambda val: val.value if isinstance(val, ServiceType) else val.name,
 )
 def test_all_schema_entries_have_a_group(
     service_type: ServiceType, entry: VariableSchemaEntry
 ) -> None:
-    """Every entry in VARIABLE_SCHEMAS must have a non-empty group string."""
+    """Every entry in service_schemas() must have a non-empty group string."""
     assert isinstance(entry.group, str), (
         f"{service_type.value}.{entry.name}: group must be a string, got {type(entry.group)}"
     )

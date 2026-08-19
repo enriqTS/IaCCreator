@@ -26,7 +26,6 @@ from app.services.connection_handlers.registry import (
 )
 from app.services.connection_processor import ConnectionProcessor
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

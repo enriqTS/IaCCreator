@@ -6,7 +6,7 @@ Validates:
 - All 25 full-generator services are in GENERATOR_REGISTRY
 - No icon-only services are in GENERATOR_REGISTRY
 - ResourceConfig has all new optional fields for 25 full-generator services
-- All 25 full-generator services have entries in VARIABLE_SCHEMAS
+- All 25 full-generator services have entries in service_schemas()
 - FileTreeAssembler skips icon-only service modules
 - FileTreeAssembler produces files for full-generator services alongside icon-only services
 
@@ -17,7 +17,6 @@ Requirements: 1.1, 3.1, 5.1, 7.1, 9.1, 11.1, 13.1, 15.1, 17.1, 19.1, 21.1, 23.1,
 import pytest
 
 from app.generators.registry import GENERATOR_REGISTRY
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
 from app.models.input_models import ServiceType
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import get_service_config_models
@@ -29,6 +28,7 @@ from app.models.ir_models import (
     ServiceModuleIR,
 )
 from app.services.file_tree_assembler import FileTreeAssembler
+from tests.schema_helpers import service_schemas
 
 # ---------------------------------------------------------------------------
 # Expected data
@@ -248,16 +248,16 @@ class TestGeneratorRegistry:
 
 
 class TestVariableSchemas:
-    """Verify all 25 full-generator services have entries in VARIABLE_SCHEMAS."""
+    """Verify all 25 full-generator services have entries in service_schemas()."""
 
     @pytest.mark.parametrize("member_name", FULL_GENERATOR_SERVICES.keys())
     def test_service_has_variable_schema(self, member_name: str):
         service_type = ServiceType[member_name]
-        assert service_type in VARIABLE_SCHEMAS, (
-            f"{member_name} should have an entry in VARIABLE_SCHEMAS"
+        assert service_type in service_schemas(), (
+            f"{member_name} should have an entry in service_schemas()"
         )
-        assert len(VARIABLE_SCHEMAS[service_type]) > 0, (
-            f"{member_name} VARIABLE_SCHEMAS entry should not be empty"
+        assert len(service_schemas()[service_type]) > 0, (
+            f"{member_name} service_schemas() entry should not be empty"
         )
 
 

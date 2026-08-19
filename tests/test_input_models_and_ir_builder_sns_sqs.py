@@ -19,7 +19,6 @@ from app.models.input_models import (
     ResourceInstance,
     ServiceType,
 )
-from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.input_models.lambda_config import LambdaConfig
 from app.models.ir_models import ConnectionIR

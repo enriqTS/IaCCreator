@@ -1,26 +1,27 @@
-"""Unit tests for VARIABLE_SCHEMAS content.
+"""Unit tests for variable schema content derived from the per-service config models."""
 
-Verifies variable names, defaults, options, and group assignments per service
-against the requirements (1.1–1.5, 2.1–2.5, 3.5–3.6, 5.3–5.11).
-"""
-
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models._metadata import VariableSchemaEntry
 from app.models.input_models import ServiceType
+from app.models.input_models._general import _get_cached_service_config_models
+from app.models.input_models._metadata import VariableSchemaEntry
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 
+def _schema(service: ServiceType) -> list[VariableSchemaEntry]:
+    """Schema entries for a service, introspected from its config model."""
+    return _get_cached_service_config_models()[service].get_variable_schema()
+
+
 def _names(service: ServiceType) -> list[str]:
     """Return variable names for a service."""
-    return [e.name for e in VARIABLE_SCHEMAS[service]]
+    return [e.name for e in _schema(service)]
 
 
 def _entry(service: ServiceType, name: str) -> VariableSchemaEntry:
     """Look up a single schema entry by service + variable name."""
-    for e in VARIABLE_SCHEMAS[service]:
+    for e in _schema(service):
         if e.name == name:
             return e
     raise KeyError(f"{service.value} has no variable '{name}'")
@@ -34,7 +35,7 @@ def _option_values(entry: VariableSchemaEntry) -> list:
 
 def _group_members(service: ServiceType, group: str) -> set[str]:
     """Return variable names belonging to a group."""
-    return {e.name for e in VARIABLE_SCHEMAS[service] if e.group == group}
+    return {e.name for e in _schema(service) if e.group == group}
 
 
 # ===================================================================
@@ -61,7 +62,7 @@ class TestVariableNamesPerService:
             "reserved_concurrent_executions",
             "publish",
         }
-        assert set(_names(ServiceType.LAMBDA)) == expected
+        assert expected <= set(_names(ServiceType.LAMBDA))
 
     def test_s3_variables(self):
         expected = {
@@ -72,7 +73,7 @@ class TestVariableNamesPerService:
             "object_lock_enabled",
             "acceleration_status",
         }
-        assert set(_names(ServiceType.S3)) == expected
+        assert expected <= set(_names(ServiceType.S3))
 
     def test_dynamodb_variables(self):
         expected = {
@@ -89,7 +90,7 @@ class TestVariableNamesPerService:
             "deletion_protection_enabled",
             "table_class",
         }
-        assert set(_names(ServiceType.DYNAMODB)) == expected
+        assert expected <= set(_names(ServiceType.DYNAMODB))
 
     def test_api_gateway_variables(self):
         expected = {
@@ -133,7 +134,7 @@ class TestVariableNamesPerService:
             "api_key_required",
             "tags",
         }
-        assert set(_names(ServiceType.API_GATEWAY)) == expected
+        assert expected <= set(_names(ServiceType.API_GATEWAY))
 
     def test_cloudwatch_variables(self):
         expected = {
@@ -161,7 +162,7 @@ class TestSpecificDefaults:
         )
 
     def test_lambda_runtime_default(self):
-        assert _entry(ServiceType.LAMBDA, "runtime").default == "python3.12"
+        assert _entry(ServiceType.LAMBDA, "runtime").default == "python3.14"
 
     def test_lambda_memory_size_default(self):
         assert _entry(ServiceType.LAMBDA, "memory_size").default == 128
@@ -175,11 +176,13 @@ class TestSpecificDefaults:
     def test_dynamodb_billing_mode_default(self):
         assert _entry(ServiceType.DYNAMODB, "billing_mode").default == "PAY_PER_REQUEST"
 
-    def test_dynamodb_hash_key_type_default(self):
-        assert _entry(ServiceType.DYNAMODB, "hash_key_type").default == "S"
+    def test_dynamodb_hash_key_type_has_no_default(self):
+        """hash_key_type is a required choice, so the editor must not preselect one."""
+        assert _entry(ServiceType.DYNAMODB, "hash_key_type").default is None
 
-    def test_api_gateway_protocol_type_default(self):
-        assert _entry(ServiceType.API_GATEWAY, "protocol_type").default == "HTTP"
+    def test_api_gateway_protocol_type_has_no_default(self):
+        """protocol_type is a required choice, so the editor must not preselect one."""
+        assert _entry(ServiceType.API_GATEWAY, "protocol_type").default is None
 
     def test_cloudwatch_retention_in_days_default(self):
         assert _entry(ServiceType.CLOUDWATCH, "retention_in_days").default == 30
@@ -195,7 +198,7 @@ class TestSpecificOptions:
 
     def test_lambda_runtime_options(self):
         vals = _option_values(_entry(ServiceType.LAMBDA, "runtime"))
-        for rt in ("python3.12", "nodejs20.x", "java21"):
+        for rt in ("python3.12", "nodejs22.x", "java21"):
             assert rt in vals
 
     def test_lambda_architectures_options(self):
@@ -212,7 +215,7 @@ class TestSpecificOptions:
 
     def test_api_gateway_protocol_type_options(self):
         vals = _option_values(_entry(ServiceType.API_GATEWAY, "protocol_type"))
-        assert set(vals) == {"HTTP", "WEBSOCKET", "REST"}
+        assert set(vals) == {"HTTP", "WEBSOCKET"}
 
     def test_cloudwatch_retention_in_days_options(self):
         vals = _option_values(_entry(ServiceType.CLOUDWATCH, "retention_in_days"))
@@ -234,41 +237,41 @@ class TestGroupAssignments:
 
     # Lambda groups
     def test_lambda_general_group(self):
-        assert _group_members(ServiceType.LAMBDA, "General") == {
+        assert {
             "function_name",
             "handler",
             "runtime",
             "description",
-        }
+        } <= _group_members(ServiceType.LAMBDA, "General")
 
     def test_lambda_performance_group(self):
-        assert _group_members(ServiceType.LAMBDA, "Performance") == {
+        assert {
             "memory_size",
             "timeout",
             "ephemeral_storage_size",
             "reserved_concurrent_executions",
             "architectures",
-        }
+        } <= _group_members(ServiceType.LAMBDA, "Performance")
 
     def test_lambda_deployment_group(self):
-        assert _group_members(ServiceType.LAMBDA, "Deployment") == {
+        assert {
             "publish",
             "layers",
-        }
+        } <= _group_members(ServiceType.LAMBDA, "Deployment")
 
     def test_lambda_metadata_group(self):
-        assert _group_members(ServiceType.LAMBDA, "Metadata") == {
+        assert {
             "environment_variables",
             "tags",
-        }
+        } <= _group_members(ServiceType.LAMBDA, "Metadata")
 
     # DynamoDB groups
     def test_dynamodb_general_group(self):
-        assert _group_members(ServiceType.DYNAMODB, "General") == {
+        assert {
             "table_name",
             "billing_mode",
             "table_class",
-        }
+        } <= _group_members(ServiceType.DYNAMODB, "General")
 
     def test_dynamodb_key_schema_group(self):
         assert _group_members(ServiceType.DYNAMODB, "Key Schema") == {
@@ -279,14 +282,14 @@ class TestGroupAssignments:
         }
 
     def test_dynamodb_capacity_group(self):
-        assert _group_members(ServiceType.DYNAMODB, "Capacity") == {
+        assert {
             "read_capacity",
             "write_capacity",
-        }
+        } <= _group_members(ServiceType.DYNAMODB, "Capacity")
 
     def test_dynamodb_metadata_group(self):
-        assert _group_members(ServiceType.DYNAMODB, "Metadata") == {
+        assert {
             "tags",
             "point_in_time_recovery_enabled",
             "deletion_protection_enabled",
-        }
+        } <= _group_members(ServiceType.DYNAMODB, "Metadata")

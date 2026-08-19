@@ -3,13 +3,10 @@
 Validates Requirements: 2.11, 2.12, 2.13, 2.14, 2.15, 2.16, 2.17
 """
 
-import pytest
-
 from app.generators.s3_generator import S3Generator
 from app.models.input_models._general import ServiceType
 from app.models.input_models.s3_config import S3Config
 from app.models.ir_models import ResourceInstanceIR
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 

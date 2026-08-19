@@ -12,7 +12,6 @@ class AthenaConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.ATHENA] = ServiceType.ATHENA
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.ATHENA] exactly.
     _schema_field_order: ClassVar[tuple[str, ...]] = ("workgroup_name",)
 
     # ── General ───────────────────────────────────────────────────────────

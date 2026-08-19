@@ -12,7 +12,6 @@ class KinesisFirehoseConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.KINESIS_FIREHOSE] = ServiceType.KINESIS_FIREHOSE
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.KINESIS_FIREHOSE] exactly.
     _schema_field_order: ClassVar[tuple[str, ...]] = (
         "stream_name",
         "destination",

@@ -6,8 +6,7 @@ validation rules, conditional visibility, and explicit type override).
 
 Per-service config models annotate their fields with `TerraformField(...)` so
 that `BaseServiceConfig.get_variable_schema()` can introspect them and produce
-the JSON schema served to the frontend — eliminating the static
-`VARIABLE_SCHEMAS` dict.
+the JSON schema served to the frontend.
 """
 
 from __future__ import annotations

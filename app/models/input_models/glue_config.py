@@ -12,7 +12,6 @@ class GlueConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.GLUE] = ServiceType.GLUE
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.GLUE] exactly.
     _schema_field_order: ClassVar[tuple[str, ...]] = ("database_name",)
 
     # ── General ───────────────────────────────────────────────────────────

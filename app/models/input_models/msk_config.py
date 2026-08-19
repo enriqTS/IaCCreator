@@ -12,7 +12,6 @@ class MskConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.MSK] = ServiceType.MSK
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.MSK] exactly.
     _schema_field_order: ClassVar[tuple[str, ...]] = (
         "cluster_name",
         "kafka_version",

@@ -12,7 +12,6 @@ class RedshiftConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.REDSHIFT] = ServiceType.REDSHIFT
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.REDSHIFT] exactly.
     _schema_field_order: ClassVar[tuple[str, ...]] = (
         "cluster_identifier",
         "node_type",

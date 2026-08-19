@@ -3,19 +3,22 @@
 Feature: enhanced-variable-configuration
 """
 
+import inspect
+import re
+
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from app.generators.registry import GENERATOR_REGISTRY
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
-from app.models.input_models._metadata import VisibleWhen
 from app.models.input_models import ServiceType
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import get_service_config_models
+from app.models.input_models._metadata import VisibleWhen
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.input_models.lambda_config import LambdaConfig
 from app.models.ir_models import ResourceInstanceIR
+from tests.schema_helpers import service_schemas
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -25,7 +28,7 @@ from app.models.ir_models import ResourceInstanceIR
 _TESTABLE_SERVICES = [
     stype
     for stype in ServiceType
-    if stype in GENERATOR_REGISTRY and stype in VARIABLE_SCHEMAS
+    if stype in GENERATOR_REGISTRY and stype in service_schemas()
 ]
 
 
@@ -44,7 +47,14 @@ _ALWAYS_PRESENT_FIELDS: dict[ServiceType, set[str]] = {
     ServiceType.LAMBDA: {"function_name", "handler", "runtime"},
     ServiceType.S3: {"bucket_name", "versioning_enabled"},
     ServiceType.DYNAMODB: {"table_name", "billing_mode", "hash_key"},
-    ServiceType.API_GATEWAY: {"api_name", "protocol_type"},
+    ServiceType.API_GATEWAY: {
+        # Only emitted inside the stage, authorizer or integration blocks these gate
+        "access_log_destination_arn",
+        "authorizer_credentials_arn",
+        "credentials_arn",
+        "api_name",
+        "protocol_type",
+    },
     ServiceType.CLOUDWATCH: {"log_group_name"},
     # Analytics
     ServiceType.ATHENA: {"workgroup_name"},
@@ -87,13 +97,41 @@ _VAR_REF_OVERRIDES: dict[str, str] = {
     "versioning": "versioning_enabled",
 }
 
+
 # Fields that exist in the schema but are NOT emitted as `var.<name>`
 # references in generate_resource_tf.  For example, DynamoDB hash_key_type
 # and range_key_type are used inline in the attribute block, and S3
 # versioning is a bool on the config but a string in the schema.
+def _referenced_variables(service_type: ServiceType) -> set[str]:
+    """Variable names a service's generator can ever emit, read from its own source."""
+    generator = GENERATOR_REGISTRY.get(service_type)
+    if generator is None:
+        return set()
+    source = inspect.getsource(type(generator))
+    return set(re.findall(r"var\.(\w+)", source))
+
+
 _SKIP_VAR_REF_FIELDS: dict[ServiceType, set[str]] = {
+    # Paired fields — the generator only emits them when both halves are set
+    ServiceType.LAMBDA: {"file_system_arn", "file_system_local_mount_path"},
     ServiceType.DYNAMODB: {"hash_key_type", "range_key_type"},
-    ServiceType.S3: {"versioning"},
+    ServiceType.S3: {
+        "versioning",
+        # Each of these only appears when the field gating its block is also set
+        "sse_bucket_key_enabled",
+        "sse_kms_key_id",
+        "logging_target_prefix",
+        "replication_destination_bucket",
+        "replication_destination_storage_class",
+        "website_index_document",
+        "website_error_document",
+        "website_redirect_all_requests_to",
+        # The public access block is skipped entirely when every value is the AWS default
+        "block_public_acls",
+        "block_public_policy",
+        "ignore_public_acls",
+        "restrict_public_buckets",
+    },
     # New API Gateway schema variables added by the overhaul — generator support
     # for these fields is implemented in later tasks.
     ServiceType.API_GATEWAY: {
@@ -171,7 +209,7 @@ def resource_instance_with_populated_fields(draw):
     is NOT satisfied are excluded from the populated set.
     """
     service_type = draw(st.sampled_from(_TESTABLE_SERVICES))
-    schema_entries = VARIABLE_SCHEMAS[service_type]
+    schema_entries = service_schemas()[service_type]
     always_present = _ALWAYS_PRESENT_FIELDS.get(service_type, set())
 
     # Start with required base config values per service
@@ -198,14 +236,19 @@ def resource_instance_with_populated_fields(draw):
         config_kwargs["protocol_type"] = draw(st.sampled_from(["HTTP", "WEBSOCKET"]))
 
     skip_fields = _SKIP_VAR_REF_FIELDS.get(service_type, set())
+    referenced = _referenced_variables(service_type)
 
-    # Determine which optional fields to populate
+    # Only scalar fields map one-to-one onto a variable; maps and lists of objects
+    # describe structure, so the generator reads them without emitting a var reference.
     optional_entries = [
         e
         for e in schema_entries
         if e.name not in always_present
         and e.name not in config_kwargs
         and e.name not in skip_fields
+        and e.type in ("string", "number", "bool")
+        # A field the generator never references cannot produce one
+        and e.name in referenced
     ]
 
     # We need at least one populated field to make the test meaningful
@@ -222,7 +265,7 @@ def resource_instance_with_populated_fields(draw):
 
     populated_field_names: set[str] = set()
 
-    for entry, should_populate in zip(optional_entries, populate_flags):
+    for entry, should_populate in zip(optional_entries, populate_flags, strict=True):
         if not should_populate:
             continue
         # Field names match schema names directly (all services migrated)
@@ -230,6 +273,9 @@ def resource_instance_with_populated_fields(draw):
         # Use options values when available for more realistic data
         if entry.options:
             value = draw(st.sampled_from([o.value for o in entry.options]))
+            # A list-typed field still takes a list even when its members are options
+            if entry.type == "list":
+                value = [value]
         else:
             value = draw(_sample_value_for_type(entry.type))
         config_kwargs[field_name] = value
@@ -250,7 +296,7 @@ def resource_instance_with_populated_fields(draw):
             config = BaseServiceConfig(**config_kwargs)
 
     # Now determine which populated fields are actually visible
-    for entry, should_populate in zip(optional_entries, populate_flags):
+    for entry, should_populate in zip(optional_entries, populate_flags, strict=True):
         if not should_populate:
             continue
         field_name = entry.name

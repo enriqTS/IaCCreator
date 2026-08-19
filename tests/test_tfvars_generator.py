@@ -14,11 +14,11 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from app.generators.tfvars_generator import TfvarsGenerator
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
 from app.models.input_models import ServiceType
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import get_service_config_models
 from app.models.ir_models import ResourceInstanceIR
+from tests.schema_helpers import service_schemas
 
 _SERVICE_CONFIG_MODELS = get_service_config_models()
 
@@ -293,7 +293,7 @@ class TestMixedTypes:
 # ---------------------------------------------------------------------------
 
 # Strategy: generate a list of ResourceInstanceIR with random terraform_variables
-_service_types_with_schemas = [st for st in ServiceType if st in VARIABLE_SCHEMAS]
+_service_types_with_schemas = [st for st in ServiceType if st in service_schemas()]
 
 _tf_var_value_st = st.one_of(
     st.text(min_size=0, max_size=20, alphabet="abcdefghijklmnopqrstuvwxyz0123456789-_"),
@@ -307,7 +307,7 @@ def resource_instance_ir_strategy(draw):
     """Generate a ResourceInstanceIR with random terraform_variables from its schema."""
     svc = draw(st.sampled_from(_service_types_with_schemas))
     name = draw(st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True))
-    schema = VARIABLE_SCHEMAS[svc]
+    schema = service_schemas()[svc]
     var_names = [s.name for s in schema]
     # Pick a random subset of variables to include
     chosen = draw(
@@ -381,7 +381,7 @@ def test_property_13_tfvars_entries_for_all_terraform_variables(instance):
 
     For any ResourceInstanceIR with terraform_variables set, the TfvarsGenerator
     shall produce a terraform.tfvars entry and a matching variable block for every
-    key in terraform_variables, using the type and description from VARIABLE_SCHEMAS.
+    key in terraform_variables, using the type and description from service_schemas().
 
     **Validates: Requirements 8.3**
     """

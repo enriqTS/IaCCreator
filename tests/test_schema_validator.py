@@ -9,9 +9,9 @@ from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 from app.generators.schema_validator import validate_config_against_schema
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
 from app.models.input_models import ServiceType
 from app.models.input_models._general import get_service_config_models
+from tests.schema_helpers import service_schemas
 
 # ---------------------------------------------------------------------------
 # Helpers: collect variables that have validation rules
@@ -22,7 +22,7 @@ _VALIDATED_VARS: list[tuple[ServiceType, str, object, object, type]] = []
 
 _SERVICE_CONFIG_MODELS = get_service_config_models()
 
-for _stype, _entries in VARIABLE_SCHEMAS.items():
+for _stype, _entries in service_schemas().items():
     _config_cls = _SERVICE_CONFIG_MODELS.get(_stype)
     if _config_cls is None:
         continue

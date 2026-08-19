@@ -1,8 +1,16 @@
 """TfvarsGenerator — produces terraform.tfvars and variables.tf from resource variable values."""
 
 from app.generators.hcl_renderer import HCLRenderer
-from app.generators.variable_schemas import VARIABLE_SCHEMAS
+from app.models.input_models._general import _get_cached_service_config_models
 from app.models.ir_models import ResourceInstanceIR
+
+
+def _schema_for(service_type) -> list:
+    """Variable schema entries for a service, from its config model."""
+    config_cls = _get_cached_service_config_models().get(service_type)
+    if config_cls is None or not config_cls.has_terraform_schema():
+        return []
+    return config_cls.get_variable_schema()
 
 
 class TfvarsGenerator:
@@ -41,8 +49,7 @@ class TfvarsGenerator:
         for instance in instances:
             if not instance.terraform_variables:
                 continue
-            schema_list = VARIABLE_SCHEMAS.get(instance.service_type, [])
-            schema_map = {s.name: s for s in schema_list}
+            schema_map = {s.name: s for s in _schema_for(instance.service_type)}
 
             for var_name in instance.terraform_variables:
                 full_name = f"{instance.name}_{var_name}" if prefix else var_name

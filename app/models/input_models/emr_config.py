@@ -12,7 +12,6 @@ class EmrConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.EMR] = ServiceType.EMR
 
-    # Field order must match VARIABLE_SCHEMAS[ServiceType.EMR] exactly.
     _schema_field_order: ClassVar[tuple[str, ...]] = (
         "cluster_name",
         "release_label",

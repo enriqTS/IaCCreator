@@ -47,9 +47,9 @@ def connection_schemas(tmp_path, monkeypatch):
 
 class TestRegistryIsSingleSourceOfTruth:
     def test_compatible_pairs_derive_from_specs(self):
-        assert COMPATIBLE_CONNECTIONS == {
+        assert {
             (s.source, s.target) for s in CONNECTION_SPECS
-        }
+        } == COMPATIBLE_CONNECTIONS
 
     def test_every_spec_is_reachable_by_key(self):
         for spec in CONNECTION_SPECS:
