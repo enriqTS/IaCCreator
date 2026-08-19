@@ -17,6 +17,7 @@ dev = [
     "hypothesis>=6.156.1",
     "pytest>=9.1.1",
     "pytest-xdist>=3.8.0",
+    "python-hcl2>=4.3.2",
     "ruff>=0.15.20",
 ]
 
@@ -53,3 +54,6 @@ known-first-party = ["app"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "terraform: shells out to the terraform binary; skipped when it is not installed",
+]
