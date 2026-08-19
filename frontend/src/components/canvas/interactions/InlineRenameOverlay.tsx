@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { validateResourceName } from '@/store/naming-store';
 import { useDiagramStore } from '@/store/diagram-store';
 import { getObjectBounds } from '@/types/diagram';
 import { canvasToScreen } from '@/utils/viewport';
@@ -17,6 +18,7 @@ export default function InlineRenameOverlay({ objectId, onClose }: InlineRenameO
 
   const originalName = obj?.name ?? '';
   const [value, setValue] = useState(originalName);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus and select all text on mount
@@ -30,11 +32,21 @@ export default function InlineRenameOverlay({ objectId, onClose }: InlineRenameO
 
   const commit = useCallback(() => {
     const trimmed = value.trim();
-    if (trimmed && trimmed !== originalName) {
-      updateCanvasObject(objectId, { name: trimmed } as Partial<typeof obj & { name: string }>);
+    if (trimmed === originalName || !trimmed) {
+      onClose();
+      return;
     }
+    // Architecture block names become Terraform identifiers, so the backend rule applies
+    if (obj?.objectType === 'architecture-block') {
+      const problem = validateResourceName(trimmed);
+      if (problem) {
+        setError(problem);
+        return;
+      }
+    }
+    updateCanvasObject(objectId, { name: trimmed } as Partial<typeof obj & { name: string }>);
     onClose();
-  }, [value, originalName, objectId, updateCanvasObject, onClose]);
+  }, [value, originalName, objectId, obj?.objectType, updateCanvasObject, onClose]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -75,7 +87,10 @@ export default function InlineRenameOverlay({ objectId, onClose }: InlineRenameO
         ref={inputRef}
         data-testid="inline-rename-input"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          setValue(e.target.value);
+          if (error) setError(null);
+        }}
         onKeyDown={handleKeyDown}
         onBlur={commit}
         style={{
@@ -84,12 +99,32 @@ export default function InlineRenameOverlay({ objectId, onClose }: InlineRenameO
           fontSize: '13px',
           color: '#ffffff',
           backgroundColor: '#1e1e1e',
-          border: '1px solid #3b82f6',
+          border: `1px solid ${error ? '#ef4444' : '#3b82f6'}`,
           borderRadius: '4px',
           outline: 'none',
           textAlign: 'center',
         }}
       />
+      {error && (
+        <div
+          data-testid="inline-rename-error"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            marginTop: 4,
+            padding: '4px 8px',
+            fontSize: '12px',
+            color: '#fca5a5',
+            backgroundColor: '#1e1e1e',
+            border: '1px solid #ef4444',
+            borderRadius: '4px',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+          }}
+        >
+          {error}
+        </div>
+      )}
     </div>
   );
 }

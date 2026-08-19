@@ -102,9 +102,10 @@ export default function LinkedSelectFieldRenderer({
     if (displayKey) {
       template[displayKey] = newValue;
     }
-    // Set integration_name to target block's name
+    // Record the stable id so a later rename cannot orphan the entry
     if ('integration_name' in template) {
       template.integration_name = targetBlock.name;
+      template.integration_id = targetBlock.id;
     }
     // Set method from current allValues if available
     if ('method' in template && allValues.http_method) {
@@ -130,6 +131,7 @@ export default function LinkedSelectFieldRenderer({
     field.key,
     displayKey,
     targetBlock.name,
+    targetBlock.id,
     allValues,
     sourceBlock.id,
     configPath,
@@ -156,13 +158,15 @@ export default function LinkedSelectFieldRenderer({
     [handleConfirmCreate, handleCancelCreate],
   );
 
-  // Compute routes belonging to this connection (matching target block's name)
+  // Routes belonging to this connection, matched by id where one was recorded
   const connectedRoutes = useMemo(() => {
     if (!Array.isArray(sourceArray)) return [];
-    return sourceArray.filter(
-      (entry) => String(entry.integration_name ?? '') === targetBlock.name,
+    return sourceArray.filter((entry) =>
+      entry.integration_id
+        ? entry.integration_id === targetBlock.id
+        : String(entry.integration_name ?? '') === targetBlock.name,
     );
-  }, [sourceArray, targetBlock.name]);
+  }, [sourceArray, targetBlock.id, targetBlock.name]);
 
   // Format methods display for a route entry
   const formatRouteMethods = (entry: Record<string, unknown>): string => {

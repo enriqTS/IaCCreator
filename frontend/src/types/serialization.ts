@@ -91,6 +91,7 @@ export interface ArchitectureDescription {
   project_name: string;
   environments: { name: string; variables: Record<string, string> }[];
   resources: {
+    id?: string;
     name: string;
     service_type: string;
     config: ResourceConfig;
@@ -99,6 +100,8 @@ export interface ArchitectureDescription {
   connections: {
     source: string;
     target: string;
+    source_id?: string;
+    target_id?: string;
     connection_type: string;
     connection_config?: Record<string, string | number | boolean>;
   }[];

@@ -17,6 +17,7 @@ import OnboardingTour from '@/components/tour/OnboardingTour';
 import KeyboardShortcutsOverlay from '@/components/shortcuts/KeyboardShortcutsOverlay';
 import { fetchSchemas } from '@/store/schema-store';
 import { fetchConnectionSchemas } from '@/connections/schema-store';
+import { fetchNamingRules } from '@/store/naming-store';
 import { saveDiagram, listSavedDiagrams, loadDiagram } from '@/utils/storage';
 import { exportToTerraform } from '@/utils/export';
 
@@ -30,6 +31,7 @@ export default function DiagramEditorPage() {
   useEffect(() => {
     void fetchSchemas();
     void fetchConnectionSchemas();
+    void fetchNamingRules();
   }, []);
 
   // Keyboard shortcuts

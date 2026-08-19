@@ -2142,6 +2142,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       const resources = Array.from(canvasObjects.values())
         .filter((obj): obj is ArchitectureBlock => obj.objectType === 'architecture-block')
         .map((block) => ({
+          id: block.id,
           name: block.name,
           service_type: block.serviceType,
           config: { ...block.config },
@@ -2154,9 +2155,12 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         nameById.set(obj.id, obj.name);
       }
 
+      // Ids are the real reference; names are sent alongside for readability
       const connections = Array.from(connectors.values()).map((c) => ({
         source: nameById.get(c.sourceId) ?? '',
         target: nameById.get(c.targetId) ?? '',
+        source_id: c.sourceId,
+        target_id: c.targetId,
         connection_type: c.connectionType,
         ...(c.connectionConfig !== undefined && Object.keys(c.connectionConfig).length > 0 && { connection_config: { ...c.connectionConfig } }),
       }));
