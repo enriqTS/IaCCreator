@@ -27,6 +27,7 @@ class ConnectionFieldSchema(BaseModel):
     key: str
     label: str
     type: FieldType
+    required: bool = False
     default: str | int | float | bool | None = None
     placeholder: str | None = None
     options: list[OptionEntry] | None = None

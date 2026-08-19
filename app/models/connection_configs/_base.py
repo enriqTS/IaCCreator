@@ -45,6 +45,7 @@ class BaseConnectionConfig(BaseModel):
                     key=name,
                     label=meta.label,
                     type=meta.type,
+                    required=field_info.is_required(),
                     default=None if default is Ellipsis else default,
                     placeholder=meta.placeholder,
                     options=meta.options,
