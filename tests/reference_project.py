@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from app.generators.module_paths import instance_module_dir
 from app.models.input_models import (
     ArchitectureDescription,
     Connection,
@@ -184,10 +185,8 @@ def colliding_route_architecture() -> ArchitectureDescription:
 
 
 def colliding_route_connection_files() -> list[GeneratedFile]:
-    """Return connection files for the colliding-route architecture."""
-    return ConnectionProcessor().process_all(
-        IRBuilder().build(colliding_route_architecture())
-    )
+    """Connection files for the colliding-route architecture."""
+    return _connection_files(colliding_route_architecture())
 
 
 def reference_ir() -> ProjectIR:
@@ -200,6 +199,21 @@ def reference_tree() -> FileTree:
     return CodeGenerator().generate(reference_ir())
 
 
+def _connection_files(architecture: ArchitectureDescription) -> list[GeneratedFile]:
+    """Resolve connection resources to tree paths, before merging can hide collisions."""
+    project = IRBuilder().build(architecture)
+    contribution = ConnectionProcessor().process_all(project)
+    instances = {i.name: i for m in project.modules for i in m.instances}
+    return [
+        GeneratedFile(
+            path=f"{instance_module_dir(project.project_name, instances[r.module])}/{r.filename}",
+            content=r.content,
+        )
+        for r in contribution.resources
+        if r.module in instances
+    ]
+
+
 def reference_connection_files() -> list[GeneratedFile]:
-    """Return the files produced by connection processing, before tree merging hides collisions."""
-    return ConnectionProcessor().process_all(reference_ir())
+    """Connection-produced files for the reference architecture."""
+    return _connection_files(reference_architecture())

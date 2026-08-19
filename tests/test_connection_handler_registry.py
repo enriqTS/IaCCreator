@@ -140,7 +140,7 @@ class TestUnregisteredConnectionTypeWarning:
         project = _make_project([s3_source, s3_target], [conn])
 
         with caplog.at_level(logging.WARNING):
-            files = processor.process_all(project)
+            files = _flatten_processed(processor.process_all(project), project)
 
         assert files == []
         assert "No handler registered" in caplog.text
@@ -168,7 +168,7 @@ class TestUnregisteredConnectionTypeWarning:
             connection_type="replicates_to",
         )
         project = _make_project([s3_source, s3_target], [conn])
-        files = processor.process_all(project)
+        files = _flatten_processed(processor.process_all(project), project)
 
         assert files == []
 
@@ -216,7 +216,7 @@ class TestMultiRoute:
         conn, project = self._make_connection(
             {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         assert len(files) == 3
 
     def test_single_route_has_correct_route_key(self):
@@ -224,7 +224,7 @@ class TestMultiRoute:
         conn, project = self._make_connection(
             {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         route_file = next(f for f in files if "route_" in f.path)
         assert 'route_key = "GET /users"' in route_file.content
 
@@ -238,7 +238,7 @@ class TestMultiRoute:
                 ]
             }
         )
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         assert len(files) == 4
 
     def test_multiple_routes_each_has_distinct_route_key(self):
@@ -251,7 +251,7 @@ class TestMultiRoute:
                 ]
             }
         )
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         route_files = [f for f in files if "route_" in f.path]
         assert len(route_files) == 2
 
@@ -274,7 +274,7 @@ class TestMultiRoute:
                 ]
             }
         )
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         integration_files = [f for f in files if "integration_" in f.path]
         assert len(integration_files) == 1
 
@@ -288,7 +288,7 @@ class TestMultiRoute:
                 ]
             }
         )
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         permission_files = [f for f in files if "permission_" in f.path]
         assert len(permission_files) == 1
 
@@ -297,7 +297,7 @@ class TestMultiRoute:
         conn, project = self._make_connection(
             {"routes": [{"methods": ["GET"], "path": "/users/{id}"}]}
         )
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         route_file = next(f for f in files if "route_" in f.path)
 
         # The route_key should still contain the original path
@@ -314,11 +314,11 @@ class TestMultiRoute:
         conn, project = self._make_connection(
             {"routes": [{"methods": ["GET"], "path": "/users/{id}"}]}
         )
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         route_file = next(f for f in files if "route_" in f.path)
 
         # Resource name should be sanitized (no braces/slashes, underscores collapsed)
-        assert "my_api_my_func_route_get_users_var_id" in route_file.content
+        assert "my_func_route_get_users_var_id" in route_file.content
 
     def test_three_routes_file_count(self):
         """Three routes produce 5 files (integration + 3 routes + permission)."""
@@ -331,5 +331,45 @@ class TestMultiRoute:
                 ]
             }
         )
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         assert len(files) == 5
+
+
+# --- Adapter: view a ConnectionContribution the way the assembler lays it out ---
+
+from collections import namedtuple  # noqa: E402
+
+from app.generators.module_paths import instance_module_dir  # noqa: E402
+from app.models.ir_models import ConnectionContribution  # noqa: E402
+
+_File = namedtuple("_File", ["path", "content"])
+
+
+def _flatten(contribution: ConnectionContribution, project) -> list[_File]:
+    """Resolve contribution resources to tree paths and attach IAM, as the pipeline does."""
+    instances = {i.name: i for m in project.modules for i in m.instances}
+    for grant in contribution.iam:
+        target = instances.get(grant.role_owner)
+        if target is not None:
+            target.iam_statements.append(grant.statement)
+    return [
+        _File(
+            f"{instance_module_dir(project.project_name, instances[r.module])}/{r.filename}",
+            r.content,
+        )
+        for r in contribution.resources
+        if r.module in instances
+    ]
+
+
+def _flatten_processed(contribution, project) -> list[_File]:
+    """Same as _flatten but skips IAM, which process_all has already attached."""
+    instances = {i.name: i for m in project.modules for i in m.instances}
+    return [
+        _File(
+            f"{instance_module_dir(project.project_name, instances[r.module])}/{r.filename}",
+            r.content,
+        )
+        for r in contribution.resources
+        if r.module in instances
+    ]

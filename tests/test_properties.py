@@ -604,16 +604,20 @@ def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
         connections=[conn],
     )
 
-    processor = ConnectionProcessor()
-    files = processor.process_all(project)
+    contribution = ConnectionProcessor().process_all(project)
 
-    assert len(files) >= 1
-    integration_files = [
-        f for f in files if 'resource "aws_apigatewayv2_integration"' in f.content
+    assert contribution.resources
+    integration_resources = [
+        r
+        for r in contribution.resources
+        if 'resource "aws_apigatewayv2_integration"' in r.content
     ]
-    assert len(integration_files) == 1
-    assert lambda_name in integration_files[0].content
-    assert apigw_name in integration_files[0].content
+    assert len(integration_resources) == 1
+    integration = integration_resources[0]
+    # The integration lives in the gateway module and reads the Lambda ARN as an input
+    assert integration.module == apigw_name
+    assert apigw_name in integration.content
+    assert f"var.{lambda_name.replace('-', '_')}_invoke_arn" in integration.content
 
 
 # --- Property 17: Terraform references over hardcoded values ---
@@ -671,13 +675,16 @@ def test_property_17_terraform_references_not_hardcoded(apigw_name, lambda_name)
         connections=[conn],
     )
 
-    processor = ConnectionProcessor()
-    files = processor.process_all(project)
+    contribution = ConnectionProcessor().process_all(project)
 
-    for f in files:
-        content = f.content
-        # Should contain Terraform resource references
-        assert "aws_apigatewayv2_api." in content or "aws_lambda_function." in content
+    for resource in contribution.resources:
+        content = resource.content
+        # Values are either local resource references or variables fed by another module
+        assert (
+            "aws_apigatewayv2_api." in content
+            or "aws_lambda_function." in content
+            or "var." in content
+        )
         # Should NOT contain hardcoded ARN patterns
         assert "arn:aws:lambda:" not in content
         assert "arn:aws:execute-api:" not in content

@@ -361,19 +361,19 @@ class TestConnectionProcessorWithRoutes:
     def test_empty_routes_produces_integration_and_permission(self):
         """Empty routes list produces 2 files: integration + permission (no route)."""
         project = self._make_apigw_lambda_project({"routes": []})
-        files = self.processor.process_all(project)
+        files = _flatten_processed(self.processor.process_all(project), project)
 
         assert len(files) == 2
         integration_file = next(f for f in files if "integration_" in f.path)
         assert "AWS_PROXY" in integration_file.content
-        assert "aws_lambda_function.my_func.invoke_arn" in integration_file.content
+        assert "var.my_func_invoke_arn" in integration_file.content
 
     def test_single_route_produces_three_files(self):
         """Single route produces exactly 3 files: integration, route, permission."""
         project = self._make_apigw_lambda_project(
             {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
-        files = self.processor.process_all(project)
+        files = _flatten_processed(self.processor.process_all(project), project)
 
         assert len(files) == 3
         paths = [f.path for f in files]
@@ -386,7 +386,7 @@ class TestConnectionProcessorWithRoutes:
         project = self._make_apigw_lambda_project(
             {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
-        files = self.processor.process_all(project)
+        files = _flatten_processed(self.processor.process_all(project), project)
 
         route_file = next(f for f in files if "route_" in f.path)
         assert 'route_key = "GET /users"' in route_file.content
@@ -396,7 +396,7 @@ class TestConnectionProcessorWithRoutes:
         project = self._make_apigw_lambda_project(
             {"routes": [{"methods": ["DELETE"], "path": "/data"}]}
         )
-        files = self.processor.process_all(project)
+        files = _flatten_processed(self.processor.process_all(project), project)
 
         paths = [f.path for f in files]
         assert any(
@@ -415,19 +415,19 @@ class TestConnectionProcessorWithRoutes:
         project = self._make_apigw_lambda_project(
             {"routes": [{"methods": ["GET"], "path": "/test"}]}
         )
-        files = self.processor.process_all(project)
+        files = _flatten_processed(self.processor.process_all(project), project)
 
         perm_file = next(f for f in files if "permission_" in f.path)
         assert 'resource "aws_lambda_permission"' in perm_file.content
         assert "lambda:InvokeFunction" in perm_file.content
         assert "apigateway.amazonaws.com" in perm_file.content
-        assert "aws_lambda_function.my_func.function_name" in perm_file.content
+        assert "var.my_func_function_name" in perm_file.content
         assert "aws_apigatewayv2_api.my_api.execution_arn" in perm_file.content
 
     def test_integration_defaults_match_expected(self):
         """Default integration_type (AWS_PROXY) and payload_format_version (2.0)."""
         project = self._make_apigw_lambda_project({"routes": []})
-        files = self.processor.process_all(project)
+        files = _flatten_processed(self.processor.process_all(project), project)
 
         integration_file = next(f for f in files if "integration_" in f.path)
         assert "AWS_PROXY" in integration_file.content
@@ -571,7 +571,7 @@ class TestByteForByteIdenticalOutput:
             connection_config={"routes": [{"methods": ["GET"], "path": "/users"}]},
         )
         project = _make_project([apigw, func], [conn])
-        files = processor.process_all(project)
+        files = _flatten_processed(processor.process_all(project), project)
 
         # 3 files: integration, route, permission
         assert len(files) == 3
@@ -604,7 +604,7 @@ class TestByteForByteIdenticalOutput:
             connection_config={"routes": [{"methods": ["GET"], "path": "/users"}]},
         )
         project2 = _make_project([apigw2, func2], [conn2])
-        files2 = processor.process_all(project2)
+        files2 = _flatten_processed(processor.process_all(project2), project2)
 
         # Same number of files
         assert len(files) == len(files2)
@@ -619,3 +619,43 @@ class TestByteForByteIdenticalOutput:
             sorted(files2, key=lambda f: f.path),
         ):
             assert f1.content == f2.content
+
+
+# --- Adapter: view a ConnectionContribution the way the assembler lays it out ---
+
+from collections import namedtuple  # noqa: E402
+
+from app.generators.module_paths import instance_module_dir  # noqa: E402
+from app.models.ir_models import ConnectionContribution  # noqa: E402
+
+_File = namedtuple("_File", ["path", "content"])
+
+
+def _flatten(contribution: ConnectionContribution, project) -> list[_File]:
+    """Resolve contribution resources to tree paths and attach IAM, as the pipeline does."""
+    instances = {i.name: i for m in project.modules for i in m.instances}
+    for grant in contribution.iam:
+        target = instances.get(grant.role_owner)
+        if target is not None:
+            target.iam_statements.append(grant.statement)
+    return [
+        _File(
+            f"{instance_module_dir(project.project_name, instances[r.module])}/{r.filename}",
+            r.content,
+        )
+        for r in contribution.resources
+        if r.module in instances
+    ]
+
+
+def _flatten_processed(contribution, project) -> list[_File]:
+    """Same as _flatten but skips IAM, which process_all has already attached."""
+    instances = {i.name: i for m in project.modules for i in m.instances}
+    return [
+        _File(
+            f"{instance_module_dir(project.project_name, instances[r.module])}/{r.filename}",
+            r.content,
+        )
+        for r in contribution.resources
+        if r.module in instances
+    ]

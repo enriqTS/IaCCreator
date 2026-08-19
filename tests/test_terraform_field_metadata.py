@@ -6,13 +6,11 @@ Validates that:
 - BaseServiceConfig.get_variable_schema() produces correct VariableSchemaEntry lists
 - Type inference works for common Python types
 - Fields without TerraformField are excluded from schema output
-- ConnectionInput and get_connections_schema() work as expected
 """
 
 from typing import Literal, Optional
 
 from app.models.input_models._base import BaseServiceConfig
-from app.models.input_models._connections import ConnectionInput
 from app.models.input_models._metadata import (
     OptionEntry,
     TerraformField,
@@ -102,35 +100,6 @@ class MixedConfig(BaseServiceConfig):
     )
     # This field does NOT have TerraformField metadata (plain Pydantic field)
     internal_flag: bool = False
-
-
-class WithConnectionsConfig(BaseServiceConfig):
-    """Config that declares connection inputs."""
-
-    api_name: str | None = TerraformField(
-        None,
-        group="General",
-        description="API name",
-    )
-
-    @classmethod
-    def get_connections_schema(cls) -> list[ConnectionInput]:
-        return [
-            ConnectionInput(
-                name="lambda_invoke_arn",
-                source_service_type="lambda",
-                description="Lambda invoke ARN for integration",
-                tf_variable_name="lambda_invoke_arn",
-                connection_role="route_handler",
-            ),
-            ConnectionInput(
-                name="authorizer_lambda_arn",
-                source_service_type="lambda",
-                description="Lambda ARN for authorizer",
-                tf_variable_name="authorizer_lambda_invoke_arn",
-                connection_role="authorizer",
-            ),
-        ]
 
 
 # ---------------------------------------------------------------------------
@@ -338,33 +307,6 @@ class TestGetVariableSchema:
 
 
 # ---------------------------------------------------------------------------
-# Tests: get_connections_schema()
-# ---------------------------------------------------------------------------
-
-
-class TestGetConnectionsSchema:
-    """Test connection input declarations."""
-
-    def test_default_returns_empty(self) -> None:
-        assert BaseServiceConfig.get_connections_schema() == []
-        assert MinimalConfig.get_connections_schema() == []
-
-    def test_override_returns_connections(self) -> None:
-        conns = WithConnectionsConfig.get_connections_schema()
-        assert len(conns) == 2
-        assert all(isinstance(c, ConnectionInput) for c in conns)
-
-    def test_connection_input_details(self) -> None:
-        conns = WithConnectionsConfig.get_connections_schema()
-        handler = conns[0]
-        assert handler.name == "lambda_invoke_arn"
-        assert handler.source_service_type == "lambda"
-        assert handler.tf_variable_name == "lambda_invoke_arn"
-        assert handler.connection_role == "route_handler"
-
-        auth = conns[1]
-        assert auth.name == "authorizer_lambda_arn"
-        assert auth.connection_role == "authorizer"
 
 
 # ---------------------------------------------------------------------------

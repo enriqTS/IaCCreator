@@ -140,7 +140,7 @@ class TestHandleApigwLambda:
             connection_config=connection_config or {},
         )
         project = _make_project([apigw, func], [conn])
-        return self.handler.handle(conn, project)
+        return _flatten(self.handler.handle(conn, project), project)
 
     def test_single_route_generates_three_files(self):
         """APIGW→Lambda with one route produces 3 files: integration, route, permission."""
@@ -243,7 +243,7 @@ class TestHandleApigwLambda:
             {"routes": [{"methods": ["GET"], "path": "/users"}]}
         )
         integration_file = next(f for f in files if "integration_" in f.path)
-        assert "aws_lambda_function.my-func.invoke_arn" in integration_file.content
+        assert "var.my_func_invoke_arn" in integration_file.content
 
     def test_permission_has_source_arn_with_execution_arn(self):
         """Permission resource references the API Gateway execution ARN."""
@@ -287,7 +287,7 @@ class TestHandleApigwLambdaAuthorizer:
             connection_config=config,
         )
         project = _make_project([apigw, func], [conn])
-        return self.handler.handle(conn, project)
+        return _flatten(self.handler.handle(conn, project), project)
 
     def test_generates_two_files(self):
         """Authorizer role produces exactly 2 files: authorizer + permission."""
@@ -340,7 +340,7 @@ class TestHandleApigwLambdaAuthorizer:
             for f in files
             if "authorizer_my-func" in f.path and "permission" not in f.path
         )
-        assert "aws_lambda_function.my-func.invoke_arn" in auth_file.content
+        assert "var.my_func_invoke_arn" in auth_file.content
 
     def test_authorizer_default_payload_format_version(self):
         """Authorizer defaults payload_format_version to 2.0."""
@@ -438,7 +438,7 @@ class TestHandleApigwLambdaAuthorizer:
             },
         )
         project = _make_project([apigw, func], [conn])
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         assert len(files) == 3
 
 
@@ -464,7 +464,7 @@ class TestHandleLambdaSns:
             connection_type="publishes_to",
         )
         project = _make_project([func, topic], [conn])
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         return files, func
 
     def test_returns_no_files(self):
@@ -518,7 +518,7 @@ class TestHandleLambdaSqs:
             connection_type="sends_to",
         )
         project = _make_project([func, queue], [conn])
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         return files, func
 
     def test_returns_no_files(self):
@@ -573,7 +573,7 @@ class TestHandleSqsLambda:
             connection_config=connection_config or {},
         )
         project = _make_project([queue, func], [conn])
-        files = self.handler.handle(conn, project)
+        files = _flatten(self.handler.handle(conn, project), project)
         return files, func
 
     def test_generates_two_files(self):
@@ -586,7 +586,7 @@ class TestHandleSqsLambda:
         files, _ = self._handle_sqs_lambda()
         paths = [f.path for f in files]
         assert (
-            "test-project/modules/messaging/sqs/my-queue/event_source_my-func.tf"
+            "test-project/modules/compute/lambda/my-func/event_source_my-queue.tf"
             in paths
         )
 
@@ -595,7 +595,8 @@ class TestHandleSqsLambda:
         files, _ = self._handle_sqs_lambda()
         paths = [f.path for f in files]
         assert (
-            "test-project/modules/messaging/sqs/my-queue/permission_my-func.tf" in paths
+            "test-project/modules/compute/lambda/my-func/permission_my-queue.tf"
+            in paths
         )
 
     def test_event_source_mapping_contains_resource(self):
@@ -676,7 +677,7 @@ class TestHandleSnsSqs:
             connection_type="delivers_to",
         )
         project = _make_project([topic, queue], [conn])
-        return self.handler.handle(conn, project)
+        return _flatten(self.handler.handle(conn, project), project)
 
     def test_generates_two_files(self):
         """SNS→SQS produces exactly 2 files: subscription and queue policy."""
@@ -688,7 +689,7 @@ class TestHandleSnsSqs:
         files = self._handle_sns_sqs()
         paths = [f.path for f in files]
         assert (
-            "test-project/modules/messaging/sns/my-topic/subscription_my-queue.tf"
+            "test-project/modules/messaging/sqs/my-queue/subscription_my-topic.tf"
             in paths
         )
 
@@ -720,7 +721,7 @@ class TestHandleSnsSqs:
         """Subscription references the SNS topic ARN via Terraform reference."""
         files = self._handle_sns_sqs()
         sub_file = next(f for f in files if "subscription_" in f.path)
-        assert "aws_sns_topic.my-topic.arn" in sub_file.content
+        assert "var.my_topic_topic_arn" in sub_file.content
 
     def test_subscription_references_queue_arn(self):
         """Subscription endpoint references the SQS queue ARN via Terraform reference."""
@@ -751,7 +752,7 @@ class TestHandleSnsLambda:
             connection_type="triggers",
         )
         project = _make_project([topic, func], [conn])
-        return self.handler.handle(conn, project)
+        return _flatten(self.handler.handle(conn, project), project)
 
     def test_generates_two_files(self):
         """SNS→Lambda produces exactly 2 files: subscription and permission."""
@@ -763,7 +764,7 @@ class TestHandleSnsLambda:
         files = self._handle_sns_lambda()
         paths = [f.path for f in files]
         assert (
-            "test-project/modules/messaging/sns/my-topic/subscription_my-func.tf"
+            "test-project/modules/compute/lambda/my-func/subscription_my-topic.tf"
             in paths
         )
 
@@ -772,7 +773,8 @@ class TestHandleSnsLambda:
         files = self._handle_sns_lambda()
         paths = [f.path for f in files]
         assert (
-            "test-project/modules/messaging/sns/my-topic/permission_my-func.tf" in paths
+            "test-project/modules/compute/lambda/my-func/permission_my-topic.tf"
+            in paths
         )
 
     def test_subscription_contains_resource(self):
@@ -797,7 +799,7 @@ class TestHandleSnsLambda:
         """Permission source_arn references the SNS topic ARN."""
         files = self._handle_sns_lambda()
         perm_file = next(f for f in files if "permission_" in f.path)
-        assert "aws_sns_topic.my-topic.arn" in perm_file.content
+        assert "var.my_topic_topic_arn" in perm_file.content
 
     def test_subscription_references_lambda_arn(self):
         """Subscription endpoint references the Lambda function ARN."""
@@ -834,7 +836,7 @@ class TestTerraformReferenceConsistency:
             connection_config={"routes": [{"methods": ["GET"], "path": "/test"}]},
         )
         project = _make_project([apigw, func], [conn])
-        files = handler.handle(conn, project)
+        files = _flatten(handler.handle(conn, project), project)
         for f in files:
             assert "arn:aws:" not in f.content, (
                 f"File {f.path} contains hardcoded ARN instead of Terraform reference"
@@ -853,7 +855,7 @@ class TestTerraformReferenceConsistency:
             connection_type="triggers",
         )
         project = _make_project([queue, func], [conn])
-        files = handler.handle(conn, project)
+        files = _flatten(handler.handle(conn, project), project)
         for f in files:
             assert "arn:aws:" not in f.content, (
                 f"File {f.path} contains hardcoded ARN instead of Terraform reference"
@@ -872,7 +874,7 @@ class TestTerraformReferenceConsistency:
             connection_type="delivers_to",
         )
         project = _make_project([topic, queue], [conn])
-        files = handler.handle(conn, project)
+        files = _flatten(handler.handle(conn, project), project)
         for f in files:
             assert "arn:aws:" not in f.content, (
                 f"File {f.path} contains hardcoded ARN instead of Terraform reference"
@@ -891,7 +893,7 @@ class TestTerraformReferenceConsistency:
             connection_type="triggers",
         )
         project = _make_project([topic, func], [conn])
-        files = handler.handle(conn, project)
+        files = _flatten(handler.handle(conn, project), project)
         for f in files:
             assert "arn:aws:" not in f.content, (
                 f"File {f.path} contains hardcoded ARN instead of Terraform reference"
@@ -910,7 +912,7 @@ class TestTerraformReferenceConsistency:
             connection_type="publishes_to",
         )
         project = _make_project([func, topic], [conn])
-        handler.handle(conn, project)
+        _flatten(handler.handle(conn, project), project)
         stmt = func.iam_statements[0]
         for resource in stmt.resources:
             assert resource.startswith("${aws_sns_topic."), (
@@ -930,7 +932,7 @@ class TestTerraformReferenceConsistency:
             connection_type="sends_to",
         )
         project = _make_project([func, queue], [conn])
-        handler.handle(conn, project)
+        _flatten(handler.handle(conn, project), project)
         stmt = func.iam_statements[0]
         for resource in stmt.resources:
             assert resource.startswith("${aws_sqs_queue."), (
@@ -950,7 +952,7 @@ class TestTerraformReferenceConsistency:
             connection_type="triggers",
         )
         project = _make_project([queue, func], [conn])
-        handler.handle(conn, project)
+        _flatten(handler.handle(conn, project), project)
         stmt = func.iam_statements[0]
         for resource in stmt.resources:
             assert resource.startswith("${aws_sqs_queue."), (
@@ -981,7 +983,7 @@ class TestHandleLambdaDynamoDBAccessPattern:
             connection_config=connection_config or {},
         )
         project = _make_project([func, table], [conn])
-        self.handler.handle(conn, project)
+        _flatten(self.handler.handle(conn, project), project)
         return func
 
     def test_default_access_pattern_uses_all_actions(self):
@@ -1072,7 +1074,7 @@ class TestHandleLambdaS3AccessPattern:
             connection_config=connection_config or {},
         )
         project = _make_project([func, bucket], [conn])
-        self.handler.handle(conn, project)
+        _flatten(self.handler.handle(conn, project), project)
         return func
 
     def test_default_access_pattern_uses_all_actions(self):
@@ -1129,3 +1131,30 @@ class TestHandleLambdaS3AccessPattern:
         stmt = func.iam_statements[0]
         assert "${aws_s3_bucket.my-bucket.arn}" in stmt.resources
         assert "${aws_s3_bucket.my-bucket.arn}/*" in stmt.resources
+
+
+# --- Adapter: view a ConnectionContribution the way the assembler lays it out ---
+
+from collections import namedtuple  # noqa: E402
+
+from app.generators.module_paths import instance_module_dir  # noqa: E402
+from app.models.ir_models import ConnectionContribution  # noqa: E402
+
+_File = namedtuple("_File", ["path", "content"])
+
+
+def _flatten(contribution: ConnectionContribution, project) -> list[_File]:
+    """Resolve contribution resources to tree paths and attach IAM, as the pipeline does."""
+    instances = {i.name: i for m in project.modules for i in m.instances}
+    for grant in contribution.iam:
+        target = instances.get(grant.role_owner)
+        if target is not None:
+            target.iam_statements.append(grant.statement)
+    return [
+        _File(
+            f"{instance_module_dir(project.project_name, instances[r.module])}/{r.filename}",
+            r.content,
+        )
+        for r in contribution.resources
+        if r.module in instances
+    ]
