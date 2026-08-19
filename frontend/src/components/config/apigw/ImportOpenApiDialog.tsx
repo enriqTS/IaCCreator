@@ -21,8 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { parseOpenApiSpec } from '@/lib/openapi/openapi-parser';
-import { mapOpenApiToConfig } from '@/lib/openapi/openapi-mapper';
+import { importOpenApi } from '@/lib/openapi/import-client';
 import { useApigwConfigStore } from '@/store/apigw-config-store';
 import type { MapResult, ImportStrategy } from '@/lib/openapi/types';
 import type { RouteItem, AuthorizerItem } from '@/types/apigw-config';
@@ -77,30 +76,22 @@ export function ImportOpenApiDialog({ open, onOpenChange }: ImportOpenApiDialogP
   // Parse logic
   // -------------------------------------------------------------------------
 
-  function handleParse(content: string) {
+  async function handleParse(content: string) {
     setState('parsing');
 
-    // Use setTimeout to allow the UI to show the loading state
-    setTimeout(() => {
-      const result = parseOpenApiSpec(content);
+    const outcome = await importOpenApi(content);
+    if (!outcome.success) {
+      setErrorMessage(outcome.error);
+      setState('error');
+      return;
+    }
 
-      if (!result.success) {
-        setErrorMessage(result.error);
-        setState('error');
-        return;
-      }
-
-      const mapped = mapOpenApiToConfig(result.spec, {
-        selectedServerUrl: undefined,
-      });
-
-      setMapResult(mapped);
-      // Default to first server URL if available
-      if (mapped.serverUrls.length > 0) {
-        setSelectedServerUrl(mapped.serverUrls[0]);
-      }
-      setState('preview');
-    }, 50);
+    setMapResult(outcome.result);
+    // Default to first server URL if available
+    if (outcome.result.serverUrls.length > 0) {
+      setSelectedServerUrl(outcome.result.serverUrls[0]);
+    }
+    setState('preview');
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -109,8 +100,7 @@ export function ImportOpenApiDialog({ open, onOpenChange }: ImportOpenApiDialogP
 
     const reader = new FileReader();
     reader.onload = () => {
-      const content = reader.result as string;
-      handleParse(content);
+      void handleParse(reader.result as string);
     };
     reader.onerror = () => {
       setErrorMessage('Failed to read file');
@@ -121,7 +111,7 @@ export function ImportOpenApiDialog({ open, onOpenChange }: ImportOpenApiDialogP
 
   function handlePasteSubmit() {
     if (!pasteContent.trim()) return;
-    handleParse(pasteContent);
+    void handleParse(pasteContent);
   }
 
   function handleRetry() {
