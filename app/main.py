@@ -34,6 +34,12 @@ from app.routers.diagrams import router as diagram_router
 from app.services.code_generator import CodeGenerator
 from app.services.connection_handlers.registry import CONNECTION_SPECS
 from app.services.ir_builder import IRBuilder
+from app.services.openapi.mapper import map_openapi
+from app.services.openapi.models import (
+    OpenApiImportRequest,
+    OpenApiImportResponse,
+)
+from app.services.openapi.parser import parse_openapi
 from app.services.output_serializer import OutputSerializer
 from app.services.session_manager import SessionManager
 
@@ -152,6 +158,13 @@ async def generate_json(arch: ArchitectureDescription) -> GenerationResponse:
             status_code=500,
             detail=f"Generation failed: {exc}",
         )
+
+
+@app.post("/api/import/openapi", response_model=OpenApiImportResponse)
+async def import_openapi(request: OpenApiImportRequest) -> OpenApiImportResponse:
+    """Turn an OpenAPI document into API Gateway routes, authorizers and settings."""
+    document = parse_openapi(request.content)
+    return map_openapi(document, request.selected_server_url)
 
 
 @app.get("/api/naming-rules", response_model=NamingRulesResponse)
