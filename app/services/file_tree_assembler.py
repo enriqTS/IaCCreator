@@ -1,5 +1,6 @@
 """FileTreeAssembler — walks ProjectIR and collects all generated content into a FileTree."""
 
+from app.generators.execution_role_generator import ExecutionRoleGenerator
 from app.generators.global_config_generator import GlobalConfigGenerator
 from app.generators.hcl_renderer import HCLRenderer
 from app.generators.iam_policy_generator import IAMPolicyGenerator
@@ -27,6 +28,7 @@ class FileTreeAssembler:
         self._iam_policy_gen = IAMPolicyGenerator()
         self._tfvars_gen = TfvarsGenerator()
         self._global_config_gen = GlobalConfigGenerator()
+        self._role_gen = ExecutionRoleGenerator()
 
     def assemble(
         self,
@@ -304,12 +306,9 @@ class FileTreeAssembler:
         tree[f"{inst_base}/variables.tf"] = generator.generate_variables_tf(instance)
         tree[f"{inst_base}/outputs.tf"] = generator.generate_outputs_tf(instance)
 
-        # Lambda gets an extra iam.tf
-        if instance.service_type == ServiceType.LAMBDA:
-            from app.generators.lambda_generator import LambdaGenerator
-
-            if isinstance(generator, LambdaGenerator):
-                tree[f"{inst_base}/iam.tf"] = generator.generate_iam_tf(instance)
+        # Any service that assumes a role carries its own role and policy
+        if type(instance.config).owns_execution_role:
+            tree[f"{inst_base}/iam.tf"] = self._role_gen.generate_iam_tf(instance)
 
     # ------------------------------------------------------------------
     # IAM policy JSON files
@@ -318,10 +317,10 @@ class FileTreeAssembler:
     def _add_iam_policy_files(
         self, tree: FileTree, root: str, project: ProjectIR
     ) -> None:
-        """Generate {name}-policy.json in iam-policies/ for every Lambda instance."""
+        """Generate {name}-policy.json for every instance that owns an execution role."""
         for module in project.modules:
-            if module.service_type != ServiceType.LAMBDA:
-                continue
             for inst in module.instances:
+                if not type(inst.config).owns_execution_role:
+                    continue
                 policy_path = f"{root}/iam-policies/{inst.name}-policy.json"
                 tree[policy_path] = self._iam_policy_gen.generate_policy_document(inst)

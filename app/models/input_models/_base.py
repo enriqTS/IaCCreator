@@ -26,6 +26,10 @@ class BaseServiceConfig(BaseModel):
     environment_variables: dict[str, str] | None = None
     is_layer: bool = False
 
+    # Services that assume an AWS role declare it here so connections can grant to them
+    owns_execution_role: ClassVar[bool] = False
+    execution_role_principal: ClassVar[str | None] = None
+
     # Subclasses may define _schema_field_order as a ClassVar tuple of field names
     # to control the order of entries returned by get_variable_schema(). This is
     # needed when inherited fields (e.g. tags) must appear in a specific
@@ -90,6 +94,11 @@ class BaseServiceConfig(BaseModel):
             entries.append(entry)
 
         return entries
+
+    @classmethod
+    def execution_role_base_statements(cls, instance_name: str) -> list[dict]:
+        """Statements the role always needs, before any connection grants."""
+        return []
 
     @classmethod
     def has_terraform_schema(cls) -> bool:

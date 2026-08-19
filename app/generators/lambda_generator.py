@@ -1,6 +1,7 @@
 """Lambda service generator — produces HCL for aws_lambda_function and IAM resources."""
 
 from app.generators.base import get_typed_config
+from app.generators.execution_role_generator import ExecutionRoleGenerator
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.lambda_config import LambdaConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -638,38 +639,5 @@ class LambdaGenerator:
         return "\n".join(parts)
 
     def generate_iam_tf(self, instance: ResourceInstanceIR) -> str:
-        """Generate iam.tf with IAM role and policy referencing iam-policies/ via file()."""
-        safe_name = instance.name
-        # IAM role
-        role_attrs = {
-            "name": f"{safe_name}-role",
-            "assume_role_policy": self._r.render_json_policy(
-                {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Action": "sts:AssumeRole",
-                            "Effect": "Allow",
-                            "Principal": {"Service": "lambda.amazonaws.com"},
-                        }
-                    ],
-                },
-                depth=2,
-            ),
-        }
-        role_block = self._r.render_resource(
-            "aws_iam_role", f"{safe_name}_role", role_attrs
-        )
-
-        # IAM policy referencing the JSON file via file()
-        policy_path = f"${{path.root}}/../../iam-policies/{safe_name}-policy.json"
-        policy_attrs = {
-            "name": f"{safe_name}-policy",
-            "role": Expr(f"aws_iam_role.{safe_name}_role.id"),
-            "policy": Expr(f'file("{policy_path}")'),
-        }
-        policy_block = self._r.render_resource(
-            "aws_iam_role_policy", f"{safe_name}_policy", policy_attrs
-        )
-
-        return role_block + "\n" + policy_block
+        """Generate iam.tf with the function's execution role and inline policy."""
+        return ExecutionRoleGenerator().generate_iam_tf(instance)

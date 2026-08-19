@@ -21,6 +21,9 @@ class LambdaConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.LAMBDA] = ServiceType.LAMBDA
 
+    owns_execution_role: ClassVar[bool] = True
+    execution_role_principal: ClassVar[str] = "lambda.amazonaws.com"
+
     # Field order for schema output — all fields in logical group order.
     _schema_field_order: ClassVar[tuple[str, ...]] = (
         # General
@@ -389,3 +392,18 @@ class LambdaConfig(BaseServiceConfig):
                         "Manual runtime management requires runtime_version_arn"
                     )
         return self
+
+    @classmethod
+    def execution_role_base_statements(cls, instance_name: str) -> list[dict]:
+        """Every function needs to write its own CloudWatch log stream."""
+        return [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                ],
+                "Resource": f"arn:aws:logs:*:*:log-group:/aws/lambda/{instance_name}:*",
+            }
+        ]
