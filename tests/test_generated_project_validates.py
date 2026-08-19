@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -34,10 +35,42 @@ def _write_tree(root: Path, tree: FileTree) -> None:
         target.write_text(content)
 
 
+PLUGIN_CACHE = Path.home() / ".terraform.d" / "plugin-cache"
+
+
+def _terraform_env(use_cache_dir: bool) -> dict[str, str]:
+    """Reuse a provider cache so repeat runs do not depend on the registry."""
+    env = {**os.environ, "TF_IN_AUTOMATION": "1"}
+    # terraform rejects -plugin-dir and the cache directory together
+    if use_cache_dir:
+        PLUGIN_CACHE.mkdir(parents=True, exist_ok=True)
+        env["TF_PLUGIN_CACHE_DIR"] = str(PLUGIN_CACHE)
+    else:
+        env.pop("TF_PLUGIN_CACHE_DIR", None)
+    return env
+
+
+def _init_args() -> list[str]:
+    """Install providers from the local cache when it is populated, to skip the registry."""
+    args = ["init", "-backend=false", "-input=false"]
+    if (PLUGIN_CACHE / "registry.terraform.io").is_dir():
+        args.append(f"-plugin-dir={PLUGIN_CACHE}")
+    return args
+
+
 def _run_terraform(args: list[str], cwd: Path) -> None:
     result = subprocess.run(
-        ["terraform", *args], cwd=cwd, capture_output=True, text=True, timeout=300
+        ["terraform", *args],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        timeout=300,
+        env=_terraform_env(
+            use_cache_dir=not any(a.startswith("-plugin-dir") for a in args)
+        ),
     )
+    if result.returncode != 0 and "could not connect to registry" in result.stderr:
+        pytest.skip("terraform registry unreachable; provider cache not yet populated")
     assert result.returncode == 0, (
         f"terraform {' '.join(args)} failed in {cwd}\n"
         f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
@@ -70,5 +103,5 @@ def test_generated_project_passes_terraform_validate(
     env_dir = tmp_path / PROJECT_NAME / "environments" / environment
     assert env_dir.is_dir(), f"expected generated environment at {env_dir}"
 
-    _run_terraform(["init", "-backend=false", "-input=false"], env_dir)
+    _run_terraform(_init_args(), env_dir)
     _run_terraform(["validate"], env_dir)
