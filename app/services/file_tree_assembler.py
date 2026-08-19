@@ -4,14 +4,15 @@ from app.generators.global_config_generator import GlobalConfigGenerator
 from app.generators.hcl_renderer import HCLRenderer
 from app.generators.iam_policy_generator import IAMPolicyGenerator
 from app.generators.module_arguments import module_arguments
+from app.generators.module_paths import instance_module_dir
 from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.service_category_map import get_category
 from app.generators.tfvars_generator import TfvarsGenerator
 from app.models.input_models import ServiceType
 from app.models.ir_models import (
+    ConnectionContribution,
     EnvironmentIR,
     FileTree,
-    GeneratedFile,
     ProjectIR,
     ResourceInstanceIR,
     ServiceModuleIR,
@@ -30,13 +31,10 @@ class FileTreeAssembler:
     def assemble(
         self,
         project: ProjectIR,
-        extra_files: list[GeneratedFile] | None = None,
+        contribution: ConnectionContribution | None = None,
     ) -> FileTree:
-        """Build the full FileTree from the project IR.
-
-        *extra_files* are additional files produced by the ConnectionProcessor
-        (e.g. integration resources) that get merged into the tree.
-        """
+        """Build the full FileTree, folding in whatever the connections contributed."""
+        contribution = contribution or ConnectionContribution()
         tree: FileTree = {}
         root = project.project_name
 
@@ -45,9 +43,13 @@ class FileTreeAssembler:
         for module in project.modules:
             all_instances.extend(module.instances)
 
+        instances = {inst.name: inst for inst in all_instances}
+
         # 1. Environment files
         for env in project.environments:
-            self._add_environment_files(tree, root, env, project, all_instances)
+            self._add_environment_files(
+                tree, root, env, project, all_instances, contribution
+            )
 
         # 2. Service module files + resource instance files
         for module in project.modules:
@@ -56,12 +58,66 @@ class FileTreeAssembler:
         # 3. IAM policy JSON files
         self._add_iam_policy_files(tree, root, project)
 
-        # 4. Merge extra files from connection processing
-        if extra_files:
-            for gf in extra_files:
-                tree[gf.path] = gf.content
+        # 4. Connection resources live inside the module that owns them
+        for resource in contribution.resources:
+            instance = instances.get(resource.module)
+            if instance is None:
+                continue
+            tree[f"{instance_module_dir(root, instance)}/{resource.filename}"] = (
+                resource.content
+            )
+
+        # 5. Connection inputs and outputs extend the module's own variables and outputs
+        self._add_connection_variables(tree, root, contribution, instances)
+        self._add_connection_outputs(tree, root, contribution, instances)
 
         return tree
+
+    # ------------------------------------------------------------------
+    # Connection wiring
+    # ------------------------------------------------------------------
+
+    def _add_connection_variables(
+        self,
+        tree: FileTree,
+        root: str,
+        contribution: ConnectionContribution,
+        instances: dict[str, ResourceInstanceIR],
+    ) -> None:
+        """Append a variable block per connection input to the receiving module."""
+        for module_input in contribution.inputs:
+            instance = instances.get(module_input.module)
+            if instance is None:
+                continue
+            path = f"{instance_module_dir(root, instance)}/variables.tf"
+            existing = tree.get(path, "")
+            if f'variable "{module_input.name}"' in existing:
+                continue
+            block = self._renderer.render_variable(
+                module_input.name, module_input.type, module_input.description
+            )
+            tree[path] = (existing.rstrip("\n") + "\n\n" + block).lstrip("\n")
+
+    def _add_connection_outputs(
+        self,
+        tree: FileTree,
+        root: str,
+        contribution: ConnectionContribution,
+        instances: dict[str, ResourceInstanceIR],
+    ) -> None:
+        """Append an output block per connection output to the providing module."""
+        for module_output in contribution.outputs:
+            instance = instances.get(module_output.module)
+            if instance is None:
+                continue
+            path = f"{instance_module_dir(root, instance)}/outputs.tf"
+            existing = tree.get(path, "")
+            if f'output "{module_output.name}"' in existing:
+                continue
+            block = self._renderer.render_output(
+                module_output.name, module_output.value, module_output.description
+            )
+            tree[path] = (existing.rstrip("\n") + "\n\n" + block).lstrip("\n")
 
     # ------------------------------------------------------------------
     # Environment files
@@ -74,6 +130,7 @@ class FileTreeAssembler:
         env: EnvironmentIR,
         project: ProjectIR,
         all_instances: list[ResourceInstanceIR],
+        contribution: ConnectionContribution,
     ) -> None:
         """Generate main.tf, variables.tf, outputs.tf, terraform.tfvars for an environment."""
         base = f"{root}/environments/{env.name}"
@@ -87,7 +144,7 @@ class FileTreeAssembler:
                 self._renderer.render_module(
                     inst.name,
                     self._module_source(inst),
-                    self._module_arguments(inst),
+                    self._module_arguments(inst, contribution),
                 )
             )
         tree[f"{base}/main.tf"] = "\n".join(parts)
@@ -160,16 +217,22 @@ class FileTreeAssembler:
         category = get_category(instance.service_type)
         return f"../../modules/{category}/{instance.service_type.value}/{instance.name}"
 
-    def _module_arguments(self, instance: ResourceInstanceIR) -> dict[str, str]:
+    def _module_arguments(
+        self, instance: ResourceInstanceIR, contribution: ConnectionContribution
+    ) -> dict[str, str]:
         """Render the argument assignments an instance module requires."""
         generator = GENERATOR_REGISTRY.get(instance.service_type)
         if generator is None:
             return {}
         variables_tf = generator.generate_variables_tf(instance)
-        return {
+        arguments = {
             name: HCLRenderer._format_value(value)
             for name, value in module_arguments(instance, variables_tf).items()
         }
+        for module_input in contribution.inputs:
+            if module_input.module == instance.name:
+                arguments[module_input.name] = module_input.value
+        return arguments
 
     # ------------------------------------------------------------------
     # Service module files
