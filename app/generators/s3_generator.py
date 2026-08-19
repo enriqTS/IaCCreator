@@ -1,7 +1,7 @@
 """S3 service generator — produces HCL for aws_s3_bucket resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.s3_config import S3Config
 from app.models.ir_models import ResourceInstanceIR
 
@@ -33,19 +33,19 @@ class S3Generator:
             return ""
 
         apply_default: dict = {
-            "sse_algorithm": "var.sse_algorithm",
+            "sse_algorithm": Expr("var.sse_algorithm"),
         }
         if config.sse_kms_key_id is not None:
-            apply_default["kms_master_key_id"] = "var.sse_kms_key_id"
+            apply_default["kms_master_key_id"] = Expr("var.sse_kms_key_id")
 
         rule: dict = {
             "apply_server_side_encryption_by_default": apply_default,
         }
         if config.sse_bucket_key_enabled is not None:
-            rule["bucket_key_enabled"] = "var.sse_bucket_key_enabled"
+            rule["bucket_key_enabled"] = Expr("var.sse_bucket_key_enabled")
 
         attrs = {
-            "bucket": f"aws_s3_bucket.{instance.name}.id",
+            "bucket": Expr(f"aws_s3_bucket.{instance.name}.id"),
             "rule": rule,
         }
 
@@ -73,18 +73,18 @@ class S3Generator:
 
         cors_rule: dict = {}
         if config.cors_allowed_headers is not None:
-            cors_rule["allowed_headers"] = "var.cors_allowed_headers"
+            cors_rule["allowed_headers"] = Expr("var.cors_allowed_headers")
         if config.cors_allowed_methods is not None:
-            cors_rule["allowed_methods"] = "var.cors_allowed_methods"
+            cors_rule["allowed_methods"] = Expr("var.cors_allowed_methods")
         if config.cors_allowed_origins is not None:
-            cors_rule["allowed_origins"] = "var.cors_allowed_origins"
+            cors_rule["allowed_origins"] = Expr("var.cors_allowed_origins")
         if config.cors_expose_headers is not None:
-            cors_rule["expose_headers"] = "var.cors_expose_headers"
+            cors_rule["expose_headers"] = Expr("var.cors_expose_headers")
         if config.cors_max_age_seconds is not None:
-            cors_rule["max_age_seconds"] = "var.cors_max_age_seconds"
+            cors_rule["max_age_seconds"] = Expr("var.cors_max_age_seconds")
 
         attrs = {
-            "bucket": f"aws_s3_bucket.{instance.name}.id",
+            "bucket": Expr(f"aws_s3_bucket.{instance.name}.id"),
             "cors_rule": cors_rule,
         }
 
@@ -102,11 +102,11 @@ class S3Generator:
             return ""
 
         attrs: dict = {
-            "bucket": f"aws_s3_bucket.{instance.name}.id",
-            "target_bucket": "var.logging_target_bucket",
+            "bucket": Expr(f"aws_s3_bucket.{instance.name}.id"),
+            "target_bucket": Expr("var.logging_target_bucket"),
         }
         if config.logging_target_prefix is not None:
-            attrs["target_prefix"] = "var.logging_target_prefix"
+            attrs["target_prefix"] = Expr("var.logging_target_prefix")
 
         return "\n" + self._r.render_resource(
             "aws_s3_bucket_logging",
@@ -129,21 +129,21 @@ class S3Generator:
             return ""
 
         attrs: dict = {
-            "bucket": f"aws_s3_bucket.{instance.name}.id",
+            "bucket": Expr(f"aws_s3_bucket.{instance.name}.id"),
         }
 
         if config.website_redirect_all_requests_to is not None:
             attrs["redirect_all_requests_to"] = {
-                "host_name": "var.website_redirect_all_requests_to",
+                "host_name": Expr("var.website_redirect_all_requests_to"),
             }
         else:
             if config.website_index_document is not None:
                 attrs["index_document"] = {
-                    "suffix": "var.website_index_document",
+                    "suffix": Expr("var.website_index_document"),
                 }
             if config.website_error_document is not None:
                 attrs["error_document"] = {
-                    "key": "var.website_error_document",
+                    "key": Expr("var.website_error_document"),
                 }
 
         return "\n" + self._r.render_resource(
@@ -173,16 +173,16 @@ class S3Generator:
             return ""
 
         attrs: dict = {
-            "bucket": f"aws_s3_bucket.{instance.name}.id",
+            "bucket": Expr(f"aws_s3_bucket.{instance.name}.id"),
         }
         if config.block_public_acls is not None:
-            attrs["block_public_acls"] = "var.block_public_acls"
+            attrs["block_public_acls"] = Expr("var.block_public_acls")
         if config.block_public_policy is not None:
-            attrs["block_public_policy"] = "var.block_public_policy"
+            attrs["block_public_policy"] = Expr("var.block_public_policy")
         if config.ignore_public_acls is not None:
-            attrs["ignore_public_acls"] = "var.ignore_public_acls"
+            attrs["ignore_public_acls"] = Expr("var.ignore_public_acls")
         if config.restrict_public_buckets is not None:
-            attrs["restrict_public_buckets"] = "var.restrict_public_buckets"
+            attrs["restrict_public_buckets"] = Expr("var.restrict_public_buckets")
 
         return "\n" + self._r.render_resource(
             "aws_s3_bucket_public_access_block",
@@ -205,31 +205,31 @@ class S3Generator:
             return ""
 
         attrs: dict = {
-            "bucket": f"aws_s3_bucket.{instance.name}.id",
+            "bucket": Expr(f"aws_s3_bucket.{instance.name}.id"),
         }
 
         if config.notification_lambda_arn is not None:
             lambda_block: dict = {
-                "lambda_function_arn": "var.notification_lambda_arn",
+                "lambda_function_arn": Expr("var.notification_lambda_arn"),
             }
             if config.notification_lambda_events is not None:
-                lambda_block["events"] = "var.notification_lambda_events"
+                lambda_block["events"] = Expr("var.notification_lambda_events")
             attrs["lambda_function"] = lambda_block
 
         if config.notification_sqs_arn is not None:
             queue_block: dict = {
-                "queue_arn": "var.notification_sqs_arn",
+                "queue_arn": Expr("var.notification_sqs_arn"),
             }
             if config.notification_sqs_events is not None:
-                queue_block["events"] = "var.notification_sqs_events"
+                queue_block["events"] = Expr("var.notification_sqs_events")
             attrs["queue"] = queue_block
 
         if config.notification_sns_arn is not None:
             topic_block: dict = {
-                "topic_arn": "var.notification_sns_arn",
+                "topic_arn": Expr("var.notification_sns_arn"),
             }
             if config.notification_sns_events is not None:
-                topic_block["events"] = "var.notification_sns_events"
+                topic_block["events"] = Expr("var.notification_sns_events")
             attrs["topic"] = topic_block
 
         return "\n" + self._r.render_resource(
@@ -247,13 +247,15 @@ class S3Generator:
 
         destination: dict = {}
         if config.replication_destination_bucket is not None:
-            destination["bucket"] = "var.replication_destination_bucket"
+            destination["bucket"] = Expr("var.replication_destination_bucket")
         if config.replication_destination_storage_class is not None:
-            destination["storage_class"] = "var.replication_destination_storage_class"
+            destination["storage_class"] = Expr(
+                "var.replication_destination_storage_class"
+            )
 
         attrs: dict = {
-            "bucket": f"aws_s3_bucket.{instance.name}.id",
-            "role": "var.replication_role_arn",
+            "bucket": Expr(f"aws_s3_bucket.{instance.name}.id"),
+            "role": Expr("var.replication_role_arn"),
             "rule": {
                 "status": '"Enabled"',
                 "destination": destination,
@@ -272,19 +274,19 @@ class S3Generator:
         """Generate s3.tf with aws_s3_bucket resource and companion resources."""
         config = _resolve_config(instance)
 
-        attrs: dict = {"bucket": "var.bucket_name"}
+        attrs: dict = {"bucket": Expr("var.bucket_name")}
         if config.force_destroy is not None:
-            attrs["force_destroy"] = "var.force_destroy"
+            attrs["force_destroy"] = Expr("var.force_destroy")
         if config.object_lock_enabled is not None:
-            attrs["object_lock_enabled"] = "var.object_lock_enabled"
+            attrs["object_lock_enabled"] = Expr("var.object_lock_enabled")
         if config.tags is not None:
-            attrs["tags"] = "var.tags"
+            attrs["tags"] = Expr("var.tags")
 
         result = self._r.render_resource("aws_s3_bucket", instance.name, attrs)
 
         versioning_attrs = {
-            "bucket": f"aws_s3_bucket.{instance.name}.id",
-            "versioning_configuration": {"status": "var.versioning_enabled"},
+            "bucket": Expr(f"aws_s3_bucket.{instance.name}.id"),
+            "versioning_configuration": {"status": Expr("var.versioning_enabled")},
         }
         result += "\n" + self._r.render_resource(
             "aws_s3_bucket_versioning", f"{instance.name}_versioning", versioning_attrs
@@ -292,8 +294,8 @@ class S3Generator:
 
         if config.acceleration_status is not None:
             accel_attrs = {
-                "bucket": f"aws_s3_bucket.{instance.name}.id",
-                "status": "var.acceleration_status",
+                "bucket": Expr(f"aws_s3_bucket.{instance.name}.id"),
+                "status": Expr("var.acceleration_status"),
             }
             result += "\n" + self._r.render_resource(
                 "aws_s3_bucket_accelerate_configuration",

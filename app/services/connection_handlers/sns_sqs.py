@@ -14,6 +14,7 @@ IAM mutations:
 
 import logging
 
+from app.generators.hcl_renderer import Expr
 from app.generators.service_category_map import get_category
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionIR, GeneratedFile, ProjectIR
@@ -38,9 +39,9 @@ class SNSSQSHandler(BaseConnectionHandler):
         # --- SNS Topic Subscription ---
         subscription_name = f"{sns_name}_{sqs_name}_subscription"
         subscription_attrs = {
-            "topic_arn": f"aws_sns_topic.{sns_name}.arn",
+            "topic_arn": Expr(f"aws_sns_topic.{sns_name}.arn"),
             "protocol": "sqs",
-            "endpoint": f"aws_sqs_queue.{sqs_name}.arn",
+            "endpoint": Expr(f"aws_sqs_queue.{sqs_name}.arn"),
         }
         subscription_content = self._renderer.render_resource(
             "aws_sns_topic_subscription", subscription_name, subscription_attrs
@@ -50,26 +51,27 @@ class SNSSQSHandler(BaseConnectionHandler):
         # --- SQS Queue Policy ---
         policy_name = f"{sqs_name}_{sns_name}_policy"
         policy_attrs = {
-            "queue_url": f"aws_sqs_queue.{sqs_name}.url",
-            "policy": (
-                "jsonencode({\n"
-                '    Version = "2012-10-17"\n'
-                "    Statement = [\n"
-                "      {\n"
-                '        Effect   = "Allow"\n'
-                "        Principal = {\n"
-                '          Service = "sns.amazonaws.com"\n'
-                "        }\n"
-                '        Action   = "SQS:SendMessage"\n'
-                f"        Resource = aws_sqs_queue.{sqs_name}.arn\n"
-                "        Condition = {{\n"
-                "          ArnEquals = {{\n"
-                f'            "aws:SourceArn" = aws_sns_topic.{sns_name}.arn\n'
-                "          }}\n"
-                "        }}\n"
-                "      }\n"
-                "    ]\n"
-                "  })"
+            "queue_url": Expr(f"aws_sqs_queue.{sqs_name}.url"),
+            "policy": self._renderer.render_json_policy(
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {"Service": "sns.amazonaws.com"},
+                            "Action": "SQS:SendMessage",
+                            "Resource": Expr(f"aws_sqs_queue.{sqs_name}.arn"),
+                            "Condition": {
+                                "ArnEquals": {
+                                    "aws:SourceArn": Expr(
+                                        f"aws_sns_topic.{sns_name}.arn"
+                                    )
+                                }
+                            },
+                        }
+                    ],
+                },
+                depth=2,
             ),
         }
         policy_content = self._renderer.render_resource(

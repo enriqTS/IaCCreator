@@ -1,7 +1,7 @@
 """EKS service generator — produces HCL for aws_eks_cluster resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.eks_config import EksConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -23,17 +23,19 @@ class EKSGenerator:
         """Generate resource.tf with aws_eks_cluster resource."""
         config = _resolve_config(instance)
 
-        vpc_config: dict = {"subnet_ids": "var.subnet_ids"}
+        vpc_config: dict = {"subnet_ids": Expr("var.subnet_ids")}
         if config.eks_endpoint_public_access is not None:
-            vpc_config["endpoint_public_access"] = "var.eks_endpoint_public_access"
+            vpc_config["endpoint_public_access"] = Expr(
+                "var.eks_endpoint_public_access"
+            )
 
         attrs: dict = {
-            "name": "var.cluster_name",
-            "role_arn": "var.cluster_role_arn",
+            "name": Expr("var.cluster_name"),
+            "role_arn": Expr("var.cluster_role_arn"),
             "vpc_config": vpc_config,
         }
         if config.eks_version is not None:
-            attrs["version"] = "var.eks_version"
+            attrs["version"] = Expr("var.eks_version")
 
         return self._r.render_resource("aws_eks_cluster", instance.name, attrs)
 

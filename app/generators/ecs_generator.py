@@ -1,7 +1,7 @@
 """ECS service generator — produces HCL for ECS cluster, task definition, and service resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ecs_config import EcsConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -24,16 +24,16 @@ class ECSGenerator:
         config = _resolve_config(instance)
 
         # ECS Cluster
-        cluster_attrs: dict = {"name": "var.cluster_name"}
+        cluster_attrs: dict = {"name": Expr("var.cluster_name")}
         result = self._r.render_resource(
             "aws_ecs_cluster", instance.name, cluster_attrs
         )
 
         # ECS Task Definition
         task_attrs: dict = {
-            "family": "var.task_family",
-            "cpu": "var.ecs_cpu",
-            "memory": "var.ecs_memory",
+            "family": Expr("var.task_family"),
+            "cpu": Expr("var.ecs_cpu"),
+            "memory": Expr("var.ecs_memory"),
             "network_mode": "awsvpc",
             "requires_compatibilities": ["FARGATE"],
         }
@@ -43,14 +43,16 @@ class ECSGenerator:
 
         # ECS Service
         service_attrs: dict = {
-            "name": "var.cluster_name",
-            "cluster": f"aws_ecs_cluster.{instance.name}.id",
-            "task_definition": f"aws_ecs_task_definition.{instance.name}_task.arn",
+            "name": Expr("var.cluster_name"),
+            "cluster": Expr(f"aws_ecs_cluster.{instance.name}.id"),
+            "task_definition": Expr(
+                f"aws_ecs_task_definition.{instance.name}_task.arn"
+            ),
         }
         if config.ecs_launch_type is not None:
-            service_attrs["launch_type"] = "var.ecs_launch_type"
+            service_attrs["launch_type"] = Expr("var.ecs_launch_type")
         if config.ecs_desired_count is not None:
-            service_attrs["desired_count"] = "var.ecs_desired_count"
+            service_attrs["desired_count"] = Expr("var.ecs_desired_count")
 
         result += "\n" + self._r.render_resource(
             "aws_ecs_service", f"{instance.name}_service", service_attrs

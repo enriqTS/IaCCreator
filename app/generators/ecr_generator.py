@@ -1,7 +1,7 @@
 """ECR service generator — produces HCL for aws_ecr_repository resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ecr_config import EcrConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -23,12 +23,12 @@ class ECRGenerator:
         """Generate resource.tf with aws_ecr_repository resource."""
         config = _resolve_config(instance)
 
-        attrs: dict = {"name": "var.repository_name"}
+        attrs: dict = {"name": Expr("var.repository_name")}
         if config.ecr_image_tag_mutability is not None:
-            attrs["image_tag_mutability"] = "var.ecr_image_tag_mutability"
+            attrs["image_tag_mutability"] = Expr("var.ecr_image_tag_mutability")
         if config.ecr_scan_on_push is not None:
             attrs["image_scanning_configuration"] = {
-                "scan_on_push": "var.ecr_scan_on_push"
+                "scan_on_push": Expr("var.ecr_scan_on_push")
             }
 
         return self._r.render_resource("aws_ecr_repository", instance.name, attrs)

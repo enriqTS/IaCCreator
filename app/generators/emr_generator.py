@@ -1,7 +1,7 @@
 """EMR service generator — produces HCL for aws_emr_cluster resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.emr_config import EmrConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -22,11 +22,11 @@ class EMRGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_emr_cluster resource."""
         config = _resolve_config(instance)
-        attrs: dict = {"name": "var.cluster_name"}
+        attrs: dict = {"name": Expr("var.cluster_name")}
         if config.release_label is not None:
-            attrs["release_label"] = "var.release_label"
+            attrs["release_label"] = Expr("var.release_label")
         if config.service_role is not None:
-            attrs["service_role"] = "var.service_role"
+            attrs["service_role"] = Expr("var.service_role")
 
         return self._r.render_resource("aws_emr_cluster", instance.name, attrs)
 

@@ -1,7 +1,7 @@
 """Lightsail service generator — produces HCL for aws_lightsail_instance resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.lightsail_config import LightsailConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -24,10 +24,10 @@ class LightsailGenerator:
         _resolve_config(instance)
 
         attrs: dict = {
-            "name": "var.instance_name",
-            "blueprint_id": "var.blueprint_id",
-            "bundle_id": "var.bundle_id",
-            "availability_zone": "var.availability_zone",
+            "name": Expr("var.instance_name"),
+            "blueprint_id": Expr("var.blueprint_id"),
+            "bundle_id": Expr("var.bundle_id"),
+            "availability_zone": Expr("var.availability_zone"),
         }
 
         return self._r.render_resource("aws_lightsail_instance", instance.name, attrs)

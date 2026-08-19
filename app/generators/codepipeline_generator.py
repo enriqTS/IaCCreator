@@ -1,7 +1,7 @@
 """CodePipeline service generator — produces HCL for aws_codepipeline resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.codepipeline_config import CodePipelineConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -16,9 +16,9 @@ class CodePipelineGenerator:
         """Generate resource.tf with aws_codepipeline resource."""
         config = get_typed_config(instance, CodePipelineConfig)
 
-        attrs: dict = {"name": "var.pipeline_name"}
+        attrs: dict = {"name": Expr("var.pipeline_name")}
         if config.role_arn is not None:
-            attrs["role_arn"] = "var.role_arn"
+            attrs["role_arn"] = Expr("var.role_arn")
 
         return self._r.render_resource("aws_codepipeline", instance.name, attrs)
 

@@ -1,7 +1,7 @@
 """CodeCommit service generator — produces HCL for aws_codecommit_repository resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.codecommit_config import CodeCommitConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -16,7 +16,7 @@ class CodeCommitGenerator:
         """Generate resource.tf with aws_codecommit_repository resource."""
         get_typed_config(instance, CodeCommitConfig)
 
-        attrs: dict = {"repository_name": "var.repository_name"}
+        attrs: dict = {"repository_name": Expr("var.repository_name")}
 
         return self._r.render_resource(
             "aws_codecommit_repository", instance.name, attrs

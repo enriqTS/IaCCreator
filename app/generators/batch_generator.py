@@ -1,7 +1,7 @@
 """Batch service generator — produces HCL for aws_batch_compute_environment resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.batch_config import BatchConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -24,13 +24,13 @@ class BatchGenerator:
         config = _resolve_config(instance)
 
         attrs: dict = {
-            "compute_environment_name": "var.compute_environment_name",
-            "service_role": "var.service_role_arn",
+            "compute_environment_name": Expr("var.compute_environment_name"),
+            "service_role": Expr("var.service_role_arn"),
         }
         if config.batch_compute_environment_type is not None:
-            attrs["type"] = "var.batch_compute_environment_type"
+            attrs["type"] = Expr("var.batch_compute_environment_type")
         if config.batch_max_vcpus is not None:
-            attrs["compute_resources"] = {"max_vcpus": "var.batch_max_vcpus"}
+            attrs["compute_resources"] = {"max_vcpus": Expr("var.batch_max_vcpus")}
 
         return self._r.render_resource(
             "aws_batch_compute_environment", instance.name, attrs

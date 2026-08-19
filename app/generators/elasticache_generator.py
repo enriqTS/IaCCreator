@@ -1,6 +1,6 @@
 """ElastiCache service generator — produces HCL for aws_elasticache_cluster resources."""
 
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.elasticache_config import ElastiCacheConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -21,13 +21,13 @@ class ElastiCacheGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_elasticache_cluster resource."""
         config = _resolve_config(instance)
-        attrs: dict = {"cluster_id": "var.cluster_id"}
+        attrs: dict = {"cluster_id": Expr("var.cluster_id")}
         if config.engine is not None:
-            attrs["engine"] = "var.engine"
+            attrs["engine"] = Expr("var.engine")
         if config.node_type is not None:
-            attrs["node_type"] = "var.node_type"
+            attrs["node_type"] = Expr("var.node_type")
         if config.num_cache_nodes is not None:
-            attrs["num_cache_nodes"] = "var.num_cache_nodes"
+            attrs["num_cache_nodes"] = Expr("var.num_cache_nodes")
 
         return self._r.render_resource("aws_elasticache_cluster", instance.name, attrs)
 

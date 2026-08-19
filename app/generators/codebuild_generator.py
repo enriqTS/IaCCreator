@@ -1,7 +1,7 @@
 """CodeBuild service generator — produces HCL for aws_codebuild_project resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.codebuild_config import CodeBuildConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -16,13 +16,13 @@ class CodeBuildGenerator:
         """Generate resource.tf with aws_codebuild_project resource."""
         config = get_typed_config(instance, CodeBuildConfig)
 
-        attrs: dict = {"name": "var.project_name"}
+        attrs: dict = {"name": Expr("var.project_name")}
         if config.service_role is not None:
-            attrs["service_role"] = "var.service_role"
+            attrs["service_role"] = Expr("var.service_role")
 
         source_block: dict = {}
         if config.source_type is not None:
-            source_block["type"] = "var.source_type"
+            source_block["type"] = Expr("var.source_type")
         if source_block:
             attrs["source"] = source_block
 

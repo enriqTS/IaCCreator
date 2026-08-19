@@ -9,13 +9,13 @@ VARIABLE_SCHEMAS is retained here as the legacy static dictionary. Once schema_v
 and tfvars_generator are updated to use model introspection, this file can be deleted entirely.
 """
 
+from app.models.input_models import ServiceType
 from app.models.input_models._metadata import (
     OptionEntry,
     ValidationRule,
     VariableSchemaEntry,
     VisibleWhen,
 )
-from app.models.input_models import ServiceType
 
 # Re-export model classes for backward compatibility
 __all__ = [

@@ -1,7 +1,7 @@
 """Bedrock Guardrail service generator — produces HCL for aws_bedrock_guardrail resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.bedrock_guardrail_config import BedrockGuardrailConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -17,18 +17,18 @@ class BedrockGuardrailGenerator:
         get_typed_config(instance, BedrockGuardrailConfig)
 
         attrs: dict = {
-            "name": "var.guardrail_name",
-            "description": "var.description",
-            "blocked_input_messaging": "var.blocked_input_messaging",
-            "blocked_outputs_messaging": "var.blocked_outputs_messaging",
+            "name": Expr("var.guardrail_name"),
+            "description": Expr("var.description"),
+            "blocked_input_messaging": Expr("var.blocked_input_messaging"),
+            "blocked_outputs_messaging": Expr("var.blocked_outputs_messaging"),
             "content_policy_config": {
                 "filters_config": {
                     "type": "VIOLENCE",
-                    "input_strength": "var.content_policy_strength",
-                    "output_strength": "var.content_policy_strength",
+                    "input_strength": Expr("var.content_policy_strength"),
+                    "output_strength": Expr("var.content_policy_strength"),
                 },
             },
-            "tags": "var.tags",
+            "tags": Expr("var.tags"),
         }
         return self._r.render_resource("aws_bedrock_guardrail", instance.name, attrs)
 

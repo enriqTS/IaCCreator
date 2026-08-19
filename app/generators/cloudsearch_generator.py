@@ -1,7 +1,7 @@
 """CloudSearch service generator — produces HCL for aws_cloudsearch_domain resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.cloudsearch_config import CloudSearchConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -21,7 +21,7 @@ class CloudSearchGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_cloudsearch_domain resource."""
-        attrs: dict = {"name": "var.domain_name"}
+        attrs: dict = {"name": Expr("var.domain_name")}
 
         return self._r.render_resource("aws_cloudsearch_domain", instance.name, attrs)
 

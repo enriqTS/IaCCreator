@@ -1,7 +1,7 @@
 """Kinesis service generator — produces HCL for aws_kinesis_stream resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.kinesis_config import KinesisConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -22,9 +22,9 @@ class KinesisGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_kinesis_stream resource."""
         config = _resolve_config(instance)
-        attrs: dict = {"name": "var.stream_name"}
+        attrs: dict = {"name": Expr("var.stream_name")}
         if config.shard_count is not None:
-            attrs["shard_count"] = "var.shard_count"
+            attrs["shard_count"] = Expr("var.shard_count")
 
         return self._r.render_resource("aws_kinesis_stream", instance.name, attrs)
 

@@ -1,7 +1,7 @@
 """Lambda service generator — produces HCL for aws_lambda_function and IAM resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.lambda_config import LambdaConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -46,68 +46,70 @@ class LambdaGenerator:
     ) -> str:
         """Generate the main aws_lambda_function resource block."""
         attrs: dict = {
-            "function_name": "var.function_name",
-            "role": f"aws_iam_role.{instance.name}_role.arn",
+            "function_name": Expr("var.function_name"),
+            "role": Expr(f"aws_iam_role.{instance.name}_role.arn"),
         }
 
         # Handle package_type conditional: when Image, skip handler/runtime
         if config.package_type == "Image":
-            attrs["package_type"] = "var.package_type"
+            attrs["package_type"] = Expr("var.package_type")
             if config.image_uri is not None:
-                attrs["image_uri"] = "var.image_uri"
+                attrs["image_uri"] = Expr("var.image_uri")
             if config.image_config is not None:
                 image_config_block: dict = {}
                 if "entry_point" in config.image_config:
-                    image_config_block["entry_point"] = "var.image_config_entry_point"
+                    image_config_block["entry_point"] = Expr(
+                        "var.image_config_entry_point"
+                    )
                 if "command" in config.image_config:
-                    image_config_block["command"] = "var.image_config_command"
+                    image_config_block["command"] = Expr("var.image_config_command")
                 if "working_directory" in config.image_config:
-                    image_config_block["working_directory"] = (
+                    image_config_block["working_directory"] = Expr(
                         "var.image_config_working_directory"
                     )
                 if image_config_block:
                     attrs["image_config"] = image_config_block
         else:
-            attrs["handler"] = "var.handler"
-            attrs["runtime"] = "var.runtime"
+            attrs["handler"] = Expr("var.handler")
+            attrs["runtime"] = Expr("var.runtime")
             if config.package_type is not None:
-                attrs["package_type"] = "var.package_type"
+                attrs["package_type"] = Expr("var.package_type")
 
         # Existing optional fields
         if config.memory_size is not None:
-            attrs["memory_size"] = "var.memory_size"
+            attrs["memory_size"] = Expr("var.memory_size")
         if config.timeout is not None:
-            attrs["timeout"] = "var.timeout"
+            attrs["timeout"] = Expr("var.timeout")
         if config.description is not None:
-            attrs["description"] = "var.description"
+            attrs["description"] = Expr("var.description")
         if config.architectures is not None:
-            attrs["architectures"] = ["var.architectures"]
+            attrs["architectures"] = [Expr("var.architectures")]
         if config.ephemeral_storage_size is not None:
-            attrs["ephemeral_storage"] = {"size": "var.ephemeral_storage_size"}
+            attrs["ephemeral_storage"] = {"size": Expr("var.ephemeral_storage_size")}
         if config.reserved_concurrent_executions is not None:
-            attrs["reserved_concurrent_executions"] = (
+            attrs["reserved_concurrent_executions"] = Expr(
                 "var.reserved_concurrent_executions"
             )
         if config.publish is not None:
-            attrs["publish"] = "var.publish"
+            attrs["publish"] = Expr("var.publish")
         if config.layers is not None:
-            attrs["layers"] = "var.layers"
+            attrs["layers"] = Expr("var.layers")
         if config.environment_variables is not None:
-            attrs["environment"] = {"variables": "var.environment_variables"}
+            attrs["environment"] = {"variables": Expr("var.environment_variables")}
         if config.tags is not None:
-            attrs["tags"] = "var.tags"
+            attrs["tags"] = Expr("var.tags")
 
         # Deployment source fields
         if config.s3_bucket is not None:
-            attrs["s3_bucket"] = "var.s3_bucket"
+            attrs["s3_bucket"] = Expr("var.s3_bucket")
         if config.s3_key is not None:
-            attrs["s3_key"] = "var.s3_key"
+            attrs["s3_key"] = Expr("var.s3_key")
         if config.s3_object_version is not None:
-            attrs["s3_object_version"] = "var.s3_object_version"
+            attrs["s3_object_version"] = Expr("var.s3_object_version")
         if config.source_code_hash is not None:
-            attrs["source_code_hash"] = "var.source_code_hash"
+            attrs["source_code_hash"] = Expr("var.source_code_hash")
         if config.filename is not None:
-            attrs["filename"] = "var.filename"
+            attrs["filename"] = Expr("var.filename")
 
         # VPC config block
         if (
@@ -115,23 +117,23 @@ class LambdaGenerator:
             and config.vpc_security_group_ids is not None
         ):
             attrs["vpc_config"] = {
-                "subnet_ids": "var.vpc_subnet_ids",
-                "security_group_ids": "var.vpc_security_group_ids",
+                "subnet_ids": Expr("var.vpc_subnet_ids"),
+                "security_group_ids": Expr("var.vpc_security_group_ids"),
             }
 
         # Tracing config block
         if config.tracing_mode is not None:
-            attrs["tracing_config"] = {"mode": "var.tracing_mode"}
+            attrs["tracing_config"] = {"mode": Expr("var.tracing_mode")}
 
         # Dead letter config block
         if config.dead_letter_target_arn is not None:
             attrs["dead_letter_config"] = {
-                "target_arn": "var.dead_letter_target_arn",
+                "target_arn": Expr("var.dead_letter_target_arn"),
             }
 
         # KMS key ARN
         if config.kms_key_arn is not None:
-            attrs["kms_key_arn"] = "var.kms_key_arn"
+            attrs["kms_key_arn"] = Expr("var.kms_key_arn")
 
         # File system config block
         if (
@@ -139,39 +141,45 @@ class LambdaGenerator:
             and config.file_system_local_mount_path is not None
         ):
             attrs["file_system_config"] = {
-                "arn": "var.file_system_arn",
-                "local_mount_path": "var.file_system_local_mount_path",
+                "arn": Expr("var.file_system_arn"),
+                "local_mount_path": Expr("var.file_system_local_mount_path"),
             }
 
         # Snap start block
         if config.snap_start_apply_on is not None:
-            attrs["snap_start"] = {"apply_on": "var.snap_start_apply_on"}
+            attrs["snap_start"] = {"apply_on": Expr("var.snap_start_apply_on")}
 
         # Logging config block
         logging_block: dict = {}
         if config.logging_log_format is not None:
-            logging_block["log_format"] = "var.logging_log_format"
+            logging_block["log_format"] = Expr("var.logging_log_format")
         if config.logging_log_group is not None:
-            logging_block["log_group"] = "var.logging_log_group"
+            logging_block["log_group"] = Expr("var.logging_log_group")
         if config.logging_application_log_level is not None:
-            logging_block["application_log_level"] = "var.logging_application_log_level"
+            logging_block["application_log_level"] = Expr(
+                "var.logging_application_log_level"
+            )
         if config.logging_system_log_level is not None:
-            logging_block["system_log_level"] = "var.logging_system_log_level"
+            logging_block["system_log_level"] = Expr("var.logging_system_log_level")
         if logging_block:
             attrs["logging_config"] = logging_block
 
         # Code signing config ARN
         if config.code_signing_config_arn is not None:
-            attrs["code_signing_config_arn"] = "var.code_signing_config_arn"
+            attrs["code_signing_config_arn"] = Expr("var.code_signing_config_arn")
 
         # Runtime management config block
         if config.runtime_management_config is not None:
             rmc_block: dict = {}
             update_on = config.runtime_management_config.get("update_runtime_on")
             if update_on:
-                rmc_block["update_runtime_on"] = "var.runtime_management_update_runtime_on"
+                rmc_block["update_runtime_on"] = Expr(
+                    "var.runtime_management_update_runtime_on"
+                )
             if update_on == "Manual":
-                rmc_block["runtime_version_arn"] = "var.runtime_management_runtime_version_arn"
+                rmc_block["runtime_version_arn"] = Expr(
+                    "var.runtime_management_runtime_version_arn"
+                )
             if rmc_block:
                 attrs["runtime_management_config"] = rmc_block
 
@@ -185,7 +193,7 @@ class LambdaGenerator:
             return ""
 
         attrs: dict = {
-            "function_name": f"aws_lambda_function.{instance.name}.function_name",
+            "function_name": Expr(f"aws_lambda_function.{instance.name}.function_name"),
             "authorization_type": config.function_url_config.get(
                 "authorization_type", "NONE"
             ),
@@ -222,8 +230,8 @@ class LambdaGenerator:
             return ""
 
         attrs: dict = {
-            "function_name": f"aws_lambda_function.{instance.name}.function_name",
-            "qualifier": f"aws_lambda_function.{instance.name}.version",
+            "function_name": Expr(f"aws_lambda_function.{instance.name}.function_name"),
+            "qualifier": Expr(f"aws_lambda_function.{instance.name}.version"),
             "provisioned_concurrent_executions": config.provisioned_concurrency_config.get(
                 "provisioned_concurrent_executions", 1
             ),
@@ -635,7 +643,19 @@ class LambdaGenerator:
         # IAM role
         role_attrs = {
             "name": f"{safe_name}-role",
-            "assume_role_policy": 'jsonencode({\n    Version = "2012-10-17"\n    Statement = [{\n      Action = "sts:AssumeRole"\n      Effect = "Allow"\n      Principal = { Service = "lambda.amazonaws.com" }\n    }]\n  })',
+            "assume_role_policy": self._r.render_json_policy(
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {"Service": "lambda.amazonaws.com"},
+                        }
+                    ],
+                },
+                depth=2,
+            ),
         }
         role_block = self._r.render_resource(
             "aws_iam_role", f"{safe_name}_role", role_attrs
@@ -645,8 +665,8 @@ class LambdaGenerator:
         policy_path = f"${{path.root}}/../../iam-policies/{safe_name}-policy.json"
         policy_attrs = {
             "name": f"{safe_name}-policy",
-            "role": f"aws_iam_role.{safe_name}_role.id",
-            "policy": f'file("{policy_path}")',
+            "role": Expr(f"aws_iam_role.{safe_name}_role.id"),
+            "policy": Expr(f'file("{policy_path}")'),
         }
         policy_block = self._r.render_resource(
             "aws_iam_role_policy", f"{safe_name}_policy", policy_attrs

@@ -45,6 +45,7 @@ Generated resources (authorizer role):
 import logging
 import re
 
+from app.generators.hcl_renderer import Expr
 from app.generators.service_category_map import get_category
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionIR, GeneratedFile, ProjectIR
@@ -54,12 +55,10 @@ logger = logging.getLogger(__name__)
 
 
 def _sanitize_path(path: str) -> str:
-    """Sanitize a route path for use in Terraform resource names.
-
-    Replaces ``/``, ``{``, and ``}`` with underscores, collapses consecutive
-    underscores into one, and strips leading/trailing underscores.
-    """
-    result = re.sub(r"[/{}]", "_", path)
+    """Sanitize a route path into a Terraform name, keeping distinct paths distinct."""
+    # Path parameters are marked so "/users/{id}" cannot collide with "/users/id"
+    result = re.sub(r"\{([^}]*)\}", r"var_\1", path)
+    result = re.sub(r"[^A-Za-z0-9_]", "_", result)
     result = re.sub(r"_+", "_", result)
     return result.strip("_")
 
@@ -103,15 +102,15 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
 
         # --- Integration ---
         integration_attrs: dict[str, str] = {
-            "api_id": f"aws_apigatewayv2_api.{source}.id",
+            "api_id": Expr(f"aws_apigatewayv2_api.{source}.id"),
             "integration_type": integration_type,
-            "integration_uri": f"aws_lambda_function.{target}.invoke_arn",
+            "integration_uri": Expr(f"aws_lambda_function.{target}.invoke_arn"),
             "payload_format_version": payload_format_version,
         }
 
         if vpc_link_name:
             integration_attrs["connection_type"] = "VPC_LINK"
-            integration_attrs["connection_id"] = (
+            integration_attrs["connection_id"] = Expr(
                 f"aws_apigatewayv2_vpc_link.{vpc_link_name}.id"
             )
 
@@ -146,7 +145,7 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
                 )
 
                 route_attrs: dict[str, str | bool] = {
-                    "api_id": f"aws_apigatewayv2_api.{source}.id",
+                    "api_id": Expr(f"aws_apigatewayv2_api.{source}.id"),
                     "route_key": route_key,
                     "target": (
                         f"integrations/${{aws_apigatewayv2_integration.{integration_name}.id}}"
@@ -167,10 +166,8 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
                         f"{method_upper.lower()}_{sanitized}"
                     )
                     response_attrs: dict[str, str] = {
-                        "api_id": f"aws_apigatewayv2_api.{source}.id",
-                        "route_id": (
-                            f"aws_apigatewayv2_route.{route_name}.id"
-                        ),
+                        "api_id": Expr(f"aws_apigatewayv2_api.{source}.id"),
+                        "route_id": (Expr(f"aws_apigatewayv2_route.{route_name}.id")),
                         "route_response_key": route_response_key,
                     }
                     route_content += "\n" + self._renderer.render_resource(
@@ -192,7 +189,7 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
         permission_attrs = {
             "statement_id": f"AllowAPIGatewayInvoke_{source}_{target}",
             "action": "lambda:InvokeFunction",
-            "function_name": f"aws_lambda_function.{target}.function_name",
+            "function_name": Expr(f"aws_lambda_function.{target}.function_name"),
             "principal": "apigateway.amazonaws.com",
             "source_arn": f"${{aws_apigatewayv2_api.{source}.execution_arn}}/*/*",
         }
@@ -234,10 +231,10 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
 
         # --- Authorizer ---
         authorizer_attrs = {
-            "api_id": f"aws_apigatewayv2_api.{source}.id",
+            "api_id": Expr(f"aws_apigatewayv2_api.{source}.id"),
             "name": authorizer_display_name,
             "authorizer_type": "REQUEST",
-            "authorizer_uri": f"aws_lambda_function.{target}.invoke_arn",
+            "authorizer_uri": Expr(f"aws_lambda_function.{target}.invoke_arn"),
             "authorizer_payload_format_version": payload_format_version,
         }
         authorizer_content = self._renderer.render_resource(
@@ -252,7 +249,7 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
         permission_attrs = {
             "statement_id": f"AllowAPIGatewayAuthorizer_{source}_{target}",
             "action": "lambda:InvokeFunction",
-            "function_name": f"aws_lambda_function.{target}.function_name",
+            "function_name": Expr(f"aws_lambda_function.{target}.function_name"),
             "principal": "apigateway.amazonaws.com",
             "source_arn": (
                 f"${{aws_apigatewayv2_api.{source}.execution_arn}}/authorizers/*"

@@ -1,7 +1,7 @@
 """Redshift service generator — produces HCL for aws_redshift_cluster resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.redshift_config import RedshiftConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -22,11 +22,11 @@ class RedshiftGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_redshift_cluster resource."""
         config = _resolve_config(instance)
-        attrs: dict = {"cluster_identifier": "var.cluster_identifier"}
+        attrs: dict = {"cluster_identifier": Expr("var.cluster_identifier")}
         if config.node_type is not None:
-            attrs["node_type"] = "var.node_type"
+            attrs["node_type"] = Expr("var.node_type")
         if config.master_username is not None:
-            attrs["master_username"] = "var.master_username"
+            attrs["master_username"] = Expr("var.master_username")
 
         return self._r.render_resource("aws_redshift_cluster", instance.name, attrs)
 

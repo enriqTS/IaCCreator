@@ -1,6 +1,6 @@
 """IAM service generator — produces HCL for IAM role and policy resources."""
 
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -13,15 +13,15 @@ class IAMGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate iam.tf with aws_iam_role and aws_iam_role_policy resources."""
         role_attrs = {
-            "name": "var.role_name",
-            "assume_role_policy": "var.assume_role_policy",
+            "name": Expr("var.role_name"),
+            "assume_role_policy": Expr("var.assume_role_policy"),
         }
         role_block = self._r.render_resource("aws_iam_role", instance.name, role_attrs)
 
         policy_attrs = {
-            "name": "var.policy_name",
-            "role": f"aws_iam_role.{instance.name}.id",
-            "policy": "var.policy_document",
+            "name": Expr("var.policy_name"),
+            "role": Expr(f"aws_iam_role.{instance.name}.id"),
+            "policy": Expr("var.policy_document"),
         }
         policy_block = self._r.render_resource(
             "aws_iam_role_policy", f"{instance.name}_policy", policy_attrs

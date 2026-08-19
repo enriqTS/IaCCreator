@@ -1,6 +1,6 @@
 """Timestream service generator — produces HCL for aws_timestreamwrite_database resources."""
 
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.timestream_config import TimestreamConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -21,7 +21,7 @@ class TimestreamGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_timestreamwrite_database resource."""
         _resolve_config(instance)
-        attrs: dict = {"database_name": "var.database_name"}
+        attrs: dict = {"database_name": Expr("var.database_name")}
 
         return self._r.render_resource(
             "aws_timestreamwrite_database", instance.name, attrs

@@ -1,7 +1,7 @@
 """MSK service generator — produces HCL for aws_msk_cluster resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.msk_config import MskConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -22,11 +22,11 @@ class MSKGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_msk_cluster resource."""
         config = _resolve_config(instance)
-        attrs: dict = {"cluster_name": "var.cluster_name"}
+        attrs: dict = {"cluster_name": Expr("var.cluster_name")}
         if config.kafka_version is not None:
-            attrs["kafka_version"] = "var.kafka_version"
+            attrs["kafka_version"] = Expr("var.kafka_version")
         if config.number_of_broker_nodes is not None:
-            attrs["number_of_broker_nodes"] = "var.number_of_broker_nodes"
+            attrs["number_of_broker_nodes"] = Expr("var.number_of_broker_nodes")
 
         return self._r.render_resource("aws_msk_cluster", instance.name, attrs)
 

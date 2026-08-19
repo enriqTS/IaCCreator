@@ -1,7 +1,7 @@
 """Amplify service generator — produces HCL for aws_amplify_app resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.amplify_config import AmplifyConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -16,7 +16,7 @@ class AmplifyGenerator:
         """Generate resource.tf with aws_amplify_app resource."""
         get_typed_config(instance, AmplifyConfig)
 
-        attrs: dict = {"name": "var.app_name"}
+        attrs: dict = {"name": Expr("var.app_name")}
 
         return self._r.render_resource("aws_amplify_app", instance.name, attrs)
 

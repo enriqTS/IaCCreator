@@ -20,9 +20,18 @@ def _make_env(name: str = "dev") -> dict:
 def _make_resource(name: str, service_type: str, **config_overrides) -> dict:
     config = {}
     if service_type == "lambda":
-        config = {"function_name": name, "handler": "index.handler", "runtime": "python3.12"}
+        config = {
+            "function_name": name,
+            "handler": "index.handler",
+            "runtime": "python3.12",
+        }
     elif service_type == "dynamodb":
-        config = {"table_name": name, "hash_key": "id", "hash_key_type": "S", "billing_mode": "PAY_PER_REQUEST"}
+        config = {
+            "table_name": name,
+            "hash_key": "id",
+            "hash_key_type": "S",
+            "billing_mode": "PAY_PER_REQUEST",
+        }
     elif service_type == "api-gateway":
         config = {"api_name": name, "protocol_type": "HTTP"}
     elif service_type == "cloudwatch":
@@ -183,7 +192,7 @@ class TestDynamoDBValidator:
 # 8. HCL Renderer unit tests
 # ---------------------------------------------------------------------------
 
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 
 
 class TestHCLRenderer:
@@ -339,33 +348,25 @@ class TestHCLRenderer:
         """_quote handles strings with both backslashes and quotes."""
         assert HCLRenderer._quote('a\\"b') == '"a\\\\\\"b"'
 
-    # -- _format_value: Terraform references not quoted --------------------
+    # -- _format_value: Expr is raw HCL, everything else is a literal ------
 
-    def test_format_value_var_reference_unquoted(self):
-        """Strings starting with 'var.' are passed through unquoted."""
-        assert HCLRenderer._format_value("var.region") == "var.region"
-
-    def test_format_value_module_reference_unquoted(self):
-        """Strings starting with 'module.' are passed through unquoted."""
-        assert HCLRenderer._format_value("module.lambda.arn") == "module.lambda.arn"
-
-    def test_format_value_aws_resource_reference_unquoted(self):
-        """Strings starting with 'aws_' are passed through unquoted."""
+    def test_format_value_expr_passes_through_unquoted(self):
+        """Expr values are emitted as raw HCL expressions."""
+        assert HCLRenderer._format_value(Expr("var.region")) == "var.region"
         assert (
-            HCLRenderer._format_value("aws_lambda_function.my_func.arn")
+            HCLRenderer._format_value(Expr("aws_lambda_function.my_func.arn"))
             == "aws_lambda_function.my_func.arn"
         )
 
-    def test_format_value_local_reference_unquoted(self):
-        """Strings starting with 'local.' are passed through unquoted."""
-        assert HCLRenderer._format_value("local.name") == "local.name"
+    def test_format_value_quotes_plain_strings(self):
+        """Plain strings are always quoted, even when they look like references."""
+        assert HCLRenderer._format_value("var.region") == '"var.region"'
+        assert HCLRenderer._format_value("aws_logs_bucket") == '"aws_logs_bucket"'
+        assert HCLRenderer._format_value("data.thing") == '"data.thing"'
 
-    def test_format_value_data_reference_unquoted(self):
-        """Strings starting with 'data.' are passed through unquoted."""
-        assert (
-            HCLRenderer._format_value("data.aws_region.current.name")
-            == "data.aws_region.current.name"
-        )
+    def test_format_value_escapes_embedded_quotes(self):
+        """Embedded quotes are escaped so the emitted literal stays parseable."""
+        assert HCLRenderer._format_value('{"a":"b"}') == '"{\\"a\\":\\"b\\"}"'
 
     def test_format_value_plain_string_quoted(self):
         """Plain strings are wrapped in double quotes."""

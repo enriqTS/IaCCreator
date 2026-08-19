@@ -3,7 +3,7 @@
 from app.generators.api_gateway_validator import APIGatewayValidator
 from app.generators.base import get_typed_config
 from app.generators.connection_helpers import generate_connection_variables
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -71,21 +71,25 @@ class APIGatewayGenerator:
         """Generate aws_apigatewayv2_api resource block."""
         config = self._resolve_config(instance)
         attrs: dict = {
-            "name": "var.api_name",
-            "protocol_type": "var.protocol_type",
+            "name": Expr("var.api_name"),
+            "protocol_type": Expr("var.protocol_type"),
         }
         if config.description is not None:
-            attrs["description"] = "var.description"
+            attrs["description"] = Expr("var.description")
         if config.cors_configuration is not None:
-            attrs["cors_configuration"] = "var.cors_configuration"
+            attrs["cors_configuration"] = Expr("var.cors_configuration")
         if config.disable_execute_api_endpoint is not None:
-            attrs["disable_execute_api_endpoint"] = "var.disable_execute_api_endpoint"
+            attrs["disable_execute_api_endpoint"] = Expr(
+                "var.disable_execute_api_endpoint"
+            )
         # route_selection_expression — only when protocol_type is WEBSOCKET (visible_when)
         if config.protocol_type == "WEBSOCKET":
             if config.route_selection_expression is not None:
-                attrs["route_selection_expression"] = "var.route_selection_expression"
+                attrs["route_selection_expression"] = Expr(
+                    "var.route_selection_expression"
+                )
         if config.tags is not None:
-            attrs["tags"] = "var.tags"
+            attrs["tags"] = Expr("var.tags")
 
         # API key selection expression when api_key_required is true
         if config.api_key_required:
@@ -93,20 +97,29 @@ class APIGatewayGenerator:
 
         # API key selection expression for WEBSOCKET with api_keys list
         api_keys = getattr(config, "api_keys", None)
-        if api_keys and config.protocol_type == "WEBSOCKET" and not config.api_key_required:
+        if (
+            api_keys
+            and config.protocol_type == "WEBSOCKET"
+            and not config.api_key_required
+        ):
             attrs["api_key_selection_expression"] = "$request.header.x-api-key"
 
         # New General-level optional fields
-        if config.api_key_selection_expression is not None and not config.api_key_required:
-            attrs["api_key_selection_expression"] = "var.api_key_selection_expression"
+        if (
+            config.api_key_selection_expression is not None
+            and not config.api_key_required
+        ):
+            attrs["api_key_selection_expression"] = Expr(
+                "var.api_key_selection_expression"
+            )
         if config.ip_address_type is not None:
-            attrs["ip_address_type"] = "var.ip_address_type"
+            attrs["ip_address_type"] = Expr("var.ip_address_type")
         if config.version is not None:
-            attrs["version"] = "var.version"
+            attrs["version"] = Expr("var.version")
         if config.body is not None:
-            attrs["body"] = "var.body"
+            attrs["body"] = Expr("var.body")
         if config.fail_on_warnings is not None:
-            attrs["fail_on_warnings"] = "var.fail_on_warnings"
+            attrs["fail_on_warnings"] = Expr("var.fail_on_warnings")
 
         # Mutual TLS authentication block
         mutual_tls = getattr(config, "mutual_tls_authentication", None)
@@ -115,7 +128,9 @@ class APIGatewayGenerator:
                 "truststore_uri": mutual_tls["truststore_uri"],
             }
             if mutual_tls.get("truststore_version"):
-                mutual_tls_block["truststore_version"] = mutual_tls["truststore_version"]
+                mutual_tls_block["truststore_version"] = mutual_tls[
+                    "truststore_version"
+                ]
             attrs["mutual_tls_authentication"] = mutual_tls_block
 
         return self._r.render_resource("aws_apigatewayv2_api", instance.name, attrs)
@@ -169,7 +184,7 @@ class APIGatewayGenerator:
                     sanitized_key_name = self._sanitize_route_name(key_name)
                     resource_name = f"{instance.name}_{sanitized_key_name}_api_key"
                     attrs = {
-                        "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                        "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
                         "name": key_name,
                     }
                     if key.get("description"):
@@ -189,7 +204,7 @@ class APIGatewayGenerator:
             return ""
 
         attrs = {
-            "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+            "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
             "name": f"{instance.name}-api-key",
         }
         return self._r.render_resource(
@@ -207,9 +222,7 @@ class APIGatewayGenerator:
         parts = [
             # Required fields — no default
             self._r.render_variable("api_name", "string", "Name of the API Gateway"),
-            self._r.render_variable(
-                "protocol_type", "string", "API protocol type"
-            ),
+            self._r.render_variable("protocol_type", "string", "API protocol type"),
         ]
 
         # ─── General optional fields ─────────────────────────────────────────
@@ -647,7 +660,7 @@ class APIGatewayGenerator:
                 route_name = self._sanitize_route_name(route_key)
                 resource_name = f"{instance.name}_{route_name}_route"
                 attrs: dict = {
-                    "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                    "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
                     "route_key": route_key,
                 }
 
@@ -671,11 +684,15 @@ class APIGatewayGenerator:
 
                 # API key required — per-route or config-level
                 ws_route_cfg = self._find_route_cfg(routes, route_key)
-                if (ws_route_cfg and ws_route_cfg.get("api_key_required")) or config.api_key_required:
+                if (
+                    ws_route_cfg and ws_route_cfg.get("api_key_required")
+                ) or config.api_key_required:
                     attrs["api_key_required"] = True
 
                 # New optional route fields from TerraformField config
-                self._apply_route_optional_fields(attrs, None, routes, route_key, config)
+                self._apply_route_optional_fields(
+                    attrs, None, routes, route_key, config
+                )
 
                 parts.append(
                     self._r.render_resource(
@@ -687,10 +704,14 @@ class APIGatewayGenerator:
                 if ws_route_cfg:
                     route_response_key = ws_route_cfg.get("route_response_key")
                     if route_response_key:
-                        response_resource_name = f"{instance.name}_{route_name}_route_response"
+                        response_resource_name = (
+                            f"{instance.name}_{route_name}_route_response"
+                        )
                         response_attrs = {
-                            "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
-                            "route_id": f"aws_apigatewayv2_route.{resource_name}.id",
+                            "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
+                            "route_id": Expr(
+                                f"aws_apigatewayv2_route.{resource_name}.id"
+                            ),
                             "route_response_key": route_response_key,
                         }
                         parts.append(
@@ -709,7 +730,7 @@ class APIGatewayGenerator:
                 route_name = self._sanitize_route_name(route_key)
                 resource_name = f"{instance.name}_{route_name}_route"
                 attrs = {
-                    "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                    "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
                     "route_key": route_key,
                 }
 
@@ -728,7 +749,9 @@ class APIGatewayGenerator:
                     attrs["api_key_required"] = True
 
                 # New optional route fields from TerraformField config
-                self._apply_route_optional_fields(attrs, route_cfg, routes, route_key, config)
+                self._apply_route_optional_fields(
+                    attrs, route_cfg, routes, route_key, config
+                )
 
                 parts.append(
                     self._r.render_resource(
@@ -739,10 +762,12 @@ class APIGatewayGenerator:
                 # Route response generation for custom WebSocket routes
                 route_response_key = route_cfg.get("route_response_key")
                 if route_response_key:
-                    response_resource_name = f"{instance.name}_{route_name}_route_response"
+                    response_resource_name = (
+                        f"{instance.name}_{route_name}_route_response"
+                    )
                     response_attrs = {
-                        "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
-                        "route_id": f"aws_apigatewayv2_route.{resource_name}.id",
+                        "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
+                        "route_id": Expr(f"aws_apigatewayv2_route.{resource_name}.id"),
                         "route_response_key": route_response_key,
                     }
                     parts.append(
@@ -774,7 +799,7 @@ class APIGatewayGenerator:
                         resource_name = f"{instance.name}_{route_name}_route"
 
                         attrs = {
-                            "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                            "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
                             "route_key": route_key,
                         }
 
@@ -794,7 +819,7 @@ class APIGatewayGenerator:
                                 attrs["authorization_type"] = "JWT"
                             elif auth_type == "REQUEST":
                                 attrs["authorization_type"] = "CUSTOM"
-                            attrs["authorizer_id"] = (
+                            attrs["authorizer_id"] = Expr(
                                 f"aws_apigatewayv2_authorizer."
                                 f"{instance.name}_{authorizer_name}_authorizer.id"
                             )
@@ -804,7 +829,9 @@ class APIGatewayGenerator:
                             attrs["api_key_required"] = True
 
                         # New optional route fields from TerraformField config
-                        self._apply_route_optional_fields(attrs, route_cfg, routes, route_key, config)
+                        self._apply_route_optional_fields(
+                            attrs, route_cfg, routes, route_key, config
+                        )
 
                         parts.append(
                             self._r.render_resource(
@@ -815,10 +842,16 @@ class APIGatewayGenerator:
                         # Route response generation when route_response_key is present
                         route_response_key = route_cfg.get("route_response_key")
                         if route_response_key:
-                            response_resource_name = f"{instance.name}_{route_name}_route_response"
+                            response_resource_name = (
+                                f"{instance.name}_{route_name}_route_response"
+                            )
                             response_attrs = {
-                                "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
-                                "route_id": f"aws_apigatewayv2_route.{resource_name}.id",
+                                "api_id": Expr(
+                                    f"aws_apigatewayv2_api.{instance.name}.id"
+                                ),
+                                "route_id": Expr(
+                                    f"aws_apigatewayv2_route.{resource_name}.id"
+                                ),
                                 "route_response_key": route_response_key,
                             }
                             parts.append(
@@ -832,7 +865,7 @@ class APIGatewayGenerator:
                 # No routes configured — generate $default route
                 resource_name = f"{instance.name}_default_route"
                 attrs = {
-                    "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                    "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
                     "route_key": "$default",
                 }
 
@@ -841,7 +874,9 @@ class APIGatewayGenerator:
                     attrs["api_key_required"] = True
 
                 # New optional route fields from TerraformField config
-                self._apply_route_optional_fields(attrs, None, routes, "$default", config)
+                self._apply_route_optional_fields(
+                    attrs, None, routes, "$default", config
+                )
 
                 parts.append(
                     self._r.render_resource(
@@ -884,9 +919,7 @@ class APIGatewayGenerator:
                     )
         return None
 
-    def _find_route_cfg(
-        self, routes: list[dict] | None, route_key: str
-    ) -> dict | None:
+    def _find_route_cfg(self, routes: list[dict] | None, route_key: str) -> dict | None:
         """Find a route config dict by route_key from the routes list."""
         if not routes:
             return None
@@ -922,7 +955,7 @@ class APIGatewayGenerator:
                         attrs["authorization_type"] = "JWT"
                     elif auth_type == "REQUEST":
                         attrs["authorization_type"] = "CUSTOM"
-                    attrs["authorizer_id"] = (
+                    attrs["authorizer_id"] = Expr(
                         f"aws_apigatewayv2_authorizer."
                         f"{instance_name}_{authorizer_name}_authorizer.id"
                     )
@@ -975,7 +1008,9 @@ class APIGatewayGenerator:
         # route_response_selection_expression
         route_resp_sel = (route_cfg or {}).get("route_response_selection_expression")
         if route_resp_sel is None:
-            route_resp_sel = getattr(config, "route_response_selection_expression", None)
+            route_resp_sel = getattr(
+                config, "route_response_selection_expression", None
+            )
         if route_resp_sel is not None:
             attrs["route_response_selection_expression"] = route_resp_sel
 
@@ -1020,7 +1055,7 @@ class APIGatewayGenerator:
             resource_name = f"{instance.name}_{sanitized_name}_stage"
 
             attrs: dict = {
-                "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
                 "name": stage_name,
             }
 
@@ -1043,17 +1078,32 @@ class APIGatewayGenerator:
 
             # Fall back to top-level TerraformField values from config
             if throttling_burst is None:
-                throttling_burst = getattr(config, "default_route_throttling_burst_limit", None)
+                throttling_burst = getattr(
+                    config, "default_route_throttling_burst_limit", None
+                )
             if throttling_rate is None:
-                throttling_rate = getattr(config, "default_route_throttling_rate_limit", None)
+                throttling_rate = getattr(
+                    config, "default_route_throttling_rate_limit", None
+                )
             if data_trace is None:
                 data_trace = getattr(config, "default_route_data_trace_enabled", None)
             if detailed_metrics is None:
-                detailed_metrics = getattr(config, "default_route_detailed_metrics_enabled", None)
+                detailed_metrics = getattr(
+                    config, "default_route_detailed_metrics_enabled", None
+                )
             if logging_level is None:
                 logging_level = getattr(config, "default_route_logging_level", None)
 
-            if any(v is not None for v in [throttling_burst, throttling_rate, data_trace, detailed_metrics, logging_level]):
+            if any(
+                v is not None
+                for v in [
+                    throttling_burst,
+                    throttling_rate,
+                    data_trace,
+                    detailed_metrics,
+                    logging_level,
+                ]
+            ):
                 default_route_settings: dict = {}
                 if throttling_burst is not None:
                     default_route_settings["throttling_burst_limit"] = throttling_burst
@@ -1062,7 +1112,9 @@ class APIGatewayGenerator:
                 if data_trace is not None:
                     default_route_settings["data_trace_enabled"] = data_trace
                 if detailed_metrics is not None:
-                    default_route_settings["detailed_metrics_enabled"] = detailed_metrics
+                    default_route_settings["detailed_metrics_enabled"] = (
+                        detailed_metrics
+                    )
                 if logging_level is not None:
                     default_route_settings["logging_level"] = logging_level
                 attrs["default_route_settings"] = default_route_settings
@@ -1085,7 +1137,9 @@ class APIGatewayGenerator:
             access_logging_enabled = stage_cfg.get("access_logging_enabled", False)
             access_log_dest_arn = stage_cfg.get("access_log_destination_arn")
             if access_log_dest_arn is None:
-                access_log_dest_arn = getattr(config, "access_log_destination_arn", None)
+                access_log_dest_arn = getattr(
+                    config, "access_log_destination_arn", None
+                )
 
             if access_logging_enabled or access_log_dest_arn is not None:
                 log_format = stage_cfg.get("access_log_format")
@@ -1097,14 +1151,18 @@ class APIGatewayGenerator:
                 if access_log_dest_arn is not None:
                     # Use the explicit destination ARN from config
                     attrs["access_log_settings"] = {
-                        "destination_arn": "var.access_log_destination_arn",
+                        "destination_arn": Expr("var.access_log_destination_arn"),
                         "format": log_format,
                     }
                 else:
                     # Generate a CloudWatch log group reference
-                    log_group_resource_name = f"{instance.name}_{sanitized_name}_log_group"
+                    log_group_resource_name = (
+                        f"{instance.name}_{sanitized_name}_log_group"
+                    )
                     attrs["access_log_settings"] = {
-                        "destination_arn": f"aws_cloudwatch_log_group.{log_group_resource_name}.arn",
+                        "destination_arn": Expr(
+                            f"aws_cloudwatch_log_group.{log_group_resource_name}.arn"
+                        ),
                         "format": log_format,
                     }
 
@@ -1159,7 +1217,7 @@ class APIGatewayGenerator:
             resource_name = f"{instance.name}_{auth_name}_authorizer"
 
             attrs: dict = {
-                "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
                 "name": auth_name,
             }
 
@@ -1208,7 +1266,9 @@ class APIGatewayGenerator:
             if creds_arn is None:
                 creds_arn = getattr(config, "authorizer_credentials_arn", None)
             if creds_arn is not None:
-                attrs["authorizer_credentials_arn"] = "var.authorizer_credentials_arn"
+                attrs["authorizer_credentials_arn"] = Expr(
+                    "var.authorizer_credentials_arn"
+                )
 
             identity_src = authorizer.get("identity_sources")
             if identity_src is None:
@@ -1299,19 +1359,21 @@ class APIGatewayGenerator:
         if stages:
             first_stage_name = stages[0].get("name", "$default")
             sanitized_stage = self._sanitize_route_name(first_stage_name)
-            stage_resource_ref = (
+            stage_resource_ref = Expr(
                 f"aws_apigatewayv2_stage.{instance.name}_{sanitized_stage}_stage.id"
             )
         else:
-            stage_resource_ref = (
+            stage_resource_ref = Expr(
                 f"aws_apigatewayv2_stage.{instance.name}_default_stage.id"
             )
 
         # aws_apigatewayv2_api_mapping resource
         mapping_resource_name = f"{instance.name}_api_mapping"
         mapping_attrs: dict = {
-            "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
-            "domain_name": f"aws_apigatewayv2_domain_name.{domain_resource_name}.id",
+            "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
+            "domain_name": Expr(
+                f"aws_apigatewayv2_domain_name.{domain_resource_name}.id"
+            ),
             "stage": stage_resource_ref,
         }
         parts.append(
@@ -1381,7 +1443,7 @@ class APIGatewayGenerator:
             resource_name = f"{instance.name}_{integ_name}_integration"
 
             attrs: dict = {
-                "api_id": f"aws_apigatewayv2_api.{instance.name}.id",
+                "api_id": Expr(f"aws_apigatewayv2_api.{instance.name}.id"),
                 "integration_type": integ_type,
             }
 
@@ -1401,7 +1463,7 @@ class APIGatewayGenerator:
             vpc_link_name = integration.get("vpc_link_name")
             if vpc_link_name:
                 attrs["connection_type"] = "VPC_LINK"
-                attrs["connection_id"] = (
+                attrs["connection_id"] = Expr(
                     f"aws_apigatewayv2_vpc_link.{instance.name}_{vpc_link_name}_vpc_link.id"
                 )
 
@@ -1429,7 +1491,7 @@ class APIGatewayGenerator:
             if creds_arn is None:
                 creds_arn = getattr(config, "credentials_arn", None)
             if creds_arn is not None:
-                attrs["credentials_arn"] = "var.credentials_arn"
+                attrs["credentials_arn"] = Expr("var.credentials_arn")
 
             passthrough = integration.get("passthrough_behavior")
             if passthrough is None:

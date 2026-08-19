@@ -14,6 +14,7 @@ IAM mutations:
 
 import logging
 
+from app.generators.hcl_renderer import Expr
 from app.generators.service_category_map import get_category
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionIR, GeneratedFile, ProjectIR
@@ -37,9 +38,9 @@ class SNSLambdaHandler(BaseConnectionHandler):
         # --- SNS Topic Subscription ---
         subscription_name = f"{sns_name}_{lambda_name}_subscription"
         subscription_attrs = {
-            "topic_arn": f"aws_sns_topic.{sns_name}.arn",
+            "topic_arn": Expr(f"aws_sns_topic.{sns_name}.arn"),
             "protocol": "lambda",
-            "endpoint": f"aws_lambda_function.{lambda_name}.arn",
+            "endpoint": Expr(f"aws_lambda_function.{lambda_name}.arn"),
         }
         subscription_content = self._renderer.render_resource(
             "aws_sns_topic_subscription", subscription_name, subscription_attrs
@@ -51,7 +52,7 @@ class SNSLambdaHandler(BaseConnectionHandler):
         permission_attrs = {
             "statement_id": f"AllowSNSInvoke_{sns_name}_{lambda_name}",
             "action": "lambda:InvokeFunction",
-            "function_name": f"aws_lambda_function.{lambda_name}.function_name",
+            "function_name": Expr(f"aws_lambda_function.{lambda_name}.function_name"),
             "principal": "sns.amazonaws.com",
             "source_arn": f"${{aws_sns_topic.{sns_name}.arn}}",
         }

@@ -1,7 +1,7 @@
 """CloudWatch service generator — produces HCL for aws_cloudwatch_log_group resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.cloudwatch_config import CloudWatchConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -27,15 +27,15 @@ class CloudWatchGenerator:
         """Generate cloudwatch.tf with aws_cloudwatch_log_group resource."""
         config = _resolve_config(instance)
 
-        attrs: dict = {"name": "var.log_group_name"}
+        attrs: dict = {"name": Expr("var.log_group_name")}
         if config.retention_in_days is not None:
-            attrs["retention_in_days"] = "var.retention_in_days"
+            attrs["retention_in_days"] = Expr("var.retention_in_days")
         if config.kms_key_id is not None:
-            attrs["kms_key_id"] = "var.kms_key_id"
+            attrs["kms_key_id"] = Expr("var.kms_key_id")
         if config.log_group_class is not None:
-            attrs["log_group_class"] = "var.log_group_class"
+            attrs["log_group_class"] = Expr("var.log_group_class")
         if config.tags is not None:
-            attrs["tags"] = "var.tags"
+            attrs["tags"] = Expr("var.tags")
         return self._r.render_resource("aws_cloudwatch_log_group", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:

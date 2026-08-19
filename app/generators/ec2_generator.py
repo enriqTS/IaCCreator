@@ -1,7 +1,7 @@
 """EC2 service generator — produces HCL for aws_instance resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ec2_config import Ec2Config
 from app.models.ir_models import ResourceInstanceIR
 
@@ -24,12 +24,12 @@ class EC2Generator:
         config = _resolve_config(instance)
 
         attrs: dict = {
-            "ami": "var.ami",
-            "instance_type": "var.instance_type",
-            "tags": {"Name": "var.instance_name"},
+            "ami": Expr("var.ami"),
+            "instance_type": Expr("var.instance_type"),
+            "tags": {"Name": Expr("var.instance_name")},
         }
         if config.key_name is not None:
-            attrs["key_name"] = "var.key_name"
+            attrs["key_name"] = Expr("var.key_name")
 
         return self._r.render_resource("aws_instance", instance.name, attrs)
 

@@ -1,6 +1,6 @@
 """RDS service generator — produces HCL for aws_db_instance resources."""
 
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.rds_config import RdsConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -21,15 +21,15 @@ class RDSGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_db_instance resource."""
         config = _resolve_config(instance)
-        attrs: dict = {"identifier": "var.db_identifier"}
+        attrs: dict = {"identifier": Expr("var.db_identifier")}
         if config.engine is not None:
-            attrs["engine"] = "var.engine"
+            attrs["engine"] = Expr("var.engine")
         if config.instance_class is not None:
-            attrs["instance_class"] = "var.instance_class"
+            attrs["instance_class"] = Expr("var.instance_class")
         if config.allocated_storage is not None:
-            attrs["allocated_storage"] = "var.allocated_storage"
+            attrs["allocated_storage"] = Expr("var.allocated_storage")
         if config.username is not None:
-            attrs["username"] = "var.username"
+            attrs["username"] = Expr("var.username")
 
         return self._r.render_resource("aws_db_instance", instance.name, attrs)
 

@@ -1,7 +1,7 @@
 """SQS service generator — produces HCL for aws_sqs_queue resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.sqs_config import SqsConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -27,21 +27,23 @@ class SQSGenerator:
         """Generate sqs.tf with aws_sqs_queue resource."""
         config = _resolve_config(instance)
 
-        attrs: dict = {"name": "var.queue_name"}
+        attrs: dict = {"name": Expr("var.queue_name")}
         if config.visibility_timeout_seconds is not None:
-            attrs["visibility_timeout_seconds"] = "var.visibility_timeout_seconds"
+            attrs["visibility_timeout_seconds"] = Expr("var.visibility_timeout_seconds")
         if config.message_retention_seconds is not None:
-            attrs["message_retention_seconds"] = "var.message_retention_seconds"
+            attrs["message_retention_seconds"] = Expr("var.message_retention_seconds")
         if config.fifo_queue is not None:
-            attrs["fifo_queue"] = "var.fifo_queue"
+            attrs["fifo_queue"] = Expr("var.fifo_queue")
         if config.content_based_deduplication is not None:
-            attrs["content_based_deduplication"] = "var.content_based_deduplication"
+            attrs["content_based_deduplication"] = Expr(
+                "var.content_based_deduplication"
+            )
         if config.delay_seconds is not None:
-            attrs["delay_seconds"] = "var.delay_seconds"
+            attrs["delay_seconds"] = Expr("var.delay_seconds")
         if config.max_message_size is not None:
-            attrs["max_message_size"] = "var.max_message_size"
+            attrs["max_message_size"] = Expr("var.max_message_size")
         if config.tags is not None:
-            attrs["tags"] = "var.tags"
+            attrs["tags"] = Expr("var.tags")
         return self._r.render_resource("aws_sqs_queue", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:

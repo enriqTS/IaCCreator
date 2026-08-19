@@ -1,7 +1,7 @@
 """Glue service generator — produces HCL for aws_glue_catalog_database resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.glue_config import GlueConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -21,7 +21,7 @@ class GlueGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_glue_catalog_database resource."""
-        attrs: dict = {"name": "var.database_name"}
+        attrs: dict = {"name": Expr("var.database_name")}
 
         return self._r.render_resource(
             "aws_glue_catalog_database", instance.name, attrs

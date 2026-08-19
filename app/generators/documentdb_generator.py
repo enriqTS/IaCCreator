@@ -1,6 +1,6 @@
 """DocumentDB service generator — produces HCL for aws_docdb_cluster resources."""
 
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.documentdb_config import DocumentDbConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -21,9 +21,9 @@ class DocumentDBGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_docdb_cluster resource."""
         config = _resolve_config(instance)
-        attrs: dict = {"cluster_identifier": "var.cluster_identifier"}
+        attrs: dict = {"cluster_identifier": Expr("var.cluster_identifier")}
         if config.master_username is not None:
-            attrs["master_username"] = "var.master_username"
+            attrs["master_username"] = Expr("var.master_username")
 
         return self._r.render_resource("aws_docdb_cluster", instance.name, attrs)
 

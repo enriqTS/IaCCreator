@@ -1,7 +1,7 @@
 """Athena service generator — produces HCL for aws_athena_workgroup resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.athena_config import AthenaConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -21,7 +21,7 @@ class AthenaGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_athena_workgroup resource."""
-        attrs: dict = {"name": "var.workgroup_name"}
+        attrs: dict = {"name": Expr("var.workgroup_name")}
 
         return self._r.render_resource("aws_athena_workgroup", instance.name, attrs)
 

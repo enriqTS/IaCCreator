@@ -1,7 +1,7 @@
 """EC2 Image Builder service generator — produces HCL for aws_imagebuilder_image_pipeline resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ec2_image_builder_config import Ec2ImageBuilderConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -24,9 +24,11 @@ class EC2ImageBuilderGenerator:
         _resolve_config(instance)
 
         attrs: dict = {
-            "name": "var.pipeline_name",
-            "image_recipe_arn": "var.image_recipe_arn",
-            "infrastructure_configuration_arn": "var.infrastructure_configuration_arn",
+            "name": Expr("var.pipeline_name"),
+            "image_recipe_arn": Expr("var.image_recipe_arn"),
+            "infrastructure_configuration_arn": Expr(
+                "var.infrastructure_configuration_arn"
+            ),
         }
 
         return self._r.render_resource(

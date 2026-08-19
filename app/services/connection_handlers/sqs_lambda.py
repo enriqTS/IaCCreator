@@ -17,6 +17,7 @@ IAM mutations:
 
 import logging
 
+from app.generators.hcl_renderer import Expr
 from app.generators.service_category_map import get_category
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionIR, GeneratedFile, IAMStatement, ProjectIR
@@ -40,8 +41,8 @@ class SQSLambdaHandler(BaseConnectionHandler):
         # --- Event Source Mapping ---
         mapping_name = f"{sqs_name}_{lambda_name}_event_source"
         mapping_attrs: dict[str, str | int] = {
-            "event_source_arn": f"aws_sqs_queue.{sqs_name}.arn",
-            "function_name": f"aws_lambda_function.{lambda_name}.arn",
+            "event_source_arn": Expr(f"aws_sqs_queue.{sqs_name}.arn"),
+            "function_name": Expr(f"aws_lambda_function.{lambda_name}.arn"),
             "batch_size": connection.connection_config.get("batch_size", 10),
         }
         batching_window = connection.connection_config.get(
@@ -60,7 +61,7 @@ class SQSLambdaHandler(BaseConnectionHandler):
         permission_attrs = {
             "statement_id": f"AllowSQSInvoke_{sqs_name}_{lambda_name}",
             "action": "lambda:InvokeFunction",
-            "function_name": f"aws_lambda_function.{lambda_name}.function_name",
+            "function_name": Expr(f"aws_lambda_function.{lambda_name}.function_name"),
             "principal": "sqs.amazonaws.com",
             "source_arn": f"${{aws_sqs_queue.{sqs_name}.arn}}",
         }

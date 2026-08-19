@@ -1,7 +1,7 @@
 """SNS service generator — produces HCL for aws_sns_topic resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.sns_config import SnsConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -27,17 +27,19 @@ class SNSGenerator:
         """Generate sns.tf with aws_sns_topic resource."""
         config = _resolve_config(instance)
 
-        attrs: dict = {"name": "var.topic_name"}
+        attrs: dict = {"name": Expr("var.topic_name")}
         if config.display_name is not None:
-            attrs["display_name"] = "var.display_name"
+            attrs["display_name"] = Expr("var.display_name")
         if config.fifo_topic is not None:
-            attrs["fifo_topic"] = "var.fifo_topic"
+            attrs["fifo_topic"] = Expr("var.fifo_topic")
         if config.content_based_deduplication is not None:
-            attrs["content_based_deduplication"] = "var.content_based_deduplication"
+            attrs["content_based_deduplication"] = Expr(
+                "var.content_based_deduplication"
+            )
         if config.kms_master_key_id is not None:
-            attrs["kms_master_key_id"] = "var.kms_master_key_id"
+            attrs["kms_master_key_id"] = Expr("var.kms_master_key_id")
         if config.tags is not None:
-            attrs["tags"] = "var.tags"
+            attrs["tags"] = Expr("var.tags")
         return self._r.render_resource("aws_sns_topic", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:

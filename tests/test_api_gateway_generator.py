@@ -7,6 +7,8 @@ custom domain, and routes.
 Requirements: 4.9, 4.10, 4.11, 4.12, 4.13
 """
 
+import json
+
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.models.input_models import ServiceType
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
@@ -77,7 +79,7 @@ class TestStageAccessLogSettings:
         instance = _make_instance("test_api", config)
         hcl = self.gen.generate_resource_tf(instance)
 
-        assert custom_format in hcl
+        assert json.dumps(custom_format) in hcl
 
     def test_default_route_settings_emitted_with_stage(self):
         """default_route_settings block emitted when throttling/metrics fields set."""

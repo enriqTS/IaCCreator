@@ -1,7 +1,7 @@
 """DynamoDB service generator — produces HCL for aws_dynamodb_table resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -17,9 +17,9 @@ class DynamoDBGenerator:
         config = get_typed_config(instance, DynamoDBConfig)
 
         attrs: dict = {
-            "name": "var.table_name",
-            "billing_mode": "var.billing_mode",
-            "hash_key": "var.hash_key",
+            "name": Expr("var.table_name"),
+            "billing_mode": Expr("var.billing_mode"),
+            "hash_key": Expr("var.hash_key"),
         }
 
         # Build attribute blocks
@@ -31,7 +31,7 @@ class DynamoDBGenerator:
         ]
 
         if config.range_key:
-            attrs["range_key"] = "var.range_key"
+            attrs["range_key"] = Expr("var.range_key")
             attribute_blocks.append(
                 {
                     "name": config.range_key,
@@ -44,32 +44,34 @@ class DynamoDBGenerator:
         # Capacity fields — only when billing_mode is PROVISIONED (visible_when)
         if config.billing_mode == "PROVISIONED":
             if config.read_capacity is not None:
-                attrs["read_capacity"] = "var.read_capacity"
+                attrs["read_capacity"] = Expr("var.read_capacity")
             if config.write_capacity is not None:
-                attrs["write_capacity"] = "var.write_capacity"
+                attrs["write_capacity"] = Expr("var.write_capacity")
 
         if config.table_class is not None:
-            attrs["table_class"] = "var.table_class"
+            attrs["table_class"] = Expr("var.table_class")
         if config.deletion_protection_enabled is not None:
-            attrs["deletion_protection_enabled"] = "var.deletion_protection_enabled"
+            attrs["deletion_protection_enabled"] = Expr(
+                "var.deletion_protection_enabled"
+            )
         if config.point_in_time_recovery_enabled is not None:
             attrs["point_in_time_recovery"] = {
-                "enabled": "var.point_in_time_recovery_enabled"
+                "enabled": Expr("var.point_in_time_recovery_enabled")
             }
         if config.tags is not None:
-            attrs["tags"] = "var.tags"
+            attrs["tags"] = Expr("var.tags")
 
         # Stream attributes (Requirement 3.11)
         if config.stream_enabled is not None:
-            attrs["stream_enabled"] = "var.stream_enabled"
+            attrs["stream_enabled"] = Expr("var.stream_enabled")
         if config.stream_view_type is not None:
-            attrs["stream_view_type"] = "var.stream_view_type"
+            attrs["stream_view_type"] = Expr("var.stream_view_type")
 
         # TTL nested block (Requirement 3.12)
         if config.ttl_enabled is not None:
-            ttl_block: dict = {"enabled": "var.ttl_enabled"}
+            ttl_block: dict = {"enabled": Expr("var.ttl_enabled")}
             if config.ttl_attribute_name is not None:
-                ttl_block["attribute_name"] = "var.ttl_attribute_name"
+                ttl_block["attribute_name"] = Expr("var.ttl_attribute_name")
             attrs["ttl"] = ttl_block
 
         # Global Secondary Index repeated blocks (Requirement 3.13)
@@ -114,9 +116,11 @@ class DynamoDBGenerator:
 
         # Server-side encryption nested block (Requirement 3.14)
         if config.server_side_encryption_enabled is not None:
-            sse_block: dict = {"enabled": "var.server_side_encryption_enabled"}
+            sse_block: dict = {"enabled": Expr("var.server_side_encryption_enabled")}
             if config.server_side_encryption_kms_key_arn is not None:
-                sse_block["kms_key_arn"] = "var.server_side_encryption_kms_key_arn"
+                sse_block["kms_key_arn"] = Expr(
+                    "var.server_side_encryption_kms_key_arn"
+                )
             attrs["server_side_encryption"] = sse_block
 
         # Replica repeated blocks (Requirement 3.15)
@@ -134,11 +138,11 @@ class DynamoDBGenerator:
             ):
                 on_demand_block: dict = {}
                 if config.on_demand_max_read_request_units is not None:
-                    on_demand_block["max_read_request_units"] = (
+                    on_demand_block["max_read_request_units"] = Expr(
                         "var.on_demand_max_read_request_units"
                     )
                 if config.on_demand_max_write_request_units is not None:
-                    on_demand_block["max_write_request_units"] = (
+                    on_demand_block["max_write_request_units"] = Expr(
                         "var.on_demand_max_write_request_units"
                     )
                 attrs["on_demand_throughput"] = on_demand_block

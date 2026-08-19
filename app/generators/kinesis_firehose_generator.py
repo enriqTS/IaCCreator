@@ -1,7 +1,7 @@
 """Kinesis Firehose service generator — produces HCL for aws_kinesis_firehose_delivery_stream resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -22,9 +22,9 @@ class KinesisFirehoseGenerator:
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_kinesis_firehose_delivery_stream resource."""
         config = _resolve_config(instance)
-        attrs: dict = {"name": "var.stream_name"}
+        attrs: dict = {"name": Expr("var.stream_name")}
         if config.destination is not None:
-            attrs["destination"] = "var.destination"
+            attrs["destination"] = Expr("var.destination")
 
         return self._r.render_resource(
             "aws_kinesis_firehose_delivery_stream", instance.name, attrs

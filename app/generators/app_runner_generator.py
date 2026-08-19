@@ -1,7 +1,7 @@
 """App Runner service generator — produces HCL for aws_apprunner_service resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.app_runner_config import AppRunnerConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -24,10 +24,10 @@ class AppRunnerGenerator:
         config = _resolve_config(instance)  # noqa: F841
 
         attrs: dict = {
-            "service_name": "var.service_name",
+            "service_name": Expr("var.service_name"),
             "source_configuration": {
                 "image_repository": {
-                    "image_identifier": "var.image_identifier",
+                    "image_identifier": Expr("var.image_identifier"),
                     "image_repository_type": "ECR",
                 },
             },

@@ -1,7 +1,7 @@
 """Amazon Q service generator — produces HCL for aws_qbusiness_application resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.amazon_q_config import AmazonQConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -17,11 +17,11 @@ class AmazonQGenerator:
         get_typed_config(instance, AmazonQConfig)
 
         attrs: dict = {
-            "display_name": "var.application_name",
-            "description": "var.description",
-            "role_arn": "var.role_arn",
-            "identity_type": "var.identity_type",
-            "tags": "var.tags",
+            "display_name": Expr("var.application_name"),
+            "description": Expr("var.description"),
+            "role_arn": Expr("var.role_arn"),
+            "identity_type": Expr("var.identity_type"),
+            "tags": Expr("var.tags"),
         }
         return self._r.render_resource(
             "aws_qbusiness_application", instance.name, attrs

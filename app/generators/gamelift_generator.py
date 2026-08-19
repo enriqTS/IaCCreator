@@ -1,7 +1,7 @@
 """GameLift service generator — produces HCL for aws_gamelift_fleet resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.gamelift_config import GameLiftConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -16,9 +16,9 @@ class GameLiftGenerator:
         """Generate resource.tf with aws_gamelift_fleet resource."""
         config = get_typed_config(instance, GameLiftConfig)
 
-        attrs: dict = {"name": "var.fleet_name"}
+        attrs: dict = {"name": Expr("var.fleet_name")}
         if config.ec2_instance_type is not None:
-            attrs["ec2_instance_type"] = "var.ec2_instance_type"
+            attrs["ec2_instance_type"] = Expr("var.ec2_instance_type")
 
         return self._r.render_resource("aws_gamelift_fleet", instance.name, attrs)
 

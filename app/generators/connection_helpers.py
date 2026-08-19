@@ -11,7 +11,9 @@ from app.models.ir_models import ResourceInstanceIR
 logger = logging.getLogger(__name__)
 
 
-def generate_connection_variables(instance: ResourceInstanceIR, renderer: HCLRenderer) -> str:
+def generate_connection_variables(
+    instance: ResourceInstanceIR, renderer: HCLRenderer
+) -> str:
     """Emit variable blocks for connection-derived inputs.
 
     For each ConnectionInput declared in the config's get_connections_schema(),

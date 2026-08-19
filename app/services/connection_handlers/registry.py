@@ -12,7 +12,9 @@ from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
 
-CONNECTION_HANDLER_REGISTRY: dict[tuple[ServiceType, ServiceType], ConnectionHandler] = {
+CONNECTION_HANDLER_REGISTRY: dict[
+    tuple[ServiceType, ServiceType], ConnectionHandler
+] = {
     (ServiceType.API_GATEWAY, ServiceType.LAMBDA): ApiGatewayLambdaHandler(),
     (ServiceType.LAMBDA, ServiceType.DYNAMODB): LambdaDynamoDBHandler(),
     (ServiceType.LAMBDA, ServiceType.S3): LambdaS3Handler(),

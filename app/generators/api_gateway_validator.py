@@ -326,7 +326,9 @@ class APIGatewayValidator:
 
         return errors
 
-    def _validate_integrations(self, config: BaseServiceConfig) -> list[ValidationError]:
+    def _validate_integrations(
+        self, config: BaseServiceConfig
+    ) -> list[ValidationError]:
         """Validate integration configurations.
 
         Checks:

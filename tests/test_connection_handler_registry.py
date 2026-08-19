@@ -67,7 +67,10 @@ class TestRegistryCompleteness:
 
     def test_apigw_lambda_registered(self):
         """API_GATEWAY → LAMBDA is registered."""
-        assert (ServiceType.API_GATEWAY, ServiceType.LAMBDA) in CONNECTION_HANDLER_REGISTRY
+        assert (
+            ServiceType.API_GATEWAY,
+            ServiceType.LAMBDA,
+        ) in CONNECTION_HANDLER_REGISTRY
 
     def test_lambda_dynamodb_registered(self):
         """LAMBDA → DYNAMODB is registered."""
@@ -79,7 +82,10 @@ class TestRegistryCompleteness:
 
     def test_lambda_cloudwatch_registered(self):
         """LAMBDA → CLOUDWATCH is registered."""
-        assert (ServiceType.LAMBDA, ServiceType.CLOUDWATCH) in CONNECTION_HANDLER_REGISTRY
+        assert (
+            ServiceType.LAMBDA,
+            ServiceType.CLOUDWATCH,
+        ) in CONNECTION_HANDLER_REGISTRY
 
     def test_lambda_sns_registered(self):
         """LAMBDA → SNS is registered."""
@@ -178,7 +184,9 @@ class TestMultiRoute:
     def setup_method(self):
         self.handler = ApiGatewayLambdaHandler()
 
-    def _make_connection(self, connection_config: dict) -> tuple[ConnectionIR, ProjectIR]:
+    def _make_connection(
+        self, connection_config: dict
+    ) -> tuple[ConnectionIR, ProjectIR]:
         """Create APIGW→Lambda connection with given config."""
         apigw = ResourceInstanceIR(
             name="my_api",
@@ -299,7 +307,7 @@ class TestMultiRoute:
         assert "{" not in route_file.path
         assert "}" not in route_file.path
         # Should contain the sanitized path segment
-        assert "users_id" in route_file.path
+        assert "users_var_id" in route_file.path
 
     def test_path_parameters_resource_name_sanitized(self):
         """Terraform resource name for path with params is properly sanitized."""
@@ -310,7 +318,7 @@ class TestMultiRoute:
         route_file = next(f for f in files if "route_" in f.path)
 
         # Resource name should be sanitized (no braces/slashes, underscores collapsed)
-        assert "my_api_my_func_route_get_users_id" in route_file.content
+        assert "my_api_my_func_route_get_users_var_id" in route_file.content
 
     def test_three_routes_file_count(self):
         """Three routes produce 5 files (integration + 3 routes + permission)."""

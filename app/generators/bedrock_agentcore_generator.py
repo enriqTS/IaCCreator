@@ -1,7 +1,7 @@
 """Bedrock AgentCore service generator — produces HCL for aws_bedrockagent_agent_runtime resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.bedrock_agentcore_config import BedrockAgentcoreConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -17,13 +17,13 @@ class BedrockAgentCoreGenerator:
         get_typed_config(instance, BedrockAgentcoreConfig)
 
         attrs: dict = {
-            "agent_runtime_name": "var.agent_runtime_name",
-            "foundation_model": "var.foundation_model",
-            "role_arn": "var.role_arn",
-            "description": "var.description",
-            "memory_id": "var.memory_id",
-            "idle_session_ttl": "var.idle_session_ttl",
-            "tags": "var.tags",
+            "agent_runtime_name": Expr("var.agent_runtime_name"),
+            "foundation_model": Expr("var.foundation_model"),
+            "role_arn": Expr("var.role_arn"),
+            "description": Expr("var.description"),
+            "memory_id": Expr("var.memory_id"),
+            "idle_session_ttl": Expr("var.idle_session_ttl"),
+            "tags": Expr("var.tags"),
         }
         return self._r.render_resource(
             "aws_bedrockagent_agent_runtime", instance.name, attrs

@@ -1,7 +1,7 @@
 """OpenSearch service generator — produces HCL for aws_opensearch_domain resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.opensearch_config import OpenSearchConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -21,7 +21,7 @@ class OpenSearchGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_opensearch_domain resource."""
-        attrs: dict = {"domain_name": "var.domain_name"}
+        attrs: dict = {"domain_name": Expr("var.domain_name")}
 
         return self._r.render_resource("aws_opensearch_domain", instance.name, attrs)
 

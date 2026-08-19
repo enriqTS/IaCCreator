@@ -1,7 +1,7 @@
 """Bedrock Knowledge Base generator — produces HCL for aws_bedrockagent_knowledge_base resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.bedrock_knowledge_base_config import (
     BedrockKnowledgeBaseConfig,
 )
@@ -19,27 +19,27 @@ class BedrockKnowledgeBaseGenerator:
         get_typed_config(instance, BedrockKnowledgeBaseConfig)
 
         attrs: dict = {
-            "name": "var.knowledge_base_name",
-            "description": "var.description",
-            "role_arn": "var.role_arn",
+            "name": Expr("var.knowledge_base_name"),
+            "description": Expr("var.description"),
+            "role_arn": Expr("var.role_arn"),
             "knowledge_base_configuration": {
                 "type": "VECTOR",
                 "vector_knowledge_base_configuration": {
-                    "embedding_model_arn": "var.embedding_model_arn",
+                    "embedding_model_arn": Expr("var.embedding_model_arn"),
                 },
             },
             "storage_configuration": {
-                "type": "var.storage_type",
+                "type": Expr("var.storage_type"),
                 "opensearch_serverless_configuration": {
-                    "vector_index_name": "var.vector_field",
+                    "vector_index_name": Expr("var.vector_field"),
                     "field_mapping": {
-                        "vector_field": "var.vector_field",
-                        "text_field": "var.text_field",
-                        "metadata_field": "var.metadata_field",
+                        "vector_field": Expr("var.vector_field"),
+                        "text_field": Expr("var.text_field"),
+                        "metadata_field": Expr("var.metadata_field"),
                     },
                 },
             },
-            "tags": "var.tags",
+            "tags": Expr("var.tags"),
         }
         return self._r.render_resource(
             "aws_bedrockagent_knowledge_base", instance.name, attrs

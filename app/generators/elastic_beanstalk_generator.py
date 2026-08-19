@@ -1,7 +1,7 @@
 """Elastic Beanstalk service generator — produces HCL for Beanstalk application and environment resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.elastic_beanstalk_config import ElasticBeanstalkConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -24,20 +24,22 @@ class ElasticBeanstalkGenerator:
         config = _resolve_config(instance)
 
         # Beanstalk Application
-        app_attrs: dict = {"name": "var.application_name"}
+        app_attrs: dict = {"name": Expr("var.application_name")}
         result = self._r.render_resource(
             "aws_elastic_beanstalk_application", instance.name, app_attrs
         )
 
         # Beanstalk Environment
         env_attrs: dict = {
-            "name": "var.environment_name",
-            "application": f"aws_elastic_beanstalk_application.{instance.name}.name",
+            "name": Expr("var.environment_name"),
+            "application": Expr(
+                f"aws_elastic_beanstalk_application.{instance.name}.name"
+            ),
         }
         if config.eb_solution_stack_name is not None:
-            env_attrs["solution_stack_name"] = "var.eb_solution_stack_name"
+            env_attrs["solution_stack_name"] = Expr("var.eb_solution_stack_name")
         if config.eb_tier is not None:
-            env_attrs["tier"] = "var.eb_tier"
+            env_attrs["tier"] = Expr("var.eb_tier")
 
         result += "\n" + self._r.render_resource(
             "aws_elastic_beanstalk_environment", f"{instance.name}_env", env_attrs

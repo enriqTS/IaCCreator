@@ -1,7 +1,7 @@
 """AppStream service generator — produces HCL for aws_appstream_fleet resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.appstream_config import AppStreamConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -16,9 +16,9 @@ class AppStreamGenerator:
         """Generate resource.tf with aws_appstream_fleet resource."""
         config = get_typed_config(instance, AppStreamConfig)
 
-        attrs: dict = {"name": "var.fleet_name"}
+        attrs: dict = {"name": Expr("var.fleet_name")}
         if config.instance_type is not None:
-            attrs["instance_type"] = "var.instance_type"
+            attrs["instance_type"] = Expr("var.instance_type")
 
         return self._r.render_resource("aws_appstream_fleet", instance.name, attrs)
 

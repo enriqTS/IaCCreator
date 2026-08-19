@@ -1,7 +1,7 @@
 """Connect service generator — produces HCL for aws_connect_instance resources."""
 
 from app.generators.base import get_typed_config
-from app.generators.hcl_renderer import HCLRenderer
+from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.connect_config import ConnectConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -18,11 +18,11 @@ class ConnectGenerator:
 
         attrs: dict = {}
         if config.identity_management_type is not None:
-            attrs["identity_management_type"] = "var.identity_management_type"
+            attrs["identity_management_type"] = Expr("var.identity_management_type")
         if config.inbound_calls_enabled is not None:
-            attrs["inbound_calls_enabled"] = "var.inbound_calls_enabled"
+            attrs["inbound_calls_enabled"] = Expr("var.inbound_calls_enabled")
         if config.outbound_calls_enabled is not None:
-            attrs["outbound_calls_enabled"] = "var.outbound_calls_enabled"
+            attrs["outbound_calls_enabled"] = Expr("var.outbound_calls_enabled")
 
         return self._r.render_resource("aws_connect_instance", instance.name, attrs)
 
