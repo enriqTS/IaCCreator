@@ -41,9 +41,13 @@ class IRBuilder:
     def build(self, input: ArchitectureDescription) -> ProjectIR:
         """Build the full IR tree from the input description."""
         resource_map = {r.name: r for r in input.resources}
+        # Ids survive renames, so they take precedence when the client supplies them
+        id_map = {r.id: r for r in input.resources if r.id}
 
         # Validate connections
-        connections_ir = self._build_connections(input.connections, resource_map)
+        connections_ir = self._build_connections(
+            input.connections, resource_map, id_map
+        )
 
         # Index connections by source for IAM enrichment
         connections_by_source: dict[str, list[ConnectionIR]] = defaultdict(list)
@@ -105,28 +109,38 @@ class IRBuilder:
             global_config=global_config,
         )
 
+    @staticmethod
+    def _resolve_endpoint(
+        name: str,
+        endpoint_id: str | None,
+        direction: str,
+        resource_map: dict,
+        id_map: dict,
+    ):
+        """Find a connection endpoint by stable id when given one, otherwise by name."""
+        if endpoint_id and endpoint_id in id_map:
+            return id_map[endpoint_id]
+        if name in resource_map:
+            return resource_map[name]
+        raise ResourceNotFoundError(resource_name=name, direction=direction)
+
     def _build_connections(
         self,
         connections: list[Connection],
         resource_map: dict,
+        id_map: dict | None = None,
     ) -> list[ConnectionIR]:
         """Validate and build ConnectionIR list from input connections."""
         result: list[ConnectionIR] = []
+        id_map = id_map or {}
 
         for conn in connections:
-            # Validate source exists
-            if conn.source not in resource_map:
-                raise ResourceNotFoundError(
-                    resource_name=conn.source, direction="source"
-                )
-            # Validate target exists
-            if conn.target not in resource_map:
-                raise ResourceNotFoundError(
-                    resource_name=conn.target, direction="target"
-                )
-
-            source_resource = resource_map[conn.source]
-            target_resource = resource_map[conn.target]
+            source_resource = self._resolve_endpoint(
+                conn.source, conn.source_id, "source", resource_map, id_map
+            )
+            target_resource = self._resolve_endpoint(
+                conn.target, conn.target_id, "target", resource_map, id_map
+            )
             pair = (source_resource.service_type, target_resource.service_type)
 
             # Validate compatibility
@@ -155,8 +169,8 @@ class IRBuilder:
 
             result.append(
                 ConnectionIR(
-                    source_name=conn.source,
-                    target_name=conn.target,
+                    source_name=source_resource.name,
+                    target_name=target_resource.name,
                     source_service=source_resource.service_type,
                     target_service=target_resource.service_type,
                     connection_type=spec.connection_type,
@@ -195,7 +209,7 @@ class IRBuilder:
 
         For API_GATEWAY -> LAMBDA connections with role 'route_handler' (default),
         derives connection_config['routes'] from the gateway's config.routes
-        entries where integration_name matches the target lambda name.
+        entries whose integration_id (or integration_name) matches the target lambda.
 
         Preserves explicit connection_config['routes'] if already present
         (direct API/back-compat use).
@@ -227,11 +241,16 @@ class IRBuilder:
             return config
 
         target_name = target_resource.name
+        target_id = getattr(target_resource, "id", None)
         derived_routes: list[dict] = []
 
         for route in routes:
-            # Check if this route targets the lambda
-            if route.get("integration_name") != target_name:
+            # Match on the stable id when the route carries one, so renames cannot orphan it
+            route_id = route.get("integration_id")
+            if route_id:
+                if route_id != target_id:
+                    continue
+            elif route.get("integration_name") != target_name:
                 continue
 
             # Build route entry for connection_config
