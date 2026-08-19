@@ -156,8 +156,6 @@ async def get_variable_schemas() -> dict[str, list[dict]]:
                 schema = config_cls.get_variable_schema()
                 result[stype.value] = [entry.model_dump() for entry in schema]
             except Exception:
-                logger.error(
-                    f"Introspection failed for {stype.value}"
-                )
+                logger.error(f"Introspection failed for {stype.value}")
 
     return result

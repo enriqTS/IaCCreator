@@ -26,7 +26,11 @@ def _make_input(**overrides) -> ArchitectureDescription:
             ResourceInstance(
                 name="my-func",
                 service_type=ServiceType.LAMBDA,
-                config=LambdaConfig(function_name="test-func", handler="index.handler", runtime="python3.12"),
+                config=LambdaConfig(
+                    function_name="test-func",
+                    handler="index.handler",
+                    runtime="python3.12",
+                ),
             ),
         ],
         "connections": [],
@@ -49,12 +53,20 @@ class TestIRBuilderBasic:
                 ResourceInstance(
                     name="func-a",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="a.handler", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func",
+                        handler="a.handler",
+                        runtime="python3.12",
+                    ),
                 ),
                 ResourceInstance(
                     name="func-b",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="b.handler", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func",
+                        handler="b.handler",
+                        runtime="python3.12",
+                    ),
                 ),
                 ResourceInstance(name="my-bucket", service_type=ServiceType.S3),
             ]
@@ -77,12 +89,18 @@ class TestIRBuilderBasic:
                 ResourceInstance(
                     name="func-a",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="a.handler", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func",
+                        handler="a.handler",
+                        runtime="python3.12",
+                    ),
                 ),
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=DynamoDBConfig(table_name="test-table", hash_key_type="S", hash_key="id"),
+                    config=DynamoDBConfig(
+                        table_name="test-table", hash_key_type="S", hash_key="id"
+                    ),
                 ),
             ],
             environments=[
@@ -153,12 +171,16 @@ class TestConnectionValidation:
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=DynamoDBConfig(table_name="test-table", hash_key_type="S", hash_key="id"),
+                    config=DynamoDBConfig(
+                        table_name="test-table", hash_key_type="S", hash_key="id"
+                    ),
                 ),
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
             ],
             connections=[
@@ -176,12 +198,16 @@ class TestConnectionValidation:
                 ResourceInstance(
                     name="my-api",
                     service_type=ServiceType.API_GATEWAY,
-                    config=LambdaConfig(function_name="test-func", protocol_type="HTTP"),
+                    config=LambdaConfig(
+                        function_name="test-func", protocol_type="HTTP"
+                    ),
                 ),
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
             ],
             connections=[
@@ -205,12 +231,16 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=DynamoDBConfig(table_name="test-table", hash_key_type="S", hash_key="id"),
+                    config=DynamoDBConfig(
+                        table_name="test-table", hash_key_type="S", hash_key="id"
+                    ),
                 ),
             ],
             connections=[
@@ -232,7 +262,9 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
                 ResourceInstance(name="my-bucket", service_type=ServiceType.S3),
             ],
@@ -255,7 +287,9 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
                 ResourceInstance(name="my-logs", service_type=ServiceType.CLOUDWATCH),
             ],
@@ -278,12 +312,16 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
                 ResourceInstance(
                     name="my-table",
                     service_type=ServiceType.DYNAMODB,
-                    config=DynamoDBConfig(table_name="test-table", hash_key_type="S", hash_key="id"),
+                    config=DynamoDBConfig(
+                        table_name="test-table", hash_key_type="S", hash_key="id"
+                    ),
                 ),
                 ResourceInstance(name="my-bucket", service_type=ServiceType.S3),
             ],
@@ -310,12 +348,16 @@ class TestIAMStatementDerivation:
                 ResourceInstance(
                     name="my-api",
                     service_type=ServiceType.API_GATEWAY,
-                    config=LambdaConfig(function_name="test-func", protocol_type="HTTP"),
+                    config=LambdaConfig(
+                        function_name="test-func", protocol_type="HTTP"
+                    ),
                 ),
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
             ],
             connections=[
@@ -359,7 +401,9 @@ class TestAPIGatewayLambdaRouteDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
             ],
             connections=[
@@ -393,21 +437,37 @@ class TestAPIGatewayLambdaRouteDerivation:
                         api_name="test-api",
                         protocol_type="HTTP",
                         routes=[
-                            {"methods": ["GET"], "path": "/users", "integration_name": "my-func"},
-                            {"methods": ["POST"], "path": "/users", "integration_name": "my-func"},
-                            {"methods": ["GET"], "path": "/items", "integration_name": "other-func"},
+                            {
+                                "methods": ["GET"],
+                                "path": "/users",
+                                "integration_name": "my-func",
+                            },
+                            {
+                                "methods": ["POST"],
+                                "path": "/users",
+                                "integration_name": "my-func",
+                            },
+                            {
+                                "methods": ["GET"],
+                                "path": "/items",
+                                "integration_name": "other-func",
+                            },
                         ],
                     ),
                 ),
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
                 ResourceInstance(
                     name="other-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="other-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="other-func", handler="h", runtime="python3.12"
+                    ),
                 ),
             ],
             connections=[
@@ -421,8 +481,14 @@ class TestAPIGatewayLambdaRouteDerivation:
         ir = IRBuilder().build(desc)
         conn = ir.connections[0]
         assert len(conn.connection_config["routes"]) == 2
-        assert conn.connection_config["routes"][0] == {"methods": ["GET"], "path": "/users"}
-        assert conn.connection_config["routes"][1] == {"methods": ["POST"], "path": "/users"}
+        assert conn.connection_config["routes"][0] == {
+            "methods": ["GET"],
+            "path": "/users",
+        }
+        assert conn.connection_config["routes"][1] == {
+            "methods": ["POST"],
+            "path": "/users",
+        }
 
     def test_preserves_explicit_routes_in_connection_config(self):
         """Explicit routes in connection_config take precedence over derived routes."""
@@ -437,14 +503,20 @@ class TestAPIGatewayLambdaRouteDerivation:
                         api_name="test-api",
                         protocol_type="HTTP",
                         routes=[
-                            {"methods": ["GET"], "path": "/users", "integration_name": "my-func"},
+                            {
+                                "methods": ["GET"],
+                                "path": "/users",
+                                "integration_name": "my-func",
+                            },
                         ],
                     ),
                 ),
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
             ],
             connections=[
@@ -462,7 +534,10 @@ class TestAPIGatewayLambdaRouteDerivation:
         conn = ir.connections[0]
         # Explicit routes should be preserved, not overwritten by derived routes
         assert len(conn.connection_config["routes"]) == 1
-        assert conn.connection_config["routes"][0] == {"methods": ["POST"], "path": "/custom"}
+        assert conn.connection_config["routes"][0] == {
+            "methods": ["POST"],
+            "path": "/custom",
+        }
 
     def test_skips_route_derivation_for_authorizer_role(self):
         """Authorizer connections should not derive routes from gateway config."""
@@ -477,14 +552,20 @@ class TestAPIGatewayLambdaRouteDerivation:
                         api_name="test-api",
                         protocol_type="HTTP",
                         routes=[
-                            {"methods": ["GET"], "path": "/users", "integration_name": "my-auth"},
+                            {
+                                "methods": ["GET"],
+                                "path": "/users",
+                                "integration_name": "my-auth",
+                            },
                         ],
                     ),
                 ),
                 ResourceInstance(
                     name="my-auth",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="auth-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="auth-func", handler="h", runtime="python3.12"
+                    ),
                 ),
             ],
             connections=[
@@ -514,14 +595,20 @@ class TestAPIGatewayLambdaRouteDerivation:
                         api_name="test-api",
                         protocol_type="WEBSOCKET",
                         routes=[
-                            {"methods": ["ANY"], "path": "$connect", "integration_name": "my-func"},
+                            {
+                                "methods": ["ANY"],
+                                "path": "$connect",
+                                "integration_name": "my-func",
+                            },
                         ],
                     ),
                 ),
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
             ],
             connections=[
@@ -563,7 +650,9 @@ class TestAPIGatewayLambdaRouteDerivation:
                 ResourceInstance(
                     name="my-func",
                     service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(function_name="test-func", handler="h", runtime="python3.12"),
+                    config=LambdaConfig(
+                        function_name="test-func", handler="h", runtime="python3.12"
+                    ),
                 ),
             ],
             connections=[

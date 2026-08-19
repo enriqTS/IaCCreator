@@ -5,7 +5,6 @@ APIGW→Lambda handler via process_all generates the expected files.
 Covers Requirements 12.1, 12.2, 12.3, 12.4.
 """
 
-
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.models.input_models import ServiceType
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
@@ -92,7 +91,9 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_http_api_with_description(self):
         """HTTP API with description produces only the API resource with description."""
-        config = ApiGatewayConfig(api_name="my_api", protocol_type="HTTP", description="My API")
+        config = ApiGatewayConfig(
+            api_name="my_api", protocol_type="HTTP", description="My API"
+        )
         instance = _make_instance("my_api", config)
         hcl = self.gen.generate_resource_tf(instance)
 
@@ -103,7 +104,8 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_http_api_with_cors_configuration(self):
         """HTTP API with cors_configuration produces only the API resource with CORS."""
-        config = ApiGatewayConfig(api_name="test-api",
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             cors_configuration={"allow_origins": ["*"]},
         )
@@ -117,7 +119,8 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_http_api_with_disable_execute_api_endpoint(self):
         """HTTP API with disable_execute_api_endpoint produces only the API resource."""
-        config = ApiGatewayConfig(api_name="test-api",
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             disable_execute_api_endpoint=True,
         )
@@ -131,7 +134,8 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_websocket_api_with_route_selection_expression(self):
         """WebSocket API with route_selection_expression produces only the API resource."""
-        config = ApiGatewayConfig(api_name="test-api",
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="WEBSOCKET",
             route_selection_expression="$request.body.action",
         )
@@ -147,7 +151,8 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_http_api_with_tags(self):
         """HTTP API with tags produces only the API resource with tags."""
-        config = ApiGatewayConfig(api_name="test-api",
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             tags={"env": "dev", "team": "backend"},
         )
@@ -161,7 +166,8 @@ class TestOriginalFieldsProduceIdenticalHCL:
 
     def test_full_original_config_produces_only_api_resource(self):
         """Config with ALL original fields produces only the API resource block."""
-        config = ApiGatewayConfig(api_name="test-api",
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             description="Full API",
             cors_configuration={"allow_origins": ["https://example.com"]},
@@ -191,12 +197,15 @@ class TestNoneFieldsProduceIdenticalOutput:
     def test_explicit_none_fields_match_absent_fields(self):
         """Explicitly setting new fields to None produces same output as not setting them."""
         # Config without new fields
-        config_minimal = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP", description="Test API")
+        config_minimal = ApiGatewayConfig(
+            api_name="test-api", protocol_type="HTTP", description="Test API"
+        )
         instance_minimal = _make_instance("api", config_minimal)
         hcl_minimal = self.gen.generate_resource_tf(instance_minimal)
 
         # Config with all new fields explicitly set to None
-        config_explicit = ApiGatewayConfig(api_name="test-api",
+        config_explicit = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             description="Test API",
             routes=None,
@@ -219,7 +228,9 @@ class TestNoneFieldsProduceIdenticalOutput:
 
     def test_none_routes_no_route_resources(self):
         """routes=None produces no aws_apigatewayv2_route resources."""
-        config = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP", routes=None)
+        config = ApiGatewayConfig(
+            api_name="test-api", protocol_type="HTTP", routes=None
+        )
         instance = _make_instance("api", config)
         hcl = self.gen.generate_resource_tf(instance)
 
@@ -227,7 +238,9 @@ class TestNoneFieldsProduceIdenticalOutput:
 
     def test_none_stages_no_stage_resources(self):
         """stages=None produces no aws_apigatewayv2_stage resources."""
-        config = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP", stages=None)
+        config = ApiGatewayConfig(
+            api_name="test-api", protocol_type="HTTP", stages=None
+        )
         instance = _make_instance("api", config)
         hcl = self.gen.generate_resource_tf(instance)
 
@@ -235,7 +248,9 @@ class TestNoneFieldsProduceIdenticalOutput:
 
     def test_none_authorizers_no_authorizer_resources(self):
         """authorizers=None produces no aws_apigatewayv2_authorizer resources."""
-        config = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP", authorizers=None)
+        config = ApiGatewayConfig(
+            api_name="test-api", protocol_type="HTTP", authorizers=None
+        )
         instance = _make_instance("api", config)
         hcl = self.gen.generate_resource_tf(instance)
 
@@ -243,7 +258,9 @@ class TestNoneFieldsProduceIdenticalOutput:
 
     def test_none_custom_domain_no_domain_resources(self):
         """custom_domain=None produces no domain or api_mapping resources."""
-        config = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP", custom_domain=None)
+        config = ApiGatewayConfig(
+            api_name="test-api", protocol_type="HTTP", custom_domain=None
+        )
         instance = _make_instance("api", config)
         hcl = self.gen.generate_resource_tf(instance)
 
@@ -252,7 +269,9 @@ class TestNoneFieldsProduceIdenticalOutput:
 
     def test_none_vpc_links_no_vpc_link_resources(self):
         """vpc_links=None produces no aws_apigatewayv2_vpc_link resources."""
-        config = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP", vpc_links=None)
+        config = ApiGatewayConfig(
+            api_name="test-api", protocol_type="HTTP", vpc_links=None
+        )
         instance = _make_instance("api", config)
         hcl = self.gen.generate_resource_tf(instance)
 
@@ -260,7 +279,9 @@ class TestNoneFieldsProduceIdenticalOutput:
 
     def test_none_integrations_no_integration_resources(self):
         """integrations=None produces no aws_apigatewayv2_integration resources."""
-        config = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP", integrations=None)
+        config = ApiGatewayConfig(
+            api_name="test-api", protocol_type="HTTP", integrations=None
+        )
         instance = _make_instance("api", config)
         hcl = self.gen.generate_resource_tf(instance)
 
@@ -268,7 +289,9 @@ class TestNoneFieldsProduceIdenticalOutput:
 
     def test_none_api_key_no_key_expression(self):
         """api_key_required=None produces no api_key_selection_expression."""
-        config = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP", api_key_required=None)
+        config = ApiGatewayConfig(
+            api_name="test-api", protocol_type="HTTP", api_key_required=None
+        )
         instance = _make_instance("api", config)
         hcl = self.gen.generate_resource_tf(instance)
 
@@ -281,7 +304,8 @@ class TestNoneFieldsProduceIdenticalOutput:
         instance_minimal = _make_instance("api", config_minimal)
         vars_minimal = self.gen.generate_variables_tf(instance_minimal)
 
-        config_explicit = ApiGatewayConfig(api_name="test-api",
+        config_explicit = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=None,
             stages=None,
@@ -319,7 +343,9 @@ class TestConnectionProcessorWithRoutes:
         func = ResourceInstanceIR(
             name="my_func",
             service_type=ServiceType.LAMBDA,
-            config=LambdaConfig(function_name="my-func", handler="index.handler", runtime="python3.12"),
+            config=LambdaConfig(
+                function_name="my-func", handler="index.handler", runtime="python3.12"
+            ),
         )
         conn = ConnectionIR(
             source_name="my_api",
@@ -374,11 +400,13 @@ class TestConnectionProcessorWithRoutes:
 
         paths = [f.path for f in files]
         assert any(
-            "test-project/modules/networking/api-gateway/my_api/integration_my_func.tf" in p
+            "test-project/modules/networking/api-gateway/my_api/integration_my_func.tf"
+            in p
             for p in paths
         )
         assert any(
-            "test-project/modules/networking/api-gateway/my_api/permission_my_func.tf" in p
+            "test-project/modules/networking/api-gateway/my_api/permission_my_func.tf"
+            in p
             for p in paths
         )
 
@@ -423,14 +451,16 @@ class TestByteForByteIdenticalOutput:
 
     def test_resource_tf_byte_identical(self):
         """generate_resource_tf output is byte-for-byte identical with/without None fields."""
-        config_without = ApiGatewayConfig(api_name="test-api",
+        config_without = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             description="API",
             cors_configuration={"allow_origins": ["*"]},
             disable_execute_api_endpoint=True,
             tags={"env": "prod"},
         )
-        config_with_defaults = ApiGatewayConfig(api_name="test-api",
+        config_with_defaults = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             description="API",
             cors_configuration={"allow_origins": ["*"]},
@@ -462,12 +492,14 @@ class TestByteForByteIdenticalOutput:
 
     def test_variables_tf_byte_identical(self):
         """generate_variables_tf output is byte-for-byte identical with/without None fields."""
-        config_without = ApiGatewayConfig(api_name="test-api",
+        config_without = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             description="API",
             tags={"env": "prod"},
         )
-        config_with_defaults = ApiGatewayConfig(api_name="test-api",
+        config_with_defaults = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             description="API",
             tags={"env": "prod"},
@@ -492,7 +524,8 @@ class TestByteForByteIdenticalOutput:
     def test_outputs_tf_byte_identical(self):
         """generate_outputs_tf output is byte-for-byte identical with/without None fields."""
         config_without = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP")
-        config_with_defaults = ApiGatewayConfig(api_name="test-api",
+        config_with_defaults = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=None,
             stages=None,
@@ -524,7 +557,9 @@ class TestByteForByteIdenticalOutput:
         func = ResourceInstanceIR(
             name="func",
             service_type=ServiceType.LAMBDA,
-            config=LambdaConfig(function_name="my-func", handler="index.handler", runtime="python3.12"),
+            config=LambdaConfig(
+                function_name="my-func", handler="index.handler", runtime="python3.12"
+            ),
         )
 
         conn = ConnectionIR(
@@ -556,7 +591,9 @@ class TestByteForByteIdenticalOutput:
         func2 = ResourceInstanceIR(
             name="func",
             service_type=ServiceType.LAMBDA,
-            config=LambdaConfig(function_name="my-func", handler="index.handler", runtime="python3.12"),
+            config=LambdaConfig(
+                function_name="my-func", handler="index.handler", runtime="python3.12"
+            ),
         )
         conn2 = ConnectionIR(
             source_name="api",

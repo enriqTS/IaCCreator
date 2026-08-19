@@ -45,9 +45,7 @@ class BedrockConfig(BaseServiceConfig):
                 value="amazon.titan-embed-text-v1", label="Amazon Titan Embed Text"
             ),
             OptionEntry(value="anthropic.claude-v2", label="Anthropic Claude v2"),
-            OptionEntry(
-                value="meta.llama2-13b-chat-v1", label="Meta Llama 2 13B Chat"
-            ),
+            OptionEntry(value="meta.llama2-13b-chat-v1", label="Meta Llama 2 13B Chat"),
         ],
     )
     role_arn: str | None = TerraformField(

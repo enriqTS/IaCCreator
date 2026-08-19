@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import re
 from collections import Counter
 
 import hcl2
@@ -15,7 +16,9 @@ def parse_hcl(content: str) -> dict:
     try:
         return hcl2.load(io.StringIO(content))
     except Exception as exc:
-        raise AssertionError(f"generated HCL does not parse: {exc}\n---\n{content}") from exc
+        raise AssertionError(
+            f"generated HCL does not parse: {exc}\n---\n{content}"
+        ) from exc
 
 
 def assert_parses(content: str) -> dict:
@@ -34,6 +37,26 @@ def assert_tree_parses(tree: FileTree) -> None:
         except Exception as exc:
             failures.append(f"{path}: {exc}")
     assert not failures, "invalid HCL in generated tree:\n" + "\n".join(failures)
+
+
+_QUOTED_REFERENCE = re.compile(
+    r'=\s*"((?:var|local|module|data)\.[A-Za-z0-9_.\[\]-]+|aws_[a-z0-9_]+\.[A-Za-z0-9_.\[\]-]+)"'
+)
+
+
+def assert_no_quoted_references(tree: FileTree) -> None:
+    """Assert no Terraform reference was emitted as a quoted string instead of an expression."""
+    failures: list[str] = []
+    for path, content in sorted(tree.items()):
+        if not path.endswith(".tf"):
+            continue
+        for number, line in enumerate(content.split("\n"), 1):
+            match = _QUOTED_REFERENCE.search(line)
+            if match:
+                failures.append(f"{path}:{number}: {line.strip()}")
+    assert not failures, "references emitted as quoted literals:\n" + "\n".join(
+        failures
+    )
 
 
 def assert_no_path_collisions(files: list[GeneratedFile]) -> None:

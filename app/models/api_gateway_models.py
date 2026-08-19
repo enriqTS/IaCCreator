@@ -1,6 +1,5 @@
 """Data models for the API Gateway generator configuration."""
 
-
 from pydantic import BaseModel
 
 

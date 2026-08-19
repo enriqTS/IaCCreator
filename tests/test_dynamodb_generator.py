@@ -99,9 +99,13 @@ class TestDynamoDBTTLBlock:
         output = self.gen.generate_resource_tf(instance)
         # The word "ttl" should not appear as a block key
         lines = output.split("\n")
-        ttl_lines = [l for l in lines if "ttl" in l.lower() and "attribute" not in l.lower()]
+        ttl_lines = [
+            l for l in lines if "ttl" in l.lower() and "attribute" not in l.lower()
+        ]
         # No dedicated TTL block lines
-        assert not any("ttl" == l.strip().split()[0] if l.strip() else False for l in lines)
+        assert not any(
+            "ttl" == l.strip().split()[0] if l.strip() else False for l in lines
+        )
 
     def test_ttl_variables_emitted(self):
         """Variable blocks for TTL fields are emitted when set."""
@@ -194,7 +198,11 @@ class TestDynamoDBLSIBlocks:
         """local_secondary_index block appears when LSI is defined."""
         instance = _dynamodb_instance(
             local_secondary_indexes=[
-                {"name": "lsi1", "range_key": "created_at", "projection_type": "KEYS_ONLY"}
+                {
+                    "name": "lsi1",
+                    "range_key": "created_at",
+                    "projection_type": "KEYS_ONLY",
+                }
             ]
         )
         output = self.gen.generate_resource_tf(instance)
@@ -206,7 +214,11 @@ class TestDynamoDBLSIBlocks:
         """Multiple LSI blocks are emitted for multiple indexes."""
         instance = _dynamodb_instance(
             local_secondary_indexes=[
-                {"name": "lsi1", "range_key": "created_at", "projection_type": "KEYS_ONLY"},
+                {
+                    "name": "lsi1",
+                    "range_key": "created_at",
+                    "projection_type": "KEYS_ONLY",
+                },
                 {"name": "lsi2", "range_key": "updated_at", "projection_type": "ALL"},
             ]
         )
@@ -224,7 +236,11 @@ class TestDynamoDBLSIBlocks:
         """Variable block for local_secondary_indexes is emitted when set."""
         instance = _dynamodb_instance(
             local_secondary_indexes=[
-                {"name": "lsi1", "range_key": "created_at", "projection_type": "KEYS_ONLY"}
+                {
+                    "name": "lsi1",
+                    "range_key": "created_at",
+                    "projection_type": "KEYS_ONLY",
+                }
             ]
         )
         output = self.gen.generate_variables_tf(instance)

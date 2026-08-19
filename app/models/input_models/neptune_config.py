@@ -12,9 +12,7 @@ class NeptuneConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.NEPTUNE] = ServiceType.NEPTUNE
 
-    _schema_field_order: ClassVar[tuple[str, ...]] = (
-        "cluster_identifier",
-    )
+    _schema_field_order: ClassVar[tuple[str, ...]] = ("cluster_identifier",)
 
     # ── General ───────────────────────────────────────────────────────────
     cluster_identifier: str | None = TerraformField(

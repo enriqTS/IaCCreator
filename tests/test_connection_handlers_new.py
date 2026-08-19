@@ -6,7 +6,6 @@ Each handler is tested directly via handler.handle(connection, project).
 Requirements: 3, 5, 6
 """
 
-
 from app.models.input_models import ServiceType
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig

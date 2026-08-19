@@ -231,7 +231,11 @@ class ResourceInstance(BaseModel):
         # If config is a dict, resolve to typed model
         if isinstance(config, dict) and config:
             registry = _get_cached_service_config_models()
-            stype = ServiceType(service_type) if isinstance(service_type, str) else service_type
+            stype = (
+                ServiceType(service_type)
+                if isinstance(service_type, str)
+                else service_type
+            )
             config_cls = registry.get(stype)
             if config_cls is not None:
                 data["config"] = config_cls(**config)
@@ -240,7 +244,10 @@ class ResourceInstance(BaseModel):
     @model_validator(mode="after")
     def validate_dynamodb_hash_key(self) -> ResourceInstance:
         """DynamoDB resources must have hash_key in config."""
-        if self.service_type == ServiceType.DYNAMODB and getattr(self.config, "hash_key", None) is None:
+        if (
+            self.service_type == ServiceType.DYNAMODB
+            and getattr(self.config, "hash_key", None) is None
+        ):
             raise ValueError(
                 "DynamoDB resource must have 'hash_key' specified in config"
             )

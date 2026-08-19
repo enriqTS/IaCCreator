@@ -65,10 +65,16 @@ class ResourceInstanceIR(BaseModel):
             return data
         # If config is a dict, resolve to typed model
         if isinstance(config, dict):
-            from app.models.input_models._general import _get_cached_service_config_models
+            from app.models.input_models._general import (
+                _get_cached_service_config_models,
+            )
 
             registry = _get_cached_service_config_models()
-            stype = ServiceType(service_type) if isinstance(service_type, str) else service_type
+            stype = (
+                ServiceType(service_type)
+                if isinstance(service_type, str)
+                else service_type
+            )
             config_cls = registry.get(stype)
             if config_cls is not None:
                 data["config"] = config_cls.model_validate(config)

@@ -1,6 +1,5 @@
 """Unit tests for APIGatewayGenerator._generate_authorizers method."""
 
-
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.models.input_models import ServiceType
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
@@ -26,7 +25,9 @@ class TestGenerateAuthorizersEmpty:
         assert result == ""
 
     def test_empty_authorizers_list_returns_empty_string(self):
-        config = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP", authorizers=[])
+        config = ApiGatewayConfig(
+            api_name="test-api", protocol_type="HTTP", authorizers=[]
+        )
         instance = _make_instance("my_api", config)
         gen = APIGatewayGenerator()
         result = gen._generate_authorizers(instance)
@@ -37,7 +38,8 @@ class TestGenerateAuthorizersJWT:
     """Tests for JWT authorizer generation."""
 
     def test_jwt_authorizer_basic(self):
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -64,7 +66,8 @@ class TestGenerateAuthorizersJWT:
         assert 'name = "my_jwt"' in result
 
     def test_jwt_authorizer_multiple_audiences(self):
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -86,7 +89,8 @@ class TestGenerateAuthorizersLambda:
     """Tests for Lambda (REQUEST) authorizer generation."""
 
     def test_lambda_authorizer_basic(self):
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -114,7 +118,8 @@ class TestGenerateAuthorizersLambda:
         assert 'name = "lambda_auth"' in result
 
     def test_lambda_authorizer_payload_version_1_0(self):
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -132,7 +137,8 @@ class TestGenerateAuthorizersLambda:
         assert 'authorizer_payload_format_version = "1.0"' in result
 
     def test_lambda_authorizer_default_payload_version(self):
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -154,7 +160,8 @@ class TestGenerateAuthorizersCognito:
     """Tests for Cognito User Pools authorizer generation."""
 
     def test_cognito_authorizer_basic(self):
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             authorizers=[
                 {
@@ -188,7 +195,8 @@ class TestGenerateAuthorizersMultiple:
     """Tests for multiple authorizers in a single API."""
 
     def test_multiple_authorizers_different_types(self):
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             authorizers=[
                 {

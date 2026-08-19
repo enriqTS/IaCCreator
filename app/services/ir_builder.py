@@ -57,7 +57,9 @@ class IRBuilder:
         service_groups: dict[ServiceType, list[ResourceInstanceIR]] = defaultdict(list)
         for resource in input.resources:
             instance_connections = connections_by_source.get(resource.name, [])
-            resolved_config = self._resolve_config(resource.config, resource.service_type)
+            resolved_config = self._resolve_config(
+                resource.config, resource.service_type
+            )
 
             instance_ir = ResourceInstanceIR(
                 name=resource.name,

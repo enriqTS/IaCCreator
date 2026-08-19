@@ -12,9 +12,7 @@ class EcrConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.ECR] = ServiceType.ECR
 
-    _schema_field_order: ClassVar[tuple[str, ...]] = (
-        "repository_name",
-    )
+    _schema_field_order: ClassVar[tuple[str, ...]] = ("repository_name",)
 
     # ── General ───────────────────────────────────────────────────────────
     repository_name: str | None = TerraformField(

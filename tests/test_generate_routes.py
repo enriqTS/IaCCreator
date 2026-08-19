@@ -1,6 +1,5 @@
 """Unit tests for APIGatewayGenerator._generate_routes method."""
 
-
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.models.input_models import ServiceType
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
@@ -21,7 +20,9 @@ class TestGenerateRoutesHTTP:
 
     def test_default_route_when_no_routes_configured(self):
         """When no routes configured for HTTP API, generates $default route."""
-        instance = _make_instance("my_api", ApiGatewayConfig(api_name="test-api", protocol_type="HTTP"))
+        instance = _make_instance(
+            "my_api", ApiGatewayConfig(api_name="test-api", protocol_type="HTTP")
+        )
         gen = APIGatewayGenerator()
         hcl = gen._generate_routes(instance)
 
@@ -31,7 +32,8 @@ class TestGenerateRoutesHTTP:
 
     def test_generates_route_for_each_configured_entry(self):
         """Generates a route resource for each configured route."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=[
                 {"methods": ["GET"], "path": "/users"},
@@ -49,7 +51,8 @@ class TestGenerateRoutesHTTP:
 
     def test_route_key_format(self):
         """Route key is formatted as '{METHOD} {path}'."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=[{"methods": ["DELETE"], "path": "/items/{id}"}],
         )
@@ -61,7 +64,8 @@ class TestGenerateRoutesHTTP:
 
     def test_authorization_on_http_route(self):
         """Routes referencing authorizers get authorization_type and authorizer_id."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=[
                 {"methods": ["GET"], "path": "/secure", "authorizer_name": "jwt_auth"}
@@ -84,7 +88,8 @@ class TestGenerateRoutesHTTP:
 
     def test_lambda_authorizer_sets_custom_type(self):
         """Lambda (REQUEST) authorizer sets authorization_type = CUSTOM."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=[
                 {
@@ -110,7 +115,8 @@ class TestGenerateRoutesHTTP:
 
     def test_api_key_required_on_routes(self):
         """When api_key_required is True, all routes get api_key_required = true."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=[{"methods": ["GET"], "path": "/data"}],
             api_key_required=True,
@@ -123,7 +129,8 @@ class TestGenerateRoutesHTTP:
 
     def test_api_key_required_on_default_route(self):
         """When api_key_required is True and no routes, $default route gets api_key_required."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             api_key_required=True,
         )
@@ -136,7 +143,8 @@ class TestGenerateRoutesHTTP:
 
     def test_integration_target_on_route(self):
         """Routes with integration_name get a target attribute."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=[
                 {
@@ -156,7 +164,8 @@ class TestGenerateRoutesHTTP:
 
     def test_undefined_authorizer_not_added(self):
         """Routes referencing undefined authorizers don't get authorization attributes."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=[
                 {"methods": ["GET"], "path": "/data", "authorizer_name": "nonexistent"}
@@ -176,11 +185,20 @@ class TestGenerateRoutesHTTP:
         These routes are handled by ApiGatewayLambdaHandler which generates both
         the route and its integration target properly.
         """
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=[
-                {"methods": ["GET"], "path": "/users", "integration_name": "lambda_backend"},
-                {"methods": ["POST"], "path": "/users", "integration_name": "lambda_backend"},
+                {
+                    "methods": ["GET"],
+                    "path": "/users",
+                    "integration_name": "lambda_backend",
+                },
+                {
+                    "methods": ["POST"],
+                    "path": "/users",
+                    "integration_name": "lambda_backend",
+                },
             ],
             # No config.integrations - routes reference lambda by name only (connection-derived)
             integrations=[],
@@ -192,14 +210,21 @@ class TestGenerateRoutesHTTP:
         # Routes should be skipped entirely (not emitted at all)
         assert "GET /users" not in hcl
         assert "POST /users" not in hcl
-        assert hcl.strip() == "" or '$default' in hcl  # Should fall back to default route
+        assert (
+            hcl.strip() == "" or "$default" in hcl
+        )  # Should fall back to default route
 
     def test_emits_routes_with_matching_manual_integrations(self):
         """Routes with integration_name found in config.integrations are emitted."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="HTTP",
             routes=[
-                {"methods": ["GET"], "path": "/users", "integration_name": "manual_integration"},
+                {
+                    "methods": ["GET"],
+                    "path": "/users",
+                    "integration_name": "manual_integration",
+                },
             ],
             integrations=[{"name": "manual_integration", "type": "HTTP_PROXY"}],
         )
@@ -210,7 +235,9 @@ class TestGenerateRoutesHTTP:
         # Route with matching manual integration should be emitted
         assert 'route_key = "GET /users"' in hcl
         assert "target" in hcl
-        assert "aws_apigatewayv2_integration.api_manual_integration_integration.id" in hcl
+        assert (
+            "aws_apigatewayv2_integration.api_manual_integration_integration.id" in hcl
+        )
 
 
 class TestGenerateRoutesWebSocket:
@@ -229,7 +256,8 @@ class TestGenerateRoutesWebSocket:
 
     def test_custom_routes_added(self):
         """Custom WebSocket routes are generated alongside special routes."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="WEBSOCKET",
             routes=[{"path": "sendMessage"}],
         )
@@ -244,7 +272,8 @@ class TestGenerateRoutesWebSocket:
 
     def test_only_connect_gets_authorization(self):
         """Only $connect route gets authorization attributes (Property 4)."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="WEBSOCKET",
             routes=[
                 {"path": "$connect", "authorizer_name": "jwt_auth"},
@@ -284,7 +313,8 @@ class TestGenerateRoutesWebSocket:
 
     def test_api_key_required_on_websocket_routes(self):
         """When api_key_required is True, all WebSocket routes get api_key_required."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="WEBSOCKET",
             api_key_required=True,
         )
@@ -297,7 +327,8 @@ class TestGenerateRoutesWebSocket:
 
     def test_duplicate_special_routes_not_generated(self):
         """If routes config includes $connect, it's not duplicated."""
-        config = ApiGatewayConfig(api_name="test-api", 
+        config = ApiGatewayConfig(
+            api_name="test-api",
             protocol_type="WEBSOCKET",
             routes=[
                 {"path": "$connect", "integration_name": "auth_fn"},

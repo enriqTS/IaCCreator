@@ -12,9 +12,7 @@ class TimestreamConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.TIMESTREAM] = ServiceType.TIMESTREAM
 
-    _schema_field_order: ClassVar[tuple[str, ...]] = (
-        "database_name",
-    )
+    _schema_field_order: ClassVar[tuple[str, ...]] = ("database_name",)
 
     # ── General ───────────────────────────────────────────────────────────
     database_name: str | None = TerraformField(

@@ -187,9 +187,7 @@ def resource_instance_with_populated_fields(draw):
         config_kwargs["hash_key"] = draw(
             st.from_regex(r"[a-z][a-z0-9_]{0,9}", fullmatch=True)
         )
-        config_kwargs["hash_key_type"] = draw(
-            st.sampled_from(["S", "N", "B"])
-        )
+        config_kwargs["hash_key_type"] = draw(st.sampled_from(["S", "N", "B"]))
         config_kwargs["billing_mode"] = draw(
             st.sampled_from(["PAY_PER_REQUEST", "PROVISIONED"])
         )
@@ -197,9 +195,7 @@ def resource_instance_with_populated_fields(draw):
         config_kwargs["api_name"] = draw(
             st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True)
         )
-        config_kwargs["protocol_type"] = draw(
-            st.sampled_from(["HTTP", "WEBSOCKET"])
-        )
+        config_kwargs["protocol_type"] = draw(st.sampled_from(["HTTP", "WEBSOCKET"]))
 
     skip_fields = _SKIP_VAR_REF_FIELDS.get(service_type, set())
 
@@ -317,7 +313,9 @@ def test_dynamodb_visible_when_false_excludes_capacity(
     var references SHALL NOT appear in the generated HCL, even if those fields
     are populated on the config.
     """
-    config = DynamoDBConfig(table_name="test-table", hash_key_type="S", 
+    config = DynamoDBConfig(
+        table_name="test-table",
+        hash_key_type="S",
         billing_mode=billing_mode,
         hash_key="pk",
         read_capacity=read_cap,
@@ -352,7 +350,8 @@ def test_api_gateway_visible_when_false_excludes_route_selection(
     var reference SHALL NOT appear in the generated HCL, even if the field
     is populated on the config.
     """
-    config = ApiGatewayConfig(api_name="test-api", 
+    config = ApiGatewayConfig(
+        api_name="test-api",
         protocol_type=protocol_type,
         route_selection_expression=route_expr,
     )

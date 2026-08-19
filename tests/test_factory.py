@@ -1,6 +1,5 @@
 """Unit tests for the repository factory."""
 
-
 import pytest
 
 from app.persistence.factory import get_repository

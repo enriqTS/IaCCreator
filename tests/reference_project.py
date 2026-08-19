@@ -99,8 +99,12 @@ def reference_architecture() -> ArchitectureDescription:
     ]
 
     connections = [
-        Connection(source="public-api", target="create-user", connection_type="route_handler"),
-        Connection(source="public-api", target="list-users", connection_type="route_handler"),
+        Connection(
+            source="public-api", target="create-user", connection_type="route_handler"
+        ),
+        Connection(
+            source="public-api", target="list-users", connection_type="route_handler"
+        ),
         Connection(
             source="create-user",
             target="users",
@@ -120,7 +124,9 @@ def reference_architecture() -> ArchitectureDescription:
             connection_config={"access_pattern": "write"},
         ),
         Connection(source="create-user", target="app-logs", connection_type="logs_to"),
-        Connection(source="create-user", target="events", connection_type="publishes_to"),
+        Connection(
+            source="create-user", target="events", connection_type="publishes_to"
+        ),
         Connection(source="create-user", target="jobs", connection_type="sends_to"),
         Connection(source="events", target="jobs", connection_type="delivers_to"),
         Connection(source="events", target="process-job", connection_type="triggers"),
@@ -178,7 +184,9 @@ def colliding_route_architecture() -> ArchitectureDescription:
 
 def colliding_route_connection_files() -> list[GeneratedFile]:
     """Return connection files for the colliding-route architecture."""
-    return ConnectionProcessor().process_all(IRBuilder().build(colliding_route_architecture()))
+    return ConnectionProcessor().process_all(
+        IRBuilder().build(colliding_route_architecture())
+    )
 
 
 def reference_ir() -> ProjectIR:

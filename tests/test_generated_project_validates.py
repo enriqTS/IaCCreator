@@ -9,7 +9,11 @@ from pathlib import Path
 import pytest
 
 from app.models.ir_models import FileTree
-from tests.hcl_assertions import assert_no_path_collisions, assert_tree_parses
+from tests.hcl_assertions import (
+    assert_no_path_collisions,
+    assert_no_quoted_references,
+    assert_tree_parses,
+)
 from tests.reference_project import (
     ENVIRONMENTS,
     PROJECT_NAME,
@@ -50,6 +54,10 @@ def test_distinct_route_paths_do_not_collide() -> None:
 
 def test_generated_tree_is_syntactically_valid_hcl() -> None:
     assert_tree_parses(reference_tree())
+
+
+def test_generated_tree_has_no_quoted_references() -> None:
+    assert_no_quoted_references(reference_tree())
 
 
 @pytest.mark.terraform

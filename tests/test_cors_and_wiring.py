@@ -7,7 +7,6 @@ Validates:
 - Existing /generate endpoints remain intact
 """
 
-
 import pytest
 from fastapi.testclient import TestClient
 
