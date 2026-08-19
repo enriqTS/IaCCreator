@@ -28,8 +28,8 @@ class CodeGenerator:
         attached to Lambda instances before the assembler generates
         iam.tf and policy JSON files.
         """
-        # 1. Process connections — produces extra files and enriches IAM statements
-        extra_files = self._connection_processor.process_all(project)
+        # 1. Process connections — produces module wiring and enriches IAM statements
+        contribution = self._connection_processor.process_all(project)
 
         # 2. Assemble the full file tree
-        return self._assembler.assemble(project, extra_files=extra_files)
+        return self._assembler.assemble(project, contribution=contribution)

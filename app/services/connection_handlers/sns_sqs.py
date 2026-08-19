@@ -1,85 +1,71 @@
-"""SNS → SQS connection handler.
-
-Generates an ``aws_sns_topic_subscription`` (protocol "sqs") to subscribe the
-SQS queue to the SNS topic, and an ``aws_sqs_queue_policy`` allowing the SNS
-topic to send messages to the queue.
-
-Generated resources:
-- aws_sns_topic_subscription
-- aws_sqs_queue_policy
-
-IAM mutations:
-- None (queue policy is resource-based, not identity-based).
-"""
-
-import logging
+"""SNS → SQS connection handler — the queue module owns the subscription and policy."""
 
 from app.generators.hcl_renderer import Expr
-from app.generators.service_category_map import get_category
-from app.models.input_models import ServiceType
-from app.models.ir_models import ConnectionIR, GeneratedFile, ProjectIR
-from app.services.connection_handlers.base import BaseConnectionHandler
-
-logger = logging.getLogger(__name__)
+from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
+from app.services.connection_handlers.base import BaseConnectionHandler, safe_identifier
 
 
 class SNSSQSHandler(BaseConnectionHandler):
-    """Handles SNS → SQS connections (topic subscription + queue policy)."""
+    """Handles SNS → SQS connections (topic subscription plus queue policy)."""
 
     def handle(
         self, connection: ConnectionIR, project: ProjectIR
-    ) -> list[GeneratedFile]:
-        """Generate SNS topic subscription and SQS queue policy."""
-        sns_name = connection.source_name
-        sqs_name = connection.target_name
+    ) -> ConnectionContribution:
+        topic = connection.source_name
+        queue = connection.target_name
+        topic_arn_var = f"{safe_identifier(topic)}_topic_arn"
 
-        sns_category = get_category(ServiceType.SNS)
-        sqs_category = get_category(ServiceType.SQS)
-
-        # --- SNS Topic Subscription ---
-        subscription_name = f"{sns_name}_{sqs_name}_subscription"
-        subscription_attrs = {
-            "topic_arn": Expr(f"aws_sns_topic.{sns_name}.arn"),
-            "protocol": "sqs",
-            "endpoint": Expr(f"aws_sqs_queue.{sqs_name}.arn"),
-        }
-        subscription_content = self._renderer.render_resource(
-            "aws_sns_topic_subscription", subscription_name, subscription_attrs
+        subscription = self._renderer.render_resource(
+            "aws_sns_topic_subscription",
+            f"{safe_identifier(topic)}_subscription",
+            {
+                "topic_arn": Expr(f"var.{topic_arn_var}"),
+                "protocol": "sqs",
+                "endpoint": Expr(f"aws_sqs_queue.{queue}.arn"),
+            },
         )
-        subscription_path = f"{project.project_name}/modules/{sns_category}/sns/{sns_name}/subscription_{sqs_name}.tf"
-
-        # --- SQS Queue Policy ---
-        policy_name = f"{sqs_name}_{sns_name}_policy"
-        policy_attrs = {
-            "queue_url": Expr(f"aws_sqs_queue.{sqs_name}.url"),
-            "policy": self._renderer.render_json_policy(
-                {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Effect": "Allow",
-                            "Principal": {"Service": "sns.amazonaws.com"},
-                            "Action": "SQS:SendMessage",
-                            "Resource": Expr(f"aws_sqs_queue.{sqs_name}.arn"),
-                            "Condition": {
-                                "ArnEquals": {
-                                    "aws:SourceArn": Expr(
-                                        f"aws_sns_topic.{sns_name}.arn"
-                                    )
-                                }
-                            },
-                        }
-                    ],
-                },
-                depth=2,
-            ),
-        }
-        policy_content = self._renderer.render_resource(
-            "aws_sqs_queue_policy", policy_name, policy_attrs
+        policy = self._renderer.render_resource(
+            "aws_sqs_queue_policy",
+            f"{safe_identifier(topic)}_policy",
+            {
+                "queue_url": Expr(f"aws_sqs_queue.{queue}.url"),
+                "policy": self._renderer.render_json_policy(
+                    {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                            {
+                                "Effect": "Allow",
+                                "Principal": {"Service": "sns.amazonaws.com"},
+                                "Action": "SQS:SendMessage",
+                                "Resource": Expr(f"aws_sqs_queue.{queue}.arn"),
+                                "Condition": {
+                                    "ArnEquals": {
+                                        "aws:SourceArn": Expr(f"var.{topic_arn_var}")
+                                    }
+                                },
+                            }
+                        ],
+                    },
+                    depth=2,
+                ),
+            },
         )
-        policy_path = f"{project.project_name}/modules/{sqs_category}/sqs/{sqs_name}/policy_{sns_name}.tf"
 
-        return [
-            GeneratedFile(path=subscription_path, content=subscription_content),
-            GeneratedFile(path=policy_path, content=policy_content),
-        ]
+        return ConnectionContribution(
+            outputs=[
+                self._output(topic, "arn", f"aws_sns_topic.{topic}.arn", "Topic ARN")
+            ],
+            inputs=[
+                self._input(
+                    queue,
+                    topic,
+                    "topic_arn",
+                    f"module.{topic}.arn",
+                    f"ARN of the {topic} topic that publishes to this queue",
+                )
+            ],
+            resources=[
+                self._resource(queue, f"subscription_{topic}.tf", subscription),
+                self._resource(queue, f"policy_{topic}.tf", policy),
+            ],
+        )

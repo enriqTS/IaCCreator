@@ -1,84 +1,75 @@
-"""SQS → Lambda connection handler.
-
-Generates an ``aws_lambda_event_source_mapping`` resource to wire the SQS queue
-as an event source for the Lambda, an ``aws_lambda_permission`` to allow SQS to
-invoke the Lambda, and attaches SQS read IAM statements to the Lambda instance.
-
-Supports ``batch_size`` and ``maximum_batching_window_in_seconds`` via connection_config.
-
-Generated resources:
-- aws_lambda_event_source_mapping
-- aws_lambda_permission
-
-IAM mutations:
-- Appends SQS read statements (ReceiveMessage, DeleteMessage, GetQueueAttributes)
-  to the target Lambda.
-"""
-
-import logging
+"""SQS → Lambda connection handler — the Lambda module owns the event source mapping."""
 
 from app.generators.hcl_renderer import Expr
-from app.generators.service_category_map import get_category
 from app.models.input_models import ServiceType
-from app.models.ir_models import ConnectionIR, GeneratedFile, IAMStatement, ProjectIR
-from app.services.connection_handlers.base import BaseConnectionHandler
+from app.models.ir_models import (
+    ConnectionContribution,
+    ConnectionIR,
+    IAMStatement,
+    ProjectIR,
+)
+from app.services.connection_handlers.base import BaseConnectionHandler, safe_identifier
 from app.services.iam_registry import get_actions, get_resources
-
-logger = logging.getLogger(__name__)
 
 
 class SQSLambdaHandler(BaseConnectionHandler):
-    """Handles SQS → Lambda connections (event source mapping + permission + IAM)."""
+    """Handles SQS → Lambda connections (event source mapping, permission, IAM)."""
 
     def handle(
         self, connection: ConnectionIR, project: ProjectIR
-    ) -> list[GeneratedFile]:
-        """Generate event source mapping, permission, and attach SQS read IAM."""
-        sqs_name = connection.source_name
-        lambda_name = connection.target_name
-        category = get_category(ServiceType.SQS)
+    ) -> ConnectionContribution:
+        queue = connection.source_name
+        function = connection.target_name
+        queue_arn_var = f"{safe_identifier(queue)}_queue_arn"
 
-        # --- Event Source Mapping ---
-        mapping_name = f"{sqs_name}_{lambda_name}_event_source"
-        mapping_attrs: dict[str, str | int] = {
-            "event_source_arn": Expr(f"aws_sqs_queue.{sqs_name}.arn"),
-            "function_name": Expr(f"aws_lambda_function.{lambda_name}.arn"),
+        mapping_attrs: dict[str, object] = {
+            "event_source_arn": Expr(f"var.{queue_arn_var}"),
+            "function_name": Expr(f"aws_lambda_function.{function}.arn"),
             "batch_size": connection.connection_config.get("batch_size", 10),
         }
-        batching_window = connection.connection_config.get(
-            "maximum_batching_window_in_seconds"
-        )
-        if batching_window is not None:
-            mapping_attrs["maximum_batching_window_in_seconds"] = batching_window
+        window = connection.connection_config.get("maximum_batching_window_in_seconds")
+        if window is not None:
+            mapping_attrs["maximum_batching_window_in_seconds"] = window
 
-        mapping_content = self._renderer.render_resource(
-            "aws_lambda_event_source_mapping", mapping_name, mapping_attrs
+        mapping = self._renderer.render_resource(
+            "aws_lambda_event_source_mapping",
+            f"{safe_identifier(queue)}_event_source",
+            mapping_attrs,
         )
-        mapping_path = f"{project.project_name}/modules/{category}/sqs/{sqs_name}/event_source_{lambda_name}.tf"
-
-        # --- Lambda Permission ---
-        permission_name = f"{sqs_name}_{lambda_name}_permission"
-        permission_attrs = {
-            "statement_id": f"AllowSQSInvoke_{sqs_name}_{lambda_name}",
-            "action": "lambda:InvokeFunction",
-            "function_name": Expr(f"aws_lambda_function.{lambda_name}.function_name"),
-            "principal": "sqs.amazonaws.com",
-            "source_arn": f"${{aws_sqs_queue.{sqs_name}.arn}}",
-        }
-        permission_content = self._renderer.render_resource(
-            "aws_lambda_permission", permission_name, permission_attrs
+        permission = self._renderer.render_resource(
+            "aws_lambda_permission",
+            f"{safe_identifier(queue)}_permission",
+            {
+                "statement_id": f"AllowSQSInvoke{safe_identifier(queue)}",
+                "action": "lambda:InvokeFunction",
+                "function_name": Expr(f"aws_lambda_function.{function}.function_name"),
+                "principal": "sqs.amazonaws.com",
+                "source_arn": Expr(f"var.{queue_arn_var}"),
+            },
         )
-        permission_path = f"{project.project_name}/modules/{category}/sqs/{sqs_name}/permission_{lambda_name}.tf"
 
-        # --- IAM statements for the Lambda to receive from SQS ---
         statement = IAMStatement(
             effect="Allow",
             actions=get_actions(ServiceType.SQS, "read"),
-            resources=get_resources(sqs_name, ServiceType.SQS),
+            resources=get_resources(queue, ServiceType.SQS),
         )
-        self._attach_iam_statement(lambda_name, statement, project)
 
-        return [
-            GeneratedFile(path=mapping_path, content=mapping_content),
-            GeneratedFile(path=permission_path, content=permission_content),
-        ]
+        return ConnectionContribution(
+            outputs=[
+                self._output(queue, "arn", f"aws_sqs_queue.{queue}.arn", "Queue ARN")
+            ],
+            inputs=[
+                self._input(
+                    function,
+                    queue,
+                    "queue_arn",
+                    f"module.{queue}.arn",
+                    f"ARN of the {queue} queue this function consumes",
+                )
+            ],
+            resources=[
+                self._resource(function, f"event_source_{queue}.tf", mapping),
+                self._resource(function, f"permission_{queue}.tf", permission),
+            ],
+            iam=[self._grant(function, statement)],
+        )

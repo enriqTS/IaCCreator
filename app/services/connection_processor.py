@@ -2,23 +2,18 @@
 
 import logging
 
-from app.models.ir_models import GeneratedFile, ProjectIR
+from app.models.ir_models import ConnectionContribution, ProjectIR
 from app.services.connection_handlers.registry import CONNECTION_HANDLER_REGISTRY
 
 logger = logging.getLogger(__name__)
 
 
 class ConnectionProcessor:
-    """Iterates project connections and delegates to the handler registry.
+    """Iterates project connections and merges what each handler contributes."""
 
-    Each connection type is handled by a dedicated handler class registered
-    in CONNECTION_HANDLER_REGISTRY. See app/services/connection_handlers/ for
-    individual handler implementations.
-    """
-
-    def process_all(self, project: ProjectIR) -> list[GeneratedFile]:
-        """Process every connection in the project and return all generated files."""
-        files: list[GeneratedFile] = []
+    def process_all(self, project: ProjectIR) -> ConnectionContribution:
+        """Process every connection and return one merged contribution."""
+        merged = ConnectionContribution()
         for conn in project.connections:
             handler = CONNECTION_HANDLER_REGISTRY.get(
                 (conn.source_service, conn.target_service)
@@ -30,5 +25,18 @@ class ConnectionProcessor:
                     conn.target_service.value,
                 )
                 continue
-            files.extend(handler.handle(conn, project))
-        return files
+            merged.merge(handler.handle(conn, project))
+
+        self._attach_iam(merged, project)
+        return merged
+
+    @staticmethod
+    def _attach_iam(contribution: ConnectionContribution, project: ProjectIR) -> None:
+        """Move collected IAM statements onto the instances that own the roles."""
+        instances = {
+            inst.name: inst for module in project.modules for inst in module.instances
+        }
+        for grant in contribution.iam:
+            instance = instances.get(grant.role_owner)
+            if instance is not None:
+                instance.iam_statements.append(grant.statement)

@@ -32,6 +32,60 @@ class ConnectionIR(BaseModel):
     connection_config: dict[str, Any] = Field(default_factory=dict)
 
 
+class ModuleInput(BaseModel):
+    """A variable an instance module must accept, and the value the environment passes."""
+
+    module: str
+    name: str
+    value: str
+    type: str = "string"
+    description: str = ""
+
+
+class ModuleOutput(BaseModel):
+    """A value an instance module must expose so other modules can consume it."""
+
+    module: str
+    name: str
+    value: str
+    description: str = ""
+
+
+class ModuleResource(BaseModel):
+    """An HCL file emitted inside the module that owns the resource."""
+
+    module: str
+    filename: str
+    content: str
+
+
+class IAMGrant(BaseModel):
+    """An IAM statement to attach to the resource that owns the execution role."""
+
+    role_owner: str
+    statement: IAMStatement
+
+
+class ConnectionContribution(BaseModel):
+    """Everything a single connection adds to the project."""
+
+    inputs: list[ModuleInput] = Field(default_factory=list)
+    outputs: list[ModuleOutput] = Field(default_factory=list)
+    resources: list[ModuleResource] = Field(default_factory=list)
+    iam: list[IAMGrant] = Field(default_factory=list)
+
+    def merge(self, other: "ConnectionContribution") -> None:
+        """Absorb another contribution, dropping inputs and outputs already present."""
+        seen_in = {(i.module, i.name) for i in self.inputs}
+        seen_out = {(o.module, o.name) for o in self.outputs}
+        self.inputs.extend(i for i in other.inputs if (i.module, i.name) not in seen_in)
+        self.outputs.extend(
+            o for o in other.outputs if (o.module, o.name) not in seen_out
+        )
+        self.resources.extend(other.resources)
+        self.iam.extend(other.iam)
+
+
 class ResourceInstanceIR(BaseModel):
     """A resource instance in the IR, enriched with IAM and connection data."""
 
