@@ -22,10 +22,7 @@ from app.models.ir_models import (
     ServiceModuleIR,
 )
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
-from app.services.connection_handlers.lambda_dynamodb import LambdaDynamoDBHandler
-from app.services.connection_handlers.lambda_s3 import LambdaS3Handler
-from app.services.connection_handlers.lambda_sns import LambdaSNSHandler
-from app.services.connection_handlers.lambda_sqs import LambdaSQSHandler
+from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
@@ -449,7 +446,7 @@ class TestHandleLambdaSns:
     """Test Lambda → SNS handler attaches correct IAM statement."""
 
     def setup_method(self):
-        self.handler = LambdaSNSHandler()
+        self.handler = IamGrantHandler(ServiceType.SNS, access_pattern="full")
 
     def _handle_lambda_sns(self):
         func = _lambda_ir("my-func")
@@ -503,7 +500,7 @@ class TestHandleLambdaSqs:
     """Test Lambda → SQS handler attaches correct IAM statement."""
 
     def setup_method(self):
-        self.handler = LambdaSQSHandler()
+        self.handler = IamGrantHandler(ServiceType.SQS, access_pattern="write")
 
     def _handle_lambda_sqs(self):
         func = _lambda_ir("my-func")
@@ -899,7 +896,7 @@ class TestTerraformReferenceConsistency:
 
     def test_lambda_sns_iam_uses_terraform_references(self):
         """Lambda→SNS IAM statement uses Terraform resource reference for SNS topic ARN."""
-        handler = LambdaSNSHandler()
+        handler = IamGrantHandler(ServiceType.SNS, access_pattern="full")
         func = _lambda_ir("my-func")
         topic = _sns_ir("my-topic")
         conn = ConnectionIR(
@@ -919,7 +916,7 @@ class TestTerraformReferenceConsistency:
 
     def test_lambda_sqs_iam_uses_terraform_references(self):
         """Lambda→SQS IAM statement uses Terraform resource reference for SQS queue ARN."""
-        handler = LambdaSQSHandler()
+        handler = IamGrantHandler(ServiceType.SQS, access_pattern="write")
         func = _lambda_ir("my-func")
         queue = _sqs_ir("my-queue")
         conn = ConnectionIR(
@@ -967,7 +964,7 @@ class TestHandleLambdaDynamoDBAccessPattern:
     """Test Lambda → DynamoDB handler respects access_pattern config."""
 
     def setup_method(self):
-        self.handler = LambdaDynamoDBHandler()
+        self.handler = IamGrantHandler(ServiceType.DYNAMODB)
 
     def _handle_lambda_dynamodb(self, connection_config=None):
         func = _lambda_ir("my-func")
@@ -1058,7 +1055,7 @@ class TestHandleLambdaS3AccessPattern:
     """Test Lambda → S3 handler respects access_pattern config."""
 
     def setup_method(self):
-        self.handler = LambdaS3Handler()
+        self.handler = IamGrantHandler(ServiceType.S3)
 
     def _handle_lambda_s3(self, connection_config=None):
         func = _lambda_ir("my-func")
