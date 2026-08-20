@@ -1,6 +1,8 @@
-"""Unit tests for APIGatewayGenerator._generate_authorizers method."""
+"""Unit tests for the authorizers sub-generator."""
 
-from app.generators.api_gateway_generator import APIGatewayGenerator
+from app.generators.api_gateway import authorizers
+from app.generators.api_gateway._support import resolve_config
+from app.generators.hcl_renderer import HCLRenderer
 from app.models.input_models import ServiceType
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -20,8 +22,7 @@ class TestGenerateAuthorizersEmpty:
     def test_no_authorizers_returns_empty_string(self):
         config = ApiGatewayConfig(api_name="test-api", protocol_type="HTTP")
         instance = _make_instance("my_api", config)
-        gen = APIGatewayGenerator()
-        result = gen._generate_authorizers(instance)
+        result = authorizers.render_authorizers(instance, resolve_config(instance), HCLRenderer())
         assert result == ""
 
     def test_empty_authorizers_list_returns_empty_string(self):
@@ -29,8 +30,7 @@ class TestGenerateAuthorizersEmpty:
             api_name="test-api", protocol_type="HTTP", authorizers=[]
         )
         instance = _make_instance("my_api", config)
-        gen = APIGatewayGenerator()
-        result = gen._generate_authorizers(instance)
+        result = authorizers.render_authorizers(instance, resolve_config(instance), HCLRenderer())
         assert result == ""
 
 
@@ -51,8 +51,7 @@ class TestGenerateAuthorizersJWT:
             ],
         )
         instance = _make_instance("my_api", config)
-        gen = APIGatewayGenerator()
-        result = gen._generate_authorizers(instance)
+        result = authorizers.render_authorizers(instance, resolve_config(instance), HCLRenderer())
 
         assert (
             'resource "aws_apigatewayv2_authorizer" "my_api_my_jwt_authorizer"'
@@ -79,8 +78,7 @@ class TestGenerateAuthorizersJWT:
             ],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        result = gen._generate_authorizers(instance)
+        result = authorizers.render_authorizers(instance, resolve_config(instance), HCLRenderer())
 
         assert 'audience = ["client-a", "client-b", "client-c"]' in result
 
@@ -102,8 +100,7 @@ class TestGenerateAuthorizersLambda:
             ],
         )
         instance = _make_instance("my_api", config)
-        gen = APIGatewayGenerator()
-        result = gen._generate_authorizers(instance)
+        result = authorizers.render_authorizers(instance, resolve_config(instance), HCLRenderer())
 
         assert (
             'resource "aws_apigatewayv2_authorizer" "my_api_lambda_auth_authorizer"'
@@ -131,8 +128,7 @@ class TestGenerateAuthorizersLambda:
             ],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        result = gen._generate_authorizers(instance)
+        result = authorizers.render_authorizers(instance, resolve_config(instance), HCLRenderer())
 
         assert 'authorizer_payload_format_version = "1.0"' in result
 
@@ -149,8 +145,7 @@ class TestGenerateAuthorizersLambda:
             ],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        result = gen._generate_authorizers(instance)
+        result = authorizers.render_authorizers(instance, resolve_config(instance), HCLRenderer())
 
         # Default payload_format_version should be "2.0"
         assert 'authorizer_payload_format_version = "2.0"' in result
@@ -173,8 +168,7 @@ class TestGenerateAuthorizersCognito:
             ],
         )
         instance = _make_instance("my_api", config)
-        gen = APIGatewayGenerator()
-        result = gen._generate_authorizers(instance)
+        result = authorizers.render_authorizers(instance, resolve_config(instance), HCLRenderer())
 
         assert (
             'resource "aws_apigatewayv2_authorizer" "my_api_cognito_auth_authorizer"'
@@ -220,8 +214,7 @@ class TestGenerateAuthorizersMultiple:
             ],
         )
         instance = _make_instance("my_api", config)
-        gen = APIGatewayGenerator()
-        result = gen._generate_authorizers(instance)
+        result = authorizers.render_authorizers(instance, resolve_config(instance), HCLRenderer())
 
         # All three authorizer resources should be present
         assert '"my_api_jwt_auth_authorizer"' in result

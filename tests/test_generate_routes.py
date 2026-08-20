@@ -1,6 +1,8 @@
-"""Unit tests for APIGatewayGenerator._generate_routes method."""
+"""Unit tests for the routes sub-generator."""
 
-from app.generators.api_gateway_generator import APIGatewayGenerator
+from app.generators.api_gateway import routes
+from app.generators.api_gateway._support import resolve_config
+from app.generators.hcl_renderer import HCLRenderer
 from app.models.input_models import ServiceType
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -23,8 +25,7 @@ class TestGenerateRoutesHTTP:
         instance = _make_instance(
             "my_api", ApiGatewayConfig(api_name="test-api", protocol_type="HTTP")
         )
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert 'resource "aws_apigatewayv2_route" "my_api_default_route"' in hcl
         assert 'route_key = "$default"' in hcl
@@ -41,8 +42,7 @@ class TestGenerateRoutesHTTP:
             ],
         )
         instance = _make_instance("my_api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert 'route_key = "GET /users"' in hcl
         assert 'route_key = "POST /users"' in hcl
@@ -57,8 +57,7 @@ class TestGenerateRoutesHTTP:
             routes=[{"methods": ["DELETE"], "path": "/items/{id}"}],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert 'route_key = "DELETE /items/{id}"' in hcl
 
@@ -80,8 +79,7 @@ class TestGenerateRoutesHTTP:
             ],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert 'authorization_type = "JWT"' in hcl
         assert "aws_apigatewayv2_authorizer.api_jwt_auth_authorizer.id" in hcl
@@ -107,8 +105,7 @@ class TestGenerateRoutesHTTP:
             ],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert 'authorization_type = "CUSTOM"' in hcl
         assert "aws_apigatewayv2_authorizer.api_lambda_auth_authorizer.id" in hcl
@@ -122,8 +119,7 @@ class TestGenerateRoutesHTTP:
             api_key_required=True,
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert "api_key_required = true" in hcl
 
@@ -135,8 +131,7 @@ class TestGenerateRoutesHTTP:
             api_key_required=True,
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert 'route_key = "$default"' in hcl
         assert "api_key_required = true" in hcl
@@ -156,8 +151,7 @@ class TestGenerateRoutesHTTP:
             integrations=[{"name": "lambda_backend", "type": "AWS_PROXY"}],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert "target" in hcl
         assert "aws_apigatewayv2_integration.api_lambda_backend_integration.id" in hcl
@@ -173,8 +167,7 @@ class TestGenerateRoutesHTTP:
             authorizers=[],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert "authorization_type" not in hcl
         assert "authorizer_id" not in hcl
@@ -204,8 +197,7 @@ class TestGenerateRoutesHTTP:
             integrations=[],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         # Routes should be skipped entirely (not emitted at all)
         assert "GET /users" not in hcl
@@ -229,8 +221,7 @@ class TestGenerateRoutesHTTP:
             integrations=[{"name": "manual_integration", "type": "HTTP_PROXY"}],
         )
         instance = _make_instance("api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         # Route with matching manual integration should be emitted
         assert 'route_key = "GET /users"' in hcl
@@ -247,8 +238,7 @@ class TestGenerateRoutesWebSocket:
         """WebSocket APIs always generate $connect, $disconnect, $default routes."""
         config = ApiGatewayConfig(api_name="test-api", protocol_type="WEBSOCKET")
         instance = _make_instance("ws_api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert 'route_key = "$connect"' in hcl
         assert 'route_key = "$disconnect"' in hcl
@@ -262,8 +252,7 @@ class TestGenerateRoutesWebSocket:
             routes=[{"path": "sendMessage"}],
         )
         instance = _make_instance("ws_api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         assert 'route_key = "$connect"' in hcl
         assert 'route_key = "$disconnect"' in hcl
@@ -290,8 +279,7 @@ class TestGenerateRoutesWebSocket:
             ],
         )
         instance = _make_instance("ws_api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         # Split into individual route blocks to check each one
         blocks = hcl.split('resource "aws_apigatewayv2_route"')
@@ -319,8 +307,7 @@ class TestGenerateRoutesWebSocket:
             api_key_required=True,
         )
         instance = _make_instance("ws_api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         # All 3 special routes should have api_key_required
         assert hcl.count("api_key_required = true") == 3
@@ -337,8 +324,7 @@ class TestGenerateRoutesWebSocket:
             integrations=[{"name": "auth_fn", "type": "AWS_PROXY"}],
         )
         instance = _make_instance("ws_api", config)
-        gen = APIGatewayGenerator()
-        hcl = gen._generate_routes(instance)
+        hcl = routes.render_routes(instance, resolve_config(instance), HCLRenderer())
 
         # $connect should appear exactly once as a route_key
         assert hcl.count('route_key = "$connect"') == 1
