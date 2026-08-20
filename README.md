@@ -176,14 +176,14 @@ docker compose -f docker-compose.yml up --build
 
 #### Prerequisites
 
-- Python 3.14+
+- Python 3.12+ and uv
 - Node.js 24+
 
 #### Backend
 
 ```bash
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+uv sync
+uv run uvicorn app.main:app --reload
 ```
 
 The API will be available at `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
@@ -224,7 +224,7 @@ Next.js rewrites automatically proxy `/api/*` and `/generate/*` requests to the 
 
 ```bash
 # Backend
-pytest -n auto
+uv run pytest -n auto
 
 # Frontend
 cd frontend
@@ -262,7 +262,7 @@ The frontend is a single-page application organized into clear layers:
 
 ### Tech Stack
 
-- Python 3.14+ with FastAPI and Uvicorn
+- Python 3.12+ with FastAPI and Uvicorn
 - Pydantic v2 for request/response validation
 - TinyDB for local persistence, DynamoDB (via Boto3) for production
 - Pytest + Hypothesis for unit and property-based testing
@@ -297,7 +297,7 @@ Detailed documentation is available in the `docs/` folder:
 ## Key Features
 
 - Generates valid HCL with consistent two-space indentation
-- Wires resource connections automatically (API Gateway → Lambda integrations, Lambda → DynamoDB/S3 IAM policies)
+- Wires resource connections through module inputs and outputs, so cross-module references resolve and Terraform sees no dependency cycles
 - Produces standalone JSON IAM policy documents in a dedicated `iam-policies/` folder
 - Uses Terraform resource references instead of hardcoded values
 - Validates input and returns descriptive 422 errors for invalid payloads
