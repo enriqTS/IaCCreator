@@ -25,6 +25,7 @@ class ServiceType(str, Enum):
     CLOUDWATCH = "cloudwatch"
     SNS = "sns"
     SQS = "sqs"
+    EVENTBRIDGE = "eventbridge"
 
     # Compute – full-generator services
     EC2 = "ec2"
@@ -341,6 +342,7 @@ def _build_service_config_models() -> dict:
     are registered. Icon-only services use BaseServiceConfig directly.
     """
     from app.models.input_models.amazon_q_config import AmazonQConfig
+    from app.models.input_models.eventbridge_config import EventBridgeConfig
     from app.models.input_models.amplify_config import AmplifyConfig
     from app.models.input_models.api_gateway_config import ApiGatewayConfig
     from app.models.input_models.app_runner_config import AppRunnerConfig
@@ -399,6 +401,7 @@ def _build_service_config_models() -> dict:
         ServiceType.CLOUDWATCH: CloudWatchConfig,
         ServiceType.SNS: SnsConfig,
         ServiceType.SQS: SqsConfig,
+        ServiceType.EVENTBRIDGE: EventBridgeConfig,
         ServiceType.EC2: Ec2Config,
         ServiceType.ECS: EcsConfig,
         ServiceType.EKS: EksConfig,

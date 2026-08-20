@@ -47,6 +47,7 @@ from app.generators.eks_generator import EKSGenerator
 from app.generators.elastic_beanstalk_generator import ElasticBeanstalkGenerator
 from app.generators.elasticache_generator import ElastiCacheGenerator
 from app.generators.emr_generator import EMRGenerator
+from app.generators.eventbridge_generator import EventBridgeGenerator
 
 # Games generators
 from app.generators.gamelift_generator import GameLiftGenerator
@@ -77,6 +78,7 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.API_GATEWAY: APIGatewayGenerator(),
     ServiceType.CLOUDWATCH: CloudWatchGenerator(),
     ServiceType.IAM: IAMGenerator(),
+    ServiceType.EVENTBRIDGE: EventBridgeGenerator(),
     ServiceType.SNS: SNSGenerator(),
     ServiceType.SQS: SQSGenerator(),
     ServiceType.EC2: EC2Generator(),

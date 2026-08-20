@@ -31,6 +31,7 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     # Messaging
     ServiceType.SNS: "messaging",
     ServiceType.SQS: "messaging",
+    ServiceType.EVENTBRIDGE: "messaging",
     # Analytics
     ServiceType.ATHENA: "analytics",
     ServiceType.CLOUDSEARCH: "analytics",

@@ -201,3 +201,24 @@ class DynamoDBLambdaConfig(BaseConnectionConfig):
         type="number",
         validation=ValidationRule(min=1, max=10000),
     )
+
+
+class EventBridgeTargetConfig(BaseConnectionConfig):
+    """A rule firing at one target."""
+
+    target_id: str | None = ConnectionField(
+        None,
+        label="Target Id",
+        description="Identifier for this target within the rule",
+        placeholder="Optional, defaults to the target's name",
+        validation=ValidationRule(
+            pattern=r"^[\w.\-]{1,64}$",
+            pattern_description="Only letters, digits, dots, hyphens and underscores",
+        ),
+    )
+    input: str | None = ConnectionField(
+        None,
+        label="Constant Input",
+        description="JSON passed to the target instead of the matched event",
+        placeholder='Optional, e.g. {"source":"scheduler"}',
+    )
