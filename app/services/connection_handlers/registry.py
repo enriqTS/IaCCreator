@@ -8,6 +8,7 @@ from app.models.connection_configs.configs import (
     ApiGatewayRouteHandlerConfig,
     DynamoDBLambdaConfig,
     EmptyConnectionConfig,
+    EventBridgeTargetConfig,
     LambdaDynamoDBConfig,
     LambdaS3Config,
     S3LambdaConfig,
@@ -17,6 +18,10 @@ from app.models.input_models import ServiceType
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
 from app.services.connection_handlers.base import ConnectionHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
+from app.services.connection_handlers.eventbridge_targets import (
+    EventBridgeLambdaHandler,
+    EventBridgeSQSHandler,
+)
 from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
 from app.services.connection_handlers.s3_lambda import S3LambdaHandler
@@ -132,6 +137,22 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="ECS → S3",
         config_model=LambdaS3Config,
         handler=IamGrantHandler(ServiceType.S3),
+    ),
+    ConnectionSpec(
+        source=ServiceType.EVENTBRIDGE,
+        target=ServiceType.LAMBDA,
+        connection_type="targets",
+        label="EventBridge → Lambda",
+        config_model=EventBridgeTargetConfig,
+        handler=EventBridgeLambdaHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.EVENTBRIDGE,
+        target=ServiceType.SQS,
+        connection_type="targets",
+        label="EventBridge → SQS",
+        config_model=EventBridgeTargetConfig,
+        handler=EventBridgeSQSHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.SQS,
