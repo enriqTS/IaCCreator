@@ -53,7 +53,9 @@ class TestVersionTwoUpgrade:
         return {"version": 2, "canvasObjects": [line]}
 
     def test_anchored_line_gains_default_positions(self):
-        state = migrate_diagram_state(self._line(sourceAnchorObjectId="a", targetAnchorObjectId="b"))
+        state = migrate_diagram_state(
+            self._line(sourceAnchorObjectId="a", targetAnchorObjectId="b")
+        )
         line = state["canvasObjects"][0]
         assert line["sourceAnchorPosition"] == "right"
         assert line["targetAnchorPosition"] == "left"

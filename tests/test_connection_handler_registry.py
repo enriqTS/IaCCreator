@@ -63,9 +63,13 @@ def _make_project(
 class TestRegistryCompleteness:
     """Verify the registry covers every supported service pair."""
 
-    def test_registry_covers_nine_pairs(self):
-        """Nine distinct service pairs are supported."""
-        assert len(COMPATIBLE_CONNECTIONS) == 9
+    def test_registry_covers_every_registered_pair(self):
+        """Compatibility is derived from the specs, never hand-maintained."""
+        from app.services.connection_handlers.registry import CONNECTION_SPECS
+
+        assert {
+            (s.source, s.target) for s in CONNECTION_SPECS
+        } == COMPATIBLE_CONNECTIONS
 
     def test_api_gateway_has_two_roles(self):
         """API Gateway to Lambda is registered as both a route handler and an authorizer."""

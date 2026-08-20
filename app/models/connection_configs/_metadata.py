@@ -55,6 +55,7 @@ def ConnectionField(
     default: Any = ...,
     *,
     label: str,
+    default_factory: Any = None,
     description: str = "",
     type: FieldType = "text",
     placeholder: str | None = None,
@@ -82,6 +83,13 @@ def ConnectionField(
             constraints["le"] = validation.max
         if validation.pattern is not None:
             constraints["pattern"] = validation.pattern
+    if default_factory is not None:
+        return Field(
+            default_factory=default_factory,
+            description=description,
+            json_schema_extra={_FIELD_META_KEY: meta.model_dump(exclude_none=True)},
+            **constraints,
+        )
     return Field(
         default,
         description=description,

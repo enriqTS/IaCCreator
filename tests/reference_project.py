@@ -13,6 +13,7 @@ from app.models.input_models import (
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.input_models.cloudwatch_config import CloudWatchConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig
+from app.models.input_models.ecs_config import EcsConfig
 from app.models.input_models.lambda_config import LambdaConfig
 from app.models.input_models.s3_config import S3Config
 from app.models.input_models.sns_config import SnsConfig
@@ -68,6 +69,13 @@ def reference_architecture() -> ArchitectureDescription:
         _lambda("create-user"),
         _lambda("list-users"),
         _lambda("process-job"),
+        _lambda("on-upload"),
+        _lambda("on-change"),
+        ResourceInstance(
+            name="worker",
+            service_type=ServiceType.ECS,
+            config=EcsConfig(cluster_name="worker"),
+        ),
         ResourceInstance(
             name="users",
             service_type=ServiceType.DYNAMODB,
@@ -76,6 +84,8 @@ def reference_architecture() -> ArchitectureDescription:
                 hash_key="id",
                 hash_key_type="S",
                 billing_mode="PAY_PER_REQUEST",
+                stream_enabled=True,
+                stream_view_type="NEW_AND_OLD_IMAGES",
             ),
         ),
         ResourceInstance(
@@ -132,6 +142,33 @@ def reference_architecture() -> ArchitectureDescription:
         Connection(source="create-user", target="jobs", connection_type="sends_to"),
         Connection(source="events", target="jobs", connection_type="delivers_to"),
         Connection(source="events", target="process-job", connection_type="triggers"),
+        Connection(
+            source="uploads",
+            target="on-upload",
+            connection_type="notifies",
+            connection_config={
+                "events": ["s3:ObjectCreated:*"],
+                "filter_suffix": ".csv",
+            },
+        ),
+        Connection(
+            source="users",
+            target="on-change",
+            connection_type="streams_to",
+            connection_config={"starting_position": "LATEST", "batch_size": 50},
+        ),
+        Connection(
+            source="worker",
+            target="users",
+            connection_type="accesses",
+            connection_config={"access_pattern": "read"},
+        ),
+        Connection(
+            source="worker",
+            target="uploads",
+            connection_type="accesses",
+            connection_config={"access_pattern": "write"},
+        ),
         Connection(
             source="jobs",
             target="process-job",

@@ -6,19 +6,20 @@ from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs.configs import (
     ApiGatewayAuthorizerConfig,
     ApiGatewayRouteHandlerConfig,
+    DynamoDBLambdaConfig,
     EmptyConnectionConfig,
     LambdaDynamoDBConfig,
     LambdaS3Config,
+    S3LambdaConfig,
     SqsLambdaConfig,
 )
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
 from app.services.connection_handlers.base import ConnectionHandler
+from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
+from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
-from app.services.connection_handlers.lambda_dynamodb import LambdaDynamoDBHandler
-from app.services.connection_handlers.lambda_s3 import LambdaS3Handler
-from app.services.connection_handlers.lambda_sns import LambdaSNSHandler
-from app.services.connection_handlers.lambda_sqs import LambdaSQSHandler
+from app.services.connection_handlers.s3_lambda import S3LambdaHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
@@ -66,7 +67,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         connection_type="accesses",
         label="Lambda → DynamoDB",
         config_model=LambdaDynamoDBConfig,
-        handler=LambdaDynamoDBHandler(),
+        handler=IamGrantHandler(ServiceType.DYNAMODB),
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,
@@ -74,7 +75,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         connection_type="accesses",
         label="Lambda → S3",
         config_model=LambdaS3Config,
-        handler=LambdaS3Handler(),
+        handler=IamGrantHandler(ServiceType.S3),
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,
@@ -90,7 +91,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         connection_type="publishes_to",
         label="Lambda → SNS",
         config_model=EmptyConnectionConfig,
-        handler=LambdaSNSHandler(),
+        handler=IamGrantHandler(ServiceType.SNS, access_pattern="full"),
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,
@@ -98,7 +99,39 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         connection_type="sends_to",
         label="Lambda → SQS",
         config_model=EmptyConnectionConfig,
-        handler=LambdaSQSHandler(),
+        handler=IamGrantHandler(ServiceType.SQS, access_pattern="write"),
+    ),
+    ConnectionSpec(
+        source=ServiceType.S3,
+        target=ServiceType.LAMBDA,
+        connection_type="notifies",
+        label="S3 → Lambda",
+        config_model=S3LambdaConfig,
+        handler=S3LambdaHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.DYNAMODB,
+        target=ServiceType.LAMBDA,
+        connection_type="streams_to",
+        label="DynamoDB Streams → Lambda",
+        config_model=DynamoDBLambdaConfig,
+        handler=DynamoDBLambdaHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.ECS,
+        target=ServiceType.DYNAMODB,
+        connection_type="accesses",
+        label="ECS → DynamoDB",
+        config_model=LambdaDynamoDBConfig,
+        handler=IamGrantHandler(ServiceType.DYNAMODB),
+    ),
+    ConnectionSpec(
+        source=ServiceType.ECS,
+        target=ServiceType.S3,
+        connection_type="accesses",
+        label="ECS → S3",
+        config_model=LambdaS3Config,
+        handler=IamGrantHandler(ServiceType.S3),
     ),
     ConnectionSpec(
         source=ServiceType.SQS,

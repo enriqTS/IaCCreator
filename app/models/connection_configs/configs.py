@@ -150,3 +150,54 @@ class SqsLambdaConfig(BaseConnectionConfig):
         placeholder="Optional (0-300)",
         validation=ValidationRule(min=0, max=300),
     )
+
+
+class S3LambdaConfig(BaseConnectionConfig):
+    """An S3 bucket notifying a Lambda when objects change."""
+
+    events: list[str] = ConnectionField(
+        default_factory=lambda: ["s3:ObjectCreated:*"],
+        label="Events",
+        description="Object events that invoke the function",
+        type="multiSelect",
+        options=[
+            OptionEntry(value="s3:ObjectCreated:*", label="Object created"),
+            OptionEntry(value="s3:ObjectRemoved:*", label="Object removed"),
+            OptionEntry(value="s3:ObjectRestore:*", label="Object restored"),
+        ],
+    )
+    filter_prefix: str | None = ConnectionField(
+        None,
+        label="Key Prefix",
+        description="Only notify for keys starting with this prefix",
+        placeholder="Optional, e.g. uploads/",
+    )
+    filter_suffix: str | None = ConnectionField(
+        None,
+        label="Key Suffix",
+        description="Only notify for keys ending with this suffix",
+        placeholder="Optional, e.g. .jpg",
+    )
+
+
+class DynamoDBLambdaConfig(BaseConnectionConfig):
+    """A DynamoDB stream feeding a Lambda."""
+
+    starting_position: str = ConnectionField(
+        "LATEST",
+        label="Starting Position",
+        description="Where in the stream the function begins reading",
+        type="select",
+        options=[
+            OptionEntry(value="LATEST", label="Latest"),
+            OptionEntry(value="TRIM_HORIZON", label="Trim horizon (oldest)"),
+        ],
+        validation=ValidationRule(allowed_values=["LATEST", "TRIM_HORIZON"]),
+    )
+    batch_size: int = ConnectionField(
+        100,
+        label="Batch Size",
+        description="Stream records delivered per invocation",
+        type="number",
+        validation=ValidationRule(min=1, max=10000),
+    )

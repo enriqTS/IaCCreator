@@ -1,0 +1,115 @@
+"""The connections added on top of the wiring model."""
+
+import json
+
+import pytest
+
+from app.models.input_models import ServiceType
+from app.services.code_generator import CodeGenerator
+from app.services.connection_handlers.registry import CONNECTION_REGISTRY, resolve_spec
+from app.services.ir_builder import IRBuilder
+from tests.reference_project import reference_architecture, reference_tree
+
+
+@pytest.fixture(scope="module")
+def tree():
+    return reference_tree()
+
+
+class TestS3NotifiesLambda:
+    def test_notification_lives_in_the_bucket_module(self, tree):
+        path = "reference-project/modules/storage/s3/uploads/notification_on-upload.tf"
+        assert 'resource "aws_s3_bucket_notification"' in tree[path]
+
+    def test_function_arn_arrives_as_a_module_input(self, tree):
+        path = "reference-project/modules/storage/s3/uploads/notification_on-upload.tf"
+        assert "var.on_upload_function_arn" in tree[path]
+
+    def test_configured_filters_are_emitted(self, tree):
+        path = "reference-project/modules/storage/s3/uploads/notification_on-upload.tf"
+        assert 'filter_suffix = ".csv"' in tree[path]
+
+    def test_permission_precedes_the_notification(self, tree):
+        path = "reference-project/modules/storage/s3/uploads/notification_on-upload.tf"
+        assert "depends_on" in tree[path]
+
+    def test_environment_wires_the_function_arn(self, tree):
+        main = tree["reference-project/environments/dev/main.tf"]
+        assert "on_upload_function_arn = module.on-upload.function_arn" in main
+
+    def test_config_driven_notification_defers_to_the_connection(self):
+        architecture = reference_architecture()
+        for resource in architecture.resources:
+            if resource.name == "uploads":
+                resource.config.notification_lambda_arn = "arn:aws:lambda:::function:x"
+        generated = CodeGenerator().generate(IRBuilder().build(architecture))
+        # AWS permits exactly one notification resource per bucket
+        blocks = sum(
+            content.count('resource "aws_s3_bucket_notification"')
+            for path, content in generated.items()
+            if "uploads" in path
+        )
+        assert blocks == 1
+
+
+class TestDynamoDBStreamsToLambda:
+    def test_mapping_lives_in_the_function_module(self, tree):
+        path = "reference-project/modules/compute/lambda/on-change/stream_users.tf"
+        assert 'resource "aws_lambda_event_source_mapping"' in tree[path]
+
+    def test_stream_arn_arrives_as_a_module_input(self, tree):
+        path = "reference-project/modules/compute/lambda/on-change/stream_users.tf"
+        assert "var.users_stream_arn" in tree[path]
+
+    def test_configured_batch_size_is_used(self, tree):
+        path = "reference-project/modules/compute/lambda/on-change/stream_users.tf"
+        assert "batch_size = 50" in tree[path]
+
+    def test_table_exposes_its_stream_arn(self, tree):
+        outputs = tree["reference-project/modules/database/dynamodb/users/outputs.tf"]
+        assert 'output "stream_arn"' in outputs
+
+    def test_function_is_granted_stream_actions(self, tree):
+        policy = json.loads(
+            tree["reference-project/iam-policies/on-change-policy.json"]
+        )
+        actions = [a for s in policy["Statement"] for a in s["Action"]]
+        assert "dynamodb:GetRecords" in actions
+        assert "dynamodb:DescribeStream" in actions
+
+
+class TestEcsIsARoleOwner:
+    def test_task_role_is_generated(self, tree):
+        iam = tree["reference-project/modules/compute/ecs/worker/iam.tf"]
+        assert "ecs-tasks.amazonaws.com" in iam
+
+    def test_connection_grants_reach_the_task_role(self, tree):
+        policy = json.loads(tree["reference-project/iam-policies/worker-policy.json"])
+        actions = [a for s in policy["Statement"] for a in s["Action"]]
+        assert "dynamodb:GetItem" in actions
+        assert "s3:PutObject" in actions
+
+    def test_base_statements_are_the_services_own(self, tree):
+        policy = json.loads(tree["reference-project/iam-policies/worker-policy.json"])
+        actions = [a for s in policy["Statement"] for a in s["Action"]]
+        assert "ecr:GetAuthorizationToken" in actions
+        assert not any(a.startswith("logs:CreateLogGroup") for a in actions)
+
+
+class TestRegistryGrowth:
+    @pytest.mark.parametrize(
+        "source,target,connection_type",
+        [
+            (ServiceType.S3, ServiceType.LAMBDA, "notifies"),
+            (ServiceType.DYNAMODB, ServiceType.LAMBDA, "streams_to"),
+            (ServiceType.ECS, ServiceType.DYNAMODB, "accesses"),
+            (ServiceType.ECS, ServiceType.S3, "accesses"),
+        ],
+    )
+    def test_new_pairs_are_registered(self, source, target, connection_type):
+        assert (source, target, connection_type) in CONNECTION_REGISTRY
+
+    def test_shared_grant_handler_serves_several_pairs(self):
+        lambda_spec = resolve_spec(ServiceType.LAMBDA, ServiceType.S3, "accesses", {})
+        ecs_spec = resolve_spec(ServiceType.ECS, ServiceType.S3, "accesses", {})
+        assert type(lambda_spec.handler) is type(ecs_spec.handler)

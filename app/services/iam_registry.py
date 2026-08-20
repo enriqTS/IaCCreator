@@ -28,6 +28,16 @@ IAM_ACTIONS: dict[ServiceType, list[str]] = {
     ServiceType.SQS: ["sqs:SendMessage"],
 }
 
+# Consuming a change stream, which is a distinct set of actions from table access
+IAM_STREAM_ACTIONS: dict[ServiceType, list[str]] = {
+    ServiceType.DYNAMODB: [
+        "dynamodb:DescribeStream",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:ListStreams",
+    ],
+}
+
 # Read-only access-pattern variants
 IAM_READ_ACTIONS: dict[ServiceType, list[str]] = {
     ServiceType.DYNAMODB: [
@@ -78,6 +88,7 @@ def get_actions(service_type: ServiceType, access_pattern: str = "full") -> list
     table = {
         "read": IAM_READ_ACTIONS,
         "write": IAM_WRITE_ACTIONS,
+        "stream": IAM_STREAM_ACTIONS,
     }.get(access_pattern, IAM_ACTIONS)
 
     actions = table.get(service_type)

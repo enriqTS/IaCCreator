@@ -165,33 +165,6 @@ class TestConnectionValidation:
             IRBuilder().build(desc)
         assert "Incompatible connection" in str(exc_info.value)
 
-    def test_rejects_dynamodb_to_lambda(self):
-        desc = _make_input(
-            resources=[
-                ResourceInstance(
-                    name="my-table",
-                    service_type=ServiceType.DYNAMODB,
-                    config=DynamoDBConfig(
-                        table_name="test-table", hash_key_type="S", hash_key="id"
-                    ),
-                ),
-                ResourceInstance(
-                    name="my-func",
-                    service_type=ServiceType.LAMBDA,
-                    config=LambdaConfig(
-                        function_name="test-func", handler="h", runtime="python3.12"
-                    ),
-                ),
-            ],
-            connections=[
-                Connection(
-                    source="my-table", target="my-func", connection_type="triggers"
-                )
-            ],
-        )
-        with pytest.raises(IncompatibleConnectionError):
-            IRBuilder().build(desc)
-
     def test_accepts_valid_api_gateway_to_lambda(self):
         desc = _make_input(
             resources=[
