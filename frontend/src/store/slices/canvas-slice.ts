@@ -1,135 +1,948 @@
 /**
- * Canvas Slice — CanvasObject CRUD, selection, z-order, and grouping logic.
- *
- * This file defines the public contract (CanvasSlice interface) for the canvas
- * concerns of the diagram store. The actual implementation will be extracted
- * from diagram-store.ts in a subsequent pass (task 10.6).
- *
- * Requirements: 7.1, 7.8
+ * Canvas objects — creation, selection, z-order, grouping, clipboard and movement.
  */
 
 import type { StateCreator } from 'zustand';
-import type {
-  CanvasObject,
-  CanvasObjectCreationPayload,
-  Point,
-  ObjectGroup,
-  Rect,
-  ArchitectureBlockVisualConfig,
-  LineVisualConfig,
-  GeometricVisualConfig,
-  TextVisualConfig,
-  UMLVisualConfig,
-  AnchorRef,
-} from '@/types/diagram';
-import type { AnchorPosition } from '@/utils/anchor';
-
-// ---------------------------------------------------------------------------
-// Slice interface
-// ---------------------------------------------------------------------------
+import type { ArchitectureBlock, ArchitectureBlockVisualConfig, CanvasObject, CanvasObjectCreationPayload, GeometricVisualConfig, LineObject, LineVisualConfig, ObjectGroup, Point, Rect, TextVisualConfig, UMLVisualConfig } from '@/types/diagram';
+import { MIN_OBJECT_HEIGHT, MIN_OBJECT_WIDTH, getObjectBounds } from '@/types/diagram';
+import { generateDefaultName } from '@/utils/name-utils';
+import { v4 as uuidv4 } from 'uuid';
+import { getDefaultVariables } from '@/types/terraform-variables';
+import type { DiagramStore } from './store-types';
 
 export interface CanvasSlice {
-  // --- State ---
+  // Canvas object state
   canvasObjects: Map<string, CanvasObject>;
   selectedObjectIds: Set<string>;
-  objectGroups: Map<string, ObjectGroup>;
-  clipboard: CanvasObject[];
-  editingTextId: string | null;
-  pullConnectState: {
-    sourceObjectId: string;
-    sourceAnchorPoint: Point;
-    sourceAnchorPosition: AnchorPosition;
-  } | null;
-
-  // --- CRUD ---
   addCanvasObject: (obj: CanvasObjectCreationPayload) => string;
   updateCanvasObject: (id: string, updates: Partial<CanvasObject>) => void;
   removeCanvasObject: (id: string) => void;
-  updateVisualConfig: (
-    id: string,
-    config: Partial<
-      | ArchitectureBlockVisualConfig
-      | LineVisualConfig
-      | GeometricVisualConfig
-      | TextVisualConfig
-      | UMLVisualConfig
-    >,
-  ) => void;
-  updateObjectBounds: (id: string, bounds: { width?: number; height?: number }) => void;
-  updateLineEndpoint: (id: string, endpoint: 'start' | 'end', position: Point) => void;
-
-  // --- Selection ---
+  removeMultipleCanvasObjects: (ids: Set<string>) => void;
   selectObject: (id: string | null) => void;
   toggleObjectSelection: (id: string) => void;
   selectObjectsByRect: (rect: Rect) => void;
   clearSelection: () => void;
-  selectAllObjects: () => void;
+  updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig | TextVisualConfig | UMLVisualConfig>) => void;
+  updateObjectBounds: (id: string, bounds: { width?: number; height?: number }) => void;
+  updateLineEndpoint: (id: string, endpoint: 'start' | 'end', position: Point) => void;
 
-  // --- Z-order ---
+  // Z-order actions
   bringToFront: (id: string) => void;
   sendToBack: (id: string) => void;
   bringForward: (id: string) => void;
   sendBackward: (id: string) => void;
 
-  // --- Grouping ---
+  // Grouping
+  objectGroups: Map<string, ObjectGroup>;
   groupSelectedObjects: () => string | null;
   ungroupObjects: (groupId: string) => void;
 
-  // --- Clipboard ---
+  // Clipboard
+  clipboard: CanvasObject[];
   copySelectedObjects: () => void;
   pasteObjects: (position: Point) => void;
+
+  // Duplicate
   duplicateSelectedObjects: () => void;
 
-  // --- Lock ---
+  // Lock
   toggleLockObjects: (ids: Set<string>) => void;
 
-  // --- Movement ---
+  // Select all
+  selectAllObjects: () => void;
+
+  // Multi-object move
   moveSelectedObjects: (dx: number, dy: number) => void;
 
-  // --- Text editing ---
+  // Text editing
+  editingTextId: string | null;
   setEditingTextId: (id: string | null) => void;
   updateTextContent: (id: string, content: string) => void;
-
-  // --- Anchor management ---
-  updateLineAnchors: (
-    lineId: string,
-    anchors: { sourceAnchor?: AnchorRef | null; targetAnchor?: AnchorRef | null },
-  ) => void;
-  recomputeAnchoredEndpoints: (movedObjectId: string) => void;
-  updateLineWaypoints: (lineId: string, waypoints: Point[] | null) => void;
-  updateLineAnchorPosition: (
-    lineId: string,
-    endpoint: 'source' | 'target',
-    position: AnchorPosition,
-  ) => void;
-
-  // --- Pull-to-connect ---
-  setPullConnectState: (
-    state: {
-      sourceObjectId: string;
-      sourceAnchorPoint: Point;
-      sourceAnchorPosition: AnchorPosition;
-    } | null,
-  ) => void;
-
-  // --- Fit to screen ---
-  fitToScreen: (containerRect: { width: number; height: number }) => void;
 }
 
-// ---------------------------------------------------------------------------
-// Slice creator (placeholder)
-// ---------------------------------------------------------------------------
+export const createCanvasSlice: StateCreator<DiagramStore, [], [], CanvasSlice> = (set, get) => ({
+    // --- Canvas object state ---
+    canvasObjects: new Map<string, CanvasObject>(),
+    selectedObjectIds: new Set<string>(),
+    objectGroups: new Map<string, ObjectGroup>(),
+    clipboard: [] as CanvasObject[],
 
-/**
- * Placeholder creator — actual implementation will be extracted from
- * diagram-store.ts during the composition pass (task 10.6).
- *
- * The type signature below establishes the contract that the composition
- * point will use when wiring slices together.
- */
-export type CreateCanvasSlice = StateCreator<
-  CanvasSlice,
-  [],
-  [],
-  CanvasSlice
->;
+    addCanvasObject: (obj: CanvasObjectCreationPayload): string => {
+      get().pushHistory();
+      const id = uuidv4();
+      // Assign zIndex as maxZIndex + 1
+      const { canvasObjects } = get();
+      let maxZ = -1;
+      for (const existing of canvasObjects.values()) {
+        if (existing.zIndex > maxZ) maxZ = existing.zIndex;
+      }
+      let canvasObject = { ...obj, id, zIndex: maxZ + 1 } as CanvasObject;
+
+      // Initialize architecture blocks: generate default name and terraform variables
+      if (canvasObject.objectType === 'architecture-block') {
+        const defaultName = generateDefaultName(canvasObject.serviceType, canvasObjects);
+        // Preserve explicit name if provided, otherwise use generated default name
+        const assignedName = (obj as { name?: string }).name || defaultName;
+        canvasObject = {
+          ...canvasObject,
+          name: assignedName,
+          defaultName,
+          terraformVariables: {
+            ...getDefaultVariables(canvasObject.serviceType),
+            ...(obj as { terraformVariables?: Record<string, string | number | boolean> }).terraformVariables,
+          },
+        };
+      }
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, canvasObject);
+        return { canvasObjects: next };
+      });
+
+      return id;
+    },
+
+    updateCanvasObject: (id: string, updates: Partial<CanvasObject>): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing) return;
+
+      const merged = { ...existing, ...updates, id: existing.id, objectType: existing.objectType } as CanvasObject;
+
+      // Enforce minimum dimension clamping for objects with width/height
+      if (merged.objectType === 'architecture-block') {
+        merged.visualConfig = {
+          ...merged.visualConfig,
+          width: Math.max(merged.visualConfig.width, MIN_OBJECT_WIDTH),
+          height: Math.max(merged.visualConfig.height, MIN_OBJECT_HEIGHT),
+        };
+      } else if (merged.objectType === 'geometric') {
+        merged.visualConfig = {
+          ...merged.visualConfig,
+          width: Math.max(merged.visualConfig.width, MIN_OBJECT_WIDTH),
+          height: Math.max(merged.visualConfig.height, MIN_OBJECT_HEIGHT),
+        };
+      }
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, merged);
+        return { canvasObjects: next };
+      });
+    },
+
+    removeCanvasObject: (id: string): void => {
+      if (!get().canvasObjects.has(id)) return;
+      get().pushHistory();
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        const obj = state.canvasObjects.get(id)!;
+        next.delete(id);
+
+        // Cascade-delete connectors for architecture blocks
+        let nextConnectors = state.connectors;
+        if (obj.objectType === 'architecture-block') {
+          nextConnectors = new Map(state.connectors);
+          for (const [cid, conn] of state.connectors) {
+            if (conn.sourceId === id || conn.targetId === id) {
+              nextConnectors.delete(cid);
+            }
+          }
+        }
+
+        // Clear selection if deleting the selected object
+        const nextSelectedObjectIds = new Set(state.selectedObjectIds);
+        nextSelectedObjectIds.delete(id);
+
+        // Handle group membership: remove from group, auto-dissolve if < 2 members
+        const nextGroups = new Map(state.objectGroups);
+        if (obj.groupId) {
+          const group = nextGroups.get(obj.groupId);
+          if (group) {
+            const updatedMembers = group.memberIds.filter((mid) => mid !== id);
+            if (updatedMembers.length < 2) {
+              // Auto-dissolve: clear groupId on remaining members
+              for (const memberId of updatedMembers) {
+                const member = next.get(memberId);
+                if (member) {
+                  next.set(memberId, { ...member, groupId: undefined } as CanvasObject);
+                }
+              }
+              nextGroups.delete(obj.groupId);
+            } else {
+              nextGroups.set(obj.groupId, { ...group, memberIds: updatedMembers });
+            }
+          }
+        }
+
+        // Detach anchors on lines referencing the deleted object (nullify, don't delete lines)
+        for (const [lineId, lineObj] of next) {
+          if (lineObj.objectType !== 'line') continue;
+          const line = lineObj as LineObject;
+          let needsUpdate = false;
+          let newSourceAnchor = line.sourceAnchor;
+          let newTargetAnchor = line.targetAnchor;
+
+          if (line.sourceAnchor?.objectId === id) {
+            newSourceAnchor = null;
+            needsUpdate = true;
+          }
+          if (line.targetAnchor?.objectId === id) {
+            newTargetAnchor = null;
+            needsUpdate = true;
+          }
+          if (needsUpdate) {
+            next.set(lineId, { ...line, sourceAnchor: newSourceAnchor, targetAnchor: newTargetAnchor });
+          }
+        }
+
+        return { canvasObjects: next, connectors: nextConnectors, selectedObjectIds: nextSelectedObjectIds, objectGroups: nextGroups };
+      });
+    },
+
+    removeMultipleCanvasObjects: (ids: Set<string>): void => {
+      if (ids.size === 0) return;
+
+      // Verify at least one exists
+      const { canvasObjects } = get();
+      let anyExists = false;
+      for (const id of ids) {
+        if (canvasObjects.has(id)) { anyExists = true; break; }
+      }
+      if (!anyExists) return;
+
+      get().pushHistory();
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        const nextConnectors = new Map(state.connectors);
+        const nextGroups = new Map(state.objectGroups);
+        const nextSelectedObjectIds = new Set(state.selectedObjectIds);
+
+        for (const id of ids) {
+          const obj = next.get(id);
+          if (!obj) continue;
+
+          next.delete(id);
+          nextSelectedObjectIds.delete(id);
+
+          // Cascade-delete connectors for architecture blocks
+          if (obj.objectType === 'architecture-block') {
+            for (const [cid, conn] of nextConnectors) {
+              if (conn.sourceId === id || conn.targetId === id) {
+                nextConnectors.delete(cid);
+              }
+            }
+          }
+
+          // Handle group membership
+          if (obj.groupId) {
+            const group = nextGroups.get(obj.groupId);
+            if (group) {
+              const updatedMembers = group.memberIds.filter((mid) => !ids.has(mid));
+              if (updatedMembers.length < 2) {
+                for (const memberId of updatedMembers) {
+                  const member = next.get(memberId);
+                  if (member) {
+                    next.set(memberId, { ...member, groupId: undefined } as CanvasObject);
+                  }
+                }
+                nextGroups.delete(obj.groupId);
+              } else {
+                nextGroups.set(obj.groupId, { ...group, memberIds: updatedMembers });
+              }
+            }
+          }
+        }
+
+        // Detach anchors on remaining lines that reference any deleted object
+        for (const [lineId, lineObj] of next) {
+          if (lineObj.objectType !== 'line') continue;
+          const line = lineObj as LineObject;
+          let needsUpdate = false;
+          let newSourceAnchor = line.sourceAnchor;
+          let newTargetAnchor = line.targetAnchor;
+
+          if (newSourceAnchor && ids.has(newSourceAnchor.objectId)) {
+            newSourceAnchor = null;
+            needsUpdate = true;
+          }
+          if (newTargetAnchor && ids.has(newTargetAnchor.objectId)) {
+            newTargetAnchor = null;
+            needsUpdate = true;
+          }
+          if (needsUpdate) {
+            next.set(lineId, { ...line, sourceAnchor: newSourceAnchor, targetAnchor: newTargetAnchor });
+          }
+        }
+
+        return { canvasObjects: next, connectors: nextConnectors, selectedObjectIds: nextSelectedObjectIds, objectGroups: nextGroups };
+      });
+    },
+
+    selectObject: (id: string | null): void => {
+      if (!id) {
+        set({ selectedObjectIds: new Set() });
+        return;
+      }
+      const { canvasObjects, objectGroups } = get();
+      const obj = canvasObjects.get(id);
+      if (obj?.groupId) {
+        const group = objectGroups.get(obj.groupId);
+        if (group) {
+          set({ selectedObjectIds: new Set(group.memberIds) });
+          return;
+        }
+      }
+      set({ selectedObjectIds: new Set([id]) });
+    },
+
+    toggleObjectSelection: (id: string): void => {
+      set((state) => {
+        const next = new Set(state.selectedObjectIds);
+        if (next.has(id)) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
+        return { selectedObjectIds: next };
+      });
+    },
+
+    selectObjectsByRect: (rect: Rect): void => {
+      const { canvasObjects } = get();
+      const selected = new Set<string>();
+      for (const obj of canvasObjects.values()) {
+        const bounds = getObjectBounds(obj);
+        // Check AABB intersection
+        if (
+          bounds.x + bounds.width > rect.x &&
+          bounds.x < rect.x + rect.width &&
+          bounds.y + bounds.height > rect.y &&
+          bounds.y < rect.y + rect.height
+        ) {
+          selected.add(obj.id);
+        }
+      }
+      set({ selectedObjectIds: selected });
+    },
+
+    clearSelection: (): void => {
+      set({ selectedObjectIds: new Set() });
+    },
+
+    updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig | TextVisualConfig | UMLVisualConfig>): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing) return;
+      get().pushHistory();
+
+      const mergedConfig = { ...existing.visualConfig, ...config };
+
+      // Enforce minimum dimensions for object types with width/height
+      if (existing.objectType === 'architecture-block' || existing.objectType === 'geometric' || existing.objectType === 'text' || existing.objectType === 'uml') {
+        const withDims = mergedConfig as { width: number; height: number };
+        withDims.width = Math.max(withDims.width, MIN_OBJECT_WIDTH);
+        withDims.height = Math.max(withDims.height, MIN_OBJECT_HEIGHT);
+      }
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...existing, visualConfig: mergedConfig } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    updateObjectBounds: (id: string, bounds: { width?: number; height?: number }): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing) return;
+      if (existing.objectType === 'line') return; // Lines don't have width/height bounds
+
+      const currentConfig = existing.visualConfig as { width: number; height: number };
+      const newWidth = Math.max(bounds.width ?? currentConfig.width, MIN_OBJECT_WIDTH);
+      const newHeight = Math.max(bounds.height ?? currentConfig.height, MIN_OBJECT_HEIGHT);
+
+      const mergedConfig = { ...existing.visualConfig, width: newWidth, height: newHeight };
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...existing, visualConfig: mergedConfig } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    updateLineEndpoint: (id: string, endpoint: 'start' | 'end', position: Point): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing || existing.objectType !== 'line') return;
+
+      const updated = { ...existing, [endpoint]: { ...position }, waypoints: null };
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, updated);
+        return { canvasObjects: next };
+      });
+    },
+
+    // --- Z-order actions ---
+
+    bringToFront: (id: string): void => {
+      const { canvasObjects } = get();
+      const target = canvasObjects.get(id);
+      if (!target) return;
+
+      let maxZ = -Infinity;
+      for (const obj of canvasObjects.values()) {
+        if (obj.id !== id && obj.zIndex > maxZ) maxZ = obj.zIndex;
+      }
+      // If already on top (or only object), no-op
+      if (canvasObjects.size <= 1 || target.zIndex > maxZ) return;
+
+      const newZ = maxZ + 1;
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...target, zIndex: newZ } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    sendToBack: (id: string): void => {
+      const { canvasObjects } = get();
+      const target = canvasObjects.get(id);
+      if (!target) return;
+
+      let minZ = Infinity;
+      for (const obj of canvasObjects.values()) {
+        if (obj.id !== id && obj.zIndex < minZ) minZ = obj.zIndex;
+      }
+      // If already at back (or only object), no-op
+      if (canvasObjects.size <= 1 || target.zIndex < minZ) return;
+
+      const newZ = minZ - 1;
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...target, zIndex: newZ } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    bringForward: (id: string): void => {
+      const { canvasObjects } = get();
+      const target = canvasObjects.get(id);
+      if (!target) return;
+
+      // Find the object directly above (smallest zIndex greater than target's)
+      let aboveObj: CanvasObject | null = null;
+      for (const obj of canvasObjects.values()) {
+        if (obj.id !== id && obj.zIndex > target.zIndex) {
+          if (!aboveObj || obj.zIndex < aboveObj.zIndex) {
+            aboveObj = obj;
+          }
+        }
+      }
+      if (!aboveObj) return; // Already on top
+
+      // Swap zIndex values
+      const targetNewZ = aboveObj.zIndex;
+      const aboveNewZ = target.zIndex;
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...target, zIndex: targetNewZ } as CanvasObject);
+        next.set(aboveObj!.id, { ...aboveObj!, zIndex: aboveNewZ } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    sendBackward: (id: string): void => {
+      const { canvasObjects } = get();
+      const target = canvasObjects.get(id);
+      if (!target) return;
+
+      // Find the object directly below (largest zIndex less than target's)
+      let belowObj: CanvasObject | null = null;
+      for (const obj of canvasObjects.values()) {
+        if (obj.id !== id && obj.zIndex < target.zIndex) {
+          if (!belowObj || obj.zIndex > belowObj.zIndex) {
+            belowObj = obj;
+          }
+        }
+      }
+      if (!belowObj) return; // Already at back
+
+      // Swap zIndex values
+      const targetNewZ = belowObj.zIndex;
+      const belowNewZ = target.zIndex;
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...target, zIndex: targetNewZ } as CanvasObject);
+        next.set(belowObj!.id, { ...belowObj!, zIndex: belowNewZ } as CanvasObject);
+        return { canvasObjects: next };
+      });
+    },
+
+    // --- Grouping actions ---
+
+    groupSelectedObjects: (): string | null => {
+      const { selectedObjectIds, canvasObjects, objectGroups } = get();
+      // Require at least 2 selected objects
+      if (selectedObjectIds.size < 2) return null;
+
+      // Verify all selected IDs exist
+      for (const id of selectedObjectIds) {
+        if (!canvasObjects.has(id)) return null;
+      }
+
+      get().pushHistory();
+
+      const groupId = uuidv4();
+      // Auto-generate group name
+      const groupNumber = objectGroups.size + 1;
+      const groupName = `Group ${groupNumber}`;
+      const memberIds = Array.from(selectedObjectIds);
+
+      set((state) => {
+        const nextObjects = new Map(state.canvasObjects);
+        const nextGroups = new Map(state.objectGroups);
+
+        // Remove members from any existing groups first
+        for (const memberId of memberIds) {
+          const obj = nextObjects.get(memberId);
+          if (obj && obj.groupId) {
+            const oldGroup = nextGroups.get(obj.groupId);
+            if (oldGroup) {
+              const remaining = oldGroup.memberIds.filter((mid) => mid !== memberId);
+              if (remaining.length < 2) {
+                // Auto-dissolve old group
+                for (const rid of remaining) {
+                  const rObj = nextObjects.get(rid);
+                  if (rObj) {
+                    nextObjects.set(rid, { ...rObj, groupId: undefined } as CanvasObject);
+                  }
+                }
+                nextGroups.delete(obj.groupId);
+              } else {
+                nextGroups.set(obj.groupId, { ...oldGroup, memberIds: remaining });
+              }
+            }
+          }
+        }
+
+        // Set groupId on all members
+        for (const memberId of memberIds) {
+          const obj = nextObjects.get(memberId);
+          if (obj) {
+            nextObjects.set(memberId, { ...obj, groupId: groupId } as CanvasObject);
+          }
+        }
+
+        // Create the new group
+        const newGroup: ObjectGroup = { id: groupId, name: groupName, memberIds };
+        nextGroups.set(groupId, newGroup);
+
+        return { canvasObjects: nextObjects, objectGroups: nextGroups };
+      });
+
+      return groupId;
+    },
+
+    ungroupObjects: (groupId: string): void => {
+      const { objectGroups } = get();
+      const group = objectGroups.get(groupId);
+      if (!group) return;
+      get().pushHistory();
+
+      set((state) => {
+        const nextObjects = new Map(state.canvasObjects);
+        const nextGroups = new Map(state.objectGroups);
+
+        // Clear groupId on all members
+        for (const memberId of group.memberIds) {
+          const obj = nextObjects.get(memberId);
+          if (obj) {
+            nextObjects.set(memberId, { ...obj, groupId: undefined } as CanvasObject);
+          }
+        }
+
+        // Remove the group
+        nextGroups.delete(groupId);
+
+        return { canvasObjects: nextObjects, objectGroups: nextGroups };
+      });
+    },
+
+    // --- Clipboard actions ---
+
+    copySelectedObjects: (): void => {
+      const { selectedObjectIds, canvasObjects } = get();
+      if (selectedObjectIds.size === 0) return;
+
+      const copied: CanvasObject[] = [];
+      for (const id of selectedObjectIds) {
+        const obj = canvasObjects.get(id);
+        if (obj) {
+          copied.push({ ...obj });
+        }
+      }
+      set({ clipboard: copied });
+    },
+
+    pasteObjects: (position: Point): void => {
+      const { clipboard, canvasObjects } = get();
+      if (clipboard.length === 0) return;
+
+      get().pushHistory();
+
+      // Compute centroid of copied objects
+      let sumX = 0;
+      let sumY = 0;
+      for (const obj of clipboard) {
+        if (obj.objectType === 'line') {
+          sumX += (obj.start.x + obj.end.x) / 2;
+          sumY += (obj.start.y + obj.end.y) / 2;
+        } else {
+          sumX += obj.position.x;
+          sumY += obj.position.y;
+        }
+      }
+      const centroidX = sumX / clipboard.length;
+      const centroidY = sumY / clipboard.length;
+
+      // Compute max zIndex
+      let maxZ = -1;
+      for (const existing of canvasObjects.values()) {
+        if (existing.zIndex > maxZ) maxZ = existing.zIndex;
+      }
+
+      const offsetX = position.x - centroidX;
+      const offsetY = position.y - centroidY;
+
+      // Build ID mapping (oldId → newId) for all objects in clipboard
+      const idMap = new Map<string, string>();
+      for (const obj of clipboard) {
+        idMap.set(obj.id, uuidv4());
+      }
+
+      const newIds = new Set<string>();
+      const nextObjects = new Map(canvasObjects);
+
+      // First pass: paste non-line objects
+      for (const obj of clipboard) {
+        if (obj.objectType === 'line') continue;
+
+        const newId = idMap.get(obj.id)!;
+        newIds.add(newId);
+        maxZ++;
+
+        if (obj.objectType === 'architecture-block') {
+          const pasted: ArchitectureBlock = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            position: { x: obj.position.x + offsetX, y: obj.position.y + offsetY },
+          };
+          nextObjects.set(newId, pasted);
+        } else {
+          // geometric / text / uml
+          const pasted: CanvasObject = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            position: { x: obj.position.x + offsetX, y: obj.position.y + offsetY },
+          } as CanvasObject;
+          nextObjects.set(newId, pasted);
+        }
+      }
+
+      // Second pass: paste line objects with remapped anchors
+      for (const obj of clipboard) {
+        if (obj.objectType !== 'line') continue;
+
+        const newId = idMap.get(obj.id)!;
+        newIds.add(newId);
+        maxZ++;
+
+        // Remap anchors: if the referenced object was in the clipboard, point to its new ID
+        let newSourceAnchor = obj.sourceAnchor;
+        if (newSourceAnchor) {
+          const mappedId = idMap.get(newSourceAnchor.objectId);
+          if (mappedId) {
+            newSourceAnchor = { ...newSourceAnchor, objectId: mappedId };
+          } else {
+            newSourceAnchor = null; // Referenced object not in clipboard — detach
+          }
+        }
+
+        let newTargetAnchor = obj.targetAnchor;
+        if (newTargetAnchor) {
+          const mappedId = idMap.get(newTargetAnchor.objectId);
+          if (mappedId) {
+            newTargetAnchor = { ...newTargetAnchor, objectId: mappedId };
+          } else {
+            newTargetAnchor = null; // Referenced object not in clipboard — detach
+          }
+        }
+
+        const pasted: LineObject = {
+          ...obj,
+          id: newId,
+          zIndex: maxZ,
+          groupId: undefined,
+          start: { x: obj.start.x + offsetX, y: obj.start.y + offsetY },
+          end: { x: obj.end.x + offsetX, y: obj.end.y + offsetY },
+          sourceAnchor: newSourceAnchor,
+          targetAnchor: newTargetAnchor,
+          waypoints: null, // Clear waypoints — route will be recomputed
+        };
+        nextObjects.set(newId, pasted);
+      }
+
+      set({ canvasObjects: nextObjects, selectedObjectIds: newIds });
+    },
+
+    // --- Duplicate ---
+
+    duplicateSelectedObjects: (): void => {
+      const { selectedObjectIds, canvasObjects } = get();
+      if (selectedObjectIds.size === 0) return;
+
+      get().pushHistory();
+
+      let maxZ = -1;
+      for (const existing of canvasObjects.values()) {
+        if (existing.zIndex > maxZ) maxZ = existing.zIndex;
+      }
+
+      // Build ID mapping (oldId → newId) for all selected objects
+      const idMap = new Map<string, string>();
+      for (const id of selectedObjectIds) {
+        idMap.set(id, uuidv4());
+      }
+
+      const newIds = new Set<string>();
+      const nextObjects = new Map(canvasObjects);
+
+      // First pass: duplicate non-line objects
+      for (const id of selectedObjectIds) {
+        const obj = canvasObjects.get(id);
+        if (!obj || obj.objectType === 'line') continue;
+
+        const newId = idMap.get(id)!;
+        newIds.add(newId);
+        maxZ++;
+
+        if (obj.objectType === 'architecture-block') {
+          const dup: ArchitectureBlock = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            position: { x: obj.position.x + 20, y: obj.position.y + 20 },
+          };
+          nextObjects.set(newId, dup);
+        } else {
+          const dup: CanvasObject = {
+            ...obj,
+            id: newId,
+            zIndex: maxZ,
+            groupId: undefined,
+            position: { x: obj.position.x + 20, y: obj.position.y + 20 },
+          } as CanvasObject;
+          nextObjects.set(newId, dup);
+        }
+      }
+
+      // Second pass: duplicate line objects with remapped anchors
+      for (const id of selectedObjectIds) {
+        const obj = canvasObjects.get(id);
+        if (!obj || obj.objectType !== 'line') continue;
+
+        const newId = idMap.get(id)!;
+        newIds.add(newId);
+        maxZ++;
+
+        // Remap anchors: if the referenced object was selected, point to its new ID
+        let newSourceAnchor = obj.sourceAnchor;
+        if (newSourceAnchor) {
+          const mappedId = idMap.get(newSourceAnchor.objectId);
+          if (mappedId) {
+            newSourceAnchor = { ...newSourceAnchor, objectId: mappedId };
+          } else {
+            newSourceAnchor = null; // Referenced object not selected — detach
+          }
+        }
+
+        let newTargetAnchor = obj.targetAnchor;
+        if (newTargetAnchor) {
+          const mappedId = idMap.get(newTargetAnchor.objectId);
+          if (mappedId) {
+            newTargetAnchor = { ...newTargetAnchor, objectId: mappedId };
+          } else {
+            newTargetAnchor = null; // Referenced object not selected — detach
+          }
+        }
+
+        const dup: LineObject = {
+          ...obj,
+          id: newId,
+          zIndex: maxZ,
+          groupId: undefined,
+          start: { x: obj.start.x + 20, y: obj.start.y + 20 },
+          end: { x: obj.end.x + 20, y: obj.end.y + 20 },
+          sourceAnchor: newSourceAnchor,
+          targetAnchor: newTargetAnchor,
+          waypoints: null, // Clear waypoints — route will be recomputed
+        };
+        nextObjects.set(newId, dup);
+      }
+
+      set({ canvasObjects: nextObjects, selectedObjectIds: newIds });
+    },
+
+    // --- Lock/Unlock ---
+
+    toggleLockObjects: (ids: Set<string>): void => {
+      const { canvasObjects } = get();
+      if (ids.size === 0) return;
+
+      // Determine if any are unlocked
+      let anyUnlocked = false;
+      for (const id of ids) {
+        const obj = canvasObjects.get(id);
+        if (obj && !obj.locked) {
+          anyUnlocked = true;
+          break;
+        }
+      }
+
+      get().pushHistory();
+
+      const newLocked = anyUnlocked; // if any unlocked, lock all; if all locked, unlock all
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        for (const id of ids) {
+          const obj = next.get(id);
+          if (obj) {
+            next.set(id, { ...obj, locked: newLocked } as CanvasObject);
+          }
+        }
+        return { canvasObjects: next };
+      });
+    },
+
+    // --- Select all ---
+
+    selectAllObjects: (): void => {
+      const { canvasObjects } = get();
+      if (canvasObjects.size === 0) return;
+      const allIds = new Set<string>(canvasObjects.keys());
+      set({ selectedObjectIds: allIds });
+    },
+
+    // --- Multi-object move ---
+
+    moveSelectedObjects: (dx: number, dy: number): void => {
+      const { selectedObjectIds, canvasObjects, objectGroups } = get();
+      if (selectedObjectIds.size === 0) return;
+
+      // Expand selection to include all group members for any selected grouped object
+      const idsToMove = new Set<string>(selectedObjectIds);
+      for (const id of selectedObjectIds) {
+        const obj = canvasObjects.get(id);
+        if (obj?.groupId) {
+          const group = objectGroups.get(obj.groupId);
+          if (group) {
+            for (const memberId of group.memberIds) {
+              idsToMove.add(memberId);
+            }
+          }
+        }
+      }
+
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        for (const id of idsToMove) {
+          const obj = next.get(id);
+          if (!obj) continue;
+          if (obj.locked) continue;
+
+          if (obj.objectType === 'line') {
+            next.set(id, {
+              ...obj,
+              start: { x: obj.start.x + dx, y: obj.start.y + dy },
+              end: { x: obj.end.x + dx, y: obj.end.y + dy },
+            });
+          } else {
+            // architecture-block, geometric, text, uml
+            next.set(id, {
+              ...obj,
+              position: { x: obj.position.x + dx, y: obj.position.y + dy },
+            } as CanvasObject);
+          }
+        }
+        return { canvasObjects: next };
+      });
+
+      // Identify lines whose BOTH endpoints are moving — their waypoints should
+      // be translated (not cleared) since relative geometry is unchanged.
+      const bothEndsMovingWaypoints = new Map<string, Point[]>();
+      for (const obj of get().canvasObjects.values()) {
+        if (obj.objectType !== 'line') continue;
+        if (!obj.waypoints || obj.waypoints.length === 0) continue;
+        const sourceMoving = obj.sourceAnchor && idsToMove.has(obj.sourceAnchor.objectId);
+        const targetMoving = obj.targetAnchor && idsToMove.has(obj.targetAnchor.objectId);
+        if (sourceMoving && targetMoving) {
+          bothEndsMovingWaypoints.set(obj.id, obj.waypoints.map((wp) => ({ x: wp.x + dx, y: wp.y + dy })));
+        }
+      }
+
+      // Recompute anchored endpoints for each moved non-line object
+      for (const id of idsToMove) {
+        const obj = get().canvasObjects.get(id);
+        if (obj && obj.objectType !== 'line') {
+          get().recomputeAnchoredEndpoints(id);
+        }
+      }
+
+      // Restore translated waypoints for lines whose both ends moved
+      if (bothEndsMovingWaypoints.size > 0) {
+        set((state) => {
+          const next = new Map(state.canvasObjects);
+          for (const [lineId, translatedWaypoints] of bothEndsMovingWaypoints) {
+            const line = next.get(lineId);
+            if (line && line.objectType === 'line') {
+              next.set(lineId, { ...line, waypoints: translatedWaypoints });
+            }
+          }
+          return { canvasObjects: next };
+        });
+      }
+    },
+
+    // --- Text editing ---
+    editingTextId: null as string | null,
+
+    setEditingTextId: (id: string | null): void => {
+      set({ editingTextId: id });
+    },
+
+    updateTextContent: (id: string, content: string): void => {
+      const existing = get().canvasObjects.get(id);
+      if (!existing || existing.objectType !== 'text') return;
+
+      // If content is empty or whitespace-only, auto-remove the text object
+      if (!content || content.trim() === '') {
+        get().removeCanvasObject(id);
+        return;
+      }
+
+      get().pushHistory();
+      set((state) => {
+        const next = new Map(state.canvasObjects);
+        next.set(id, { ...existing, content } as import('@/types/diagram').TextObject);
+        return { canvasObjects: next };
+      });
+    },
+});

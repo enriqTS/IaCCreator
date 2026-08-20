@@ -1,29 +1,117 @@
 /**
- * Persistence Slice — Save, load, list, and delete diagrams.
- *
- * This file defines the public contract (PersistenceSlice interface) for the
- * persistence concerns of the diagram store. The actual implementation will be
- * extracted from diagram-store.ts in a subsequent pass (task 10.6).
- *
- * Requirements: 7.1, 7.8
+ * Reading and writing diagrams on the server.
  */
 
 import type { StateCreator } from 'zustand';
-import type { DiagramState } from '@/types/serialization';
+import { useToastStore } from '@/store/toast-store';
 import type { DiagramSummary } from '@/types/api';
+import type { DiagramState } from '@/types/serialization';
+import { apiClient } from '@/utils/api-client';
+import type { DiagramStore } from './store-types';
 
 export interface PersistenceSlice {
+  // Server persistence
   currentDiagramId: string | null;
-  isLoading: boolean;
+  diagramSummaries: DiagramSummary[];
   isSaving: boolean;
-  diagrams: DiagramSummary[];
-  saveDiagram: () => Promise<void>;
-  loadDiagram: (id: string) => Promise<void>;
-  listDiagrams: () => Promise<void>;
-  deleteDiagram: (id: string) => Promise<void>;
-  createNewDiagram: () => void;
-  serializeDiagramState: () => DiagramState;
-  loadDiagramState: (state: DiagramState) => void;
+  isLoading: boolean;
+  saveDiagramToServer: () => Promise<void>;
+  updateDiagramOnServer: (id: string) => Promise<void>;
+  loadDiagramFromServer: (id: string) => Promise<void>;
+  listDiagramsFromServer: () => Promise<DiagramSummary[]>;
+  deleteDiagramFromServer: (id: string) => Promise<void>;
 }
 
-export type CreatePersistenceSlice = StateCreator<PersistenceSlice, [], [], PersistenceSlice>;
+export const createPersistenceSlice: StateCreator<DiagramStore, [], [], PersistenceSlice> = (set, get) => ({
+    // --- Server persistence ---
+    currentDiagramId: null,
+    diagramSummaries: [] as DiagramSummary[],
+    isSaving: false,
+    isLoading: false,
+
+    saveDiagramToServer: async (): Promise<void> => {
+      const toast = useToastStore.getState();
+      set({ isSaving: true });
+      try {
+        const state = get().serializeDiagramState();
+        const result = await apiClient.saveDiagram(state);
+        if (result.ok) {
+          set({ currentDiagramId: result.data.id });
+          toast.addToast('Diagram saved', 'success');
+        } else {
+          toast.addToast(result.error.message, 'error');
+        }
+      } finally {
+        set({ isSaving: false });
+      }
+    },
+
+    updateDiagramOnServer: async (id: string): Promise<void> => {
+      const toast = useToastStore.getState();
+      set({ isSaving: true });
+      try {
+        const state = get().serializeDiagramState();
+        const result = await apiClient.updateDiagram(id, state);
+        if (result.ok) {
+          toast.addToast('Diagram updated', 'success');
+        } else {
+          toast.addToast(result.error.message, 'error');
+        }
+      } finally {
+        set({ isSaving: false });
+      }
+    },
+
+    loadDiagramFromServer: async (id: string): Promise<void> => {
+      const toast = useToastStore.getState();
+      set({ isLoading: true });
+      try {
+        const result = await apiClient.loadDiagram(id);
+        if (result.ok) {
+          get().loadDiagramState(result.data as DiagramState);
+          set({ currentDiagramId: id });
+        } else {
+          toast.addToast(result.error.message, 'error');
+        }
+      } finally {
+        set({ isLoading: false });
+      }
+    },
+
+    listDiagramsFromServer: async (): Promise<DiagramSummary[]> => {
+      const toast = useToastStore.getState();
+      set({ isLoading: true });
+      try {
+        const result = await apiClient.listDiagrams();
+        if (result.ok) {
+          set({ diagramSummaries: result.data });
+          return result.data;
+        } else {
+          toast.addToast(result.error.message, 'error');
+          return [];
+        }
+      } finally {
+        set({ isLoading: false });
+      }
+    },
+
+    deleteDiagramFromServer: async (id: string): Promise<void> => {
+      const toast = useToastStore.getState();
+      try {
+        const result = await apiClient.deleteDiagram(id);
+        if (result.ok) {
+          toast.addToast('Diagram deleted', 'success');
+          if (get().currentDiagramId === id) {
+            set({ currentDiagramId: null });
+          }
+          set((state) => ({
+            diagramSummaries: state.diagramSummaries.filter((s) => s.diagram_id !== id),
+          }));
+        } else {
+          toast.addToast(result.error.message, 'error');
+        }
+      } catch {
+        toast.addToast('Failed to delete diagram', 'error');
+      }
+    },
+});
