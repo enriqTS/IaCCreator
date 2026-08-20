@@ -10,7 +10,7 @@ See `README.md` for the full feature list and generated output structure. See `d
 | File | Covers |
 |---|---|
 | `docs/backend-api.md` | API endpoint reference |
-| `docs/backend-generators.md` | Terraform/HCL generator internals (one file per AWS service in `app/generators/`) |
+| `docs/backend-generators.md` | Terraform/HCL generator internals (one file per AWS service in `app/generators/`, except API Gateway which is a package split by resource) |
 | `docs/backend-models.md` | Pydantic input/output models |
 | `docs/backend-services.md` | Service layer: `IRBuilder`, `CodeGenerator`, `ConnectionProcessor`, `FileTreeAssembler` |
 | `docs/persistence.md` / `docs/database.md` | Repository pattern, TinyDB/DynamoDB backends |
@@ -69,7 +69,7 @@ These are standing rules for all new and refactored code, not suggestions.
 
 - **Comments are one line, maximum.** A comment is a short explanation of *why*, never a dissertation. No multi-paragraph module docstrings, no prose enumerations of generated resources or config keys above a class, no restating what the code says. Many existing files (notably `app/services/connection_handlers/*.py`) violate this and are being cleaned up separately — leave them, but never add new ones.
 - **Formatting is the linter's job**, not a matter of preference: `ruff format` on the backend, ESLint on the frontend. Never hand-format. A style rule worth enforcing belongs in `pyproject.toml` or the ESLint config, not in convention or a comment.
-- **No god objects.** Anything that can be modularized is; anything expressible as a universal interface is — a shared protocol or base class with per-case implementations, rather than one large class or store branching internally on type. A module or store accumulating unrelated concerns is a defect to split, not a convenience. This currently applies to `app/generators/api_gateway_generator.py`.
+- **No god objects.** Anything that can be modularized is; anything expressible as a universal interface is — a shared protocol or base class with per-case implementations, rather than one large class or store branching internally on type. A module or store accumulating unrelated concerns is a defect to split, not a convenience.
 - **Frontend UI is shadcn/ui, kept simple.** Do not hand-roll primitives shadcn already provides; compose from `frontend/src/components/ui/`. The canvas is the product — menus and panels are supporting furniture, so prefer fewer, plainer controls over elaborate custom panels.
 - **All processing lives in the backend**, exposed to the frontend as a well-defined API. The frontend is strictly a renderer: it displays what the backend gives it and passes user input back. Validation rules, defaults, schemas, name derivation, and format transformation (e.g. OpenAPI import) are backend concerns. Genuinely presentational logic — canvas geometry, pan/zoom, connector routing, snapping, hit-testing, selection, undo/redo of canvas state — stays in the frontend.
 - **"Well-defined API" means typed request and response models**, so the generated OpenAPI document actually describes the payloads. Avoid loose return annotations like `dict[str, list[dict]]` or bare `JSONResponse`.
