@@ -342,7 +342,6 @@ def _build_service_config_models() -> dict:
     are registered. Icon-only services use BaseServiceConfig directly.
     """
     from app.models.input_models.amazon_q_config import AmazonQConfig
-    from app.models.input_models.eventbridge_config import EventBridgeConfig
     from app.models.input_models.amplify_config import AmplifyConfig
     from app.models.input_models.api_gateway_config import ApiGatewayConfig
     from app.models.input_models.app_runner_config import AppRunnerConfig
@@ -374,6 +373,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.elastic_beanstalk_config import ElasticBeanstalkConfig
     from app.models.input_models.elasticache_config import ElastiCacheConfig
     from app.models.input_models.emr_config import EmrConfig
+    from app.models.input_models.eventbridge_config import EventBridgeConfig
     from app.models.input_models.gamelift_config import GameLiftConfig
     from app.models.input_models.glue_config import GlueConfig
     from app.models.input_models.kinesis_config import KinesisConfig
