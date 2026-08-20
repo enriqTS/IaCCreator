@@ -68,26 +68,6 @@ class ApiGatewayConfig(BaseServiceConfig):
     )
 
     # ─── Routes ────────────────────────────────────────────────────────────
-    route_method: str | None = TerraformField(
-        "ANY",
-        group="Routes",
-        description="HTTP method for the route",
-        options=[
-            OptionEntry(value="GET", label="GET"),
-            OptionEntry(value="POST", label="POST"),
-            OptionEntry(value="PUT", label="PUT"),
-            OptionEntry(value="DELETE", label="DELETE"),
-            OptionEntry(value="PATCH", label="PATCH"),
-            OptionEntry(value="HEAD", label="HEAD"),
-            OptionEntry(value="OPTIONS", label="OPTIONS"),
-            OptionEntry(value="ANY", label="ANY"),
-        ],
-    )
-    route_path: str | None = TerraformField(
-        None,
-        group="Routes",
-        description="Route path (e.g., /users/{id})",
-    )
     route_selection_expression: str | None = TerraformField(
         None,
         group="Routes",
@@ -127,21 +107,6 @@ class ApiGatewayConfig(BaseServiceConfig):
     )
 
     # ─── Stages ────────────────────────────────────────────────────────────
-    stage_name: str | None = TerraformField(
-        None,
-        group="Stages",
-        description="Name of the deployment stage (e.g., $default, dev, prod)",
-    )
-    auto_deploy: bool | None = TerraformField(
-        True,
-        group="Stages",
-        description="Whether to auto-deploy changes to this stage",
-    )
-    stage_variables: dict[str, str] | None = TerraformField(
-        None,
-        group="Stages",
-        description="Stage variables as key-value pairs (max 50 entries)",
-    )
     access_log_destination_arn: str | None = TerraformField(
         None,
         group="Stages",
@@ -184,56 +149,6 @@ class ApiGatewayConfig(BaseServiceConfig):
     )
 
     # ─── Authorizers ───────────────────────────────────────────────────────
-    authorizer_type: str | None = TerraformField(
-        None,
-        group="Authorizers",
-        description="Type of authorizer to attach to the API",
-        options=[
-            OptionEntry(value="JWT", label="JWT"),
-            OptionEntry(value="REQUEST", label="Lambda (REQUEST)"),
-            OptionEntry(value="COGNITO_USER_POOLS", label="Cognito User Pools"),
-        ],
-    )
-    jwt_issuer: str | None = TerraformField(
-        None,
-        group="Authorizers",
-        description="Issuer URL for the JWT authorizer",
-        visible_when=VisibleWhen(field="authorizer_type", equals="JWT"),
-    )
-    jwt_audience: str | None = TerraformField(
-        None,
-        group="Authorizers",
-        description="Audience value(s) for the JWT authorizer",
-        visible_when=VisibleWhen(field="authorizer_type", equals="JWT"),
-    )
-    lambda_authorizer_uri: str | None = TerraformField(
-        None,
-        group="Authorizers",
-        description="Lambda function invoke ARN for the REQUEST authorizer",
-        visible_when=VisibleWhen(field="authorizer_type", equals="REQUEST"),
-    )
-    authorizer_payload_format_version: str | None = TerraformField(
-        None,
-        group="Authorizers",
-        description="Payload format version for the Lambda authorizer",
-        visible_when=VisibleWhen(field="authorizer_type", equals="REQUEST"),
-        options=[
-            OptionEntry(value="1.0", label="1.0"),
-            OptionEntry(value="2.0", label="2.0"),
-        ],
-    )
-    cognito_user_pool_endpoint: str | None = TerraformField(
-        None,
-        group="Authorizers",
-        description="Cognito User Pool endpoint URL",
-        visible_when=VisibleWhen(field="authorizer_type", equals="COGNITO_USER_POOLS"),
-    )
-    cognito_client_ids: list[str] | None = TerraformField(
-        None,
-        group="Authorizers",
-        description="List of Cognito User Pool client IDs",
-        visible_when=VisibleWhen(field="authorizer_type", equals="COGNITO_USER_POOLS"),
-    )
     authorizer_result_ttl_in_seconds: int | None = TerraformField(
         None,
         group="Authorizers",
@@ -257,16 +172,6 @@ class ApiGatewayConfig(BaseServiceConfig):
     )
 
     # ─── Custom Domain ─────────────────────────────────────────────────────
-    custom_domain_name: str | None = TerraformField(
-        None,
-        group="Custom Domain",
-        description="Custom domain name for the API (e.g., api.example.com)",
-    )
-    certificate_arn: str | None = TerraformField(
-        None,
-        group="Custom Domain",
-        description="ARN of the ACM certificate for the custom domain",
-    )
     endpoint_type: str | None = TerraformField(
         None,
         group="Custom Domain",
@@ -300,27 +205,6 @@ class ApiGatewayConfig(BaseServiceConfig):
     )
 
     # ─── Integrations ──────────────────────────────────────────────────────
-    integration_type: str | None = TerraformField(
-        None,
-        group="Integrations",
-        description="Type of backend integration",
-        options=[
-            OptionEntry(value="AWS_PROXY", label="AWS Lambda (AWS_PROXY)"),
-            OptionEntry(value="HTTP_PROXY", label="HTTP Proxy (HTTP_PROXY)"),
-            OptionEntry(value="HTTP", label="HTTP Custom (HTTP)"),
-        ],
-    )
-    integration_uri: str | None = TerraformField(
-        None,
-        group="Integrations",
-        description="URI of the integration target",
-    )
-    integration_method: str | None = TerraformField(
-        None,
-        group="Integrations",
-        description="HTTP method for the integration (required for HTTP_PROXY and HTTP)",
-        visible_when=VisibleWhen(field="integration_type", equals="HTTP_PROXY"),
-    )
     connection_type: str | None = TerraformField(
         None,
         group="Integrations",
@@ -400,21 +284,6 @@ class ApiGatewayConfig(BaseServiceConfig):
     )
 
     # ─── VPC Link ──────────────────────────────────────────────────────────
-    vpc_link_name: str | None = TerraformField(
-        None,
-        group="VPC Link",
-        description="Name of the VPC link for private integrations",
-    )
-    vpc_link_subnet_ids: list[str] | None = TerraformField(
-        None,
-        group="VPC Link",
-        description="List of subnet IDs for the VPC link (1-3 entries)",
-    )
-    vpc_link_security_group_ids: list[str] | None = TerraformField(
-        None,
-        group="VPC Link",
-        description="List of security group IDs for the VPC link (1-5 entries)",
-    )
 
     # ─── Metadata ──────────────────────────────────────────────────────────
     cors_configuration: dict | None = TerraformField(
@@ -462,8 +331,6 @@ class ApiGatewayConfig(BaseServiceConfig):
         "body",
         "fail_on_warnings",
         # Routes
-        "route_method",
-        "route_path",
         "route_selection_expression",
         "authorization_type",
         "authorization_scopes",
@@ -471,9 +338,6 @@ class ApiGatewayConfig(BaseServiceConfig):
         "model_selection_expression",
         "route_response_selection_expression",
         # Stages
-        "stage_name",
-        "auto_deploy",
-        "stage_variables",
         "access_log_destination_arn",
         "access_log_format",
         "default_route_data_trace_enabled",
@@ -482,29 +346,17 @@ class ApiGatewayConfig(BaseServiceConfig):
         "default_route_throttling_burst_limit",
         "default_route_throttling_rate_limit",
         # Authorizers
-        "authorizer_type",
-        "jwt_issuer",
-        "jwt_audience",
-        "lambda_authorizer_uri",
-        "authorizer_payload_format_version",
-        "cognito_user_pool_endpoint",
-        "cognito_client_ids",
         "authorizer_result_ttl_in_seconds",
         "enable_simple_responses",
         "authorizer_credentials_arn",
         "identity_sources",
         # Custom Domain
-        "custom_domain_name",
-        "certificate_arn",
         "endpoint_type",
         "security_policy",
         "mutual_tls_truststore_uri",
         "mutual_tls_truststore_version",
         "mutual_tls_authentication",
         # Integrations
-        "integration_type",
-        "integration_uri",
-        "integration_method",
         "connection_type",
         "connection_id",
         "content_handling_strategy",
@@ -518,9 +370,6 @@ class ApiGatewayConfig(BaseServiceConfig):
         "throttling_burst_limit",
         "throttling_rate_limit",
         # VPC Link
-        "vpc_link_name",
-        "vpc_link_subnet_ids",
-        "vpc_link_security_group_ids",
         # Metadata
         "cors_configuration",
         "disable_execute_api_endpoint",

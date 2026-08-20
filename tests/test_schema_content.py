@@ -99,35 +99,15 @@ class TestVariableNamesPerService:
             "protocol_type",
             "description",
             # Routes
-            "route_method",
-            "route_path",
             "route_selection_expression",
             # Stages
-            "stage_name",
-            "auto_deploy",
-            "stage_variables",
             # Authorizers
-            "authorizer_type",
-            "jwt_issuer",
-            "jwt_audience",
-            "lambda_authorizer_uri",
-            "authorizer_payload_format_version",
-            "cognito_user_pool_endpoint",
-            "cognito_client_ids",
             # Custom Domain
-            "custom_domain_name",
-            "certificate_arn",
             # Integrations
-            "integration_type",
-            "integration_uri",
-            "integration_method",
             # Rate Limiting
             "throttling_burst_limit",
             "throttling_rate_limit",
             # VPC Link
-            "vpc_link_name",
-            "vpc_link_subnet_ids",
-            "vpc_link_security_group_ids",
             # Metadata
             "cors_configuration",
             "disable_execute_api_endpoint",

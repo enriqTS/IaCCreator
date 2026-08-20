@@ -145,55 +145,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     },
     {
-      "default": "ANY",
-      "description": "HTTP method for the route",
-      "group": "Routes",
-      "name": "route_method",
-      "options": [
-        {
-          "label": "GET",
-          "value": "GET"
-        },
-        {
-          "label": "POST",
-          "value": "POST"
-        },
-        {
-          "label": "PUT",
-          "value": "PUT"
-        },
-        {
-          "label": "DELETE",
-          "value": "DELETE"
-        },
-        {
-          "label": "PATCH",
-          "value": "PATCH"
-        },
-        {
-          "label": "HEAD",
-          "value": "HEAD"
-        },
-        {
-          "label": "OPTIONS",
-          "value": "OPTIONS"
-        },
-        {
-          "label": "ANY",
-          "value": "ANY"
-        }
-      ],
-      "required": false,
-      "type": "string"
-    },
-    {
-      "description": "Route path (e.g., /users/{id})",
-      "group": "Routes",
-      "name": "route_path",
-      "required": false,
-      "type": "string"
-    },
-    {
       "description": "Route selection expression for WebSocket APIs",
       "group": "Routes",
       "name": "route_selection_expression",
@@ -256,28 +207,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "route_response_selection_expression",
       "required": false,
       "type": "string"
-    },
-    {
-      "description": "Name of the deployment stage (e.g., $default, dev, prod)",
-      "group": "Stages",
-      "name": "stage_name",
-      "required": false,
-      "type": "string"
-    },
-    {
-      "default": true,
-      "description": "Whether to auto-deploy changes to this stage",
-      "group": "Stages",
-      "name": "auto_deploy",
-      "required": false,
-      "type": "bool"
-    },
-    {
-      "description": "Stage variables as key-value pairs (max 50 entries)",
-      "group": "Stages",
-      "name": "stage_variables",
-      "required": false,
-      "type": "map"
     },
     {
       "description": "ARN of the CloudWatch log group for access logging",
@@ -343,103 +272,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "number"
     },
     {
-      "description": "Type of authorizer to attach to the API",
-      "group": "Authorizers",
-      "name": "authorizer_type",
-      "options": [
-        {
-          "label": "JWT",
-          "value": "JWT"
-        },
-        {
-          "label": "Lambda (REQUEST)",
-          "value": "REQUEST"
-        },
-        {
-          "label": "Cognito User Pools",
-          "value": "COGNITO_USER_POOLS"
-        }
-      ],
-      "required": false,
-      "type": "string"
-    },
-    {
-      "description": "Issuer URL for the JWT authorizer",
-      "group": "Authorizers",
-      "name": "jwt_issuer",
-      "required": false,
-      "type": "string",
-      "visible_when": {
-        "equals": "JWT",
-        "field": "authorizer_type"
-      }
-    },
-    {
-      "description": "Audience value(s) for the JWT authorizer",
-      "group": "Authorizers",
-      "name": "jwt_audience",
-      "required": false,
-      "type": "string",
-      "visible_when": {
-        "equals": "JWT",
-        "field": "authorizer_type"
-      }
-    },
-    {
-      "description": "Lambda function invoke ARN for the REQUEST authorizer",
-      "group": "Authorizers",
-      "name": "lambda_authorizer_uri",
-      "required": false,
-      "type": "string",
-      "visible_when": {
-        "equals": "REQUEST",
-        "field": "authorizer_type"
-      }
-    },
-    {
-      "description": "Payload format version for the Lambda authorizer",
-      "group": "Authorizers",
-      "name": "authorizer_payload_format_version",
-      "options": [
-        {
-          "label": "1.0",
-          "value": "1.0"
-        },
-        {
-          "label": "2.0",
-          "value": "2.0"
-        }
-      ],
-      "required": false,
-      "type": "string",
-      "visible_when": {
-        "equals": "REQUEST",
-        "field": "authorizer_type"
-      }
-    },
-    {
-      "description": "Cognito User Pool endpoint URL",
-      "group": "Authorizers",
-      "name": "cognito_user_pool_endpoint",
-      "required": false,
-      "type": "string",
-      "visible_when": {
-        "equals": "COGNITO_USER_POOLS",
-        "field": "authorizer_type"
-      }
-    },
-    {
-      "description": "List of Cognito User Pool client IDs",
-      "group": "Authorizers",
-      "name": "cognito_client_ids",
-      "required": false,
-      "type": "list",
-      "visible_when": {
-        "equals": "COGNITO_USER_POOLS",
-        "field": "authorizer_type"
-      }
-    },
-    {
       "description": "Time to live (TTL) for cached authorizer results in seconds",
       "group": "Authorizers",
       "name": "authorizer_result_ttl_in_seconds",
@@ -470,20 +302,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "identity_sources",
       "required": false,
       "type": "list"
-    },
-    {
-      "description": "Custom domain name for the API (e.g., api.example.com)",
-      "group": "Custom Domain",
-      "name": "custom_domain_name",
-      "required": false,
-      "type": "string"
-    },
-    {
-      "description": "ARN of the ACM certificate for the custom domain",
-      "group": "Custom Domain",
-      "name": "certificate_arn",
-      "required": false,
-      "type": "string"
     },
     {
       "description": "Endpoint type for the custom domain",
@@ -531,45 +349,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "mutual_tls_authentication",
       "required": false,
       "type": "map"
-    },
-    {
-      "description": "Type of backend integration",
-      "group": "Integrations",
-      "name": "integration_type",
-      "options": [
-        {
-          "label": "AWS Lambda (AWS_PROXY)",
-          "value": "AWS_PROXY"
-        },
-        {
-          "label": "HTTP Proxy (HTTP_PROXY)",
-          "value": "HTTP_PROXY"
-        },
-        {
-          "label": "HTTP Custom (HTTP)",
-          "value": "HTTP"
-        }
-      ],
-      "required": false,
-      "type": "string"
-    },
-    {
-      "description": "URI of the integration target",
-      "group": "Integrations",
-      "name": "integration_uri",
-      "required": false,
-      "type": "string"
-    },
-    {
-      "description": "HTTP method for the integration (required for HTTP_PROXY and HTTP)",
-      "group": "Integrations",
-      "name": "integration_method",
-      "required": false,
-      "type": "string",
-      "visible_when": {
-        "equals": "HTTP_PROXY",
-        "field": "integration_type"
-      }
     },
     {
       "description": "Connection type for the integration",
@@ -703,27 +482,6 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         "max": 10000.0,
         "min": 1.0
       }
-    },
-    {
-      "description": "Name of the VPC link for private integrations",
-      "group": "VPC Link",
-      "name": "vpc_link_name",
-      "required": false,
-      "type": "string"
-    },
-    {
-      "description": "List of subnet IDs for the VPC link (1-3 entries)",
-      "group": "VPC Link",
-      "name": "vpc_link_subnet_ids",
-      "required": false,
-      "type": "list"
-    },
-    {
-      "description": "List of security group IDs for the VPC link (1-5 entries)",
-      "group": "VPC Link",
-      "name": "vpc_link_security_group_ids",
-      "required": false,
-      "type": "list"
     },
     {
       "description": "CORS configuration for the API",
