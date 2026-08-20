@@ -1718,6 +1718,59 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "eventbridge": [
+    {
+      "description": "Name of the EventBridge rule",
+      "group": "General",
+      "name": "rule_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Custom event bus to create and attach the rule to",
+      "group": "General",
+      "name": "bus_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "JSON event pattern the rule matches",
+      "group": "Matching",
+      "name": "event_pattern",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Schedule such as rate(5 minutes) or cron(0 12 * * ? *)",
+      "group": "Matching",
+      "name": "schedule_expression",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Whether the rule is enabled",
+      "group": "Matching",
+      "name": "state",
+      "options": [
+        {
+          "label": "Enabled",
+          "value": "ENABLED"
+        },
+        {
+          "label": "Disabled",
+          "value": "DISABLED"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "ENABLED",
+          "DISABLED"
+        ]
+      }
+    }
+  ],
   "gamelift": [
     {
       "description": "Name of the GameLift fleet",

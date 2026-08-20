@@ -14,6 +14,7 @@ from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.input_models.cloudwatch_config import CloudWatchConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.input_models.ecs_config import EcsConfig
+from app.models.input_models.eventbridge_config import EventBridgeConfig
 from app.models.input_models.lambda_config import LambdaConfig
 from app.models.input_models.s3_config import S3Config
 from app.models.input_models.sns_config import SnsConfig
@@ -114,6 +115,15 @@ def reference_architecture() -> ArchitectureDescription:
             config=SqsConfig(queue_name="audit"),
         ),
         ResourceInstance(
+            name="nightly",
+            service_type=ServiceType.EVENTBRIDGE,
+            config=EventBridgeConfig(
+                rule_name="nightly",
+                schedule_expression="rate(1 day)",
+                state="ENABLED",
+            ),
+        ),
+        ResourceInstance(
             name="app-logs",
             service_type=ServiceType.CLOUDWATCH,
             config=CloudWatchConfig(log_group_name="app-logs"),
@@ -155,6 +165,14 @@ def reference_architecture() -> ArchitectureDescription:
         Connection(source="alerts", target="jobs", connection_type="delivers_to"),
         # Fan-out: the same topic delivering to a second queue
         Connection(source="events", target="audit", connection_type="delivers_to"),
+        # One rule fanning out to targets of different service types
+        Connection(
+            source="nightly",
+            target="process-job",
+            connection_type="targets",
+            connection_config={"target_id": "nightly-processor"},
+        ),
+        Connection(source="nightly", target="audit", connection_type="targets"),
         Connection(source="events", target="process-job", connection_type="triggers"),
         Connection(
             source="uploads",

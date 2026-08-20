@@ -15,6 +15,7 @@ export type ServiceType =
   | 'cloudwatch'
   | 'sns'
   | 'sqs'
+  | 'eventbridge'
   // Compute — full-generator services
   | 'ec2'
   | 'elastic-beanstalk'

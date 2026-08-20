@@ -52,8 +52,18 @@ for _stype, _entries in service_schemas().items():
 def invalid_value_for_rule(draw, rule):
     """Generate a value that violates the given ValidationRule."""
     if rule.allowed_values is not None:
-        # Generate an integer NOT in the allowed set
-        val = draw(st.integers(min_value=-1000, max_value=100000))
+        # Match the type of the allowed values, so the value is rejected for being
+        # out of the set rather than for being the wrong type
+        if all(isinstance(v, str) for v in rule.allowed_values):
+            val = draw(
+                st.text(
+                    min_size=1,
+                    max_size=12,
+                    alphabet=st.characters(whitelist_categories=("L",)),
+                )
+            )
+        else:
+            val = draw(st.integers(min_value=-1000, max_value=100000))
         assume(val not in rule.allowed_values)
         return val
 

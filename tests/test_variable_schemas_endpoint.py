@@ -47,6 +47,7 @@ EXPECTED_SERVICE_TYPES = {
     "cloudwatch",
     "sns",
     "sqs",
+    "eventbridge",
     "ec2",
     "ecs",
     "eks",

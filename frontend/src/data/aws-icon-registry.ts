@@ -60,7 +60,7 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
       { name: 'AppFlow', iconPath: '/aws-icons/App-Integration/AppFlow.svg', serviceType: null },
       { name: 'AppSync', iconPath: '/aws-icons/App-Integration/AppSync.svg', serviceType: null },
       { name: 'Console Mobile Application', iconPath: '/aws-icons/App-Integration/Console-Mobile-Application.svg', serviceType: null },
-      { name: 'EventBridge', iconPath: '/aws-icons/App-Integration/EventBridge.svg', serviceType: null },
+      { name: 'EventBridge', iconPath: '/aws-icons/App-Integration/EventBridge.svg', serviceType: 'eventbridge' },
       { name: 'Express Workflows', iconPath: '/aws-icons/App-Integration/Express-Workflows.svg', serviceType: null },
       { name: 'Managed Workflows for Apache Airflow', iconPath: '/aws-icons/App-Integration/Managed-Workflows-for-Apache-Airflow.svg', serviceType: null },
       { name: 'MQ', iconPath: '/aws-icons/App-Integration/MQ.svg', serviceType: null },
