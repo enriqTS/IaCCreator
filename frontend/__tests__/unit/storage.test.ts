@@ -6,13 +6,14 @@ import {
   deleteSavedDiagram,
 } from '@/utils/storage';
 import type { DiagramState } from '@/types/serialization';
+import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 
 function makeDiagramState(overrides?: Partial<DiagramState>): DiagramState {
   return {
-    version: 1,
+    version: CURRENT_DIAGRAM_VERSION,
     projectName: 'test-project',
     environments: [],
-    elements: [],
+    canvasObjects: [],
     connectors: [],
     viewport: { offsetX: 0, offsetY: 0, scale: 1 },
     ...overrides,

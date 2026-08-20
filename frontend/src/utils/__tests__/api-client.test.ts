@@ -38,7 +38,6 @@ function getApiMethods(): MethodEntry[] {
           version: 1,
           projectName: 'test',
           environments: [],
-          elements: [],
           connectors: [],
           viewport: { offsetX: 0, offsetY: 0, scale: 1 },
         }),
@@ -50,7 +49,6 @@ function getApiMethods(): MethodEntry[] {
           version: 1,
           projectName: 'test',
           environments: [],
-          elements: [],
           connectors: [],
           viewport: { offsetX: 0, offsetY: 0, scale: 1 },
         }),
@@ -260,7 +258,6 @@ describe('API client unit tests', () => {
         version: 1,
         projectName: 'test',
         environments: [],
-        elements: [],
         connectors: [],
         viewport: { offsetX: 0, offsetY: 0, scale: 1 },
       });

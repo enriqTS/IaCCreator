@@ -379,7 +379,6 @@ describe('DiagramStore - serializeDiagramState', () => {
 
   it('serializes empty diagram correctly', () => {
     const state = useDiagramStore.getState().serializeDiagramState();
-    expect(state.elements).toEqual([]);
     expect(state.connectors).toEqual([]);
     expect(state.canvasObjects).toEqual([]);
     expect(state.viewport).toEqual({ offsetX: 0, offsetY: 0, scale: 1.0 });
@@ -519,33 +518,6 @@ describe('DiagramStore - loadDiagramState', () => {
     }
   });
 
-  it('migrates v1 elements to canvasObjects with default visual configs', () => {
-    const state = {
-      version: 1,
-      projectName: 'v1-proj',
-      environments: [],
-      elements: [
-        { id: 'e1', serviceType: 'lambda' as const, name: 'lambda-1', position: { x: 50, y: 60 }, config: { handler: 'main.handler' } },
-      ],
-      connectors: [],
-      viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
-    };
-
-    useDiagramStore.getState().loadDiagramState(state);
-
-    const canvasObjects = useDiagramStore.getState().canvasObjects;
-    expect(canvasObjects.size).toBe(1);
-
-    const obj = canvasObjects.get('e1');
-    expect(obj).toBeDefined();
-    expect(obj!.objectType).toBe('architecture-block');
-    if (obj!.objectType === 'architecture-block') {
-      expect(obj!.position).toEqual({ x: 50, y: 60 });
-      expect(obj!.serviceType).toBe('lambda');
-      expect(obj!.config.handler).toBe('main.handler');
-      expect(obj!.visualConfig).toEqual({ width: 80, height: 80 });
-    }
-  });
 
   it('discards legacy elements field when loading saved diagram (requirement 2.4)', () => {
     const state = {

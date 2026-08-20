@@ -3,9 +3,9 @@
  */
 
 import type { DiagramState } from '@/types/serialization';
+import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 
 const STORAGE_PREFIX = 'diagram-editor:';
-const CURRENT_VERSION = 1;
 
 export interface SaveResult {
   success: boolean;
@@ -82,10 +82,10 @@ export function loadDiagram(name: string): LoadResult {
     return { success: false, error: `Diagram "${name}" has corrupted data.` };
   }
 
-  if (entry.state.version !== CURRENT_VERSION) {
+  if (entry.state.version !== CURRENT_DIAGRAM_VERSION) {
     return {
       success: false,
-      error: `Diagram "${name}" was saved with version ${entry.state.version}, but current version is ${CURRENT_VERSION}.`,
+      error: `Diagram "${name}" was saved with version ${entry.state.version}, but current version is ${CURRENT_DIAGRAM_VERSION}. Load it from the server instead.`,
     };
   }
 

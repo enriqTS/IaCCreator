@@ -1785,7 +1785,6 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         version: CURRENT_DIAGRAM_VERSION,
         projectName,
         environments: environments.map((e) => ({ ...e, variables: { ...e.variables } })),
-        elements: [],
         canvasObjects: serializedCanvasObjects,
         connectors: Array.from(connectors.values()).map((c) => ({
           id: c.id,
@@ -1815,7 +1814,6 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
       // Deserialize canvasObjects
       const canvasObjectsMap = new Map<string, CanvasObject>();
-      const isV2 = state.version === 2;
 
       // Valid geometric shapes for fallback
       const VALID_GEOMETRIC_SHAPES: Set<string> = new Set([
@@ -1964,23 +1962,6 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             // Unknown objectType: skip with warning
             console.warn(`Unknown objectType "${sObj.objectType}" for object "${sObj.id}", skipping.`);
           }
-        }
-      } else if (!state.version || state.version === 1) {
-        // v1→v2 migration: convert elements to canvasObjects with default visual configs
-        let migrationIndex = 0;
-        for (const el of state.elements) {
-          const obj: ArchitectureBlock = {
-            id: el.id,
-            objectType: 'architecture-block',
-            serviceType: el.serviceType,
-            name: el.name,
-            position: { ...el.position },
-            config: { ...el.config },
-            terraformVariables: getDefaultVariables(el.serviceType),
-            visualConfig: { ...DEFAULT_BLOCK_VISUAL },
-            zIndex: migrationIndex++,
-          };
-          canvasObjectsMap.set(obj.id, obj);
         }
       }
 

@@ -22,21 +22,12 @@ export interface DiagramState {
   version: number;
   projectName: string;
   environments: EnvironmentConfig[];
-  elements: SerializedElement[];
   canvasObjects?: SerializedCanvasObject[];
   connectors: SerializedConnector[];
   viewport: Viewport;
   objectGroups?: SerializedObjectGroup[];
   globalTerraformConfig?: GlobalTerraformConfig;
   globalRoutingMode?: string;
-}
-
-export interface SerializedElement {
-  id: string;
-  serviceType: ServiceType;
-  name: string;
-  position: Point;
-  config: ResourceConfig;
 }
 
 export interface SerializedCanvasObject {
