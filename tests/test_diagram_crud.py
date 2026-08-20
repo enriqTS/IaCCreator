@@ -13,6 +13,7 @@ import uuid
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
+from app.models.diagram_state import CURRENT_DIAGRAM_VERSION
 from app.persistence.tinydb_repo import TinyDBRepository
 
 # ---------------------------------------------------------------------------
@@ -84,7 +85,8 @@ environment_st = st.fixed_dictionaries(
 
 diagram_state_st = st.fixed_dictionaries(
     {
-        "version": st.integers(min_value=1, max_value=100),
+        # Records are migrated on read, so only current-format states round-trip
+        "version": st.just(CURRENT_DIAGRAM_VERSION),
         "projectName": st.text(
             min_size=1,
             max_size=50,

@@ -17,6 +17,7 @@ import uuid
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from app.models.diagram_state import CURRENT_DIAGRAM_VERSION
 from app.persistence.tinydb_repo import TinyDBRepository
 
 # ---------------------------------------------------------------------------
@@ -39,12 +40,16 @@ viewport_st = st.fixed_dictionaries(
     }
 )
 
-element_st = st.fixed_dictionaries(
+canvas_object_st = st.fixed_dictionaries(
     {
         "id": uuid4_st,
-        "type": st.sampled_from(
+        "objectType": st.just("architecture-block"),
+        "serviceType": st.sampled_from(
             ["lambda", "s3", "dynamodb", "api-gateway", "cloudwatch", "iam"]
         ),
+        "visualConfig": st.just({"width": 80.0, "height": 80.0}),
+        "zIndex": st.integers(min_value=0, max_value=20),
+        "groupId": st.none(),
         "x": st.floats(
             min_value=-1e4, max_value=1e4, allow_nan=False, allow_infinity=False
         ),
@@ -86,16 +91,17 @@ environment_st = st.fixed_dictionaries(
     }
 )
 
+# Records are migrated on read, so a round-trip only round-trips the current format
 diagram_state_st = st.fixed_dictionaries(
     {
-        "version": st.integers(min_value=1, max_value=100),
+        "version": st.just(CURRENT_DIAGRAM_VERSION),
         "projectName": st.text(
             min_size=1,
             max_size=50,
             alphabet=st.characters(whitelist_categories=("L", "N", "Pd", "Zs")),
         ),
         "environments": st.lists(environment_st, min_size=0, max_size=4),
-        "elements": st.lists(element_st, min_size=0, max_size=10),
+        "canvasObjects": st.lists(canvas_object_st, min_size=0, max_size=10),
         "connectors": st.lists(connector_st, min_size=0, max_size=8),
         "viewport": viewport_st,
     }
