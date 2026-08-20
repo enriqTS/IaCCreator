@@ -1,5 +1,7 @@
 """ECS service generator — produces HCL for ECS cluster, task definition, and service resources."""
 
+import json
+
 from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ecs_config import EcsConfig
@@ -11,6 +13,19 @@ def _resolve_config(instance: ResourceInstanceIR) -> EcsConfig:
     if isinstance(instance.config, EcsConfig):
         return instance.config
     return instance.config  # type: ignore[return-value]
+
+
+def _default_container_definitions(name: str) -> str:
+    """A single placeholder container, so an unconfigured task is still valid."""
+    return json.dumps(
+        [
+            {
+                "name": name,
+                "image": "public.ecr.aws/docker/library/busybox:latest",
+                "essential": True,
+            }
+        ]
+    )
 
 
 class ECSGenerator:
@@ -32,6 +47,7 @@ class ECSGenerator:
         # ECS Task Definition
         task_attrs: dict = {
             "family": Expr("var.task_family"),
+            "container_definitions": Expr("var.container_definitions"),
             "cpu": Expr("var.ecs_cpu"),
             "memory": Expr("var.ecs_memory"),
             "network_mode": "awsvpc",
@@ -64,16 +80,34 @@ class ECSGenerator:
         """Generate variables.tf for an ECS instance."""
         config = _resolve_config(instance)
 
+        # Task sizing falls back to the Fargate minimum so an unconfigured task still plans
         parts = [
             self._r.render_variable(
                 "cluster_name", "string", "Name of the ECS cluster"
             ),
             self._r.render_variable(
-                "task_family", "string", "Family name for the ECS task definition"
+                "task_family",
+                "string",
+                "Family name for the ECS task definition",
+                default=config.task_family or instance.name,
             ),
-            self._r.render_variable("ecs_cpu", "string", "CPU units for the ECS task"),
             self._r.render_variable(
-                "ecs_memory", "string", "Memory (MiB) for the ECS task"
+                "ecs_cpu",
+                "string",
+                "CPU units for the ECS task",
+                default=config.ecs_cpu or "256",
+            ),
+            self._r.render_variable(
+                "ecs_memory",
+                "string",
+                "Memory (MiB) for the ECS task",
+                default=config.ecs_memory or "512",
+            ),
+            self._r.render_variable(
+                "container_definitions",
+                "string",
+                "JSON container definitions for the task",
+                default=_default_container_definitions(instance.name),
             ),
         ]
         if config.ecs_launch_type is not None:

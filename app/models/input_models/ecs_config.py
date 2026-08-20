@@ -12,6 +12,9 @@ class EcsConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.ECS] = ServiceType.ECS
 
+    owns_execution_role: ClassVar[bool] = True
+    execution_role_principal: ClassVar[str] = "ecs-tasks.amazonaws.com"
+
     _schema_field_order: ClassVar[tuple[str, ...]] = (
         "cluster_name",
         "task_family",
@@ -46,3 +49,21 @@ class EcsConfig(BaseServiceConfig):
     # ── Internal (not Terraform variables) ────────────────────────────────
     ecs_launch_type: str | None = None
     ecs_desired_count: int | None = None
+
+    @classmethod
+    def execution_role_base_statements(cls, instance_name: str) -> list[dict]:
+        """Every task needs to pull its image and write its logs."""
+        return [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "ecr:GetAuthorizationToken",
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:GetDownloadUrlForLayer",
+                    "ecr:BatchGetImage",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                ],
+                "Resource": "*",
+            }
+        ]
