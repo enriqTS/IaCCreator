@@ -15,12 +15,20 @@ import { createProjectSlice } from './slices/project-slice';
 import { createSerializationSlice } from './slices/serialization-slice';
 import { createUISlice } from './slices/ui-slice';
 import { createViewportSlice } from './slices/viewport-slice';
+import { createZOrderSlice } from './slices/zorder-slice';
+import { createGroupingSlice } from './slices/grouping-slice';
+import { createClipboardSlice } from './slices/clipboard-slice';
+import { createAnchoringSlice } from './slices/anchoring-slice';
 import type { DiagramStore } from './slices/store-types';
 
 export type { DiagramStore };
 
 export const useDiagramStore = create<DiagramStore>()((...args) => ({
   ...createCanvasSlice(...args),
+  ...createAnchoringSlice(...args),
+  ...createClipboardSlice(...args),
+  ...createGroupingSlice(...args),
+  ...createZOrderSlice(...args),
   ...createConnectorSlice(...args),
   ...createHistorySlice(...args),
   ...createPersistenceSlice(...args),

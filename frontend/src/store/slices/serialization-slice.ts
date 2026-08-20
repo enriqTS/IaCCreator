@@ -7,8 +7,9 @@ import type { AnchorRef, ArchitectureBlock, CanvasObject, Connector, GeometricOb
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_LINE_VISUAL, DEFAULT_TEXT_VISUAL, DEFAULT_UML_VISUAL } from '@/types/diagram';
 import type { ArchitectureDescription, DiagramState, SerializedCanvasObject } from '@/types/serialization';
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
-import { DEFAULT_GLOBAL_CONFIG, getDefaultVariables } from '@/types/terraform-variables';
+import { getDefaultVariables } from '@/types/terraform-variables';
 import type { AnchorPosition } from '@/utils/anchor';
+import { DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
 import type { DiagramStore } from './store-types';
 
 export interface SerializationSlice {
