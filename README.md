@@ -23,6 +23,7 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - CloudWatch
 - SNS
 - SQS
+- EventBridge
 
 **Compute:**
 - EC2
