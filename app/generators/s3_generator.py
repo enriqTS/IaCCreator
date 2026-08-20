@@ -194,6 +194,10 @@ class S3Generator:
         self, instance: ResourceInstanceIR, config: S3Config
     ) -> str:
         """Emit aws_s3_bucket_notification when notification fields are set."""
+        # AWS allows one notification per bucket, and a connection owns it when present
+        if any(c.connection_type == "notifies" for c in instance.connections):
+            return ""
+
         has_notifications = any(
             [
                 config.notification_lambda_arn is not None,
