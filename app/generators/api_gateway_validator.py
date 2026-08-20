@@ -17,6 +17,13 @@ ALLOWED_METHODS = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "
 # Regex pattern for valid route paths (allows greedy path variables like {proxy+})
 PATH_PATTERN = re.compile(r"^/[a-zA-Z0-9\-_./{}+]*$")
 
+# WebSocket APIs address routes by key rather than by path
+WEBSOCKET_ROUTE_KEY_PATTERN = re.compile(r"^[a-zA-Z0-9\-_./$]+$")
+
+# $default is a valid route key on both protocols; the others are WebSocket-only
+SPECIAL_ROUTE_KEYS = {"$default"}
+WEBSOCKET_SPECIAL_ROUTE_KEYS = {"$connect", "$disconnect", "$default"}
+
 
 class APIGatewayValidator:
     """Validates API Gateway configuration before generation."""
@@ -42,6 +49,15 @@ class APIGatewayValidator:
         errors.extend(self._validate_throttling(config))
 
         return errors
+
+    @staticmethod
+    def _is_valid_route_path(path: str, config: BaseServiceConfig) -> bool:
+        """WebSocket APIs use route keys such as $connect; HTTP APIs use paths."""
+        if getattr(config, "protocol_type", None) == "WEBSOCKET":
+            return path in WEBSOCKET_SPECIAL_ROUTE_KEYS or bool(
+                WEBSOCKET_ROUTE_KEY_PATTERN.match(path)
+            )
+        return path in SPECIAL_ROUTE_KEYS or bool(PATH_PATTERN.match(path))
 
     def _validate_routes(self, config: BaseServiceConfig) -> list[ValidationError]:
         """Validate route configurations.
@@ -86,7 +102,7 @@ class APIGatewayValidator:
                         )
 
             # Validate path
-            if not PATH_PATTERN.match(path):
+            if not self._is_valid_route_path(path, config):
                 errors.append(
                     ValidationError(
                         field=f"routes[{i}].path",
@@ -353,6 +369,16 @@ class APIGatewayValidator:
             integration_type = integration.get("type", "")
             uri = integration.get("uri")
             vpc_link_name = integration.get("vpc_link_name")
+
+            # Routes reference integrations by name, so an unnamed one is unusable
+            if not integration.get("name"):
+                errors.append(
+                    ValidationError(
+                        field=f"integrations[{i}].name",
+                        message="Integration requires a 'name' so routes can target it.",
+                        code="MISSING_INTEGRATION_NAME",
+                    )
+                )
 
             # HTTP and HTTP_PROXY require URI
             if integration_type in ("HTTP", "HTTP_PROXY") and not uri:

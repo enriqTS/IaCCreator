@@ -104,6 +104,16 @@ def reference_architecture() -> ArchitectureDescription:
             config=SnsConfig(topic_name="events"),
         ),
         ResourceInstance(
+            name="alerts",
+            service_type=ServiceType.SNS,
+            config=SnsConfig(topic_name="alerts"),
+        ),
+        ResourceInstance(
+            name="audit",
+            service_type=ServiceType.SQS,
+            config=SqsConfig(queue_name="audit"),
+        ),
+        ResourceInstance(
             name="app-logs",
             service_type=ServiceType.CLOUDWATCH,
             config=CloudWatchConfig(log_group_name="app-logs"),
@@ -141,6 +151,10 @@ def reference_architecture() -> ArchitectureDescription:
         ),
         Connection(source="create-user", target="jobs", connection_type="sends_to"),
         Connection(source="events", target="jobs", connection_type="delivers_to"),
+        # Fan-in: a second topic delivering to the same queue
+        Connection(source="alerts", target="jobs", connection_type="delivers_to"),
+        # Fan-out: the same topic delivering to a second queue
+        Connection(source="events", target="audit", connection_type="delivers_to"),
         Connection(source="events", target="process-job", connection_type="triggers"),
         Connection(
             source="uploads",

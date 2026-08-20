@@ -39,8 +39,11 @@ def render_routes(
     integration_names: set[str] = set()
     integrations = getattr(config, "integrations", None)
     if integrations:
+        # An unnamed integration cannot be referenced, and the validator rejects it
         for integ in integrations:
-            integration_names.add(integ["name"])
+            name = integ.get("name")
+            if name:
+                integration_names.add(name)
 
     parts: list[str] = []
     routes = getattr(config, "routes", None)
