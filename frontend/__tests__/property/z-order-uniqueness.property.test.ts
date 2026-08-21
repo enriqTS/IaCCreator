@@ -99,6 +99,12 @@ describe('Z-Order Uniqueness Property', () => {
           ).map((ops) => ({ initialPayloads, ops })),
         ),
         ({ initialPayloads, ops }) => {
+          // Each run starts clean; otherwise objects accumulate across all runs
+          useDiagramStore.setState({
+            canvasObjects: new Map(),
+            selectedObjectIds: new Set(),
+            objectGroups: new Map(),
+          });
           const objectIds: string[] = [];
 
           // Phase 1: Add initial objects and verify uniqueness after each add

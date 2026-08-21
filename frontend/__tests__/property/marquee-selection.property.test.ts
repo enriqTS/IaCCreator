@@ -61,6 +61,12 @@ describe('Marquee Selection Correctness Property', () => {
         fc.array(canvasObjectWithoutIdArbitrary(), { minLength: 1, maxLength: 15 }),
         marqueeRectArbitrary,
         (objectPayloads, marqueeRect) => {
+          // Each run starts clean; otherwise objects accumulate across all 100 runs
+          useDiagramStore.setState({
+            canvasObjects: new Map(),
+            selectedObjectIds: new Set(),
+            objectGroups: new Map(),
+          });
           const store = useDiagramStore.getState();
 
           // Add all objects to the store

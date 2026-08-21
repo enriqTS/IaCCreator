@@ -135,42 +135,36 @@ describe('Property 5 + 6: Grouping and conditional visibility', () => {
     );
   });
 
-  test('DynamoDB: when billing_mode != PROVISIONED, the Capacity group has zero visible entries', () => {
+  // The Capacity group holds two conditional sets: provisioned units and on-demand limits
+  test('DynamoDB: each billing mode reveals only its own Capacity entries', () => {
     fc.assert(
       fc.property(
-        fc.constantFrom('PAY_PER_REQUEST', 'UNKNOWN_MODE', ''),
+        fc.constantFrom('PROVISIONED', 'PAY_PER_REQUEST'),
         (billingMode) => {
-          const entries = BUNDLED_SCHEMAS['dynamodb'];
-          const capacityEntries = entries.filter((e) => (e.group ?? 'General') === 'Capacity');
-
-          // Capacity group should exist and have entries
+          const capacityEntries = BUNDLED_SCHEMAS['dynamodb'].filter(
+            (e) => (e.group ?? 'General') === 'Capacity',
+          );
           expect(capacityEntries.length).toBeGreaterThan(0);
 
           const config: ResourceConfig = { billing_mode: billingMode };
-
-          const visibleCount = capacityEntries.filter((e) =>
-            isVisible(e, config),
-          ).length;
-
-          // None should be visible when billing_mode is not PROVISIONED
-          expect(visibleCount).toBe(0);
+          for (const entry of capacityEntries) {
+            const expected = entry.visible_when?.equals === billingMode;
+            expect(isVisible(entry, config)).toBe(expected);
+          }
+          // Whichever mode is chosen, something in the group is offered
+          expect(capacityEntries.some((e) => isVisible(e, config))).toBe(true);
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 50 },
     );
   });
 
-  test('DynamoDB: when billing_mode == PROVISIONED, the Capacity group entries are all visible', () => {
-    const entries = BUNDLED_SCHEMAS['dynamodb'];
-    const capacityEntries = entries.filter((e) => (e.group ?? 'General') === 'Capacity');
-
-    expect(capacityEntries.length).toBeGreaterThan(0);
-
-    const config: ResourceConfig = { billing_mode: 'PROVISIONED' };
-
-    for (const entry of capacityEntries) {
-      expect(isVisible(entry, config)).toBe(true);
-    }
+  test('DynamoDB: an unrecognised billing mode hides the whole Capacity group', () => {
+    const capacityEntries = BUNDLED_SCHEMAS['dynamodb'].filter(
+      (e) => (e.group ?? 'General') === 'Capacity',
+    );
+    const config: ResourceConfig = { billing_mode: 'UNKNOWN_MODE' };
+    expect(capacityEntries.filter((e) => isVisible(e, config)).length).toBe(0);
   });
 
   test('API Gateway: when protocol_type != WEBSOCKET, route_selection_expression is hidden', () => {

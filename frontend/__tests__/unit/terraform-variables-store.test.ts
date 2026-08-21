@@ -6,8 +6,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
+import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
 import type { ArchitectureBlock } from '@/types/diagram';
-import { getDefaultVariables, VARIABLE_SCHEMAS } from '@/types/terraform-variables';
+import { getDefaultVariables } from '@/types/terraform-variables';
 import { architectureBlockWithoutIdArbitrary } from '../properties/arbitraries';
 
 function resetStore() {
@@ -80,8 +81,11 @@ describe('DiagramStore - setTerraformVariable', () => {
 
     const s3Block = getBlock(id2);
     expect(s3Block.terraformVariables.function_name).toBeUndefined();
-    // s3 defaults should be intact
-    expect(s3Block.terraformVariables.versioning_enabled).toBe(false);
+    // Read the expected defaults from the schema so a field rename cannot rot this
+    for (const entry of BUNDLED_SCHEMAS['s3']) {
+      if (entry.default === undefined) continue;
+      expect(s3Block.terraformVariables[entry.name]).toBe(entry.default);
+    }
   });
 
   it('is a no-op for non-existent object', () => {

@@ -120,6 +120,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
         {/* Selection border drawn on top of the image */}
         {isSelected && (
           <div
+            data-testid={`selection-border-${block.id}`}
             style={{
               position: 'absolute',
               inset: 0,

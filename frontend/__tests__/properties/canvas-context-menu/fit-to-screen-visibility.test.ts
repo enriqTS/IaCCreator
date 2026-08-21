@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
 import { getObjectBounds } from '@/types/diagram';
 import type {
@@ -82,7 +82,18 @@ function constrainedCanvasObjectArbitrary(): fc.Arbitrary<CanvasObjectCreationPa
 // Feature: canvas-context-menu, Property 17: Fit to screen makes all objects visible
 // **Validates: Requirements 9.3**
 describe('Property 17: Fit to screen makes all objects visible', () => {
-  beforeEach(resetStore);
+  // fitToScreen animates over 300ms via rAF; settle it in one tick so we read the target
+  const realRaf = globalThis.requestAnimationFrame;
+  beforeEach(() => {
+    resetStore();
+    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      cb(performance.now() + 10_000);
+      return 0;
+    }) as typeof globalThis.requestAnimationFrame;
+  });
+  afterEach(() => {
+    globalThis.requestAnimationFrame = realRaf;
+  });
 
   it('after fitToScreen, every object bounding box transformed through viewport falls within container bounds', () => {
     fc.assert(

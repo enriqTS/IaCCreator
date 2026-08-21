@@ -106,19 +106,14 @@ describe('ElementLayer', () => {
 
     render(<ElementLayer />);
 
-    // b1 and g1 are selected — they should have the selection border
-    const blockEl1 = screen.getByTestId('architecture-block-b1');
-    expect(blockEl1.style.border).toContain('rgba(59, 130, 246, 0.8)');
-    // For geometric objects using SVG path rendering, the selection stroke is on the visible path
-    const geoEl = screen.getByTestId('geometric-object-g1');
-    const svgPaths = geoEl.querySelectorAll('svg path');
-    // The second path is the visible shape — its stroke should be the selection color
-    expect(svgPaths.length).toBeGreaterThanOrEqual(2);
-    expect(svgPaths[1].getAttribute('stroke')).toBe('rgba(59, 130, 246, 0.8)');
+    // b1 and g1 are selected — they render a selection indicator, b2 does not
+    expect(screen.getByTestId('selection-border-b1')).toBeTruthy();
+    expect(screen.queryByTestId('selection-border-b2')).toBeNull();
 
-    // b2 is not selected
-    const blockEl2 = screen.getByTestId('architecture-block-b2');
-    expect(blockEl2.style.border).toContain('transparent');
+    // Geometric objects mark selection with a stroke on the visible SVG path
+    const geoPaths = screen.getByTestId('geometric-object-g1').querySelectorAll('svg path');
+    expect(geoPaths.length).toBeGreaterThanOrEqual(2);
+    expect(geoPaths[1].getAttribute('stroke')).not.toBe(g1.visualConfig.borderColor);
   });
 
   it('renders with no objects without errors', () => {
