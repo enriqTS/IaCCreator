@@ -1,6 +1,5 @@
 """Property-based test for diagram save/load round trip.
 
-
 For any valid DiagramState object and any session, saving the diagram via
 the persistence layer and then loading it by the returned diagram ID shall
 produce a DiagramState equivalent to the original.

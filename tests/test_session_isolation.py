@@ -1,6 +1,5 @@
 """Property-based test for session isolation on all diagram operations.
 
-
 For any diagram owned by session A and any distinct session B, list_diagrams
 for session B shall return empty (the diagram does not leak across sessions),
 and list_diagrams for session A shall include the diagram.

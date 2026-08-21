@@ -1,6 +1,5 @@
 """Property-based test for invalid diagram payload validation.
 
-
 For any JSON body that does not conform to the DiagramState schema, sending it
 as a POST to /api/diagrams or PUT to /api/diagrams/{id} shall return an HTTP
 422 response with descriptive error details.
