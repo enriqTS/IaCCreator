@@ -594,3 +594,44 @@ class TestRouteAuthorizationTypeAndScopes:
         assert "authorization_scopes" in vars_tf
         assert "operation_name" in vars_tf
         assert "route_response_selection_expression" in vars_tf
+
+
+class TestUnsetSubResourceFieldsEmitNothing:
+    """An unset sub-resource field must not leak its resource block into the module."""
+
+    # Each optional field paired with the resource type it is the sole trigger for
+    SUB_RESOURCES = {
+        "routes": "aws_apigatewayv2_route",
+        "stages": "aws_apigatewayv2_stage",
+        "authorizers": "aws_apigatewayv2_authorizer",
+        "custom_domain": "aws_apigatewayv2_domain_name",
+        "vpc_links": "aws_apigatewayv2_vpc_link",
+        "integrations": "aws_apigatewayv2_integration",
+        "api_key_required": "aws_apigatewayv2_api_key",
+    }
+
+    def test_minimal_config_emits_only_the_api_resource(self):
+        config = ApiGatewayConfig(api_name="my_api", protocol_type="HTTP")
+        hcl = APIGatewayGenerator().generate_resource_tf(
+            _make_instance("my_api", config)
+        )
+
+        assert 'resource "aws_apigatewayv2_api" "my_api"' in hcl
+        leaked = [r for r in self.SUB_RESOURCES.values() if r in hcl]
+        assert not leaked, f"Unset fields emitted resource blocks: {leaked}"
+
+    def test_original_fields_do_not_trigger_sub_resources(self):
+        config = ApiGatewayConfig(
+            api_name="my_api",
+            protocol_type="HTTP",
+            description="My API",
+            cors_configuration={"allow_origins": ["*"]},
+            disable_execute_api_endpoint=True,
+            tags={"env": "prod"},
+        )
+        hcl = APIGatewayGenerator().generate_resource_tf(
+            _make_instance("my_api", config)
+        )
+
+        leaked = [r for r in self.SUB_RESOURCES.values() if r in hcl]
+        assert not leaked, f"Base fields emitted sub-resource blocks: {leaked}"
