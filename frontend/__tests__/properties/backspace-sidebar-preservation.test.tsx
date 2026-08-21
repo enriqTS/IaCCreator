@@ -82,9 +82,9 @@ describe('Property 2: Preservation — Delete Key and Non-Sidebar Behavior Uncha
   });
 
   test('Preservation: Delete in sidebar with selection → preventDefault called, objects removed', async () => {
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
+    const { default: DiagramEditorPage } = await import('@/app/page');
     const { render } = await import('@testing-library/react');
-    const { unmount } = render(<Canvas />);
+    const { unmount } = render(<DiagramEditorPage />);
 
     fc.assert(
       fc.property(
@@ -128,9 +128,9 @@ describe('Property 2: Preservation — Delete Key and Non-Sidebar Behavior Uncha
   });
 
   test('Preservation: Backspace/Delete on canvas (no input focused) with selection → objects removed', async () => {
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
+    const { default: DiagramEditorPage } = await import('@/app/page');
     const { render } = await import('@testing-library/react');
-    const { unmount } = render(<Canvas />);
+    const { unmount } = render(<DiagramEditorPage />);
 
     fc.assert(
       fc.property(
@@ -163,9 +163,9 @@ describe('Property 2: Preservation — Delete Key and Non-Sidebar Behavior Uncha
   });
 
   test('Preservation: Backspace in viewport-transform-container input → normal text editing (no preventDefault)', async () => {
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
+    const { default: DiagramEditorPage } = await import('@/app/page');
     const { render } = await import('@testing-library/react');
-    const { unmount } = render(<Canvas />);
+    const { unmount } = render(<DiagramEditorPage />);
 
     fc.assert(
       fc.property(
@@ -206,9 +206,9 @@ describe('Property 2: Preservation — Delete Key and Non-Sidebar Behavior Uncha
   });
 
   test('Preservation: Backspace in dialog input → normal text editing (no preventDefault)', async () => {
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
+    const { default: DiagramEditorPage } = await import('@/app/page');
     const { render } = await import('@testing-library/react');
-    const { unmount } = render(<Canvas />);
+    const { unmount } = render(<DiagramEditorPage />);
 
     fc.assert(
       fc.property(
@@ -249,9 +249,9 @@ describe('Property 2: Preservation — Delete Key and Non-Sidebar Behavior Uncha
   });
 
   test('Preservation: No selection, no focus → no action on Backspace/Delete', async () => {
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
+    const { default: DiagramEditorPage } = await import('@/app/page');
     const { render } = await import('@testing-library/react');
-    const { unmount } = render(<Canvas />);
+    const { unmount } = render(<DiagramEditorPage />);
 
     fc.assert(
       fc.property(

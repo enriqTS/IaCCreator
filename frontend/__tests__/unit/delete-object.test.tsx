@@ -118,9 +118,9 @@ describe('Delete key handler', () => {
       selectedObjectIds: new Set([line.id]),
     });
 
-    // Import and render Canvas to attach the keydown listener
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
-    render(<Canvas />);
+    // Delete/Backspace handling is centralized in the page, not Canvas
+    const { default: DiagramEditorPage } = await import('@/app/page');
+    render(<DiagramEditorPage />);
 
     fireEvent.keyDown(window, { key: 'Delete' });
 
@@ -136,8 +136,8 @@ describe('Delete key handler', () => {
       selectedObjectIds: new Set([geo.id]),
     });
 
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
-    render(<Canvas />);
+    const { default: DiagramEditorPage } = await import('@/app/page');
+    render(<DiagramEditorPage />);
 
     fireEvent.keyDown(window, { key: 'Backspace' });
 
@@ -153,8 +153,8 @@ describe('Delete key handler', () => {
       selectedObjectIds: new Set(),
     });
 
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
-    render(<Canvas />);
+    const { default: DiagramEditorPage } = await import('@/app/page');
+    render(<DiagramEditorPage />);
 
     fireEvent.keyDown(window, { key: 'Delete' });
 
@@ -169,8 +169,8 @@ describe('Delete key handler', () => {
       selectedObjectIds: new Set([line.id]),
     });
 
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
-    render(<Canvas />);
+    const { default: DiagramEditorPage } = await import('@/app/page');
+    render(<DiagramEditorPage />);
 
     // Create an input and fire keydown on it
     const input = document.createElement('input');

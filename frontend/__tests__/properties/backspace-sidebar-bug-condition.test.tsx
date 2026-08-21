@@ -60,10 +60,10 @@ describe('Property 1: Bug Condition — Backspace in Sidebar Deletes Objects', (
   });
 
   test('Property-based: Backspace in sidebar input/textarea with selected objects should NOT prevent default, blur, or delete objects', async () => {
-    // Import Canvas to attach the keydown listener (handleDeleteKey)
-    const { default: Canvas } = await import('@/components/canvas/Canvas');
+    // Delete/Backspace handling is centralized in the page, not Canvas
+    const { default: DiagramEditorPage } = await import('@/app/page');
     const { render, cleanup } = await import('@testing-library/react');
-    const { unmount } = render(<Canvas />);
+    const { unmount } = render(<DiagramEditorPage />);
 
     fc.assert(
       fc.property(
