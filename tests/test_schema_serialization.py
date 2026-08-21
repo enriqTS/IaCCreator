@@ -1,13 +1,4 @@
-# Feature: enhanced-variable-configuration, Property 1: Schema serialization round-trip
-"""Property test: VariableSchemaEntry serialization round-trip.
-
-For any valid VariableSchemaEntry (including entries with map/list types, nested
-options, validation rules, and visible_when conditions), serializing to JSON via
-model_dump() and deserializing back via VariableSchemaEntry(**data) shall produce
-an object equal to the original.
-
-**Validates: Requirements 9.2, 9.3, 9.4**
-"""
+"""Round-trip and structural invariants for the variable schema models."""
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -18,12 +9,8 @@ from app.models.input_models._metadata import (
     VariableSchemaEntry,
     VisibleWhen,
 )
+from tests.schema_helpers import service_schemas
 
-# ---------------------------------------------------------------------------
-# Hypothesis strategies for schema model components
-# ---------------------------------------------------------------------------
-
-# Scalar values that can appear in option values, defaults, visible_when equals, etc.
 _scalar_st = st.one_of(
     st.text(min_size=1, max_size=20),
     st.integers(min_value=-1000, max_value=1000),
@@ -73,44 +60,23 @@ _variable_schema_entry_st = st.builds(
 )
 
 
-# ---------------------------------------------------------------------------
-# Property test
-# ---------------------------------------------------------------------------
-
-
 @given(entry=_variable_schema_entry_st)
 @settings(max_examples=100)
 def test_schema_serialization_roundtrip(entry: VariableSchemaEntry) -> None:
-    """Serializing a VariableSchemaEntry via model_dump() then deserializing
-    back via VariableSchemaEntry(**data) produces an equal object."""
+    """model_dump() then VariableSchemaEntry(**data) must reproduce the original."""
     data = entry.model_dump()
-    restored = VariableSchemaEntry(**data)
-    assert restored == entry
+    assert VariableSchemaEntry(**data) == entry
 
 
-# Feature: enhanced-variable-configuration, Property 4: All schema entries have a group
-# **Validates: Requirements 3.1**
-
-import pytest
-
-from tests.schema_helpers import service_schemas
-
-_SCHEMAS = service_schemas()
-from app.models.input_models import ServiceType
-
-
-@pytest.mark.parametrize(
-    "service_type,entry",
-    [(st, entry) for st in _SCHEMAS for entry in _SCHEMAS[st]],
-    ids=lambda val: val.value if isinstance(val, ServiceType) else val.name,
-)
-def test_all_schema_entries_have_a_group(
-    service_type: ServiceType, entry: VariableSchemaEntry
-) -> None:
-    """Every entry in service_schemas() must have a non-empty group string."""
-    assert isinstance(entry.group, str), (
-        f"{service_type.value}.{entry.name}: group must be a string, got {type(entry.group)}"
-    )
-    assert len(entry.group.strip()) > 0, (
-        f"{service_type.value}.{entry.name}: group must be a non-empty string"
+def test_all_schema_entries_have_a_group() -> None:
+    """The editor groups fields into sections, so an ungrouped entry cannot render."""
+    schemas = service_schemas()
+    ungrouped = [
+        f"{service_type.value}.{entry.name}"
+        for service_type in schemas
+        for entry in schemas[service_type]
+        if not isinstance(entry.group, str) or not entry.group.strip()
+    ]
+    assert not ungrouped, "Schema entries with a missing or empty group:\n" + "\n".join(
+        ungrouped
     )
