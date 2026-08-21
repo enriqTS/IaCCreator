@@ -11,7 +11,7 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { getObjectBounds } from '@/types/diagram';
 import type { Rect } from '@/types/diagram';
-import { canvasObjectWithoutIdArbitrary } from '../properties/arbitraries';
+import { canvasObjectWithoutIdArbitrary } from './arbitraries';
 
 /**
  * AABB intersection check: returns true if rectangles a and b overlap.

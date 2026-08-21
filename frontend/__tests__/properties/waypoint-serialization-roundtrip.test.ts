@@ -12,7 +12,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
-import { pointArbitrary } from '../properties/arbitraries';
+import { pointArbitrary } from './arbitraries';
 import type { Point, LineObject } from '@/types/diagram';
 import { DEFAULT_LINE_VISUAL } from '@/types/diagram';
 

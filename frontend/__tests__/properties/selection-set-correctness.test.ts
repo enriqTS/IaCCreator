@@ -9,7 +9,7 @@
 import { describe, it, beforeEach } from 'vitest';
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
-import { canvasObjectWithoutIdArbitrary } from '../properties/arbitraries';
+import { canvasObjectWithoutIdArbitrary } from './arbitraries';
 import type { Rect } from '@/types/diagram';
 
 /** Assert that selectedObjectIds is a valid subset of canvasObjects keys. */

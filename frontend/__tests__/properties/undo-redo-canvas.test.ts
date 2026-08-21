@@ -18,7 +18,7 @@ import { useDiagramStore } from '@/store/diagram-store';
 import {
   architectureBlockWithoutIdArbitrary,
   canvasObjectWithoutIdArbitrary,
-} from '../properties/arbitraries';
+} from './arbitraries';
 
 /** Helper: deep-compare two Maps by converting to sorted JSON */
 function mapsEqual<K, V>(a: Map<K, V>, b: Map<K, V>): boolean {

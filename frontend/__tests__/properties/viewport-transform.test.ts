@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { canvasToScreen, screenToCanvas } from '@/utils/viewport';
-import { pointArbitrary, viewportArbitrary } from '../properties/arbitraries';
+import { pointArbitrary, viewportArbitrary } from './arbitraries';
 
 const EPSILON = 1e-6;
 

@@ -9,7 +9,7 @@
 import { describe, it, beforeEach } from 'vitest';
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
-import { canvasObjectWithoutIdArbitrary } from '../properties/arbitraries';
+import { canvasObjectWithoutIdArbitrary } from './arbitraries';
 
 /**
  * Assert the group membership invariants:

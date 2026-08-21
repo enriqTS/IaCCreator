@@ -8,7 +8,7 @@
 import { describe, it, beforeEach } from 'vitest';
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
-import { canvasObjectWithoutIdArbitrary } from '../properties/arbitraries';
+import { canvasObjectWithoutIdArbitrary } from './arbitraries';
 
 /** Collect all zIndex values from the current store state. */
 function allZIndices(): number[] {
