@@ -1,6 +1,5 @@
 """Property-based test for session isolation on all diagram operations.
 
-# Feature: frontend-backend-integration, Property 6: Session isolation on all diagram operations
 
 For any diagram owned by session A and any distinct session B, list_diagrams
 for session B shall return empty (the diagram does not leak across sessions),
@@ -10,8 +9,6 @@ The isolation enforcement for read/update/delete of individual diagrams happens
 at the router level (HTTP 403), not the repository level — so the repository's
 get_diagram will still return the record regardless of caller session. This test
 focuses on the list_diagrams boundary.
-
-**Validates: Requirements 3.3, 4.3, 5.2**
 """
 
 import os
@@ -112,15 +109,12 @@ diagram_state_st = st.fixed_dictionaries(
 # ---------------------------------------------------------------------------
 
 
-# Feature: frontend-backend-integration, Property 6: Session isolation on all diagram operations
 class TestSessionIsolation:
     """Property 6: Session isolation on all diagram operations.
 
     For any diagram owned by session A and any distinct session B,
     list_diagrams for session B returns empty and list_diagrams for
     session A includes the diagram.
-
-    **Validates: Requirements 3.3, 4.3, 5.2**
     """
 
     @given(

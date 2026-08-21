@@ -150,11 +150,11 @@ class TestVersionsWithoutConstraints:
         # version line should not appear when aws_provider_version is None
         lines = result.splitlines()
         version_lines = [
-            l
-            for l in lines
-            if "version" in l.lower()
-            and "required_version" not in l
-            and "required_providers" not in l
+            line
+            for line in lines
+            if "version" in line.lower()
+            and "required_version" not in line
+            and "required_providers" not in line
         ]
         # Only the source line should reference "hashicorp/aws", no version = "..." line
         for line in version_lines:

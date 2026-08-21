@@ -28,8 +28,6 @@ ISO_8601_RE = re.compile(
 uuid4_session_id_st = st.builds(lambda: str(uuid.uuid4()))
 
 
-# Feature: frontend-backend-integration, Property 1: Session creation produces a valid UserRecord
-# **Validates: Requirements 1.1, 2.1**
 class TestSessionCreationProducesValidUserRecord:
     """Property 1: Session creation produces a valid UserRecord.
 
@@ -77,8 +75,6 @@ class TestSessionCreationProducesValidUserRecord:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
-# Feature: frontend-backend-integration, Property 2: Existing session resolution is idempotent
-# **Validates: Requirements 1.2**
 class TestExistingSessionResolutionIsIdempotent:
     """Property 2: Existing session resolution is idempotent.
 
@@ -137,8 +133,6 @@ class TestExistingSessionResolutionIsIdempotent:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
-# Feature: frontend-backend-integration, Property 3: Session touch updates last-active timestamp
-# **Validates: Requirements 2.2**
 class TestSessionTouchUpdatesLastActiveTimestamp:
     """Property 3: Session touch updates last-active timestamp.
 

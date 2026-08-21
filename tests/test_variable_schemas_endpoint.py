@@ -1,8 +1,8 @@
 """Unit tests for the GET /api/variable-schemas endpoint.
 
 Validates:
-- Endpoint returns 200 with valid JSON (Requirement 7.4)
-- Response contains all 5 service types as keys (Requirement 9.1)
+- Endpoint returns 200 with valid JSON
+- Response contains all 5 service types as keys
 - Each service type maps to a list of schema entries
 - Each entry has required fields: name, type, description
 - Entries with options have the correct {value, label} structure

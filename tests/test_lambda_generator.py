@@ -1,7 +1,4 @@
-"""Unit tests for LambdaGenerator new fields.
-
-Requirements: 1.14, 5.1
-"""
+"""Unit tests for LambdaGenerator new fields."""
 
 import pytest
 
@@ -256,7 +253,9 @@ class TestImagePackageType:
         assert "var.handler" not in result
         # The variable "handler" should not be defined for Image
         lines = result.split("\n")
-        handler_var_lines = [l for l in lines if '"handler"' in l and "variable" in l]
+        handler_var_lines = [
+            line for line in lines if '"handler"' in line and "variable" in line
+        ]
         assert len(handler_var_lines) == 0
 
     def test_zip_includes_handler_runtime(self, gen: LambdaGenerator):

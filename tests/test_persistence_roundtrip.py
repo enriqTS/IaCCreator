@@ -1,12 +1,9 @@
 """Property-based test for diagram save/load round trip.
 
-# Feature: frontend-backend-integration, Property 4: Diagram save/load round trip
 
 For any valid DiagramState object and any session, saving the diagram via
 the persistence layer and then loading it by the returned diagram ID shall
 produce a DiagramState equivalent to the original.
-
-**Validates: Requirements 3.1, 4.2, 9.5**
 """
 
 import os
@@ -113,7 +110,6 @@ diagram_state_st = st.fixed_dictionaries(
 # ---------------------------------------------------------------------------
 
 
-# Feature: frontend-backend-integration, Property 4: Diagram save/load round trip
 class TestDiagramSaveLoadRoundTrip:
     """Property 4: Diagram save/load round trip.
 

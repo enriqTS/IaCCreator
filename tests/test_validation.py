@@ -1,12 +1,9 @@
 """Property-based test for invalid diagram payload validation.
 
-# Feature: frontend-backend-integration, Property 7: Invalid diagram payload returns 422
 
 For any JSON body that does not conform to the DiagramState schema, sending it
 as a POST to /api/diagrams or PUT to /api/diagrams/{id} shall return an HTTP
 422 response with descriptive error details.
-
-**Validates: Requirements 3.5**
 """
 
 import os
@@ -137,15 +134,12 @@ def _create_test_app(tmp_path: str) -> tuple[FastAPI, TinyDBRepository]:
 # ---------------------------------------------------------------------------
 
 
-# Feature: frontend-backend-integration, Property 7: Invalid diagram payload returns 422
 class TestInvalidDiagramPayloadReturns422:
     """Property 7: Invalid diagram payload returns 422.
 
     For any JSON body that does not conform to the DiagramState schema,
     sending it as a POST to /api/diagrams or PUT to /api/diagrams/{id}
     shall return an HTTP 422 response with descriptive error details.
-
-    **Validates: Requirements 3.5**
     """
 
     @given(payload=invalid_payload_st, method=method_st)

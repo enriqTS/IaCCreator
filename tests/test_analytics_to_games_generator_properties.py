@@ -234,10 +234,6 @@ def _make_instance(
 
 # ---------------------------------------------------------------------------
 # Property 1: Generator protocol compliance and non-empty output
-# Feature: analytics-to-games-services, Property 1
-# **Validates: Requirements 2.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1,
-#   18.1, 20.1, 22.1, 24.1, 26.1, 28.1, 30.1, 32.1, 34.1, 36.1,
-#   38.1, 40.1, 42.1, 44.1, 46.1, 48.1, 50.1, 51.1**
 # ---------------------------------------------------------------------------
 
 
@@ -274,10 +270,6 @@ def test_property_1_generator_protocol_compliance_and_non_empty_output(
 
 # ---------------------------------------------------------------------------
 # Property 2: Conditional config field inclusion
-# Feature: analytics-to-games-services, Property 2
-# **Validates: Requirements 6.3, 6.4, 10.3, 12.3, 14.3, 14.4, 18.3, 18.4,
-#   20.3, 20.4, 20.5, 26.3, 26.4, 28.3, 30.3, 30.4, 30.5, 34.3, 34.4,
-#   34.5, 34.6, 38.4, 38.5, 42.3, 44.3, 46.3, 50.3, 51.3**
 # ---------------------------------------------------------------------------
 
 # Mapping: service_type -> list of (config_field_name, expected_var_reference)
@@ -348,7 +340,6 @@ _SERVICES_WITH_OPTIONAL_FIELDS = list(OPTIONAL_FIELD_MAP.keys())
 # Sample values for optional config fields by type
 _OPTIONAL_FIELD_VALUES: dict[str, object] = {
     "release_label": "emr-6.10.0",
-    "service_role": "EMR_DefaultRole",
     "shard_count": 2,
     "destination": "s3",
     "kafka_version": "3.5.1",
@@ -395,7 +386,7 @@ def _config_with_random_optional_fields(draw):
     set_fields: list[tuple[str, str]] = []
     unset_fields: list[tuple[str, str]] = []
 
-    for (field_name, var_ref), should_set in zip(fields, flags):
+    for (field_name, var_ref), should_set in zip(fields, flags, strict=True):
         if should_set:
             config_kwargs[field_name] = _OPTIONAL_FIELD_VALUES[field_name]
             set_fields.append((field_name, var_ref))
@@ -440,14 +431,6 @@ def test_property_2_conditional_config_field_inclusion(data, name):
 
 # ---------------------------------------------------------------------------
 # Property 3: Required Terraform blocks per service
-# Feature: analytics-to-games-services, Property 3
-# **Validates: Requirements 2.2-2.4, 4.2-4.4, 6.2, 6.5, 6.6, 8.2-8.4,
-#   10.2, 10.4, 10.5, 12.2, 12.4, 12.5, 14.2, 14.5, 14.6, 16.2-16.4,
-#   18.2, 18.5, 18.6, 20.2, 20.6, 20.7, 22.2-22.4, 24.2-24.4,
-#   26.2, 26.5, 26.6, 28.2, 28.4, 28.5, 30.2, 30.6, 30.7, 32.2-32.4,
-#   34.2, 34.7, 34.8, 36.2-36.4, 38.2, 38.3, 38.6, 38.7, 40.2-40.4,
-#   42.2, 42.4, 42.5, 44.2, 44.4, 44.5, 46.2, 46.4, 46.5, 48.2-48.4,
-#   50.2, 50.4, 50.5**
 # ---------------------------------------------------------------------------
 
 # Expected blocks per service: (resource_type_strings, variable_names, output_names)
@@ -620,8 +603,6 @@ def test_property_3_required_terraform_blocks_per_service(service_type, name):
 
 # ---------------------------------------------------------------------------
 # Property 4: Icon-only services excluded from generator registry
-# Feature: analytics-to-games-services, Property 4
-# **Validates: Requirements 52.76**
 # ---------------------------------------------------------------------------
 
 
@@ -636,8 +617,6 @@ def test_property_4_icon_only_services_excluded_from_registry(service_type):
 
 # ---------------------------------------------------------------------------
 # Property 5: Pipeline skip behavior for mixed service types
-# Feature: analytics-to-games-services, Property 5
-# **Validates: Requirements 53.1, 53.2, 53.3**
 # ---------------------------------------------------------------------------
 
 

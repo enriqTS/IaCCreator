@@ -28,7 +28,9 @@ def tree():
 class TestRuleGeneration:
     def test_schedule_and_state_are_emitted(self):
         hcl = EventBridgeGenerator().generate_resource_tf(
-            _instance(rule_name="nightly", schedule_expression="rate(1 day)", state="ENABLED")
+            _instance(
+                rule_name="nightly", schedule_expression="rate(1 day)", state="ENABLED"
+            )
         )
         assert 'resource "aws_cloudwatch_event_rule" "nightly"' in hcl
         assert "schedule_expression = var.schedule_expression" in hcl
@@ -48,7 +50,9 @@ class TestRuleGeneration:
         assert "event_bus_name = aws_cloudwatch_event_bus.nightly_bus.name" in hcl
 
     def test_the_default_bus_is_left_implicit(self):
-        hcl = EventBridgeGenerator().generate_resource_tf(_instance(rule_name="nightly"))
+        hcl = EventBridgeGenerator().generate_resource_tf(
+            _instance(rule_name="nightly")
+        )
         assert "aws_cloudwatch_event_bus" not in hcl
 
     def test_rule_name_defaults_to_the_instance_name(self):
@@ -56,7 +60,9 @@ class TestRuleGeneration:
         assert 'default     = "nightly"' in variables
 
     def test_outputs_expose_the_rule(self):
-        outputs = EventBridgeGenerator().generate_outputs_tf(_instance(rule_name="nightly"))
+        outputs = EventBridgeGenerator().generate_outputs_tf(
+            _instance(rule_name="nightly")
+        )
         assert 'output "rule_arn"' in outputs
         assert 'output "rule_name"' in outputs
 
@@ -73,10 +79,16 @@ class TestTargetsAreOwnedByTheRule:
         assert {"target_audit.tf", "policy_audit.tf"} <= files
 
     def test_target_reads_the_arn_as_an_input(self, tree):
-        assert "arn = var.process_job_function_arn" in tree[RULE_DIR + "target_process-job.tf"]
+        assert (
+            "arn = var.process_job_function_arn"
+            in tree[RULE_DIR + "target_process-job.tf"]
+        )
 
     def test_configured_target_id_is_used(self, tree):
-        assert 'target_id = "nightly-processor"' in tree[RULE_DIR + "target_process-job.tf"]
+        assert (
+            'target_id = "nightly-processor"'
+            in tree[RULE_DIR + "target_process-job.tf"]
+        )
 
     def test_target_id_defaults_to_the_target_name(self, tree):
         assert 'target_id = "audit"' in tree[RULE_DIR + "target_audit.tf"]

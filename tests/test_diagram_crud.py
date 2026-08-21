@@ -1,9 +1,4 @@
-"""Property-based tests for diagram CRUD operations.
-
-# Feature: frontend-backend-integration, Property 5: Diagram update then load returns updated state
-
-**Validates: Requirements 3.2**
-"""
+"""Property-based tests for diagram CRUD operations."""
 
 import os
 import shutil
@@ -105,15 +100,12 @@ diagram_state_st = st.fixed_dictionaries(
 # ---------------------------------------------------------------------------
 
 
-# Feature: frontend-backend-integration, Property 5: Diagram update then load returns updated state
 class TestDiagramUpdateThenLoad:
     """Property 5: Diagram update then load returns updated state.
 
     For any existing diagram owned by a session and any new valid DiagramState,
     updating the diagram and then loading it shall return the new DiagramState,
     not the original.
-
-    **Validates: Requirements 3.2**
     """
 
     @given(
@@ -172,7 +164,6 @@ class TestDiagramUpdateThenLoad:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
-# Feature: frontend-backend-integration, Property 8: List diagrams returns correct summaries for session
 class TestListDiagramsReturnsCorrectSummaries:
     """Property 8: List diagrams returns correct summaries for session.
 
@@ -180,8 +171,6 @@ class TestListDiagramsReturnsCorrectSummaries:
     return exactly N diagram summaries, each containing a diagram_id,
     project_name, and updated_at field, and the set of diagram IDs shall match
     exactly the IDs returned when those diagrams were saved.
-
-    **Validates: Requirements 4.1**
     """
 
     @given(
@@ -236,14 +225,11 @@ class TestListDiagramsReturnsCorrectSummaries:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
-# Feature: frontend-backend-integration, Property 9: Delete removes diagram from persistence
 class TestDeleteRemovesDiagramFromPersistence:
     """Property 9: Delete removes diagram from persistence.
 
     For any diagram owned by a session, deleting it shall return True, and
     subsequently attempting to load that diagram shall return None.
-
-    **Validates: Requirements 5.1**
     """
 
     @given(

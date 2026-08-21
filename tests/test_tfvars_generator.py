@@ -1,6 +1,5 @@
 """Unit and property tests for TfvarsGenerator.
 
-Validates Requirements 5.2, 5.3, 5.4, 5.5, 5.6:
 - String formatting: var_name = "value"
 - Number formatting: var_name = 123 (unquoted)
 - Bool formatting: var_name = true / var_name = false
@@ -49,7 +48,7 @@ def _make_instance(
 
 
 class TestStringFormatting:
-    """Requirement 5.2: string values are quoted."""
+    """String values are quoted."""
 
     def test_string_value_is_quoted(self):
         gen = TfvarsGenerator()
@@ -71,7 +70,7 @@ class TestStringFormatting:
 
 
 class TestNumberFormatting:
-    """Requirement 5.3: number values are unquoted."""
+    """Number values are unquoted."""
 
     def test_integer_value_is_unquoted(self):
         gen = TfvarsGenerator()
@@ -95,7 +94,7 @@ class TestNumberFormatting:
 
 
 class TestBoolFormatting:
-    """Requirement 5.4: bool values are unquoted true/false."""
+    """Bool values are unquoted true/false."""
 
     def test_true_value(self):
         gen = TfvarsGenerator()
@@ -130,7 +129,7 @@ class TestBoolFormatting:
 
 
 class TestPrefixCollisionAvoidance:
-    """Requirement 5.5: prefix variable names with instance name to avoid collisions."""
+    """Prefix variable names with instance name to avoid collisions."""
 
     def test_same_service_type_prefixed_differently(self):
         gen = TfvarsGenerator()
@@ -182,7 +181,7 @@ class TestPrefixCollisionAvoidance:
 
 
 class TestVariablesTfGeneration:
-    """Requirement 5.6: generate corresponding variable blocks."""
+    """Generate corresponding variable blocks."""
 
     def test_variable_block_has_type_and_description(self):
         gen = TfvarsGenerator()
@@ -213,7 +212,7 @@ class TestVariablesTfGeneration:
 
 
 class TestMapAndListTypes:
-    """Requirement 8.3: map and list Terraform types in _tf_type."""
+    """Map and list Terraform types in _tf_type."""
 
     def test_map_type_produces_map_string(self):
         gen = TfvarsGenerator()
@@ -369,7 +368,6 @@ def test_property_3_tfvars_variables_tf_correspondence(instances):
 
 
 # ---------------------------------------------------------------------------
-# Feature: enhanced-variable-configuration, Property 13: TfvarsGenerator
 # produces entries for all terraform_variables
 # ---------------------------------------------------------------------------
 
@@ -382,8 +380,6 @@ def test_property_13_tfvars_entries_for_all_terraform_variables(instance):
     For any ResourceInstanceIR with terraform_variables set, the TfvarsGenerator
     shall produce a terraform.tfvars entry and a matching variable block for every
     key in terraform_variables, using the type and description from service_schemas().
-
-    **Validates: Requirements 8.3**
     """
     gen = TfvarsGenerator()
     tfvars_output = gen.generate_tfvars([instance])

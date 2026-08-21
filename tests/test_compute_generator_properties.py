@@ -110,8 +110,6 @@ def _make_instance(
 
 # ---------------------------------------------------------------------------
 # Property 1: Generator protocol compliance and non-empty output
-# Feature: compute-services-generators, Property 1
-# **Validates: Requirements 2.1, 4.1, 6.1, 8.1, 10.1, 12.1, 14.1, 16.1, 18.1, 19.1, 19.2**
 # ---------------------------------------------------------------------------
 
 
@@ -148,8 +146,6 @@ def test_property_1_generator_protocol_compliance_and_non_empty_output(
 
 # ---------------------------------------------------------------------------
 # Property 2: Conditional config field inclusion
-# Feature: compute-services-generators, Property 2
-# **Validates: Requirements 2.3, 4.5, 4.6, 6.3, 6.4, 8.4, 8.5, 12.3, 12.4, 18.3, 18.4, 19.3**
 # ---------------------------------------------------------------------------
 
 # Mapping: service_type -> list of (config_field_name, expected_var_reference)
@@ -223,7 +219,7 @@ def _config_with_random_optional_fields(draw):
     set_fields: list[tuple[str, str]] = []
     unset_fields: list[tuple[str, str]] = []
 
-    for (field_name, var_ref), should_set in zip(fields, flags):
+    for (field_name, var_ref), should_set in zip(fields, flags, strict=True):
         if should_set:
             config_kwargs[field_name] = _OPTIONAL_FIELD_VALUES[field_name]
             set_fields.append((field_name, var_ref))
@@ -266,10 +262,6 @@ def test_property_2_conditional_config_field_inclusion(data, name):
 
 # ---------------------------------------------------------------------------
 # Property 3: Required Terraform blocks per service
-# Feature: compute-services-generators, Property 3
-# **Validates: Requirements 2.2, 2.4, 2.5, 4.2-4.4, 4.7, 4.8, 6.2, 6.5, 6.6,
-#   8.2, 8.3, 8.6, 8.7, 10.2-10.5, 12.2, 12.5, 12.6, 14.2-14.4,
-#   16.2-16.4, 18.2, 18.5, 18.6**
 # ---------------------------------------------------------------------------
 
 # Expected blocks per service: (resource_type_strings, variable_names, output_names)
@@ -369,8 +361,6 @@ def test_property_3_required_terraform_blocks_per_service(service_type, name):
 
 # ---------------------------------------------------------------------------
 # Property 4: Icon-only services excluded from generator registry
-# Feature: compute-services-generators, Property 4
-# **Validates: Requirements 20.34, 20.35**
 # ---------------------------------------------------------------------------
 
 
@@ -385,8 +375,6 @@ def test_property_4_icon_only_services_excluded_from_registry(service_type):
 
 # ---------------------------------------------------------------------------
 # Property 5: Pipeline skip behavior for mixed service types
-# Feature: compute-services-generators, Property 5
-# **Validates: Requirements 21.1, 21.2, 21.3**
 # ---------------------------------------------------------------------------
 
 

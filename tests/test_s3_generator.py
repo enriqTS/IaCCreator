@@ -1,7 +1,4 @@
-"""Unit tests for S3 generator companion resources.
-
-Validates Requirements: 2.11, 2.12, 2.13, 2.14, 2.15, 2.16, 2.17
-"""
+"""Unit tests for S3 generator companion resources."""
 
 from app.generators.s3_generator import S3Generator
 from app.models.input_models._general import ServiceType
@@ -23,7 +20,7 @@ def _generate(config: S3Config, name: str = "test_bucket") -> str:
     return gen.generate_resource_tf(instance)
 
 
-# ── Encryption companion (Requirement 2.11) ─────────────────────────────────
+# ── Encryption companion ─────────────────────────────────
 
 
 class TestEncryptionCompanion:
@@ -55,7 +52,7 @@ class TestEncryptionCompanion:
         assert "aws_s3_bucket_server_side_encryption_configuration" not in output
 
 
-# ── CORS companion (Requirement 2.12) ───────────────────────────────────────
+# ── CORS companion ───────────────────────────────────────
 
 
 class TestCorsCompanion:
@@ -86,7 +83,7 @@ class TestCorsCompanion:
         assert "aws_s3_bucket_cors_configuration" not in output
 
 
-# ── Logging companion (Requirement 2.13) ────────────────────────────────────
+# ── Logging companion ────────────────────────────────────
 
 
 class TestLoggingCompanion:
@@ -112,7 +109,7 @@ class TestLoggingCompanion:
         assert "aws_s3_bucket_logging" not in output
 
 
-# ── Website companion (Requirement 2.14) ────────────────────────────────────
+# ── Website companion ────────────────────────────────────
 
 
 class TestWebsiteCompanion:
@@ -142,7 +139,7 @@ class TestWebsiteCompanion:
         assert "aws_s3_bucket_website_configuration" not in output
 
 
-# ── Public Access Block companion (Requirement 2.15) ─────────────────────────
+# ── Public Access Block companion ─────────────────────────
 
 
 class TestPublicAccessBlockCompanion:
@@ -181,7 +178,7 @@ class TestPublicAccessBlockCompanion:
         assert "aws_s3_bucket_public_access_block" not in output
 
 
-# ── Notification companion (Requirement 2.16) ───────────────────────────────
+# ── Notification companion ───────────────────────────────
 
 
 class TestNotificationCompanion:
@@ -217,7 +214,7 @@ class TestNotificationCompanion:
         assert "aws_s3_bucket_notification" not in output
 
 
-# ── Replication companion (Requirement 2.17) ────────────────────────────────
+# ── Replication companion ────────────────────────────────
 
 
 class TestReplicationCompanion:

@@ -50,7 +50,6 @@ def setup(tmp_path):
 
 # ---------------------------------------------------------------------------
 # 404 for non-existent diagram IDs
-# Requirements 3.4, 4.4, 5.3
 # ---------------------------------------------------------------------------
 
 
@@ -63,7 +62,6 @@ class TestNotFoundForNonExistentDiagram:
         return TestClient(_build_app(repo))
 
     def test_get_nonexistent_returns_404(self, setup):
-        """Validates: Requirement 4.4"""
         client = self._make_client(setup)
         # First request establishes a session (cookie stored in jar)
         client.get("/api/diagrams")
@@ -73,7 +71,6 @@ class TestNotFoundForNonExistentDiagram:
         assert resp.json()["detail"] == "Diagram not found"
 
     def test_put_nonexistent_returns_404(self, setup):
-        """Validates: Requirement 3.4"""
         client = self._make_client(setup)
         client.get("/api/diagrams")
 
@@ -82,7 +79,6 @@ class TestNotFoundForNonExistentDiagram:
         assert resp.json()["detail"] == "Diagram not found"
 
     def test_delete_nonexistent_returns_404(self, setup):
-        """Validates: Requirement 5.3"""
         client = self._make_client(setup)
         client.get("/api/diagrams")
 
@@ -93,7 +89,6 @@ class TestNotFoundForNonExistentDiagram:
 
 # ---------------------------------------------------------------------------
 # 403 for cross-session access
-# Requirements 3.3, 4.3, 5.2
 # ---------------------------------------------------------------------------
 
 
@@ -123,7 +118,6 @@ class TestForbiddenForCrossSessionAccess:
         return diagram_id, client_a, client_b
 
     def test_get_cross_session_returns_403(self, setup):
-        """Validates: Requirement 4.3"""
         diagram_id, _client_a, client_b = self._setup_two_sessions(setup)
 
         resp = client_b.get(f"/api/diagrams/{diagram_id}")
@@ -131,7 +125,6 @@ class TestForbiddenForCrossSessionAccess:
         assert resp.json()["detail"] == "Forbidden"
 
     def test_put_cross_session_returns_403(self, setup):
-        """Validates: Requirement 3.3"""
         diagram_id, _client_a, client_b = self._setup_two_sessions(setup)
 
         resp = client_b.put(
@@ -142,7 +135,6 @@ class TestForbiddenForCrossSessionAccess:
         assert resp.json()["detail"] == "Forbidden"
 
     def test_delete_cross_session_returns_403(self, setup):
-        """Validates: Requirement 5.2"""
         diagram_id, _client_a, client_b = self._setup_two_sessions(setup)
 
         resp = client_b.delete(f"/api/diagrams/{diagram_id}")
@@ -152,7 +144,6 @@ class TestForbiddenForCrossSessionAccess:
 
 # ---------------------------------------------------------------------------
 # 204 on successful delete
-# Requirement 5.1
 # ---------------------------------------------------------------------------
 
 
@@ -165,7 +156,6 @@ class TestSuccessfulDelete:
         return TestClient(_build_app(repo))
 
     def test_delete_own_diagram_returns_204(self, setup):
-        """Validates: Requirement 5.1"""
         client = self._make_client(setup)
 
         # Create a diagram (establishes session via cookie jar)
@@ -194,7 +184,6 @@ class TestSuccessfulDelete:
 
 # ---------------------------------------------------------------------------
 # verify_ownership dependency override
-# Requirements 5.4, 5.6
 # ---------------------------------------------------------------------------
 
 
@@ -202,7 +191,7 @@ class TestVerifyOwnershipOverride:
     """Overriding verify_ownership via app.dependency_overrides bypasses real repo lookup."""
 
     def test_override_verify_ownership_returns_fake_record(self, setup, tmp_path):
-        """Validates: Requirement 5.6 — ownership override skips real repository."""
+        """Ownership override skips real repository."""
         _, repo = setup
         app = _build_app(repo)
 
@@ -231,7 +220,7 @@ class TestVerifyOwnershipOverride:
     def test_override_verify_ownership_independent_of_repo_override(
         self, setup, tmp_path
     ):
-        """Validates: Requirement 5.4, 5.6 — ownership and repo overrides are independent."""
+        """Ownership and repo overrides are independent."""
         _, repo = setup
         app = _build_app(repo)
 

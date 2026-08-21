@@ -27,7 +27,7 @@ def _dynamodb_instance(name: str = "test_table", **config_kwargs) -> ResourceIns
 
 
 # ===========================================================================
-# 1. Stream attributes (Requirement 3.11)
+# 1. Stream attributes
 # ===========================================================================
 
 
@@ -70,7 +70,7 @@ class TestDynamoDBStreamAttributes:
 
 
 # ===========================================================================
-# 2. TTL block (Requirement 3.12)
+# 2. TTL block
 # ===========================================================================
 
 
@@ -97,14 +97,9 @@ class TestDynamoDBTTLBlock:
         """ttl block not emitted when ttl_enabled is None."""
         instance = _dynamodb_instance()
         output = self.gen.generate_resource_tf(instance)
-        # The word "ttl" should not appear as a block key
         lines = output.split("\n")
-        ttl_lines = [
-            l for l in lines if "ttl" in l.lower() and "attribute" not in l.lower()
-        ]
-        # No dedicated TTL block lines
         assert not any(
-            l.strip().split()[0] == "ttl" if l.strip() else False for l in lines
+            line.strip().split()[0] == "ttl" for line in lines if line.strip()
         )
 
     def test_ttl_variables_emitted(self):
@@ -116,7 +111,7 @@ class TestDynamoDBTTLBlock:
 
 
 # ===========================================================================
-# 3. Global Secondary Index blocks (Requirement 3.13)
+# 3. Global Secondary Index blocks
 # ===========================================================================
 
 
@@ -184,7 +179,7 @@ class TestDynamoDBGSIBlocks:
 
 
 # ===========================================================================
-# 4. Local Secondary Index blocks (Requirement 3.13)
+# 4. Local Secondary Index blocks
 # ===========================================================================
 
 
@@ -248,7 +243,7 @@ class TestDynamoDBLSIBlocks:
 
 
 # ===========================================================================
-# 5. Server-side encryption block (Requirement 3.14)
+# 5. Server-side encryption block
 # ===========================================================================
 
 
@@ -292,7 +287,7 @@ class TestDynamoDBEncryptionBlock:
 
 
 # ===========================================================================
-# 6. Replica blocks (Requirement 3.15)
+# 6. Replica blocks
 # ===========================================================================
 
 

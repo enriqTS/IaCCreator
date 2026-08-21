@@ -78,8 +78,6 @@ def _assert_two_space_indentation(hcl: str) -> None:
 
 
 # --- Property 12: Two-space indentation ---
-# Feature: terraform-iac-generator, Property 12: Two-space indentation
-# Validates: Requirements 7.4
 
 
 renderer = HCLRenderer()
@@ -199,8 +197,6 @@ def _make_instance(
 
 
 # --- Property 10: Service-specific required attributes ---
-# Feature: terraform-iac-generator, Property 10: Service-specific required attributes
-# Validates: Requirements 5.6, 5.7, 5.8, 5.9, 5.10
 
 
 @settings(max_examples=100)
@@ -256,8 +252,6 @@ def test_property_10_cloudwatch_required_attributes(name, config):
 
 
 # --- Property 11: HCL block attribute completeness ---
-# Feature: terraform-iac-generator, Property 11: HCL block attribute completeness
-# Validates: Requirements 5.3, 5.4, 5.5
 
 
 @settings(max_examples=100)
@@ -421,8 +415,6 @@ _lambda_with_iam_st = st.builds(
 
 
 # --- Property 19: Valid IAM policy JSON syntax ---
-# Feature: terraform-iac-generator, Property 19: Valid IAM policy JSON syntax
-# Validates: Requirements 9.3
 
 iam_gen = IAMPolicyGenerator()
 
@@ -445,8 +437,6 @@ def test_property_19_valid_iam_policy_json_syntax(instance):
 
 
 # --- Property 18: One consolidated IAM policy per Lambda ---
-# Feature: terraform-iac-generator, Property 18: One consolidated IAM policy per Lambda
-# Validates: Requirements 9.2, 9.6, 9.7
 
 
 @settings(max_examples=100)
@@ -471,8 +461,6 @@ def test_property_18_one_consolidated_policy_per_lambda(instance):
 
 
 # --- Property 16: Connection-derived IAM policy statements ---
-# Feature: terraform-iac-generator, Property 16: Connection-derived IAM policy statements
-# Validates: Requirements 8.2, 8.3, 8.4, 9.4
 
 
 _dynamodb_target_st = st.builds(
@@ -550,8 +538,6 @@ def test_property_16_connection_derived_iam_statements(lambda_name, target):
 
 
 # --- Property 15: API Gateway–Lambda integration generation ---
-# Feature: terraform-iac-generator, Property 15: API Gateway–Lambda integration generation
-# Validates: Requirements 8.1
 
 
 @settings(max_examples=100)
@@ -621,8 +607,6 @@ def test_property_15_apigw_lambda_integration(apigw_name, lambda_name):
 
 
 # --- Property 17: Terraform references over hardcoded values ---
-# Feature: terraform-iac-generator, Property 17: Terraform references over hardcoded values
-# Validates: Requirements 8.5
 
 
 @settings(max_examples=100)
@@ -801,8 +785,6 @@ def _architecture_description_st(draw):
 
 
 # --- Property 3: Project-level folder structure ---
-# Feature: terraform-iac-generator, Property 3: Project-level folder structure
-# Validates: Requirements 2.1, 2.2, 2.3, 3.1, 3.2, 9.1
 
 
 @settings(max_examples=100)
@@ -866,8 +848,6 @@ def test_property_3_project_level_folder_structure(arch):
 
 
 # --- Property 4: Environment file completeness ---
-# Feature: terraform-iac-generator, Property 4: Environment file completeness
-# Validates: Requirements 2.4
 
 EXPECTED_ENV_FILES = {
     "main.tf",
@@ -881,8 +861,6 @@ EXPECTED_ENV_FILES = {
 
 
 # --- Property 5: Environment variable consistency ---
-# Feature: terraform-iac-generator, Property 5: Environment variable consistency
-# Validates: Requirements 2.5, 2.7
 
 
 def _parse_tfvars(content: str) -> dict[str, str]:
@@ -1016,8 +994,6 @@ def test_property_4_environment_file_completeness(arch):
 
 
 # --- Property 6: Environment module references ---
-# Feature: terraform-iac-generator, Property 6: Environment module references
-# Validates: Requirements 2.6, 2.8
 
 
 def _parse_module_names(content: str) -> set[str]:
@@ -1078,8 +1054,6 @@ def test_property_6_environment_module_references(arch):
 
 
 # --- Property 7: Service module file structure and content ---
-# Feature: terraform-iac-generator, Property 7: Service module file structure and content
-# Validates: Requirements 3.3, 3.4, 3.5, 3.6
 
 EXPECTED_MODULE_ROOT_FILES = {"main.tf", "variables.tf", "outputs.tf"}
 
@@ -1118,8 +1092,6 @@ def test_property_7_service_module_file_structure_and_content(arch):
 
 
 # --- Property 8: Resource instance subfolder structure ---
-# Feature: terraform-iac-generator, Property 8: Resource instance subfolder structure
-# Validates: Requirements 4.1, 4.2, 4.3, 4.4
 
 EXPECTED_INSTANCE_BASE_FILES = {"variables.tf", "outputs.tf"}
 
@@ -1167,8 +1139,6 @@ def test_property_8_resource_instance_subfolder_structure(arch):
 
 
 # --- Property 9: Lambda iam.tf with file() references ---
-# Feature: terraform-iac-generator, Property 9: Lambda iam.tf with file() references
-# Validates: Requirements 4.5, 4.6, 9.5
 
 
 @st.composite
@@ -1264,8 +1234,6 @@ def test_property_9_lambda_iam_tf_with_file_references(arch):
 
 
 # --- Property 20: AWS provider configuration ---
-# Feature: terraform-iac-generator, Property 20: AWS provider configuration
-# Validates: Requirements 5.2
 
 
 @settings(max_examples=100)
@@ -1361,8 +1329,6 @@ def _arch_to_payload(arch: ArchitectureDescription) -> dict:
 
 
 # --- Property 1: Valid input acceptance ---
-# Feature: terraform-iac-generator, Property 1: Valid input acceptance
-# Validates: Requirements 1.1, 1.4
 
 
 @settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
@@ -1380,8 +1346,6 @@ def test_property_1_valid_input_acceptance(client, arch):
 
 
 # --- Property 2: Invalid input error reporting ---
-# Feature: terraform-iac-generator, Property 2: Invalid input error reporting
-# Validates: Requirements 1.2
 
 
 @settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
@@ -1419,8 +1383,6 @@ def test_property_2_invalid_input_empty_resources(client, arch):
 
 
 # --- Property 14: Output format correctness ---
-# Feature: terraform-iac-generator, Property 14: Output format correctness
-# Validates: Requirements 6.2, 6.3, 6.4
 
 
 @settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
@@ -1446,8 +1408,6 @@ def test_property_14_json_output_format(client, arch):
 
 
 # --- Property 13: IR serialization round-trip ---
-# Feature: terraform-iac-generator, Property 13: IR serialization round-trip
-# Validates: Requirements 7.2, 7.3
 
 
 from tests.conftest import architecture_description_strategy as _full_arch_st

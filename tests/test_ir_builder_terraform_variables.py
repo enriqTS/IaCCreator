@@ -1,6 +1,5 @@
 """Unit and property tests for IRBuilder terraform_variables propagation.
 
-Validates Requirements 7.2 and 7.3:
 - terraform_variables pass through from ResourceInstance to ResourceInstanceIR
 - Missing terraform_variables get schema defaults
 - Property 2: All ResourceInstanceIR objects have terraform_variables populated after build

@@ -1,8 +1,8 @@
 """Unit tests for CORS configuration and app wiring in main.py.
 
 Validates:
-- CORS headers on preflight requests (Requirements 8.1, 8.2, 8.3, 8.4)
-- Session cookie attributes via the full app (Requirements 1.3, 1.4)
+- CORS headers on preflight requests
+- Session cookie attributes via the full app
 - Diagram router is mounted and reachable
 - Existing /generate endpoints remain intact
 """
@@ -45,7 +45,7 @@ def client(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# CORS preflight (OPTIONS) — Requirements 8.1, 8.2, 8.3, 8.4
+# CORS preflight (OPTIONS)
 # ---------------------------------------------------------------------------
 
 FRONTEND_ORIGIN = "http://localhost:3000"
@@ -55,7 +55,7 @@ class TestCORSPreflight:
     """CORS middleware must respond correctly to preflight OPTIONS requests."""
 
     def test_preflight_allows_default_origin(self, client):
-        """Validates: Requirement 8.4 — default origin http://localhost:3000."""
+        """Default origin http://localhost:3000."""
         resp = client.options(
             "/api/diagrams",
             headers={
@@ -66,7 +66,7 @@ class TestCORSPreflight:
         assert resp.headers.get("access-control-allow-origin") == FRONTEND_ORIGIN
 
     def test_preflight_allows_credentials(self, client):
-        """Validates: Requirement 8.2 — Access-Control-Allow-Credentials: true."""
+        """Access-Control-Allow-Credentials: true."""
         resp = client.options(
             "/api/diagrams",
             headers={
@@ -77,7 +77,7 @@ class TestCORSPreflight:
         assert resp.headers.get("access-control-allow-credentials") == "true"
 
     def test_preflight_allows_required_methods(self, client):
-        """Validates: Requirement 8.3 — GET, POST, PUT, DELETE allowed."""
+        """GET, POST, PUT, DELETE allowed."""
         for method in ("GET", "POST", "PUT", "DELETE"):
             resp = client.options(
                 "/api/diagrams",
@@ -106,7 +106,7 @@ class TestCORSOnActualRequests:
     """CORS headers must also appear on regular (non-preflight) responses."""
 
     def test_cors_headers_on_get(self, client):
-        """Validates: Requirement 8.1 — CORS middleware present on real requests."""
+        """CORS middleware present on real requests."""
         resp = client.get(
             "/api/diagrams",
             headers={"Origin": FRONTEND_ORIGIN},
@@ -116,7 +116,7 @@ class TestCORSOnActualRequests:
 
 
 # ---------------------------------------------------------------------------
-# Session cookie via the full app — Requirements 1.3, 1.4
+# Session cookie via the full app
 # ---------------------------------------------------------------------------
 
 
@@ -124,7 +124,7 @@ class TestSessionCookieViaFullApp:
     """Session middleware must set correct cookie attributes through the real app."""
 
     def test_first_request_sets_session_cookie(self, client):
-        """Validates: Requirement 1.3 — cookie attributes."""
+        """Cookie attributes."""
         resp = client.get("/api/diagrams")
         cookie_header = resp.headers.get("set-cookie", "")
         assert "session_id" in cookie_header
@@ -133,7 +133,7 @@ class TestSessionCookieViaFullApp:
         assert "2592000" in cookie_header  # Max-Age
 
     def test_invalid_cookie_creates_new_session(self, client):
-        """Validates: Requirement 1.4 — invalid cookie → new session."""
+        """Invalid cookie → new session."""
         resp = client.get(
             "/api/diagrams",
             cookies={"session_id": "bogus-nonexistent-id"},

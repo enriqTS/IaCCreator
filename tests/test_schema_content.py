@@ -39,7 +39,7 @@ def _group_members(service: ServiceType, group: str) -> set[str]:
 
 
 # ===================================================================
-# 1. Variable names per service (Requirements 2.1–2.5)
+# 1. Variable names per service
 # ===================================================================
 
 
@@ -128,7 +128,7 @@ class TestVariableNamesPerService:
 
 
 # ===================================================================
-# 2. Specific defaults (Requirements 1.1–1.5)
+# 2. Specific defaults
 # ===================================================================
 
 
@@ -169,7 +169,7 @@ class TestSpecificDefaults:
 
 
 # ===================================================================
-# 3. Specific options (Requirements 5.3–5.11)
+# 3. Specific options
 # ===================================================================
 
 
@@ -208,7 +208,7 @@ class TestSpecificOptions:
 
 
 # ===================================================================
-# 4. Group assignments (Requirements 3.5–3.6)
+# 4. Group assignments
 # ===================================================================
 
 

@@ -1,6 +1,5 @@
 """Integration tests for FileTreeAssembler with terraform variables.
 
-Validates Requirements 5.1 and 9.9:
 - Generated file tree contains terraform.tfvars with correct variable entries
 - backend.tf, provider.tf, versions.tf are present and correctly formatted
 """
@@ -44,8 +43,6 @@ def _build_tree(**overrides) -> dict[str, str]:
     return FileTreeAssembler().assemble(ir)
 
 
-# ---------------------------------------------------------------------------
-# Requirement 5.1: terraform.tfvars contains correct variable entries
 # ---------------------------------------------------------------------------
 
 
@@ -229,8 +226,6 @@ class TestTfvarsInFileTree:
         assert "my-bucket_versioning_enabled = false" in content
 
 
-# ---------------------------------------------------------------------------
-# Requirement 9.9: backend.tf, provider.tf, versions.tf present and correct
 # ---------------------------------------------------------------------------
 
 

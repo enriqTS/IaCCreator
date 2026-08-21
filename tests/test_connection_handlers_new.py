@@ -2,8 +2,6 @@
 
 Tests the per-handler pattern under app/services/connection_handlers/.
 Each handler is tested directly via handler.handle(connection, project).
-
-Requirements: 3, 5, 6
 """
 
 from app.models.input_models import ServiceType

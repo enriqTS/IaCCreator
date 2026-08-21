@@ -316,8 +316,6 @@ def resource_instance_with_populated_fields(draw):
 
 # ---------------------------------------------------------------------------
 # Property 12: Generators include var references for populated config fields
-# Feature: enhanced-variable-configuration, Property 12: Generators include var references for populated config fields
-# **Validates: Requirements 8.2**
 # ---------------------------------------------------------------------------
 
 
@@ -340,8 +338,6 @@ def test_populated_config_fields_produce_var_references(data):
 
 # ---------------------------------------------------------------------------
 # Property 10: visible_when exclusion
-# Feature: enhanced-variable-configuration, Property 10: visible_when exclusion
-# **Validates: Requirements 6.6, 8.5**
 # ---------------------------------------------------------------------------
 
 

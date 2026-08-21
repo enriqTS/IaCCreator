@@ -196,10 +196,7 @@ from app.generators.hcl_renderer import Expr, HCLRenderer
 
 
 class TestHCLRenderer:
-    """Unit tests for the HCLRenderer class.
-
-    Validates: Requirements 5.1, 5.3, 5.4, 5.5
-    """
+    """Unit tests for the HCLRenderer class."""
 
     def setup_method(self):
         self.renderer = HCLRenderer()

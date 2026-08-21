@@ -3,8 +3,6 @@
 Tests the emission of new TerraformField-annotated attributes in the
 API Gateway generator sub-resources: stages, authorizers, integrations,
 custom domain, and routes.
-
-Requirements: 4.9, 4.10, 4.11, 4.12, 4.13
 """
 
 import json
@@ -29,7 +27,7 @@ def _make_instance(name: str, config: ApiGatewayConfig) -> ResourceInstanceIR:
 
 
 # ===========================================================================
-# Test stage access log settings emission (Requirement 4.9)
+# Test stage access log settings emission
 # ===========================================================================
 
 
@@ -130,7 +128,7 @@ class TestStageAccessLogSettings:
 
 
 # ===========================================================================
-# Test authorizer TTL and simple_responses attributes (Requirement 4.10)
+# Test authorizer TTL and simple_responses attributes
 # ===========================================================================
 
 
@@ -246,7 +244,7 @@ class TestAuthorizerTTLAndSimpleResponses:
 
 
 # ===========================================================================
-# Test integration timeout and connection fields emission (Requirement 4.11)
+# Test integration timeout and connection fields emission
 # ===========================================================================
 
 
@@ -386,7 +384,7 @@ class TestIntegrationTimeoutAndConnectionFields:
 
 
 # ===========================================================================
-# Test domain mTLS attributes emission (Requirement 4.12)
+# Test domain mTLS attributes emission
 # ===========================================================================
 
 
@@ -489,7 +487,7 @@ class TestDomainMTLSAttributes:
 
 
 # ===========================================================================
-# Test route authorization_type and scopes emission (Requirement 4.13)
+# Test route authorization_type and scopes emission
 # ===========================================================================
 
 

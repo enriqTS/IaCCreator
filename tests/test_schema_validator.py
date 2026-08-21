@@ -1,7 +1,4 @@
-"""Property-based and complementary tests for backend schema validation.
-
-# Feature: enhanced-variable-configuration, Property 9: Backend validation rejects invalid values
-"""
+"""Property-based and complementary tests for backend schema validation."""
 
 import pytest
 from fastapi import HTTPException
@@ -31,16 +28,16 @@ for _stype, _entries in service_schemas().items():
         if _entry.validation is not None:
             # Only include rules that have numeric bounds or allowed_values
             rule = _entry.validation
-            if (
+            has_bounds = (
                 rule.min is not None
                 or rule.max is not None
                 or rule.allowed_values is not None
-            ):
-                # Only include if the variable maps to a real config field
-                if _entry.name in _config_fields:
-                    _VALIDATED_VARS.append(
-                        (_stype, _entry.name, rule, _entry.visible_when, _config_cls)
-                    )
+            )
+            # Only rules that constrain a variable backed by a real config field
+            if has_bounds and _entry.name in _config_fields:
+                _VALIDATED_VARS.append(
+                    (_stype, _entry.name, rule, _entry.visible_when, _config_cls)
+                )
 
 
 # ---------------------------------------------------------------------------
@@ -89,7 +86,6 @@ def invalid_value_for_rule(draw, rule):
 
 # ---------------------------------------------------------------------------
 # Property 9: Backend validation rejects invalid values
-# **Validates: Requirements 4.10, 8.4**
 # ---------------------------------------------------------------------------
 
 
@@ -98,8 +94,6 @@ def invalid_value_for_rule(draw, rule):
 def test_backend_rejects_invalid_values(data):
     """Property 9: For any typed config with a value outside validation bounds,
     validate_config_against_schema raises HTTPException with status_code 422.
-
-    **Validates: Requirements 4.10, 8.4**
     """
     # Pick a random validated variable
     stype, var_name, rule, visible_when, config_cls = data.draw(
