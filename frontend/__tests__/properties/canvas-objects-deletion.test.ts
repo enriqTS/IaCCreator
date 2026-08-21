@@ -14,8 +14,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-objects-editor, Property 9: Object deletion removes from store
-// **Validates: Requirements 11.1, 11.2**
 describe('Property 9: Object deletion removes from store', () => {
   beforeEach(resetStore);
 

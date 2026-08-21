@@ -1,9 +1,6 @@
 import fc from 'fast-check';
 import { COMPACT_LAYOUT_THRESHOLD } from '@/components/config/panel-constants';
 
-// Feature: bottom-panel-redesign, Property 7: Layout mode determined by height threshold
-// **Validates: Requirements 3.1, 3.2**
-
 /**
  * Pure function that mirrors the layout mode logic used in GlobalTerraformConfigPanel.
  * Returns "compact" for heights at or below the threshold, "grid" for heights above.

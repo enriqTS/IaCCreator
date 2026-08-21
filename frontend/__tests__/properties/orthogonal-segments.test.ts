@@ -1,10 +1,6 @@
 /**
  * Property-based test: Orthogonal routing produces only horizontal and vertical segments
  *
- * Feature: line-segment-manipulation, Property 2: Orthogonal routing produces only horizontal and vertical segments
- *
- * **Validates: Requirements 2.1, 2.2**
- *
  * For any two distinct points (start, end) and any combination of anchor configurations
  * (both anchored, one anchored, neither anchored), when routingMode is 'orthogonal',
  * every consecutive pair of points in the resulting path forms either a horizontal
@@ -48,10 +44,9 @@ function assertAllSegmentsOrthogonal(start: Point, waypoints: Point[], end: Poin
   }
 }
 
-describe('Feature: line-segment-manipulation, Property 2: Orthogonal routing produces only horizontal and vertical segments', () => {
+describe('Orthogonal routing produces only horizontal and vertical segments', () => {
   it('produces only H/V segments with explicit anchor positions on both ends', () => {
     /**
-     * **Validates: Requirements 2.1, 2.2**
      *
      * Both endpoints have explicit anchor positions. Generate random start/end
      * points and anchor positions, compute waypoints, build the full path, and
@@ -76,7 +71,6 @@ describe('Feature: line-segment-manipulation, Property 2: Orthogonal routing pro
 
   it('produces only H/V segments with inferred anchor positions (both unanchored)', () => {
     /**
-     * **Validates: Requirements 2.1, 2.2**
      *
      * Neither endpoint is anchored. Infer anchor positions from geometry,
      * compute waypoints, and verify all segments are orthogonal.
@@ -96,7 +90,6 @@ describe('Feature: line-segment-manipulation, Property 2: Orthogonal routing pro
 
   it('produces only H/V segments with one anchored and one inferred endpoint', () => {
     /**
-     * **Validates: Requirements 2.1, 2.2**
      *
      * One endpoint has an explicit anchor position, the other infers it.
      * Verify all segments are orthogonal in both configurations.

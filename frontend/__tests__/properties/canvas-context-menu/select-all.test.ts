@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 16: Select all selects every object
 describe('Property 16: Select all selects every object', () => {
   beforeEach(resetStore);
 

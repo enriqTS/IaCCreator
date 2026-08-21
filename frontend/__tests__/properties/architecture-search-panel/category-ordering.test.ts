@@ -2,9 +2,6 @@ import fc from 'fast-check';
 import { sortCategories } from '@/components/toolbar/ObjectPickerMenu';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 
-// Feature: architecture-search-panel, Property 7: Category ordering invariant
-// **Validates: Requirements 4.1, 4.2, 4.3, 2.3**
-
 /**
  * Fixed (non-AWS) categories in their required order.
  */

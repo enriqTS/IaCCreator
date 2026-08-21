@@ -28,8 +28,6 @@ function simulateRightClickSelection(objectId: string) {
   }
 }
 
-// Feature: canvas-context-menu, Property 1: Right-click selection invariant
-// **Validates: Requirements 1.3, 1.4**
 describe('Property 1: Right-click selection invariant', () => {
   beforeEach(resetStore);
 

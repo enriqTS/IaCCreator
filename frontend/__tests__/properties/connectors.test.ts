@@ -25,8 +25,6 @@ function addBlock(serviceType: string, position: { x: number; y: number }) {
   });
 }
 
-// Feature: diagram-editor-frontend, Property 6: Connector creation correctness
-// **Validates: Requirements 4.2, 4.5**
 describe('Property 6: Connector creation correctness', () => {
   test('addConnector produces connector with correct sourceId, targetId, unique ID, and non-empty connectionType', () => {
     fc.assert(
@@ -86,8 +84,6 @@ describe('Property 6: Connector creation correctness', () => {
   });
 });
 
-// Feature: diagram-editor-frontend, Property 7: Connector deletion preserves elements
-// **Validates: Requirements 4.4**
 describe('Property 7: Connector deletion preserves canvas objects', () => {
   test('deleting a connector removes only that connector; all canvas objects unchanged', () => {
     fc.assert(

@@ -4,10 +4,6 @@ import { useDiagramStore } from '@/store/diagram-store';
 import type { UMLObject, UMLKind } from '@/types/diagram';
 import { DEFAULT_UML_VISUAL, DEFAULT_UML_CLASS_DATA } from '@/types/diagram';
 
-/**
- * Feature: canvas-objects-editor, Property 11: UML class data persistence
- * **Validates: Requirements 6.9**
- */
 describe('Property 11: UML class data persistence', () => {
   beforeEach(() => {
     useDiagramStore.setState({

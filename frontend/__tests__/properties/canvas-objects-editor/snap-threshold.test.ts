@@ -51,8 +51,6 @@ function minDistToAnchors(point: Point, bounds: Rect): number {
   return minDist;
 }
 
-// Feature: canvas-objects-editor, Property 3: Snap threshold boundary
-// **Validates: Requirements 2.2**
 describe('Property 3: Snap threshold boundary', () => {
   it('returns non-null if and only if the point is within threshold of a cardinal anchor', () => {
     fc.assert(

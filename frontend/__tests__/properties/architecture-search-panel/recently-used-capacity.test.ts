@@ -2,9 +2,6 @@ import fc from 'fast-check';
 import { useRecentlyUsedStore, MAX_RECENT_ITEMS } from '@/store/recently-used-store';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 
-// Feature: architecture-search-panel, Property 5: Recently-used max capacity with eviction
-// **Validates: Requirements 3.3, 3.4**
-
 /**
  * Arbitrary that generates a list of distinct PickerItems (unique by name+category).
  * Always produces at least 13 items to exceed MAX_RECENT_ITEMS (12).

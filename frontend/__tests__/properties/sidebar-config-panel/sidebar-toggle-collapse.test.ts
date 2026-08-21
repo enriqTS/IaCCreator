@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH_RATIO, DEFAULT_SIDEBAR_WIDTH } from '@/components/config/panel-constants';
 
-// Feature: sidebar-config-panel, Property 2: Toggle collapses expanded panel
-// **Validates: Requirements 1.5**
 describe('Property 2: Toggle collapses expanded panel', () => {
   beforeEach(() => {
     useDiagramStore.setState({

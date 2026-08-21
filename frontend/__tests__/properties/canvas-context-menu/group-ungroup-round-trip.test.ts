@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 15: Group/ungroup round trip
 describe('Property 15: Group/ungroup round trip', () => {
   beforeEach(resetStore);
 

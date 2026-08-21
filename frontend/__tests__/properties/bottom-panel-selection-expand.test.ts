@@ -4,8 +4,6 @@ import {
   canvasObjectWithoutIdArbitrary,
 } from './arbitraries';
 
-// Feature: bottom-panel-redesign, Property 3: Selection auto-expands panel
-// **Validates: Requirements 1.4**
 describe('Property 3: Selection auto-expands panel', () => {
   beforeEach(() => {
     useDiagramStore.setState({

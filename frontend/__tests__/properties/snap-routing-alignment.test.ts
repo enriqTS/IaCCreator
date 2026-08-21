@@ -1,10 +1,6 @@
 /**
  * Property-based test: Grid-aware routing produces grid-aligned waypoints
  *
- * Feature: canvas-snap-to-grid, Property 7: Grid-aware routing produces grid-aligned waypoints
- *
- * **Validates: Requirements 5.1**
- *
  * For any start point, end point, start anchor position, end anchor position,
  * and valid grid cell size g, all waypoints returned by computeOrthogonalWaypoints
  * (when grid-aware) shall have both x and y coordinates that are multiples of g.
@@ -35,10 +31,9 @@ const anchorPositionArb: fc.Arbitrary<AnchorPosition> = fc.constantFrom(
   'left',
 );
 
-describe('Feature: canvas-snap-to-grid, Property 7: Grid-aware routing produces grid-aligned waypoints', () => {
+describe('Grid-aware routing produces grid-aligned waypoints', () => {
   it('all waypoints from computeOrthogonalWaypoints have coordinates that are multiples of gridSize', () => {
     /**
-     * **Validates: Requirements 5.1**
      *
      * Strategy: Generate random start/end points, anchor positions, and grid sizes.
      * Call computeOrthogonalWaypoints with gridSize. Verify every waypoint's x and y

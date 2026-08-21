@@ -1,8 +1,6 @@
 import fc from 'fast-check';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 
-// Feature: sidebar-config-panel, Property 6: Hamburger menu opposite side positioning
-// **Validates: Requirements 3.1, 3.2, 3.3**
 describe('Property 6: Hamburger menu opposite side positioning', () => {
   beforeEach(() => {
     useLayoutPreferencesStore.setState({

@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { getTabsForObject } from '@/components/config/SidebarPanel';
 import type { LineObject, GeometricObject } from '@/types/diagram';
 
-// Feature: sidebar-config-panel, Property 12: Non-architecture-block tab set
-// **Validates: Requirements 8.5**
 describe('Property 12: Non-architecture-block tab set', () => {
   const arbLineObject: fc.Arbitrary<LineObject> = fc.record({
     id: fc.string({ minLength: 1, maxLength: 20 }),

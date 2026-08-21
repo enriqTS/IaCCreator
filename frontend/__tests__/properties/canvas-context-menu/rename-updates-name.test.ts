@@ -1,11 +1,9 @@
 /**
- * Feature: canvas-context-menu, Property 13: Rename updates object name
  *
  * For any canvas object and any non-empty string, calling
  * updateCanvasObject(id, { name }) should result in the object's name
  * matching the provided string.
  *
- * **Validates: Requirements 7.2**
  */
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';

@@ -1,10 +1,6 @@
 /**
  * Property-based test: Nearest anchor position by geometric proximity
  *
- * Feature: line-segment-manipulation, Property 9: Nearest anchor position by geometric proximity
- *
- * **Validates: Requirements 4.1, 4.3, 4.4, 4.6**
- *
  * For any rectangular bounds and any external point, `findNearestAnchorPosition`
  * returns the cardinal anchor position whose anchor point has the smallest Euclidean
  * distance. When currentPosition is equidistant with another, currentPosition is retained.
@@ -44,10 +40,9 @@ function euclidean(a: Point, b: Point): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-describe('Feature: line-segment-manipulation, Property 9: Nearest anchor position by geometric proximity', () => {
+describe('Nearest anchor position by geometric proximity', () => {
   it('returns the anchor position with the smallest Euclidean distance to the point', () => {
     /**
-     * **Validates: Requirements 4.1, 4.3, 4.4**
      *
      * Strategy: Generate random rects and points. Compute the distance from the
      * point to each of the four cardinal anchor points. Verify that the returned
@@ -71,7 +66,6 @@ describe('Feature: line-segment-manipulation, Property 9: Nearest anchor positio
 
   it('retains currentPosition when it is equidistant with another anchor', () => {
     /**
-     * **Validates: Requirements 4.6**
      *
      * Strategy: Generate rects and anchor positions. Construct a point that is
      * equidistant from the currentPosition anchor and at least one other anchor.
@@ -93,7 +87,6 @@ describe('Feature: line-segment-manipulation, Property 9: Nearest anchor positio
 
   it('retains currentPosition on true equidistant tie with another anchor', () => {
     /**
-     * **Validates: Requirements 4.6**
      *
      * Strategy: For a square rect, the center is equidistant from all four anchors.
      * Regardless of which currentPosition is provided, it should be retained.

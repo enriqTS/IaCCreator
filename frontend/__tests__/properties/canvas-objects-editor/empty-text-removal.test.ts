@@ -4,10 +4,6 @@ import { useDiagramStore } from '@/store/diagram-store';
 import type { TextObject } from '@/types/diagram';
 import { DEFAULT_TEXT_VISUAL } from '@/types/diagram';
 
-/**
- * Feature: canvas-objects-editor, Property 7: Empty text objects are auto-removed
- * **Validates: Requirements 4.4**
- */
 describe('Property 7: Empty text objects are auto-removed', () => {
   beforeEach(() => {
     useDiagramStore.setState({

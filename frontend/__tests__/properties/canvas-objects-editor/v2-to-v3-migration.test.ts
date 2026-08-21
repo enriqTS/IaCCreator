@@ -13,10 +13,6 @@ import {
 import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
 import { getDefaultVariables } from '@/types/terraform-variables';
 
-/**
- * Feature: canvas-objects-editor, Property 13: v2 to v3 migration preserves existing objects
- * **Validates: Requirements 9.6**
- */
 describe('Property 13: v2 to v3 migration preserves existing objects', () => {
   beforeEach(() => {
     useDiagramStore.setState({

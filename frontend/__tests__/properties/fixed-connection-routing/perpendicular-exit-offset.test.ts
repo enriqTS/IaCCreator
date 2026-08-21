@@ -5,7 +5,6 @@ import type { Point } from '@/types/diagram';
 
 // Feature: fixed-connection-routing
 // **Property 4: Orthogonal routes exit perpendicular with minimum offset**
-// **Validates: Requirements 2.2, 2.6**
 //
 // IMPORTANT: Skip the degenerate case where start === end (empty waypoints)
 // and skip Case 1 (facing anchors on shared axis) which by design returns

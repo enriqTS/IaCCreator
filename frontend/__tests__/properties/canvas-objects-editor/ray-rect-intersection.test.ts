@@ -49,8 +49,6 @@ function externalPointArbitrary(rect: Rect): fc.Arbitrary<{ x: number; y: number
   );
 }
 
-// Feature: canvas-objects-editor, Property 4: Ray-rect intersection lies on boundary
-// **Validates: Requirements 2.4**
 describe('Property 4: Ray-rect intersection lies on boundary', () => {
   it('intersection point lies on the rectangle boundary for any external target point', () => {
     fc.assert(

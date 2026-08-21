@@ -4,7 +4,6 @@ import type { Point } from '@/types/diagram';
 
 // Feature: fixed-connection-routing
 // **Property 5: Facing anchors on shared axis produce zero waypoints**
-// **Validates: Requirements 2.3**
 
 describe('Property 5: Facing anchors on shared axis produce zero waypoints', () => {
   test('source right / target left at same Y where target X > source X → empty waypoints', () => {

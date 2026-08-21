@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH_RATIO, DEFAULT_SIDEBAR_WIDTH } from '@/components/config/panel-constants';
 
-// Feature: sidebar-config-panel, Property 3: Width clamping within bounds
-// **Validates: Requirements 1.7, 1.8**
 describe('Property 3: Width clamping within bounds', () => {
   beforeEach(() => {
     useDiagramStore.setState({

@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 11: Locked objects cannot be moved
 describe('Property 11: Locked objects cannot be moved', () => {
   beforeEach(resetStore);
 

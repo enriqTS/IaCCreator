@@ -8,7 +8,6 @@ import type { Rect } from '@/types/diagram';
 import type { AnchorPosition } from '@/utils/anchor';
 
 /**
- * **Validates: Requirements 3.1, 3.2, 3.5, 3.6**
  *
  * Property 2: Preservation — Non-Anchor Clicks and Display Behavior Unchanged
  *
@@ -85,7 +84,6 @@ describe('Property 2: Preservation — Non-Anchor Clicks and Display Behavior Un
 
   test('Property-based: clicks OUTSIDE all anchor indicator circles do NOT trigger setPullConnectState', () => {
     /**
-     * **Validates: Requirements 3.1**
      *
      * For all random object positions/sizes and click positions OUTSIDE all anchor
      * indicator circles (distance from every anchor center > 10px / scale),
@@ -145,7 +143,6 @@ describe('Property 2: Preservation — Non-Anchor Clicks and Display Behavior Un
 
   test('Property-based: for all random viewport scales (0.25–4.0), anchor indicators render with correct proportional dimensions', () => {
     /**
-     * **Validates: Requirements 3.6**
      *
      * For all random viewport scales, verify anchor indicators render with
      * correct proportional dimensions. The zone size should be proportional
@@ -202,7 +199,6 @@ describe('Property 2: Preservation — Non-Anchor Clicks and Display Behavior Un
 
   test('Property-based: for all non-line, non-locked objects, exactly 4 anchor indicators render at cardinal positions', () => {
     /**
-     * **Validates: Requirements 3.2**
      *
      * For all random non-line, non-locked objects, verify exactly 4 anchor
      * indicators render with data-testid attributes at cardinal positions
@@ -260,7 +256,6 @@ describe('Property 2: Preservation — Non-Anchor Clicks and Display Behavior Un
 
   test('Property-based: for locked objects, no anchor indicators render', () => {
     /**
-     * **Validates: Requirements 3.5**
      *
      * For all locked objects (any random bounds and scale), verify that
      * no anchor indicators are rendered (component returns null).

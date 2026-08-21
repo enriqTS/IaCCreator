@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { DEFAULT_SIDEBAR_WIDTH } from '@/components/config/panel-constants';
 
-// Feature: sidebar-config-panel, Property 9: Multi-selection count
-// **Validates: Requirements 8.2**
 describe('Property 9: Multi-selection displays correct object count', () => {
   beforeEach(() => {
     useDiagramStore.setState({

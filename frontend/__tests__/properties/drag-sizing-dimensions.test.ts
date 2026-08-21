@@ -1,8 +1,6 @@
 /**
  * Property-based test: Drag-sizing minimum dimension enforcement
  *
- * **Validates: Requirements 3.4, 3.5**
- *
  * Property 5: Drag-sizing always produces objects with dimensions ≥ 40px,
  * and drag < 5px in both axes falls back to defaults (width=0, height=0).
  */
@@ -48,7 +46,6 @@ const canvasPointArb: fc.Arbitrary<Point> = fc.record({
 describe('Drag-Sizing Minimum Dimension Enforcement', () => {
   it('Property 5: drag-sizing always produces dimensions >= 40px when drag >= 5px, and falls back to defaults when drag < 5px', () => {
     /**
-     * **Validates: Requirements 3.4, 3.5**
      *
      * Strategy: Generate random origin and end points in canvas space.
      * Compute the drag dimensions and verify:

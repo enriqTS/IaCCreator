@@ -17,8 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 3: Send to back sets minimum zIndex
-// **Validates: Requirements 2.4**
 describe('Property 3: Send to back sets minimum zIndex', () => {
   beforeEach(resetStore);
 

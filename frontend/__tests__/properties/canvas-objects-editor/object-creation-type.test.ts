@@ -75,10 +75,6 @@ function creationPayloadArbitrary(): fc.Arbitrary<CanvasObjectCreationPayload> {
   );
 }
 
-/**
- * Feature: canvas-objects-editor, Property 9: Object creation assigns correct type and kind
- * **Validates: Requirements 2.1, 6.1**
- */
 describe('Property 9: Object creation assigns correct type and kind', () => {
   beforeEach(() => {
     useDiagramStore.setState({

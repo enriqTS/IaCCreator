@@ -1,8 +1,6 @@
 /**
  * Property-based test: Z-index uniqueness invariant
  *
- * **Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5**
- *
  * Property 1: No two objects share the same zIndex after any sequence of z-order operations.
  */
 import { describe, it, beforeEach } from 'vitest';
@@ -80,7 +78,6 @@ describe('Z-Order Uniqueness Property', () => {
 
   it('Property 1: no two objects share the same zIndex after any sequence of z-order operations', () => {
     /**
-     * **Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5**
      *
      * Strategy: Generate a sequence of operations where each operation is either
      * adding a new canvas object or performing a z-order mutation (bringToFront,

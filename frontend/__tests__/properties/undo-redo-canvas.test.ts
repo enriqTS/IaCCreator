@@ -1,8 +1,6 @@
 /**
  * Bug Condition Exploration Test: Canvas Object Undo/Redo Not Tracked
  *
- * **Validates: Requirements 1.1, 1.2, 1.6**
- *
  * Property 1: Bug Condition — For any canvas object mutation from the set
  * {removeCanvasObject, updateVisualConfig, groupSelectedObjects, ungroupObjects},
  * performing the mutation then calling undo() should restore canvasObjects and
@@ -66,8 +64,6 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
   /**
    * Test 1: removeCanvasObject → undo → canvasObjects should contain the object again
    *
-   * **Validates: Requirements 1.1, 1.6**
-   *
    * Bug Condition: removeCanvasObject never calls pushHistory() and
    * HistoryEntry lacks canvasObjects, so undo cannot restore the deleted object.
    */
@@ -101,8 +97,6 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
 
   /**
    * Test 2: updateVisualConfig → undo → visualConfig should be restored to original
-   *
-   * **Validates: Requirements 1.1, 1.6**
    *
    * Bug Condition: updateVisualConfig never calls pushHistory(), so undo
    * cannot restore the previous visual config.
@@ -139,8 +133,6 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
 
   /**
    * Test 3: groupSelectedObjects → undo → objectGroups should be empty and objects ungrouped
-   *
-   * **Validates: Requirements 1.1, 1.6**
    *
    * Bug Condition: groupSelectedObjects never calls pushHistory() and
    * HistoryEntry lacks objectGroups, so undo cannot dissolve the group.
@@ -190,8 +182,6 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
   /**
    * Test 4: removeCanvasObject → undo → redo → object should be removed again
    *
-   * **Validates: Requirements 1.2**
-   *
    * Bug Condition: redo() does not restore canvasObjects because HistoryEntry
    * lacks canvasObjects field.
    */
@@ -229,7 +219,6 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
    * performing the mutation then calling undo() should restore canvasObjects and
    * objectGroups to their pre-mutation state.
    *
-   * **Validates: Requirements 1.1, 1.2, 1.6**
    */
   it('Property: undo after any discrete canvas mutation restores canvasObjects and objectGroups', () => {
     const mutationType = fc.constantFrom(

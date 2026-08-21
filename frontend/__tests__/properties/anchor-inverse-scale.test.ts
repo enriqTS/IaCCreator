@@ -1,10 +1,6 @@
 /**
  * Property-based test: Anchor indicator inverse-scale invariant
  *
- * Feature: line-segment-manipulation, Property 1: Anchor indicator inverse-scale invariant
- *
- * **Validates: Requirements 1.1, 1.2, 1.5**
- *
  * For any viewport zoom scale in the valid range [0.1, 5.0], the anchor indicator
  * hit area radius in canvas coordinates multiplied by the scale shall equal 24 screen
  * pixels, and the dot radius in canvas coordinates multiplied by the scale shall equal
@@ -26,10 +22,9 @@ const DOT_RADIUS_SCREEN = 5;
 /** Arbitrary for valid zoom scales in [0.1, 5.0]. */
 const zoomScaleArb = fc.double({ min: 0.1, max: 5.0, noNaN: true, noDefaultInfinity: true });
 
-describe('Feature: line-segment-manipulation, Property 1: Anchor indicator inverse-scale invariant', () => {
+describe('Anchor indicator inverse-scale invariant', () => {
   it('hit area canvas radius * scale === HIT_RADIUS_SCREEN (24) for all valid zoom scales', () => {
     /**
-     * **Validates: Requirements 1.1, 1.5**
      *
      * Strategy: Generate random zoom scales in [0.1, 5.0].
      * Compute the canvas-space hit radius as HIT_RADIUS_SCREEN / scale,
@@ -49,7 +44,6 @@ describe('Feature: line-segment-manipulation, Property 1: Anchor indicator inver
 
   it('dot canvas radius * scale === DOT_RADIUS_SCREEN (5) for all valid zoom scales', () => {
     /**
-     * **Validates: Requirements 1.2, 1.5**
      *
      * Strategy: Generate random zoom scales in [0.1, 5.0].
      * Compute the canvas-space dot radius as DOT_RADIUS_SCREEN / scale,

@@ -26,8 +26,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-objects-editor, Property 3: New objects receive default visual config
-// **Validates: Requirements 2.4**
 describe('Property 3: New objects receive default visual config', () => {
   beforeEach(resetStore);
 

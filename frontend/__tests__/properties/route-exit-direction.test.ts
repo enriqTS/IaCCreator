@@ -1,10 +1,6 @@
 /**
  * Property-based test: Route exits perpendicular to anchor side
  *
- * Feature: line-segment-manipulation, Property 10: Route exits perpendicular to anchor side
- *
- * **Validates: Requirements 4.2**
- *
  * For any anchored line endpoint, the first segment from that endpoint exits in the
  * direction perpendicular to the anchor side: top → upward (decreasing y),
  * right → rightward (increasing x), bottom → downward (increasing y),
@@ -77,10 +73,9 @@ function assertExitDirection(
   }
 }
 
-describe('Feature: line-segment-manipulation, Property 10: Route exits perpendicular to anchor side', () => {
+describe('Route exits perpendicular to anchor side', () => {
   it('start endpoint exits in the direction perpendicular to its anchor side', () => {
     /**
-     * **Validates: Requirements 4.2**
      *
      * Generate random start/end points with explicit anchor positions.
      * Compute waypoints. The first segment goes from start to the first
@@ -107,7 +102,6 @@ describe('Feature: line-segment-manipulation, Property 10: Route exits perpendic
 
   it('end endpoint exits in the direction perpendicular to its anchor side', () => {
     /**
-     * **Validates: Requirements 4.2**
      *
      * Same approach but checking the last segment: from the last waypoint
      * (or start if no waypoints) to end. The direction into end should be

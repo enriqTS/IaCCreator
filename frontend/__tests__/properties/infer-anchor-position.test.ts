@@ -1,10 +1,6 @@
 /**
  * Property-based test: Inferred anchor position consistency
  *
- * Feature: line-segment-manipulation, Property 3: Inferred anchor position consistency
- *
- * **Validates: Requirements 2.3**
- *
  * For any two distinct points (from, to), `inferAnchorPosition(from, to)` returns
  * consistent with the dominant direction: if |dx| >= |dy|, result is 'right' (dx > 0)
  * or 'left' (dx < 0); otherwise 'bottom' (dy > 0) or 'top' (dy < 0).
@@ -28,10 +24,9 @@ const distinctPointPairArb = fc
   .tuple(pointArb, pointArb)
   .filter(([from, to]) => from.x !== to.x || from.y !== to.y);
 
-describe('Feature: line-segment-manipulation, Property 3: Inferred anchor position consistency', () => {
+describe('Inferred anchor position consistency', () => {
   it('returns direction consistent with dominant axis for any two distinct points', () => {
     /**
-     * **Validates: Requirements 2.3**
      *
      * Strategy: Generate pairs of distinct points. Compute dx and dy.
      * If |dx| >= |dy|, expect 'right' or 'left' based on sign of dx.
@@ -60,7 +55,6 @@ describe('Feature: line-segment-manipulation, Property 3: Inferred anchor positi
 
   it('returns "right" as default when from and to are the same point', () => {
     /**
-     * **Validates: Requirements 2.3**
      *
      * Edge case: coincident points should return the default 'right'.
      */

@@ -1,10 +1,6 @@
 /**
  * Property-based test: Shift-constrained drag locks to one axis
  *
- * Feature: canvas-snap-to-grid, Property 4: Shift-constrained drag locks to one axis
- *
- * **Validates: Requirements 2.4**
- *
  * For any starting position and any drag delta (dx, dy), when shift-constrained
  * movement is applied, exactly one of the output delta components shall be zero.
  * If |dx| >= |dy|, then the vertical component is zero; otherwise the horizontal
@@ -22,10 +18,9 @@ const deltaArb = fc.double({
   noDefaultInfinity: true,
 });
 
-describe('Feature: canvas-snap-to-grid, Property 4: Shift-constrained drag locks to one axis', () => {
+describe('Shift-constrained drag locks to one axis', () => {
   it('constrainToAxis zeroes exactly one component based on dominant axis for non-zero deltas', () => {
     /**
-     * **Validates: Requirements 2.4**
      *
      * Strategy: Generate random (dx, dy) pairs where at least one is non-zero.
      * Verify that exactly one output component is zero and the other preserves
@@ -60,7 +55,6 @@ describe('Feature: canvas-snap-to-grid, Property 4: Shift-constrained drag locks
 
   it('constrainToAxis returns {dx: 0, dy: 0} when both deltas are zero', () => {
     /**
-     * **Validates: Requirements 2.4**
      *
      * Edge case: when both dx and dy are zero, the function returns the
      * zero vector unchanged.

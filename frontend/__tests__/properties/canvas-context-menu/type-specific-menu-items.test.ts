@@ -2,9 +2,6 @@ import fc from 'fast-check';
 import { describe, it, expect } from 'vitest';
 import type { CanvasObjectType } from '@/types/diagram';
 
-// Feature: canvas-context-menu, Property 18: Type-specific menu items match object type
-// **Validates: Requirements 10.5**
-
 /**
  * Pure logic function that determines type-specific menu items for a given object type.
  * This mirrors the conditional logic in ObjectContextMenu.

@@ -1,10 +1,6 @@
 /**
  * Property-based test: Segment drag undo round-trip
  *
- * Feature: line-segment-manipulation, Property 7: Segment drag undo round-trip
- *
- * **Validates: Requirements 3.7**
- *
  * For any line with custom waypoints resulting from a segment drag, calling undo
  * shall restore the line's waypoints to their state before the drag operation began.
  */
@@ -59,14 +55,13 @@ function createLine(): string {
   });
 }
 
-describe('Feature: line-segment-manipulation, Property 7: Segment drag undo round-trip', () => {
+describe('Segment drag undo round-trip', () => {
   beforeEach(() => {
     resetStore();
   });
 
   it('undo after updateLineWaypoints restores waypoints to null (initial state)', () => {
     /**
-     * **Validates: Requirements 3.7**
      *
      * Strategy: Create a line (waypoints initially null/undefined).
      * Call updateLineWaypoints with random waypoints (simulating a segment drag commit).
@@ -103,7 +98,6 @@ describe('Feature: line-segment-manipulation, Property 7: Segment drag undo roun
 
   it('undo after a second updateLineWaypoints restores the first set of waypoints', () => {
     /**
-     * **Validates: Requirements 3.7**
      *
      * Strategy: Create a line, set waypoints once (first drag), then set different
      * waypoints (second drag). Undo should restore the first set of waypoints.

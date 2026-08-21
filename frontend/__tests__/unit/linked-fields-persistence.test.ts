@@ -4,7 +4,6 @@ import { useDiagramStore } from '@/store/diagram-store';
 /**
  * Persistence tests for multiSelect and linkedSelect field values.
  *
- * Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5
  */
 
 function resetStore() {

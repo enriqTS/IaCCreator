@@ -1,10 +1,6 @@
 /**
  * Property-based test: Segment drag constraint is perpendicular to segment orientation
  *
- * Feature: line-segment-manipulation, Property 4: Segment drag constraint is perpendicular to segment orientation
- *
- * **Validates: Requirements 3.2**
- *
  * For any orthogonal path segment, the allowed drag axis is perpendicular to the
  * segment's orientation: horizontal segments can only be dragged vertically (changing y),
  * and vertical segments can only be dragged horizontally (changing x).
@@ -52,10 +48,9 @@ const orthogonalPathArb: fc.Arbitrary<Point[]> = fc
 /** Arbitrary for a non-zero drag delta. */
 const deltaArb = fc.integer({ min: -500, max: 500 }).filter((d) => d !== 0);
 
-describe('Feature: line-segment-manipulation, Property 4: Segment drag constraint is perpendicular to segment orientation', () => {
+describe('Segment drag constraint is perpendicular to segment orientation', () => {
   it('horizontal segments are identified with horizontal orientation and vertical segments with vertical orientation', () => {
     /**
-     * **Validates: Requirements 3.2**
      *
      * Strategy: Generate random orthogonal paths (4+ points with alternating H/V segments).
      * Use computeDraggableSegments to find draggable segments. Verify each segment's
@@ -84,7 +79,6 @@ describe('Feature: line-segment-manipulation, Property 4: Segment drag constrain
 
   it('computeNewWaypoints only changes the constrained axis for each segment', () => {
     /**
-     * **Validates: Requirements 3.2**
      *
      * Strategy: For each draggable segment, apply a delta via computeNewWaypoints.
      * Verify that only the perpendicular axis changes:

@@ -13,10 +13,6 @@ import {
   pointArbitrary,
 } from '../arbitraries';
 
-/**
- * Feature: canvas-objects-editor, Property 12: Serialization round-trip for all object types
- * **Validates: Requirements 8.1, 8.2, 9.1, 9.2, 9.3, 9.4, 9.5**
- */
 describe('Property 12: Serialization round-trip for all object types', () => {
   beforeEach(() => {
     useDiagramStore.setState({

@@ -3,9 +3,6 @@ import { useDiagramStore } from '@/store/diagram-store';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 import type { Tool } from '@/types/diagram';
 
-// Feature: architecture-search-panel, Property 9: Click activates corresponding tool
-// **Validates: Requirements 1.6**
-
 /**
  * Arbitrary that generates a valid Tool value.
  */

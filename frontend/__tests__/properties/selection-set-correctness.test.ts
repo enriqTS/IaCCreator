@@ -1,8 +1,6 @@
 /**
  * Property-based test: Selection set correctness invariant
  *
- * **Validates: Requirements 7.3, 7.7, 7.8**
- *
  * Property 2: Selection set is always a valid subset of canvasObjects keys
  * (every selected ID exists in canvasObjects).
  */
@@ -114,7 +112,6 @@ describe('Selection Set Correctness Property', () => {
 
   it('Property 2: selectedObjectIds is always a valid subset of canvasObjects keys after any sequence of operations', () => {
     /**
-     * **Validates: Requirements 7.3, 7.7, 7.8**
      *
      * Strategy: Generate a sequence of operations that add/remove objects and
      * manipulate the selection set. After every operation, verify that every ID

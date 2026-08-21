@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { DEFAULT_SIDEBAR_WIDTH } from '@/components/config/panel-constants';
 
-// Feature: sidebar-config-panel, Property 10: Deselection auto-collapses sidebar
-// **Validates: Requirements 8.3**
 describe('Property 10: Deselection auto-collapses sidebar', () => {
   beforeEach(() => {
     useDiagramStore.setState({

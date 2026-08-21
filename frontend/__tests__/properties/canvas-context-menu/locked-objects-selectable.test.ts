@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 12: Locked objects can be selected
 describe('Property 12: Locked objects can be selected', () => {
   beforeEach(resetStore);
 

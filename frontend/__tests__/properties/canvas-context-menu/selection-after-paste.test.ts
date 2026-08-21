@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 9: Selection updates to pasted objects
 describe('Property 9: Selection updates to pasted objects', () => {
   beforeEach(resetStore);
 

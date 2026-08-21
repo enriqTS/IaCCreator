@@ -1,10 +1,6 @@
 /**
  * Property-based test: Waypoint serialization round-trip
  *
- * Feature: line-segment-manipulation, Property 8: Waypoint serialization round-trip
- *
- * **Validates: Requirements 3.8**
- *
  * For any LineObject with custom waypoints, serializing the diagram state and then
  * deserializing it should produce a LineObject with identical waypoints (same number
  * of points, same coordinates).
@@ -35,14 +31,13 @@ function resetStore() {
   });
 }
 
-describe('Feature: line-segment-manipulation, Property 8: Waypoint serialization round-trip', () => {
+describe('Waypoint serialization round-trip', () => {
   beforeEach(() => {
     resetStore();
   });
 
   it('serializing and deserializing preserves waypoints on LineObjects', () => {
     /**
-     * **Validates: Requirements 3.8**
      *
      * Strategy:
      * 1. Generate random start/end points and a random array of waypoints

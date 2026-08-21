@@ -1,10 +1,6 @@
 /**
  * Property-based test: Dimension snapping produces grid-aligned dimensions with minimum
  *
- * Feature: canvas-snap-to-grid, Property 2: Dimension snapping produces grid-aligned dimensions with minimum
- *
- * **Validates: Requirements 1.2, 4.1, 4.2, 4.3**
- *
  * For any dimension value d > 0 and any valid grid cell size g (5 ≤ g ≤ 100),
  * snapDimension(d, g) returns a value that is a multiple of g and is at least g.
  * That is: snapDimension(d, g) % g === 0 and snapDimension(d, g) >= g.
@@ -24,10 +20,9 @@ const dimensionArb = fc.double({
   noDefaultInfinity: true,
 });
 
-describe('Feature: canvas-snap-to-grid, Property 2: Dimension snapping produces grid-aligned dimensions with minimum', () => {
+describe('Dimension snapping produces grid-aligned dimensions with minimum', () => {
   it('snapDimension(d, g) % g === 0 for any positive dimension d and valid grid size g', () => {
     /**
-     * **Validates: Requirements 1.2, 4.1, 4.2, 4.3**
      *
      * Strategy: Generate random positive dimensions and grid sizes in [5, 100].
      * Verify that the snapped dimension is always an exact multiple of the grid size.
@@ -49,7 +44,6 @@ describe('Feature: canvas-snap-to-grid, Property 2: Dimension snapping produces 
 
   it('snapDimension(d, g) >= g for any positive dimension d and valid grid size g', () => {
     /**
-     * **Validates: Requirements 1.2, 4.1, 4.2, 4.3**
      *
      * Strategy: Generate random positive dimensions and grid sizes in [5, 100].
      * Verify that the snapped dimension is always at least one grid cell size,

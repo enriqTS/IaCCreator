@@ -1,11 +1,9 @@
 /**
- * Feature: canvas-context-menu, Property 14: Rename cancel preserves name
  *
  * For any canvas object, if a rename operation is initiated and then
  * cancelled (Escape / no store update), the object's name should remain
  * identical to its value before the rename was initiated.
  *
- * **Validates: Requirements 7.3**
  */
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';

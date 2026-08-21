@@ -17,8 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-objects-editor, Property 8: Visual config serialization round trip
-// **Validates: Requirements 10.1, 10.2, 10.3**
 describe('Property 8: Visual config serialization round trip', () => {
   beforeEach(resetStore);
 

@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT_RATIO } from '@/components/config/panel-constants';
 
-// Feature: bottom-panel-redesign, Property 1: Height persistence round trip
-// **Validates: Requirements 1.2, 2.6, 7.1, 7.2**
 describe('Property 1: Height persistence round trip', () => {
   const VIEWPORT_HEIGHT = window.innerHeight; // 768 in jsdom
   const MAX_HEIGHT = MAX_PANEL_HEIGHT_RATIO * VIEWPORT_HEIGHT;

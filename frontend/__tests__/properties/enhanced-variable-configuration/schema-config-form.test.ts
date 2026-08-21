@@ -89,8 +89,6 @@ function expectedWidget(entry: TerraformVariableSchema): WidgetType {
 
 // ---------------------------------------------------------------------------
 // Property 2: Default values displayed as initial values
-// Feature: enhanced-variable-configuration, Property 2: Default values displayed as initial values
-// **Validates: Requirements 1.7, 5.12**
 // ---------------------------------------------------------------------------
 
 describe('Property 2: Default values displayed as initial values', () => {
@@ -135,8 +133,6 @@ describe('Property 2: Default values displayed as initial values', () => {
 
 // ---------------------------------------------------------------------------
 // Property 3: Type-to-widget mapping
-// Feature: enhanced-variable-configuration, Property 3: Type-to-widget mapping
-// **Validates: Requirements 2.7, 2.8, 5.2, 7.2, 7.3**
 // ---------------------------------------------------------------------------
 
 describe('Property 3: Type-to-widget mapping', () => {
@@ -190,8 +186,6 @@ describe('Property 3: Type-to-widget mapping', () => {
 
 // ---------------------------------------------------------------------------
 // Property 7: Validation error display
-// Feature: enhanced-variable-configuration, Property 7: Validation error display
-// **Validates: Requirements 4.8, 4.11**
 // ---------------------------------------------------------------------------
 
 describe('Property 7: Validation error display', () => {
@@ -313,8 +307,6 @@ describe('Property 7: Validation error display', () => {
 
 // ---------------------------------------------------------------------------
 // Property 8: Export disabled on validation errors
-// Feature: enhanced-variable-configuration, Property 8: Export disabled on validation errors
-// **Validates: Requirements 4.9**
 // ---------------------------------------------------------------------------
 
 describe('Property 8: Export disabled on validation errors', () => {

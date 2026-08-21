@@ -9,7 +9,6 @@ import type { Point, Rect } from '@/types/diagram';
 
 // Feature: fixed-connection-routing
 // **Property 8: Drop outside snap threshold creates free-floating line**
-// **Validates: Requirements 6.3**
 
 /**
  * Generates a random Rect with positive width/height and reasonable coordinates.

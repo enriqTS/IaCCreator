@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { getTabsForObject } from '@/components/config/SidebarPanel';
 import type { ArchitectureBlock, ServiceType } from '@/types/diagram';
 
-// Feature: sidebar-config-panel, Property 11: Architecture block tab set
-// **Validates: Requirements 8.4**
 describe('Property 11: Architecture block tab set', () => {
   const serviceTypes: ServiceType[] = [
     'lambda',

@@ -30,8 +30,6 @@ function dimensionArbitrary(): fc.Arbitrary<number> {
   );
 }
 
-// Feature: canvas-objects-editor, Property 5: Minimum dimension enforcement
-// **Validates: Requirements 4.4, 7.3, 9.6**
 describe('Property 5: Minimum dimension enforcement', () => {
   beforeEach(resetStore);
 

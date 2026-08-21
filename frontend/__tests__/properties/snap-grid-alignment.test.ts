@@ -1,10 +1,6 @@
 /**
  * Property-based test: Grid snapping produces grid-aligned coordinates
  *
- * Feature: canvas-snap-to-grid, Property 1: Grid snapping produces grid-aligned coordinates
- *
- * **Validates: Requirements 1.1, 2.1, 2.3, 5.2**
- *
  * For any coordinate value v and any valid grid cell size g (5 ≤ g ≤ 100),
  * snapToGrid(v, g) returns a value that is a multiple of g.
  * For snapPointToGrid(point, g), both result.x and result.y are multiples of g.
@@ -31,10 +27,9 @@ const pointArb: fc.Arbitrary<Point> = fc.record({
   y: coordinateArb,
 });
 
-describe('Feature: canvas-snap-to-grid, Property 1: Grid snapping produces grid-aligned coordinates', () => {
+describe('Grid snapping produces grid-aligned coordinates', () => {
   it('snapToGrid(v, g) % g === 0 for any coordinate v and valid grid size g', () => {
     /**
-     * **Validates: Requirements 1.1, 2.1, 2.3, 5.2**
      *
      * Strategy: Generate random coordinates and grid sizes in [5, 100].
      * Verify that the snapped value is always an exact multiple of the grid size.
@@ -56,7 +51,6 @@ describe('Feature: canvas-snap-to-grid, Property 1: Grid snapping produces grid-
 
   it('snapPointToGrid aligns both x and y to grid multiples', () => {
     /**
-     * **Validates: Requirements 1.1, 2.1, 2.3, 5.2**
      *
      * Strategy: Generate random Points and grid sizes.
      * Verify that both result.x % g === 0 and result.y % g === 0.

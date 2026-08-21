@@ -20,8 +20,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-objects-editor, Property 2: Object placement stores correct position
-// **Validates: Requirements 2.1, 2.2, 2.3**
 describe('Property 2: Object placement stores correct position', () => {
   beforeEach(resetStore);
 

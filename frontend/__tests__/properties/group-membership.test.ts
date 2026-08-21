@@ -1,8 +1,6 @@
 /**
  * Property-based test: Group membership invariant
  *
- * **Validates: Requirements 8.1, 8.7, 8.9**
- *
  * Property 3: Every groupId on a CanvasObject references a valid ObjectGroup,
  * and every ObjectGroup has ≥ 2 members.
  */
@@ -119,7 +117,6 @@ describe('Group Membership Invariant Property', () => {
 
   it('Property 3: every groupId on a CanvasObject references a valid ObjectGroup, and every ObjectGroup has >= 2 members', () => {
     /**
-     * **Validates: Requirements 8.1, 8.7, 8.9**
      *
      * Strategy: Generate a sequence of operations that add/remove objects,
      * manipulate selection, and create/dissolve groups. After every operation,

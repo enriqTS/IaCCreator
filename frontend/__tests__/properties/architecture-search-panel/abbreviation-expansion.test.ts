@@ -3,9 +3,6 @@ import { ABBREVIATION_MAP } from '@/data/abbreviation-map';
 import { smartSearch } from '@/components/toolbar/ObjectPickerMenu';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 
-// Feature: architecture-search-panel, Property 2: Abbreviation search expansion
-// **Validates: Requirements 2.1**
-
 /**
  * Arbitrary that generates a PickerItem with a given name.
  */

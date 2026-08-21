@@ -1,10 +1,6 @@
 /**
  * Property-based test: Segment drag snaps to grid when enabled
  *
- * Feature: line-segment-manipulation, Property 6: Segment drag snaps to grid when enabled
- *
- * **Validates: Requirements 3.5**
- *
  * For any segment position and any valid grid cell size, when snap-to-grid is enabled,
  * the resulting segment coordinate is a multiple of the grid cell size.
  */
@@ -23,10 +19,9 @@ const coordinateArb = fc.double({
   noDefaultInfinity: true,
 });
 
-describe('Feature: line-segment-manipulation, Property 6: Segment drag snaps to grid when enabled', () => {
+describe('Segment drag snaps to grid when enabled', () => {
   it('snapToGrid produces a value that is a multiple of the grid cell size for any segment coordinate', () => {
     /**
-     * **Validates: Requirements 3.5**
      *
      * Strategy: Generate random segment coordinates and grid sizes.
      * Apply snapToGrid to the coordinate. Verify the result is a multiple
@@ -48,7 +43,6 @@ describe('Feature: line-segment-manipulation, Property 6: Segment drag snaps to 
 
   it('snapToGrid returns the nearest grid line to the original coordinate', () => {
     /**
-     * **Validates: Requirements 3.5**
      *
      * Strategy: For any coordinate and grid size, the snapped value should be
      * the closest grid multiple. Verify that the distance from the original
@@ -68,7 +62,6 @@ describe('Feature: line-segment-manipulation, Property 6: Segment drag snaps to 
 
   it('applying snapToGrid to an already-snapped coordinate returns the same value', () => {
     /**
-     * **Validates: Requirements 3.5**
      *
      * Strategy: Snap a coordinate, then snap the result again. The value
      * should be idempotent — snapping an already-snapped value produces

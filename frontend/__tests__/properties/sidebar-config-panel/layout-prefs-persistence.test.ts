@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { LAYOUT_PREFS_STORAGE_KEY } from '@/components/config/panel-constants';
 
-// Feature: sidebar-config-panel, Property 5: Layout preferences persistence round trip
-// **Validates: Requirements 2.4, 4.4, 9.1, 9.2, 9.4**
 describe('Property 5: Layout preferences persistence round trip', () => {
   beforeEach(() => {
     localStorage.clear();

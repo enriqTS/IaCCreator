@@ -8,10 +8,6 @@ import { getAnchorPoints, type AnchorPosition } from '@/utils/anchor';
 
 const anchorPositionArb = fc.constantFrom<AnchorPosition>('top', 'right', 'bottom', 'left');
 
-/**
- * Feature: canvas-objects-editor, Property 5: Anchored endpoint follows connected object
- * **Validates: Requirements 2.3**
- */
 describe('Property 5: Anchored endpoint follows connected object', () => {
   beforeEach(() => {
     // Reset store state

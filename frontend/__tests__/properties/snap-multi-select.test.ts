@@ -1,10 +1,6 @@
 /**
  * Property-based test: Multi-select snap preserves relative positions
  *
- * Feature: canvas-snap-to-grid, Property 3: Multi-select snap preserves relative positions
- *
- * **Validates: Requirements 2.2**
- *
  * For any set of canvas objects with arbitrary positions, when the primary object
  * is snapped to the grid and all others are moved by the same delta, the relative
  * displacement between any two objects in the set shall be identical before and
@@ -38,10 +34,9 @@ const pointArb: fc.Arbitrary<Point> = fc.record({
  */
 const positionSetArb = fc.array(pointArb, { minLength: 2, maxLength: 10 });
 
-describe('Feature: canvas-snap-to-grid, Property 3: Multi-select snap preserves relative positions', () => {
+describe('Multi-select snap preserves relative positions', () => {
   it('relative displacements between all object pairs are preserved after snap-drag', () => {
     /**
-     * **Validates: Requirements 2.2**
      *
      * Strategy:
      * 1. Generate N random positions (the "objects")

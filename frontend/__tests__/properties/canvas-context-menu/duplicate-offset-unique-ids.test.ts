@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 6: Duplicate produces offset copies with unique IDs
 describe('Property 6: Duplicate produces offset copies with unique IDs', () => {
   beforeEach(resetStore);
 

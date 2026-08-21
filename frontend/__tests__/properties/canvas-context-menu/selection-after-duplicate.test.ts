@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 7: Selection updates to duplicated objects
 describe('Property 7: Selection updates to duplicated objects', () => {
   beforeEach(resetStore);
 

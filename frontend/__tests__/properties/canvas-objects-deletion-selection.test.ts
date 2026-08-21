@@ -14,8 +14,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-objects-editor, Property 11: Deletion clears selection
-// **Validates: Requirements 11.4**
 describe('Property 11: Deletion clears selection', () => {
   beforeEach(resetStore);
 

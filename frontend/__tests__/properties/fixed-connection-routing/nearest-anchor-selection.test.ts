@@ -9,7 +9,6 @@ import type { Point, Rect } from '@/types/diagram';
 
 // Feature: fixed-connection-routing
 // **Property 1: Nearest anchor selection**
-// **Validates: Requirements 1.3, 6.2**
 
 /**
  * Generates a random Rect with positive width/height and reasonable coordinates.

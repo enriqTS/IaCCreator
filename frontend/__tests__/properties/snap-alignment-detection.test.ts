@@ -1,10 +1,6 @@
 /**
  * Property-based test: Alignment detection is threshold-bounded
  *
- * Feature: canvas-snap-to-grid, Property 5: Alignment detection is threshold-bounded
- *
- * **Validates: Requirements 3.1, 3.5**
- *
  * For any two bounding rectangles where a corresponding edge or center pair has
  * distance d, detectAlignmentGuides shall return a guide for that pair if and
  * only if d <= threshold. When d > threshold, no guide shall be returned for
@@ -47,10 +43,9 @@ function computeAlignmentDistances(dragged: Rect, other: Rect) {
   };
 }
 
-describe('Feature: canvas-snap-to-grid, Property 5: Alignment detection is threshold-bounded', () => {
+describe('Alignment detection is threshold-bounded', () => {
   it('returns a guide for each alignment type iff distance <= threshold', () => {
     /**
-     * **Validates: Requirements 3.1, 3.5**
      *
      * Strategy: Generate random rect pairs and a threshold. For each of the 6
      * alignment types, compute the distance between corresponding edges/centers.
@@ -144,7 +139,6 @@ describe('Feature: canvas-snap-to-grid, Property 5: Alignment detection is thres
 
   it('returns no guides when otherBounds is empty', () => {
     /**
-     * **Validates: Requirements 3.1, 3.5**
      *
      * Edge case: with no other objects, no alignment guides should be detected.
      */

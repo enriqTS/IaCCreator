@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { canvasObjectWithoutIdArbitrary } from './arbitraries';
 
-// Feature: bottom-panel-redesign, Property 10: Multi-selection count
-// **Validates: Requirements 6.1**
 describe('Property 10: Multi-selection count', () => {
   beforeEach(() => {
     useDiagramStore.setState({

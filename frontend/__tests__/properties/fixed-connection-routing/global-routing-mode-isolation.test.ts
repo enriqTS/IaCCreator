@@ -6,7 +6,6 @@ import { DEFAULT_LINE_VISUAL } from '@/types/diagram';
 
 // Feature: fixed-connection-routing
 // **Property 7: Global routing mode inheritance and isolation**
-// **Validates: Requirements 4.2, 5.2, 5.3**
 
 const ROUTING_MODES: RoutingMode[] = ['orthogonal', 'diagonal'];
 

@@ -97,8 +97,6 @@ function partialGeoVisualArbitrary(): fc.Arbitrary<Partial<GeometricVisualConfig
     .filter((r) => Object.keys(r).length > 0) as fc.Arbitrary<Partial<GeometricVisualConfig>>;
 }
 
-// Feature: canvas-objects-editor, Property 6: Visual config updates persist in store
-// **Validates: Requirements 4.2, 4.3, 4.5, 6.2, 7.2, 8.2, 8.3, 9.5**
 describe('Property 6: Visual config updates persist in store', () => {
   beforeEach(resetStore);
 

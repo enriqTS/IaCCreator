@@ -1,10 +1,6 @@
 /**
  * Property-based test: Segment drag updates waypoints to reflect new position
  *
- * Feature: line-segment-manipulation, Property 5: Segment drag updates waypoints to reflect new position
- *
- * **Validates: Requirements 3.4, 3.6**
- *
  * For any orthogonal line with at least one draggable segment, and any valid drag delta,
  * the resulting waypoints contain the segment at the new position (original position + delta
  * along the constrained axis), and the path remains composed of only horizontal and vertical segments.
@@ -66,10 +62,9 @@ function isOrthogonalPath(points: Point[]): boolean {
   return true;
 }
 
-describe('Feature: line-segment-manipulation, Property 5: Segment drag updates waypoints to reflect new position', () => {
+describe('Segment drag updates waypoints to reflect new position', () => {
   it('dragged segment appears at the new position in the resulting waypoints', () => {
     /**
-     * **Validates: Requirements 3.4, 3.6**
      *
      * Strategy: Generate random orthogonal paths and deltas. Pick a draggable segment,
      * apply computeNewWaypoints with the delta. Reconstruct the full path and verify
@@ -127,7 +122,6 @@ describe('Feature: line-segment-manipulation, Property 5: Segment drag updates w
 
   it('the full path remains orthogonal after a segment drag', () => {
     /**
-     * **Validates: Requirements 3.4, 3.6**
      *
      * Strategy: Generate random orthogonal paths and deltas. Apply computeNewWaypoints.
      * Reconstruct the full path [start, ...waypoints, end] and verify every consecutive

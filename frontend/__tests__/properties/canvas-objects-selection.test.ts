@@ -14,8 +14,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-objects-editor, Property 4: Single selection invariant
-// **Validates: Requirements 3.4**
 describe('Property 4: Single selection invariant', () => {
   beforeEach(resetStore);
 

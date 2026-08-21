@@ -17,8 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 4: Bring forward / send backward swap adjacent z-orders
-// **Validates: Requirements 2.2, 2.3**
 describe('Property 4: Bring forward / send backward swap adjacent z-orders', () => {
   beforeEach(resetStore);
 

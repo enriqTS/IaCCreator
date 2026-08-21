@@ -2,9 +2,6 @@ import fc from 'fast-check';
 import { useRecentlyUsedStore, MAX_RECENT_ITEMS } from '@/store/recently-used-store';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 
-// Feature: architecture-search-panel, Property 6: Recently-used session persistence round-trip
-// **Validates: Requirements 3.5**
-
 const STORAGE_KEY = 'recently-used-picker-items';
 
 /**

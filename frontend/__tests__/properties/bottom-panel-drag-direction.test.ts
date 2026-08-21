@@ -1,9 +1,6 @@
 import fc from 'fast-check';
 import { MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT_RATIO } from '@/components/config/panel-constants';
 
-// Feature: bottom-panel-redesign, Property 6: Drag direction changes height proportionally
-// **Validates: Requirements 2.2, 2.3**
-
 /**
  * Pure resize logic extracted for property testing:
  * Given a current height and a drag delta, compute the new clamped height.

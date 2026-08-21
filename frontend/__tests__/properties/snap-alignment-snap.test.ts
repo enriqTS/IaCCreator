@@ -1,10 +1,6 @@
 /**
  * Property-based test: Alignment snap produces exact alignment
  *
- * Feature: canvas-snap-to-grid, Property 6: Alignment snap produces exact alignment
- *
- * **Validates: Requirements 3.3**
- *
  * For any position and set of alignment guides, applyAlignmentSnap(position, guides)
  * shall return a position where the corresponding coordinate is adjusted by the
  * smallest snapDelta for each axis. For a horizontal guide with snapDelta d,
@@ -57,10 +53,9 @@ function findSmallestDeltaGuide(
   );
 }
 
-describe('Feature: canvas-snap-to-grid, Property 6: Alignment snap produces exact alignment', () => {
+describe('Alignment snap produces exact alignment', () => {
   it('result coordinate equals position + smallest snapDelta for each axis', () => {
     /**
-     * **Validates: Requirements 3.3**
      *
      * Strategy: Generate random positions and guide arrays. For each axis,
      * find the guide with the smallest |snapDelta|. Verify the result
@@ -91,7 +86,6 @@ describe('Feature: canvas-snap-to-grid, Property 6: Alignment snap produces exac
 
   it('returns position unchanged when guides array is empty', () => {
     /**
-     * **Validates: Requirements 3.3**
      *
      * Edge case: with no guides, the position should be returned unchanged.
      */

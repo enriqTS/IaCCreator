@@ -2,10 +2,6 @@ import fc from 'fast-check';
 import { describe, it, expect } from 'vitest';
 import { shouldShowLabel } from '@/components/canvas/objects/ArchitectureBlockComponent';
 
-/**
- * Feature: canvas-objects-editor, Property 2: Label visibility depends on name value
- * **Validates: Requirements 1.2, 1.3**
- */
 describe('Property 2: Label visibility depends on name value', () => {
   it('shouldShowLabel returns false for empty, whitespace-only, and "Service" names, true otherwise', () => {
     fc.assert(

@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT_RATIO } from '@/components/config/panel-constants';
 
-// Feature: bottom-panel-redesign, Property 5: Height clamping within bounds
-// **Validates: Requirements 2.4, 2.5**
 describe('Property 5: Height clamping within bounds', () => {
   const VIEWPORT_HEIGHT = window.innerHeight; // 768 in jsdom
   const MAX_HEIGHT = MAX_PANEL_HEIGHT_RATIO * VIEWPORT_HEIGHT;

@@ -72,8 +72,6 @@ function extractMLCoordinates(path: string): { x: number; y: number }[] {
 
 const TOLERANCE = 0.01;
 
-// Feature: canvas-objects-editor, Property 8: Shape path validity and bounds containment
-// **Validates: Requirements 5.3, 5.4**
 describe('Property 8: Shape path validity and bounds containment', () => {
   it('every shape path function returns a non-empty string for valid dimensions', () => {
     fc.assert(

@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import { DEFAULT_SIDEBAR_WIDTH } from '@/components/config/panel-constants';
 
-// Feature: sidebar-config-panel, Property 8: Selection auto-expands sidebar
-// **Validates: Requirements 8.1**
 describe('Property 8: Selection auto-expands sidebar', () => {
   beforeEach(() => {
     useDiagramStore.setState({

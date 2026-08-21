@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 10: Lock/unlock round trip
 describe('Property 10: Lock/unlock round trip', () => {
   beforeEach(resetStore);
 

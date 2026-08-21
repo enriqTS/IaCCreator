@@ -2,10 +2,6 @@ import fc from 'fast-check';
 import { describe, it, expect } from 'vitest';
 import { ICON_PADDING, shouldShowLabel } from '@/components/canvas/objects/ArchitectureBlockComponent';
 
-/**
- * Feature: canvas-objects-editor, Property 1: Icon size scales with block dimensions
- * **Validates: Requirements 1.1, 1.4, 1.5**
- */
 describe('Property 1: Icon size scales with block dimensions', () => {
   it('iconSize equals max(0, min(width - 2*ICON_PADDING, height - 2*ICON_PADDING - labelSpace)) and is positive for valid dimensions', () => {
     fc.assert(

@@ -37,8 +37,6 @@ function addBlock(
   });
 }
 
-// Feature: canvas-objects-editor, Property 10: Architecture block deletion cascades to connectors
-// **Validates: Requirements 11.3**
 describe('Property 10: Architecture block deletion cascades to connectors', () => {
   beforeEach(resetStore);
 

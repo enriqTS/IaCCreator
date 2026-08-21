@@ -1,7 +1,6 @@
 /**
  * Unit + property tests for Terraform variable store actions and serialization round-trip.
  *
- * Validates: Requirements 2.4, 2.5, 2.6
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import fc from 'fast-check';

@@ -1,8 +1,6 @@
 /**
  * Property-based test: Marquee selection correctness
  *
- * **Validates: Requirements 7.2, 7.3**
- *
  * Property 8: selectObjectsByRect adds exactly those objects whose bounding boxes
  * intersect the given rectangle.
  */
@@ -46,7 +44,6 @@ describe('Marquee Selection Correctness Property', () => {
 
   it('Property 8: selectObjectsByRect adds exactly those objects whose bounding boxes intersect the given rectangle', () => {
     /**
-     * **Validates: Requirements 7.2, 7.3**
      *
      * Strategy:
      * 1. Generate a random set of canvas objects with various positions and sizes

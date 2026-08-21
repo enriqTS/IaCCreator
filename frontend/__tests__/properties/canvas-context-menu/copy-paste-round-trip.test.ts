@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 8: Copy-paste round trip
 describe('Property 8: Copy-paste round trip', () => {
   beforeEach(resetStore);
 

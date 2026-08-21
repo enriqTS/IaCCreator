@@ -1,10 +1,6 @@
 /**
  * Property-based test: Routing maintains minimum offset from endpoints
  *
- * Feature: canvas-snap-to-grid, Property 8: Routing maintains minimum offset from endpoints
- *
- * **Validates: Requirements 5.3**
- *
  * For any start point, end point, anchor positions, and grid cell size g,
  * the first waypoint in the route (if any) shall be at least g pixels away
  * from the start point along the exit direction, and the last waypoint shall
@@ -73,10 +69,9 @@ function distanceAlongDirection(
   return dx * direction.x + dy * direction.y;
 }
 
-describe('Feature: canvas-snap-to-grid, Property 8: Routing maintains minimum offset from endpoints', () => {
+describe('Routing maintains minimum offset from endpoints', () => {
   it('first waypoint is at least gridSize away from start along exit direction', () => {
     /**
-     * **Validates: Requirements 5.3**
      *
      * Strategy: Generate random start/end points, anchor positions, and grid sizes.
      * Call computeOrthogonalWaypoints with gridSize. Verify the first waypoint
@@ -122,7 +117,6 @@ describe('Feature: canvas-snap-to-grid, Property 8: Routing maintains minimum of
 
   it('last waypoint is at least gridSize away from end along exit direction', () => {
     /**
-     * **Validates: Requirements 5.3**
      *
      * Strategy: Generate random start/end points, anchor positions, and grid sizes.
      * Call computeOrthogonalWaypoints with gridSize. Verify the last waypoint

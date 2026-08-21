@@ -5,10 +5,6 @@ import type { LineObject } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_LINE_VISUAL } from '@/types/diagram';
 import { getDefaultVariables } from '@/types/terraform-variables';
 
-/**
- * Feature: canvas-objects-editor, Property 6: Anchor detach on object deletion
- * **Validates: Requirements 2.6**
- */
 describe('Property 6: Anchor detach on object deletion', () => {
   beforeEach(() => {
     useDiagramStore.setState({

@@ -2,9 +2,6 @@ import fc from 'fast-check';
 import { smartSearch } from '@/components/toolbar/ObjectPickerMenu';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 
-// Feature: architecture-search-panel, Property 1: Substring search inclusion
-// **Validates: Requirements 2.6**
-
 /**
  * Arbitrary that generates a PickerItem with a given name.
  */

@@ -1,10 +1,6 @@
 /**
  * Property-based test: Independent anchor switching for source and target
  *
- * Feature: line-segment-manipulation, Property 11: Independent anchor switching for source and target
- *
- * **Validates: Requirements 4.5**
- *
  * For any line with both source and target anchors, updating the anchor position
  * on one end shall not modify the anchor position on the other end.
  */
@@ -86,14 +82,13 @@ function createAnchoredLine(
   return { lineId, sourceObjId, targetObjId };
 }
 
-describe('Feature: line-segment-manipulation, Property 11: Independent anchor switching for source and target', () => {
+describe('Independent anchor switching for source and target', () => {
   beforeEach(() => {
     resetStore();
   });
 
   it('updating source anchor position does not modify target anchor position', () => {
     /**
-     * **Validates: Requirements 4.5**
      *
      * Strategy: Create a line with both anchors set to random positions.
      * Update the source anchor position to a new value. Verify the target
@@ -122,7 +117,6 @@ describe('Feature: line-segment-manipulation, Property 11: Independent anchor sw
 
   it('updating target anchor position does not modify source anchor position', () => {
     /**
-     * **Validates: Requirements 4.5**
      *
      * Strategy: Create a line with both anchors set to random positions.
      * Update the target anchor position to a new value. Verify the source
@@ -151,7 +145,6 @@ describe('Feature: line-segment-manipulation, Property 11: Independent anchor sw
 
   it('updating either endpoint independently preserves the other across random sequences', () => {
     /**
-     * **Validates: Requirements 4.5**
      *
      * Strategy: Create a line, then apply a random sequence of anchor position
      * updates to either source or target. After each update, verify the

@@ -2,9 +2,6 @@ import fc from 'fast-check';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 
-// Feature: architecture-search-panel, Property 4: Recently-used add and ordering
-// **Validates: Requirements 3.2, 3.7**
-
 /**
  * Arbitrary that generates a PickerItem with a unique name+category identity.
  */

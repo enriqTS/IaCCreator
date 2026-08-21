@@ -4,7 +4,6 @@ import type { Point } from '@/types/diagram';
 
 // Feature: fixed-connection-routing
 // **Property 6: Diagonal routing produces a direct path with no waypoints**
-// **Validates: Requirements 3.1**
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 

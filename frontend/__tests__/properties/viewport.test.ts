@@ -9,8 +9,6 @@ function approxEqual(a: number, b: number, tol = FLOAT_TOLERANCE): boolean {
   return Math.abs(a - b) <= tol + tol * Math.abs(b);
 }
 
-// Feature: diagram-editor-frontend, Property 1: Pan offset correctness
-// **Validates: Requirements 1.2**
 describe('Property 1: Pan offset correctness', () => {
   test('panning changes offset by exactly (dx, dy) without affecting scale', () => {
     fc.assert(
@@ -38,8 +36,6 @@ describe('Property 1: Pan offset correctness', () => {
   });
 });
 
-// Feature: diagram-editor-frontend, Property 2: Zoom preserves point under cursor
-// **Validates: Requirements 1.3, 1.4, 1.5**
 describe('Property 2: Zoom preserves point under cursor', () => {
   test('canvas point under cursor is preserved after zoom (within float tolerance), scale clamped to [0.1, 5.0]', () => {
     fc.assert(
@@ -71,8 +67,6 @@ describe('Property 2: Zoom preserves point under cursor', () => {
   });
 });
 
-// Feature: diagram-editor-frontend, Property 13: Coordinate transform round-trip
-// **Validates: Requirements 1.2, 1.3**
 describe('Property 13: Coordinate transform round-trip', () => {
   test('screenToCanvas(canvasToScreen(p)) ≈ p', () => {
     fc.assert(

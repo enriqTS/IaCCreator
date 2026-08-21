@@ -17,8 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 2: Bring to front sets maximum zIndex
-// **Validates: Requirements 2.1**
 describe('Property 2: Bring to front sets maximum zIndex', () => {
   beforeEach(resetStore);
 

@@ -3,9 +3,6 @@ import { smartSearch } from '@/components/toolbar/ObjectPickerMenu';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 import { ABBREVIATION_MAP } from '@/data/abbreviation-map';
 
-// Feature: architecture-search-panel, Property 3: Case-insensitive search equivalence
-// **Validates: Requirements 2.4**
-
 /**
  * Helper to create a PickerItem with a given name.
  */

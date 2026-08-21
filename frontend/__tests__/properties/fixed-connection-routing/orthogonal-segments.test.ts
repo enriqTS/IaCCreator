@@ -5,7 +5,6 @@ import type { Point } from '@/types/diagram';
 
 // Feature: fixed-connection-routing
 // **Property 3: Orthogonal routes contain only horizontal and vertical segments**
-// **Validates: Requirements 2.1, 2.4**
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 

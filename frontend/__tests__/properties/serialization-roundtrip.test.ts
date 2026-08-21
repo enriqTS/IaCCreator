@@ -1,8 +1,6 @@
 /**
  * Property-based test: Z-order serialization round trip
  *
- * **Validates: Requirements 5.7, 8.8**
- *
  * Property 4: Serializing and deserializing preserves zIndex values and group definitions.
  */
 import { describe, it, beforeEach } from 'vitest';
@@ -25,7 +23,6 @@ describe('Serialization Round Trip Property', () => {
 
   it('Property 4: serializing and deserializing preserves zIndex values and group definitions', () => {
     /**
-     * **Validates: Requirements 5.7, 8.8**
      *
      * Strategy:
      * 1. Generate a random set of canvas objects (with various zIndex values)

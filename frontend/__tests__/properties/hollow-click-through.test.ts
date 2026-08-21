@@ -1,8 +1,6 @@
 /**
  * Property-based test: Hollow click-through behavior
  *
- * **Validates: Requirements 6.1, 6.2**
- *
  * Property 7: Geometric objects with fill disabled have pointer-events none on
  * interior; objects with fill enabled capture all pointer events.
  */
@@ -53,7 +51,6 @@ describe('Hollow Click-Through Property', () => {
 
   it('Property 7: hollow objects (fill: false) have pointer-events none on wrapper, stroke events on SVG hit path', () => {
     /**
-     * **Validates: Requirements 6.1, 6.2**
      *
      * For any geometric object with fill disabled, the outer wrapper
      * must have pointer-events: none. The SVG hit path captures stroke events.
@@ -87,7 +84,6 @@ describe('Hollow Click-Through Property', () => {
 
   it('Property 7b: filled objects (fill: true) have pointer-events none on wrapper, fill events on SVG hit path', () => {
     /**
-     * **Validates: Requirements 6.1, 6.2**
      *
      * For any geometric object with fill enabled, the wrapper has pointer-events: none
      * but the SVG paths inside handle fill-based pointer events.

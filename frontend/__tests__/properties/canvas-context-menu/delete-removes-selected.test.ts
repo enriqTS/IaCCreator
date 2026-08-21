@@ -17,7 +17,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-context-menu, Property 5: Delete removes all selected objects
 describe('Property 5: Delete removes all selected objects', () => {
   beforeEach(resetStore);
 

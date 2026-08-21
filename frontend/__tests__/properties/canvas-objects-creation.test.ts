@@ -14,8 +14,6 @@ function resetStore() {
   });
 }
 
-// Feature: canvas-objects-editor, Property 1: Object creation assigns unique ID and correct category
-// **Validates: Requirements 1.1, 1.2**
 describe('Property 1: Object creation assigns unique ID and correct category', () => {
   beforeEach(resetStore);
 

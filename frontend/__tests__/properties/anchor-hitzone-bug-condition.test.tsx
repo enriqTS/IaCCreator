@@ -8,7 +8,6 @@ import type { Rect, Point } from '@/types/diagram';
 import type { AnchorPosition } from '@/utils/anchor';
 
 /**
- * **Validates: Requirements 1.1, 1.2, 1.3**
  *
  * Property 1: Bug Condition — Anchor Overlap Click Triggers Object Drag Instead of Pull-to-Connect
  *

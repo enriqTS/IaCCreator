@@ -5,7 +5,6 @@ import type { ArchitectureBlock } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
 
 /**
- * **Validates: Requirements 1.1, 1.2**
  *
  * Property 1: Bug Condition — Backspace in Sidebar Deletes Objects
  *

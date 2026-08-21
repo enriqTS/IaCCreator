@@ -5,7 +5,6 @@ import type { ArchitectureBlock } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
 
 /**
- * **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
  *
  * Property 2: Preservation — Delete Key and Non-Sidebar Behavior Unchanged
  *

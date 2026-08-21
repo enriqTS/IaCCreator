@@ -4,10 +4,6 @@ import { smartSearch } from '@/components/toolbar/ObjectPickerMenu';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 import type { Tool } from '@/types/diagram';
 
-/**
- * Feature: canvas-objects-editor, Property 10: Object picker search filters correctly
- * **Validates: Requirements 7.3**
- */
 describe('Property 10: Object picker search filters correctly', () => {
   // Generator for a random picker item
   const pickerItemArb: fc.Arbitrary<PickerItem> = fc.record({

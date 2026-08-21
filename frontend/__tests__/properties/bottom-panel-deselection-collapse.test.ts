@@ -4,8 +4,6 @@ import {
   canvasObjectWithoutIdArbitrary,
 } from './arbitraries';
 
-// Feature: bottom-panel-redesign, Property 4: Deselection auto-collapses panel
-// **Validates: Requirements 1.5, 6.2**
 describe('Property 4: Deselection auto-collapses panel', () => {
   beforeEach(() => {
     useDiagramStore.setState({

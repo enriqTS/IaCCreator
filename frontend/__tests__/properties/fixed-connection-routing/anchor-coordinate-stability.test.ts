@@ -5,7 +5,6 @@ import type { Rect } from '@/types/diagram';
 
 // Feature: fixed-connection-routing
 // **Property 2: Anchor coordinate computation is stable across moves**
-// **Validates: Requirements 1.4, 1.5, 3.2**
 
 const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 

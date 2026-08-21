@@ -79,8 +79,6 @@ function constrainedCanvasObjectArbitrary(): fc.Arbitrary<CanvasObjectCreationPa
   );
 }
 
-// Feature: canvas-context-menu, Property 17: Fit to screen makes all objects visible
-// **Validates: Requirements 9.3**
 describe('Property 17: Fit to screen makes all objects visible', () => {
   // fitToScreen animates over 300ms via rAF; settle it in one tick so we read the target
   const realRaf = globalThis.requestAnimationFrame;

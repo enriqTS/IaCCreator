@@ -61,8 +61,6 @@ function getDiscriminatingFields(): Map<
 // ---------------------------------------------------------------------------
 // Property 5: Variables rendered organized by group
 // Property 6: Empty groups are hidden
-// Feature: enhanced-variable-configuration, Property 5 + 6
-// **Validates: Requirements 3.2, 3.4**
 // ---------------------------------------------------------------------------
 
 describe('Property 5 + 6: Grouping and conditional visibility', () => {
@@ -211,8 +209,6 @@ describe('Property 5 + 6: Grouping and conditional visibility', () => {
 
 // ---------------------------------------------------------------------------
 // Property 11: Changing discriminating field clears dependent values
-// Feature: enhanced-variable-configuration, Property 11
-// **Validates: Requirements 6.7**
 // ---------------------------------------------------------------------------
 
 describe('Property 11: Changing discriminating field clears dependent values', () => {
