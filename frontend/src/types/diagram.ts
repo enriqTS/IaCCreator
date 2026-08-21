@@ -526,7 +526,7 @@ export type CanvasObject = ArchitectureBlock | LineObject | GeometricObject | Te
 
 /** Distributive Omit that works correctly with discriminated unions */
 export type CanvasObjectCreationPayload =
-  | Omit<ArchitectureBlock, 'id' | 'zIndex'>
+  | (Omit<ArchitectureBlock, 'id' | 'zIndex' | 'name'> & { name?: string })
   | Omit<LineObject, 'id' | 'zIndex'>
   | Omit<GeometricObject, 'id' | 'zIndex'>
   | Omit<TextObject, 'id' | 'zIndex'>

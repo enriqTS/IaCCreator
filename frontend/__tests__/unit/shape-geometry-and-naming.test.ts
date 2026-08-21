@@ -51,7 +51,7 @@ describe('computeShapeEdgePoint', () => {
 
 describe('addCanvasObject naming', () => {
   beforeEach(() => {
-    useDiagramStore.setState({ canvasObjects: new Map(), history: [], historyIndex: -1 });
+    useDiagramStore.setState({ canvasObjects: new Map(), _undoStack: [], _redoStack: [] });
   });
 
   function addBlock(name?: string): string {
@@ -71,7 +71,7 @@ describe('addCanvasObject naming', () => {
       fc.property(
         fc.string({ minLength: 1, maxLength: 30 }).filter((s) => s.trim().length > 0),
         (customName) => {
-          useDiagramStore.setState({ canvasObjects: new Map(), history: [], historyIndex: -1 });
+          useDiagramStore.setState({ canvasObjects: new Map(), _undoStack: [], _redoStack: [] });
           const id = addBlock(customName);
           expect(useDiagramStore.getState().canvasObjects.get(id)?.name).toBe(customName);
         },
