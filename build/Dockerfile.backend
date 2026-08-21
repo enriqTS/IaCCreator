@@ -2,8 +2,8 @@ FROM python:3.12-slim AS base
 
 WORKDIR /app
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# Install uv from the Docker Hub mirror; ghcr.io token fetches are unreliable here
+COPY --from=astral/uv:0.12.5 /uv /uvx /bin/
 
 # Copy dependency files first for better layer caching
 COPY pyproject.toml uv.lock ./
