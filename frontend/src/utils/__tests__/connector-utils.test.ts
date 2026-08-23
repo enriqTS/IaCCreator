@@ -306,6 +306,20 @@ describe('getSchemaForConnector', () => {
 // --- ensureConnectorForLine ---
 
 describe('ensureConnectorForLine', () => {
+  beforeEach(async () => {
+    clearConnectionSchemaCache();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, json: async () => CATALOG })),
+    );
+    await fetchConnectionSchemas();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    clearConnectionSchemaCache();
+  });
+
   it('returns existing connector when one already exists', () => {
     const blockA = makeBlock('block-a', 'api-gateway');
     const blockB = makeBlock('block-b', 'lambda');
@@ -337,7 +351,7 @@ describe('ensureConnectorForLine', () => {
     expect(result).not.toBeNull();
     expect(result!.sourceId).toBe('block-a');
     expect(result!.targetId).toBe('block-b');
-    expect(result!.connectionType).toBe('triggers');
+    expect(result!.connectionType).toBe('route_handler');
     expect(result!.id).toBeDefined();
   });
 
@@ -369,7 +383,7 @@ describe('ensureConnectorForLine', () => {
 
   it('newly created connector has a unique id', () => {
     const blockA = makeBlock('block-a', 'lambda');
-    const blockB = makeBlock('block-b', 's3');
+    const blockB = makeBlock('block-b', 'dynamodb');
     const line = makeLine('line-1', 'block-a', 'block-b');
 
     const canvasObjects = new Map<string, CanvasObject>([
@@ -385,5 +399,34 @@ describe('ensureConnectorForLine', () => {
     expect(result1).not.toBeNull();
     expect(result2).not.toBeNull();
     expect(result1!.id).not.toBe(result2!.id);
+  });
+  it('orients a backwards-drawn line the way the backend can generate it', () => {
+    const blockA = makeBlock('block-a', 'lambda');
+    const blockB = makeBlock('block-b', 'api-gateway');
+    const line = makeLine('line-1', 'block-a', 'block-b');
+
+    const canvasObjects = new Map<string, CanvasObject>([
+      ['block-a', blockA],
+      ['block-b', blockB],
+    ]);
+
+    const result = ensureConnectorForLine(line, canvasObjects, new Map());
+    expect(result).not.toBeNull();
+    expect(result!.sourceId).toBe('block-b');
+    expect(result!.targetId).toBe('block-a');
+    expect(result!.connectionType).toBe('route_handler');
+  });
+
+  it('creates no connector for a pair the backend cannot generate', () => {
+    const blockA = makeBlock('block-a', 'dynamodb');
+    const blockB = makeBlock('block-b', 'sqs');
+    const line = makeLine('line-1', 'block-a', 'block-b');
+
+    const canvasObjects = new Map<string, CanvasObject>([
+      ['block-a', blockA],
+      ['block-b', blockB],
+    ]);
+
+    expect(ensureConnectorForLine(line, canvasObjects, new Map())).toBeNull();
   });
 });
