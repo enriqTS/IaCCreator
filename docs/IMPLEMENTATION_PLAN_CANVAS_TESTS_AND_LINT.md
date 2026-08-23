@@ -12,8 +12,9 @@ Two independent items left over after the hook-rules refactor:
 Neither blocks anything. Item 1 should be done first, because it protects work
 already shipped.
 
-Current state: 0 TypeScript errors, 0 ESLint errors, 7 ESLint warnings,
-806 backend tests and 1283 frontend tests passing.
+**Both items are now done.** Final state: 0 TypeScript errors, 0 ESLint errors,
+0 ESLint warnings, 806 backend tests and 1323 frontend tests passing, and the
+production frontend image builds.
 
 ---
 
@@ -41,9 +42,9 @@ to verify them against. `place-line` and `place-arrow` have **zero** tests, and
 | --- | --- | --- |
 | `DragSizingOverlay` | `__tests__/unit/drag-sizing-overlay.test.tsx` | drag sizing, thresholds, min dimensions |
 | `PlacementPreview` | `__tests__/unit/placement-preview.test.tsx` | visibility per tool, Escape, icon |
-| `MarqueeSelection` | none | nothing |
-| `Canvas` drag placement | none | nothing |
-| Tool-change resets | none | nothing |
+| `MarqueeSelection` | `__tests__/unit/marquee-selection.test.tsx` | rect geometry, highlights, selection, thresholds |
+| `Canvas` drag placement | `__tests__/unit/canvas-drag-placement.test.tsx` | preview, endpoints, snapping, viewport |
+| Tool-change resets | `__tests__/unit/canvas-tool-change-reset.test.tsx` | every reset, and resuming after abandonment |
 
 `drag-sizing-overlay.test.tsx` is the model to copy: it renders the component,
 drives `mousedown`/`mousemove`/`mouseup` on the container, and asserts on
@@ -65,7 +66,7 @@ are required to make this testable:
 | `placement-preview` | `PlacementPreview.tsx` |
 | `tab-bar`, `variables-tab-content` | `SidebarPanel.tsx` |
 
-### Phase 1 — Drag placement
+### Phase 1 — Drag placement — done
 
 **Goal:** cover `place-line` and `place-arrow`, which have no tests at all and
 whose preview state was just rewritten.
@@ -80,7 +81,7 @@ For each of the two tools:
 - Releasing without moving does not leave a stray preview behind.
 - With snap-to-grid on, the start point is snapped; with `altKey` held, it is not.
 
-### Phase 2 — Tool-change resets
+### Phase 2 — Tool-change resets — done
 
 **Goal:** pin the behaviour that moved from effects into render-time adjustment.
 Assert the visible outcome, not the mechanism, so the tests survive another
@@ -96,7 +97,7 @@ refactor of the same code.
   abandoned gesture. This is the case the removed ref resets used to guard, and
   the most likely regression.
 
-### Phase 3 — Sidebar tab reset
+### Phase 3 — Sidebar tab reset — done
 
 **Goal:** cover the one non-canvas component that took the same change.
 
@@ -104,7 +105,7 @@ refactor of the same code.
 - Selecting an object whose tab set does not include the active tab falls back to
   the first available tab.
 
-### Phase 4 — Marquee selection
+### Phase 4 — Marquee selection — done
 
 **Goal:** first coverage for a component that has none.
 
@@ -123,9 +124,9 @@ also needs `Element.prototype.scrollIntoView` stubbed; see
 
 ---
 
-## Part 2: The Remaining 7 Warnings
+## Part 2: The Remaining 7 Warnings — done
 
-Run `corepack pnpm eslint src __tests__` from `frontend/` to see the current list.
+`corepack pnpm eslint src __tests__` from `frontend/` now reports nothing.
 
 ### Done — 11 mechanical warnings cleared
 
@@ -148,9 +149,11 @@ identity every render, so every hook depending on it re-runs every render.
 | `src/components/config/schema/SchemaConfigForm.tsx` | 89 | `entries` (two hooks) |
 | `src/components/config/schema/SchemaConfigForm.tsx` | 92 | `config` (two hooks) |
 
-The fix ESLint suggests is right: wrap each in its own `useMemo` keyed on the
+Fixed as ESLint suggested: each is wrapped in its own `useMemo` keyed on the
 underlying value. `labelOffset` feeds the label drag handler, so this also
-removes a needless handler re-creation on every canvas render.
+removed a needless handler re-creation on every canvas render. `entries` is keyed
+on `schemas` and `serviceType`, which is sound because `getSchemas()` returns a
+stable module-level object rather than a fresh one per call.
 
 ### 2 × `@next/next/no-img-element` — decide, do not silence
 
@@ -162,10 +165,13 @@ removes a needless handler re-creation on every canvas render.
 Both render AWS service icons from `AWS_ICON_REGISTRY`. `next/image` is built for
 layout-managed page images, not for icons drawn inside an SVG canvas at a
 viewport-derived scale, and it would add a loader between the registry path and
-the element. The likely right answer is to keep `<img>` and disable the rule for
-these two files with a comment explaining why — but confirm that the icons are
-static local assets first, and if so consider disabling the rule for the canvas
-directory in `eslint.config.mjs` rather than per line.
+the element.
+
+All 317 registry entries were confirmed to be local static SVGs under
+`public/aws-icons/`, with no remote or `data:` URIs, so `<img>` is kept. The rule
+is disabled per line rather than for the canvas directory, because
+`ObjectPickerMenu.tsx` already silences it that way for an icon from the same
+registry, and a directory-wide override would also hide genuinely new offenders.
 
 ---
 
@@ -196,3 +202,22 @@ New tests for Part 1 should be mutation-tested before being trusted: break the
 behaviour deliberately, confirm the new test fails, then restore. Several tests
 written against this area in earlier sessions passed regardless of the code under
 test.
+
+Every reset and geometry rule these tests cover was mutation-tested that way.
+Three mutations initially survived and each pointed at a real gap:
+
+- Dropping `PlacementPreview`'s pointer-position reset changed nothing, because
+  the render guard hid the stale ghost anyway. The test now returns to
+  `place-service` and asserts the ghost stays away until the pointer moves again.
+- Dropping `SidebarPanel`'s `effectiveTab` fallback changed nothing, because the
+  selection-change reset already picks a valid tab. The fallback is only reachable
+  when the panel mounts with a selection already in place, which is what the test
+  now exercises.
+- Removing the marquee's 2px click threshold changed nothing while the gesture
+  ended over empty canvas. The test now presses over an object, so a lost
+  threshold would wrongly select it.
+
+Two mutations that survive are not gaps. `DragSizingOverlay` and
+`MarqueeSelection` each guard the same behaviour twice — an effect early-return
+and a render guard — so removing either alone is invisible; removing both does
+fail the tests.
