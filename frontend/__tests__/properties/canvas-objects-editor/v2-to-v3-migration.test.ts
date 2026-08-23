@@ -115,7 +115,6 @@ describe('Property 13: v2 to v3 migration preserves existing objects', () => {
             version: 2,
             projectName: 'test-project',
             environments: [],
-            elements: [],
             canvasObjects,
             connectors: [],
             viewport: { offsetX: 0, offsetY: 0, scale: 1 },

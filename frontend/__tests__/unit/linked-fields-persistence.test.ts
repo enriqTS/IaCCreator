@@ -198,7 +198,7 @@ describe('Linked Fields Persistence - source block config.routes', () => {
     });
 
     const serialized = useDiagramStore.getState().serializeDiagramState();
-    const serializedBlock = serialized.canvasObjects.find(
+    const serializedBlock = serialized.canvasObjects!.find(
       (obj) => obj.id === sourceId
     )!;
 
@@ -256,7 +256,7 @@ describe('Linked Fields Persistence - source block config.routes', () => {
     );
 
     const serialized = useDiagramStore.getState().serializeDiagramState();
-    const serializedBlock = serialized.canvasObjects.find(
+    const serializedBlock = serialized.canvasObjects!.find(
       (obj) => obj.id === sourceId
     )!;
     const serializedConnector = serialized.connectors.find(

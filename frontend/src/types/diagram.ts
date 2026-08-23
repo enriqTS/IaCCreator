@@ -233,6 +233,7 @@ export interface ResourceConfig {
   object_lock_enabled?: boolean;
   acceleration_status?: string;
   // DynamoDB
+  table_name?: string;
   billing_mode?: string;
   hash_key?: string;
   hash_key_type?: string;

@@ -33,7 +33,6 @@ function minimalDiagramState(overrides: Partial<DiagramState> = {}): DiagramStat
     version: 3,
     projectName: 'test',
     environments: [],
-    elements: [],
     connectors: [],
     viewport: { offsetX: 0, offsetY: 0, scale: 1 },
     canvasObjects: [],

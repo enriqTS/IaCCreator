@@ -102,7 +102,7 @@ describe('DiagramStore - setTerraformVariable', () => {
       end: { x: 100, y: 100 },
       sourceAnchor: null,
       targetAnchor: null,
-      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
+      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false, routingMode: 'orthogonal' },
     });
     // Should not throw
     useDiagramStore.getState().setTerraformVariable(lineId, 'foo', 'bar');

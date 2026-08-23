@@ -76,6 +76,7 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
       name: 'block-1',
       position: { x: 100, y: 200 },
       config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
 
@@ -110,6 +111,7 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
       name: 'block-1',
       position: { x: 0, y: 0 },
       config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
 
@@ -146,6 +148,7 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
       name: 'block-1',
       position: { x: 0, y: 0 },
       config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
     const id2 = store.addCanvasObject({
@@ -154,6 +157,7 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
       name: 'block-2',
       position: { x: 100, y: 0 },
       config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
 
@@ -194,6 +198,7 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
       name: 'block-1',
       position: { x: 50, y: 50 },
       config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
 

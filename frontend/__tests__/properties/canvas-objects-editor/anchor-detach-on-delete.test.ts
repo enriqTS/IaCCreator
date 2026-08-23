@@ -50,7 +50,7 @@ describe('Property 6: Anchor detach on object deletion', () => {
             name: 'Line',
             start: { x: lineStartX, y: lineStartY },
             end: { x: lineEndX, y: lineEndY },
-            sourceAnchor: { objectId: blockId },
+            sourceAnchor: { objectId: blockId, anchorPosition: 'right' },
             targetAnchor: null,
             visualConfig: { ...DEFAULT_LINE_VISUAL },
           });

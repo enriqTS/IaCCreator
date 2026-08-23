@@ -13,6 +13,7 @@ function makeBlock(overrides?: Partial<ArchitectureBlock['visualConfig']>): Arch
     name: 'lambda-1',
     position: { x: 0, y: 0 },
     config: {},
+    terraformVariables: {},
     visualConfig: { ...DEFAULT_BLOCK_VISUAL, ...overrides },
     zIndex: 0,
   };

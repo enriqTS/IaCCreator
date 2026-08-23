@@ -170,7 +170,7 @@ describe('DiagramStore - loadDiagramFromServer', () => {
       projectName: 'loaded-project',
       environments: [],
       canvasObjects: [
-        { id: 'e1', objectType: 'architecture-block', serviceType: 'lambda', name: 'lambda-1', x: 10, y: 20, config: {}, visualConfig: { width: 80, height: 80 } },
+        { id: 'e1', objectType: 'architecture-block' as const, serviceType: 'lambda' as const, name: 'lambda-1', x: 10, y: 20, config: {}, visualConfig: { width: 80, height: 80 } },
       ],
       connectors: [],
       viewport: { offsetX: 5, offsetY: 10, scale: 1.5 },

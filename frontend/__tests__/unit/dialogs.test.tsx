@@ -52,6 +52,8 @@ describe('NewDiagramDialog', () => {
       serviceType: 'lambda',
       position: { x: 100, y: 200 },
       name: 'test-lambda',
+      config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
     store.addCanvasObject({
@@ -59,6 +61,8 @@ describe('NewDiagramDialog', () => {
       serviceType: 's3',
       position: { x: 300, y: 400 },
       name: 'test-s3',
+      config: {},
+      terraformVariables: {},
       visualConfig: { width: 80, height: 80 },
     });
     store.setProjectName('test-project');
