@@ -30,7 +30,6 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
   const sendToBack = useDiagramStore((s) => s.sendToBack);
   const bringForward = useDiagramStore((s) => s.bringForward);
   const sendBackward = useDiagramStore((s) => s.sendBackward);
-  const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
   const duplicateSelectedObjects = useDiagramStore((s) => s.duplicateSelectedObjects);
   const copySelectedObjects = useDiagramStore((s) => s.copySelectedObjects);
   const toggleLockObjects = useDiagramStore((s) => s.toggleLockObjects);

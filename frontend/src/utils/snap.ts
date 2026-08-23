@@ -309,7 +309,6 @@ function detectAxisDistribution(
 
   // Extract coordinates
   const dragStart = isH ? draggedBounds.x : draggedBounds.y;
-  const dragEnd = isH ? draggedBounds.x + draggedBounds.width : draggedBounds.y + draggedBounds.height;
   const dragSize = isH ? draggedBounds.width : draggedBounds.height;
   const dragCross = isH
     ? draggedBounds.y + draggedBounds.height / 2

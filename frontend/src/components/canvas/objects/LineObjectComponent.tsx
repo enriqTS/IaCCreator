@@ -85,7 +85,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   const updateLineLabelOffset = useDiagramStore((s) => s.updateLineLabelOffset);
   const updateLineCustomLabel = useDiagramStore((s) => s.updateLineCustomLabel);
 
-  const { handleMouseDown, alignmentGuides, distributionGuides } = useSnapDrag({
+  const { handleMouseDown, alignmentGuides } = useSnapDrag({
     objectId: line.id,
     isSelected,
     locked: line.locked,

@@ -280,7 +280,6 @@ function MultiSelectionView({
   groupSelectedObjects: () => string | null;
   ungroupObjects: (groupId: string) => void;
 }) {
-  const removeCanvasObject = useDiagramStore((s) => s.removeCanvasObject);
   const selectedObjects = Array.from(selectedObjectIds)
     .map((id) => canvasObjects.get(id))
     .filter(Boolean) as CanvasObject[];

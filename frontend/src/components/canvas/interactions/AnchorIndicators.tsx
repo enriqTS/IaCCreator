@@ -23,7 +23,6 @@ const ANCHOR_POSITIONS: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
 export default function AnchorIndicators({ objectId, bounds, locked }: AnchorIndicatorsProps) {
   const setPullConnectState = useDiagramStore((s) => s.setPullConnectState);
-  const scale = useDiagramStore((s) => s.viewport.scale);
 
   const anchors = getAnchorPoints(bounds);
 

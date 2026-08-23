@@ -10,11 +10,6 @@ const DOT_RADIUS = 1;
 const DOT_COLOR_ACTIVE = 'rgba(255, 255, 255, 0.15)';
 const DOT_COLOR_INACTIVE = 'rgba(255, 255, 255, 0.07)';
 
-const CONNECTOR_COLOR = 'rgba(255, 255, 255, 0.5)';
-const CONNECTOR_SELECTED_COLOR = 'rgba(59, 130, 246, 0.8)';
-const CONNECTOR_LINE_WIDTH = 2;
-const CONNECTOR_SELECTED_LINE_WIDTH = 3;
-const ARROWHEAD_SIZE = 10;
 const CLICK_TOLERANCE = 8;
 
 /**
@@ -66,33 +61,6 @@ function getObjectScreenCenter(
   };
 }
 
-/**
- * Draw an arrowhead at the target end of a line.
- */
-function drawArrowhead(
-  ctx: CanvasRenderingContext2D,
-  fromX: number,
-  fromY: number,
-  toX: number,
-  toY: number,
-  size: number,
-  color: string,
-) {
-  const angle = Math.atan2(toY - fromY, toX - fromX);
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(toX, toY);
-  ctx.lineTo(
-    toX - size * Math.cos(angle - Math.PI / 6),
-    toY - size * Math.sin(angle - Math.PI / 6),
-  );
-  ctx.lineTo(
-    toX - size * Math.cos(angle + Math.PI / 6),
-    toY - size * Math.sin(angle + Math.PI / 6),
-  );
-  ctx.closePath();
-  ctx.fill();
-}
 
 export default function CanvasBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -102,7 +70,6 @@ export default function CanvasBackground() {
   const viewport = useDiagramStore((s) => s.viewport);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const connectors = useDiagramStore((s) => s.connectors);
-  const selectedConnectorId = useDiagramStore((s) => s.selectedConnectorId);
   const selectConnector = useDiagramStore((s) => s.selectConnector);
   const gridCellSize = useLayoutPreferencesStore((s) => s.gridCellSize);
   const snapToGridEnabled = useLayoutPreferencesStore((s) => s.snapToGridEnabled);
@@ -137,7 +104,7 @@ export default function CanvasBackground() {
 
     // --- Connectors are now rendered via LineObject + labels in the SVG layer ---
     // Legacy connector drawing removed — visual representation is handled by LineObjectComponent.
-  }, [viewport, canvasObjects, connectors, selectedConnectorId, gridCellSize, snapToGridEnabled]);
+  }, [viewport, gridCellSize, snapToGridEnabled]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {

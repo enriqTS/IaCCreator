@@ -107,7 +107,6 @@ export function applyParallelOffset(points: Point[], offsetMultiplier: number): 
       // For a corner (direction change), also need to adjust for the outgoing direction
       if (inDir !== outDir && inDir !== 'none' && outDir !== 'none') {
         // At a corner, offset in both perpendicular directions
-        const cornerPt = applyPerpendicularOffset(offsetPt, outDir, offset);
         // But this double-offsets. The correct approach for corners:
         // Offset both adjacent segments and find their intersection.
         // For simplicity with orthogonal paths, just offset perpendicular to incoming.

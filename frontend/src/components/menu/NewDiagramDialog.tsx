@@ -11,7 +11,6 @@ export interface NewDiagramDialogProps {
 
 export default function NewDiagramDialog({ open, onClose }: NewDiagramDialogProps) {
   const handleConfirm = useCallback(() => {
-    const store = useDiagramStore.getState();
     // Clear all canvas objects and connectors
     useDiagramStore.setState({
       canvasObjects: new Map(),

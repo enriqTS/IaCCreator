@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Sparkles, MousePointer2, Move, Menu, PanelRight } from 'lucide-react';
+import { MousePointer2, Move, Menu, PanelRight } from 'lucide-react';
 
 export interface TourStepData {
   id: string;

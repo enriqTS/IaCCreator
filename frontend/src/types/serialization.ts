@@ -5,7 +5,6 @@
 import type {
   CanvasObjectType,
   EnvironmentConfig,
-  Point,
   ResourceConfig,
   ServiceType,
   UMLClassData,
