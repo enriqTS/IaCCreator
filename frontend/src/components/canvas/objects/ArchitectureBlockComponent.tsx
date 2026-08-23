@@ -108,6 +108,7 @@ export default function ArchitectureBlockComponent({ block, isSelected }: Archit
       >
         {/* Icon fills the entire block */}
         {iconPath && (
+          // eslint-disable-next-line @next/next/no-img-element -- static local SVG drawn on the canvas at a viewport-derived scale
           <img
             src={iconPath}
             alt={block.serviceType}

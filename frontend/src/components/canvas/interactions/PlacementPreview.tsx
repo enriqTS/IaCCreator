@@ -117,6 +117,7 @@ export default function PlacementPreview({ containerRef }: PlacementPreviewProps
         }}
       >
         {iconPath && (
+          // eslint-disable-next-line @next/next/no-img-element -- static local SVG drawn on the canvas at a viewport-derived scale
           <img
             src={iconPath}
             alt={serviceType}
