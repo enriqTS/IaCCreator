@@ -73,3 +73,65 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
         "variables": generator.generate_variables_tf(instance),
         "outputs": generator.generate_outputs_tf(instance),
     }
+
+
+# What a service needs beyond its required fields to be deployable, not merely valid
+DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.LAMBDA: {
+        "runtime": "python3.12",
+        "handler": "main.handler",
+        "filename": "function.zip",
+    },
+    ServiceType.API_GATEWAY: {"protocol_type": "HTTP"},
+    ServiceType.DYNAMODB: {"hash_key": "id", "hash_key_type": "S"},
+    ServiceType.EVENTBRIDGE: {"event_pattern": '{"source": ["aws.s3"]}'},
+}
+
+
+def connection_architecture(spec) -> dict:
+    """Build the smallest two-resource architecture exercising one connection spec."""
+    models = get_service_config_models()
+    resources = []
+    for name, service_type, rid in (
+        ("source-resource", spec.source, "src"),
+        ("target-resource", spec.target, "tgt"),
+    ):
+        config = minimal_config_for(service_type).model_dump(exclude_none=True)
+        config.update(DEPLOYABLE_EXTRAS.get(service_type, {}))
+        model = models.get(service_type)
+        if model is not None:
+            # Name every name-ish field so the module gets its required arguments
+            for key in model.model_fields:
+                if key == "name" or key.endswith("_name"):
+                    config[key] = name
+        config["service_type"] = service_type.value
+        resources.append(
+            {
+                "id": rid,
+                "name": name,
+                "service_type": service_type.value,
+                "config": config,
+                "terraform_variables": {},
+            }
+        )
+
+    return {
+        "project_name": "connection-check",
+        "environments": [{"name": "dev", "variables": {}}],
+        "resources": resources,
+        "connections": [
+            {
+                "source": "source-resource",
+                "target": "target-resource",
+                "source_id": "src",
+                "target_id": "tgt",
+                "connection_type": spec.connection_type,
+                "connection_config": {},
+            }
+        ],
+        "global_terraform_config": {
+            "backend_type": "local",
+            "backend_config": {},
+            "provider_region": "us-east-1",
+        },
+    }

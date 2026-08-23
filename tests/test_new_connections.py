@@ -3,8 +3,12 @@
 import json
 
 import pytest
+from fastapi import HTTPException
 
-from app.models.input_models import ServiceType
+from app.generators.schema_validator import validate_config_against_schema
+from app.models.input_models import ArchitectureDescription, ServiceType
+from app.models.input_models.dynamodb_config import DynamoDBConfig
+from app.models.input_models.eventbridge_config import EventBridgeConfig
 from app.services.code_generator import CodeGenerator
 from app.services.connection_handlers.registry import CONNECTION_REGISTRY, resolve_spec
 from app.services.ir_builder import IRBuilder
@@ -113,3 +117,127 @@ class TestRegistryGrowth:
         lambda_spec = resolve_spec(ServiceType.LAMBDA, ServiceType.S3, "accesses", {})
         ecs_spec = resolve_spec(ServiceType.ECS, ServiceType.S3, "accesses", {})
         assert type(lambda_spec.handler) is type(ecs_spec.handler)
+
+
+class TestStreamsAreEnabledByTheConnection:
+    """A table that never opted into streams still has to have one to be consumed."""
+
+    @staticmethod
+    def _tree(table_config: dict, connection_config: dict) -> dict:
+        arch = ArchitectureDescription.model_validate(
+            {
+                "project_name": "p",
+                "environments": [{"name": "dev", "variables": {}}],
+                "resources": [
+                    {
+                        "id": "t1",
+                        "name": "orders",
+                        "service_type": "dynamodb",
+                        "config": {
+                            "table_name": "orders",
+                            "hash_key": "id",
+                            "hash_key_type": "S",
+                            **table_config,
+                        },
+                        "terraform_variables": {},
+                    },
+                    {
+                        "id": "f1",
+                        "name": "consumer",
+                        "service_type": "lambda",
+                        "config": {"function_name": "consumer"},
+                        "terraform_variables": {},
+                    },
+                ],
+                "connections": [
+                    {
+                        "source": "orders",
+                        "target": "consumer",
+                        "source_id": "t1",
+                        "target_id": "f1",
+                        "connection_type": "streams_to",
+                        "connection_config": connection_config,
+                    }
+                ],
+                "global_terraform_config": {
+                    "backend_type": "local",
+                    "backend_config": {},
+                    "provider_region": "us-east-1",
+                },
+            }
+        )
+        return CodeGenerator().generate(IRBuilder().build(arch))
+
+    @staticmethod
+    def _variable_default(tree: dict, name: str) -> str:
+        body = tree["p/modules/database/dynamodb/orders/variables.tf"]
+        block = body.split(f'variable "{name}"')[1].split("}")[0]
+        return next(line for line in block.splitlines() if "default" in line).strip()
+
+    def test_table_that_never_opted_in_still_gets_a_stream(self):
+        tree = self._tree({}, {})
+        assert "stream_enabled = var.stream_enabled" in (
+            tree["p/modules/database/dynamodb/orders/dynamodb.tf"]
+        )
+        assert "true" in self._variable_default(tree, "stream_enabled")
+
+    def test_connection_supplies_the_view_type(self):
+        tree = self._tree({}, {"stream_view_type": "KEYS_ONLY"})
+        assert "KEYS_ONLY" in self._variable_default(tree, "stream_view_type")
+
+    def test_the_tables_own_view_type_wins(self):
+        tree = self._tree(
+            {"stream_enabled": True, "stream_view_type": "NEW_IMAGE"},
+            {"stream_view_type": "KEYS_ONLY"},
+        )
+        assert "NEW_IMAGE" in self._variable_default(tree, "stream_view_type")
+
+
+class TestEventBridgeRuleNeedsATrigger:
+    """A rule with neither a pattern nor a schedule is rejected by terraform and AWS."""
+
+    @staticmethod
+    def _validate(**config) -> None:
+        validate_config_against_schema(
+            ServiceType.EVENTBRIDGE, EventBridgeConfig(rule_name="r", **config)
+        )
+
+    def test_a_rule_without_a_trigger_is_refused(self):
+        with pytest.raises(HTTPException) as exc:
+            self._validate()
+        assert exc.value.status_code == 422
+        assert "event_pattern or schedule_expression" in exc.value.detail
+
+    def test_an_event_pattern_is_enough(self):
+        self._validate(event_pattern='{"source": ["aws.s3"]}')
+
+    def test_a_schedule_is_enough(self):
+        self._validate(schedule_expression="rate(5 minutes)")
+
+    def test_a_malformed_schedule_is_refused(self):
+        with pytest.raises(HTTPException) as exc:
+            self._validate(schedule_expression="every 5 minutes")
+        assert exc.value.status_code == 422
+
+
+class TestClosedOptionSetsAreEnforced:
+    """A field whose options are the complete set must reject anything outside it."""
+
+    @pytest.mark.parametrize(
+        ("field", "bad_value", "extra"),
+        [
+            ("hash_key_type", "probe", {}),
+            ("range_key_type", "X", {}),
+            # stream_view_type is only validated while the stream is on
+            ("stream_view_type", "EVERYTHING", {"stream_enabled": True}),
+        ],
+    )
+    def test_value_outside_the_option_set_is_refused(self, field, bad_value, extra):
+        kwargs = {"table_name": "t", "hash_key": "id", "hash_key_type": "S"}
+        kwargs.update(extra)
+        kwargs[field] = bad_value
+        with pytest.raises(HTTPException) as exc:
+            validate_config_against_schema(
+                ServiceType.DYNAMODB, DynamoDBConfig(**kwargs)
+            )
+        assert exc.value.status_code == 422

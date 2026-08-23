@@ -95,6 +95,7 @@ class DynamoDBConfig(BaseServiceConfig):
             OptionEntry(value="N", label="Number"),
             OptionEntry(value="B", label="Binary"),
         ],
+        validation=ValidationRule(allowed_values=["S", "N", "B"]),
     )
     range_key: str | None = TerraformField(
         None,
@@ -110,6 +111,7 @@ class DynamoDBConfig(BaseServiceConfig):
             OptionEntry(value="N", label="Number"),
             OptionEntry(value="B", label="Binary"),
         ],
+        validation=ValidationRule(allowed_values=["S", "N", "B"]),
     )
 
     # ── Capacity ──────────────────────────────────────────────────────
@@ -157,6 +159,9 @@ class DynamoDBConfig(BaseServiceConfig):
             OptionEntry(value="KEYS_ONLY", label="Keys Only"),
         ],
         visible_when=VisibleWhen(field="stream_enabled", equals=True),
+        validation=ValidationRule(
+            allowed_values=["NEW_IMAGE", "OLD_IMAGE", "NEW_AND_OLD_IMAGES", "KEYS_ONLY"]
+        ),
     )
 
     # ── TTL ───────────────────────────────────────────────────────────

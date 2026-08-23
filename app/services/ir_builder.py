@@ -168,6 +168,12 @@ class IRBuilder:
                     conn, source_resource, target_resource
                 )
 
+            validated_config = self._validate_config(conn, spec, connection_config)
+
+            # A consumed stream has to exist, so the connection turns it on
+            if spec.connection_type == "streams_to":
+                self._enable_source_stream(source_resource, validated_config)
+
             result.append(
                 ConnectionIR(
                     source_name=source_resource.name,
@@ -175,9 +181,7 @@ class IRBuilder:
                     source_service=source_resource.service_type,
                     target_service=target_resource.service_type,
                     connection_type=spec.connection_type,
-                    connection_config=self._validate_config(
-                        conn, spec, connection_config
-                    ),
+                    connection_config=validated_config,
                 )
             )
 
@@ -199,6 +203,19 @@ class IRBuilder:
                 errors=exc.errors(),
             ) from exc
         return validated.model_dump(exclude_none=True)
+
+    @staticmethod
+    def _enable_source_stream(source_resource, connection_config: dict) -> None:
+        """Turn on the source table's stream so the consuming function has one to read."""
+        config = source_resource.config
+        if not hasattr(config, "stream_enabled"):
+            return
+        config.stream_enabled = True
+        # The table's own choice wins; the connection only supplies a default
+        if getattr(config, "stream_view_type", None) is None:
+            config.stream_view_type = connection_config.get(
+                "stream_view_type", "NEW_AND_OLD_IMAGES"
+            )
 
     def _derive_apigw_lambda_routes(
         self,

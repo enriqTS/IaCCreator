@@ -216,6 +216,26 @@ class DynamoDBLambdaConfig(BaseConnectionConfig):
         type="number",
         validation=ValidationRule(min=1, max=10000),
     )
+    stream_view_type: str = ConnectionField(
+        "NEW_AND_OLD_IMAGES",
+        label="Stream View Type",
+        description="What the table writes to the stream this function reads",
+        type="select",
+        options=[
+            OptionEntry(value="NEW_IMAGE", label="New Image"),
+            OptionEntry(value="OLD_IMAGE", label="Old Image"),
+            OptionEntry(value="NEW_AND_OLD_IMAGES", label="New and Old Images"),
+            OptionEntry(value="KEYS_ONLY", label="Keys Only"),
+        ],
+        validation=ValidationRule(
+            allowed_values=[
+                "NEW_IMAGE",
+                "OLD_IMAGE",
+                "NEW_AND_OLD_IMAGES",
+                "KEYS_ONLY",
+            ]
+        ),
+    )
 
 
 class EventBridgeTargetConfig(BaseConnectionConfig):
