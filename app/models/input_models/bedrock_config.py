@@ -47,6 +47,7 @@ class BedrockConfig(BaseServiceConfig):
             OptionEntry(value="anthropic.claude-v2", label="Anthropic Claude v2"),
             OptionEntry(value="meta.llama2-13b-chat-v1", label="Meta Llama 2 13B Chat"),
         ],
+        open_options=True,
     )
     role_arn: str | None = TerraformField(
         None,

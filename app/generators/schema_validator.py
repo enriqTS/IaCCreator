@@ -66,6 +66,18 @@ def _validate_entry(
             detail=f"{label}: value {value} exceeds maximum {rule.max}",
         )
 
+    if rule.allowed_values is not None and isinstance(value, list):
+        outside = [item for item in value if item not in rule.allowed_values]
+        if outside:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"{label}: value {outside[0]} is not in allowed values "
+                    f"{rule.allowed_values}"
+                ),
+            )
+        return
+
     if rule.allowed_values is not None and value not in rule.allowed_values:
         raise HTTPException(
             status_code=422,

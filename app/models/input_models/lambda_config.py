@@ -120,6 +120,7 @@ class LambdaConfig(BaseServiceConfig):
                 value="provided.al2", label="Custom Runtime (AL2)", group="Custom"
             ),
         ],
+        open_options=True,
     )
     description: str | None = TerraformField(
         None,

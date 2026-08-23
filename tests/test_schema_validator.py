@@ -16,6 +16,8 @@ from tests.schema_helpers import service_schemas
 
 # Each entry: (service_type, variable_name, validation_rule, visible_when, config_cls)
 _VALIDATED_VARS: list[tuple[ServiceType, str, object, object, type]] = []
+# Fields holding a list validate their entries, so test values must be wrapped
+_LIST_FIELDS: set[tuple[ServiceType, str]] = set()
 
 _SERVICE_CONFIG_MODELS = get_service_config_models()
 
@@ -38,6 +40,13 @@ for _stype, _entries in service_schemas().items():
                 _VALIDATED_VARS.append(
                     (_stype, _entry.name, rule, _entry.visible_when, _config_cls)
                 )
+                if _entry.type == "list":
+                    _LIST_FIELDS.add((_stype, _entry.name))
+
+
+def _shaped(stype: ServiceType, var_name: str, value):
+    """Wrap a value for a field that holds a list of constrained entries."""
+    return [value] if (stype, var_name) in _LIST_FIELDS else value
 
 
 # ---------------------------------------------------------------------------
@@ -123,7 +132,7 @@ def test_backend_rejects_invalid_values(data):
     bad_value = data.draw(invalid_value_for_rule(rule))
 
     # Build config kwargs — set the invalid field, plus satisfy visible_when if needed
-    config_kwargs: dict = {var_name: bad_value}
+    config_kwargs: dict = {var_name: _shaped(stype, var_name, bad_value)}
 
     if visible_when is not None:
         # Set the discriminating field so the variable IS visible (and thus validated)
@@ -168,7 +177,7 @@ def test_valid_values_do_not_raise(data):
     else:
         good_value = data.draw(st.integers())
 
-    config_kwargs: dict = {var_name: good_value}
+    config_kwargs: dict = {var_name: _shaped(stype, var_name, good_value)}
 
     if visible_when is not None:
         config_kwargs[visible_when.field] = visible_when.equals
