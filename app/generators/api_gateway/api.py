@@ -20,9 +20,11 @@ def render_api_resource(
     if config.disable_execute_api_endpoint is not None:
         attrs["disable_execute_api_endpoint"] = Expr("var.disable_execute_api_endpoint")
     # route_selection_expression — only when protocol_type is WEBSOCKET (visible_when)
-    if config.protocol_type == "WEBSOCKET":
-        if config.route_selection_expression is not None:
-            attrs["route_selection_expression"] = Expr("var.route_selection_expression")
+    if (
+        config.protocol_type == "WEBSOCKET"
+        and config.route_selection_expression is not None
+    ):
+        attrs["route_selection_expression"] = Expr("var.route_selection_expression")
     if config.tags is not None:
         attrs["tags"] = Expr("var.tags")
 

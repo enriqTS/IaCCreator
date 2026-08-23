@@ -9,7 +9,9 @@ from app.models.ir_models import ResourceInstanceIR
 T = TypeVar("T", bound=BaseServiceConfig)
 
 
-def get_typed_config(instance: ResourceInstanceIR, expected: type[T]) -> T:
+def get_typed_config[T: BaseServiceConfig](
+    instance: ResourceInstanceIR, expected: type[T]
+) -> T:
     """Cast instance.config to the expected typed config.
 
     Raises GeneratorConfigError if the config is not an instance of the expected class.

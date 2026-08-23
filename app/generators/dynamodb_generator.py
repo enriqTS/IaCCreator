@@ -131,21 +131,20 @@ class DynamoDBGenerator:
             attrs["replica"] = replica_blocks
 
         # On-demand capacity limits (PAY_PER_REQUEST mode)
-        if config.billing_mode == "PAY_PER_REQUEST":
-            if (
-                config.on_demand_max_read_request_units is not None
-                or config.on_demand_max_write_request_units is not None
-            ):
-                on_demand_block: dict = {}
-                if config.on_demand_max_read_request_units is not None:
-                    on_demand_block["max_read_request_units"] = Expr(
-                        "var.on_demand_max_read_request_units"
-                    )
-                if config.on_demand_max_write_request_units is not None:
-                    on_demand_block["max_write_request_units"] = Expr(
-                        "var.on_demand_max_write_request_units"
-                    )
-                attrs["on_demand_throughput"] = on_demand_block
+        if config.billing_mode == "PAY_PER_REQUEST" and (
+            config.on_demand_max_read_request_units is not None
+            or config.on_demand_max_write_request_units is not None
+        ):
+            on_demand_block: dict = {}
+            if config.on_demand_max_read_request_units is not None:
+                on_demand_block["max_read_request_units"] = Expr(
+                    "var.on_demand_max_read_request_units"
+                )
+            if config.on_demand_max_write_request_units is not None:
+                on_demand_block["max_write_request_units"] = Expr(
+                    "var.on_demand_max_write_request_units"
+                )
+            attrs["on_demand_throughput"] = on_demand_block
 
         return self._r.render_resource("aws_dynamodb_table", instance.name, attrs)
 
