@@ -6,6 +6,7 @@
  */
 
 import type { DiagramSummary, ApiResult } from '@/types/api';
+import type { ConnectionPreviewResponse } from '@/types/connection-preview';
 import type { ArchitectureDescription, DiagramState } from '@/types/serialization';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
@@ -128,6 +129,17 @@ export const apiClient = {
     return request('/api/diagrams/' + encodeURIComponent(id), {
       method: 'DELETE',
     }, async () => undefined as void);
+  },
+
+  /** POST /api/connections/preview — ask what every connection contributes. */
+  previewConnections(
+    arch: ArchitectureDescription,
+  ): Promise<ApiResult<ConnectionPreviewResponse>> {
+    return request('/api/connections/preview', {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify(arch),
+    }, (res) => res.json() as Promise<ConnectionPreviewResponse>);
   },
 
   /** POST /generate/zip — generate Terraform from an architecture description. */

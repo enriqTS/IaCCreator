@@ -499,3 +499,20 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
     ],
   },
 ];
+
+// Built once so a lookup does not walk every category on each render
+let displayNames: Map<string, string> | null = null;
+
+/** The human-readable AWS name for a service type, or the raw type when unknown. */
+export function getServiceDisplayName(serviceType: string): string {
+  if (!displayNames) {
+    const built = new Map<string, string>();
+    for (const category of AWS_ICON_REGISTRY) {
+      for (const service of category.services) {
+        if (service.serviceType) built.set(service.serviceType, service.name);
+      }
+    }
+    displayNames = built;
+  }
+  return displayNames.get(serviceType) ?? serviceType;
+}
