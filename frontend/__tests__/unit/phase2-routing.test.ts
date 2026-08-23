@@ -6,6 +6,7 @@ import {
 } from '@/utils/routing/orthogonal-router';
 import type { RoutingRequest } from '@/utils/routing/orthogonal-router';
 import type { RoutingRect } from '@/utils/routing/routing-grid';
+import type { CanvasObject } from '@/types/diagram';
 import { computeOptimalExitSide } from '@/utils/anchor';
 import { findShortestPath, anchorToExitDirection } from '@/utils/routing/routing-pathfinder';
 import { computeParallelIndex, applyParallelOffset } from '@/utils/parallel-offset';
@@ -274,30 +275,35 @@ describe('backward visit prevention', () => {
 // Task 2.5: Parallel connector offset
 // =============================================================================
 
+/** Minimal stand-ins: computeParallelIndex reads only the anchors and object type. */
+function stub(partial: Partial<CanvasObject> & Pick<CanvasObject, 'objectType'>): CanvasObject {
+  return partial as CanvasObject;
+}
+
 describe('computeParallelIndex', () => {
   it('returns 0 for a single line between two objects', () => {
-    const objects = new Map<string, any>([
-      ['line1', { objectType: 'line', sourceAnchor: { objectId: 'A' }, targetAnchor: { objectId: 'B' } }],
-      ['A', { objectType: 'architecture-block' }],
-      ['B', { objectType: 'architecture-block' }],
+    const objects = new Map<string, CanvasObject>([
+      ['line1', stub({ objectType: 'line', sourceAnchor: { objectId: 'A', anchorPosition: 'right' as const }, targetAnchor: { objectId: 'B', anchorPosition: 'left' as const } })],
+      ['A', stub({ objectType: 'architecture-block' })],
+      ['B', stub({ objectType: 'architecture-block' })],
     ]);
     expect(computeParallelIndex('line1', 'A', 'B', objects)).toBe(0);
   });
 
   it('returns 0 when endpoints are not anchored', () => {
-    const objects = new Map<string, any>([
-      ['line1', { objectType: 'line', sourceAnchor: null, targetAnchor: null }],
+    const objects = new Map<string, CanvasObject>([
+      ['line1', stub({ objectType: 'line', sourceAnchor: null, targetAnchor: null })],
     ]);
     expect(computeParallelIndex('line1', undefined, undefined, objects)).toBe(0);
   });
 
   it('assigns different offsets for multiple lines between same pair', () => {
-    const objects = new Map<string, any>([
-      ['line1', { objectType: 'line', sourceAnchor: { objectId: 'A' }, targetAnchor: { objectId: 'B' } }],
-      ['line2', { objectType: 'line', sourceAnchor: { objectId: 'A' }, targetAnchor: { objectId: 'B' } }],
-      ['line3', { objectType: 'line', sourceAnchor: { objectId: 'A' }, targetAnchor: { objectId: 'B' } }],
-      ['A', { objectType: 'architecture-block' }],
-      ['B', { objectType: 'architecture-block' }],
+    const objects = new Map<string, CanvasObject>([
+      ['line1', stub({ objectType: 'line', sourceAnchor: { objectId: 'A', anchorPosition: 'right' as const }, targetAnchor: { objectId: 'B', anchorPosition: 'left' as const } })],
+      ['line2', stub({ objectType: 'line', sourceAnchor: { objectId: 'A', anchorPosition: 'right' as const }, targetAnchor: { objectId: 'B', anchorPosition: 'left' as const } })],
+      ['line3', stub({ objectType: 'line', sourceAnchor: { objectId: 'A', anchorPosition: 'right' as const }, targetAnchor: { objectId: 'B', anchorPosition: 'left' as const } })],
+      ['A', stub({ objectType: 'architecture-block' })],
+      ['B', stub({ objectType: 'architecture-block' })],
     ]);
 
     const idx1 = computeParallelIndex('line1', 'A', 'B', objects);
@@ -312,11 +318,11 @@ describe('computeParallelIndex', () => {
   });
 
   it('detects lines in both directions (A→B and B→A)', () => {
-    const objects = new Map<string, any>([
-      ['line1', { objectType: 'line', sourceAnchor: { objectId: 'A' }, targetAnchor: { objectId: 'B' } }],
-      ['line2', { objectType: 'line', sourceAnchor: { objectId: 'B' }, targetAnchor: { objectId: 'A' } }],
-      ['A', { objectType: 'architecture-block' }],
-      ['B', { objectType: 'architecture-block' }],
+    const objects = new Map<string, CanvasObject>([
+      ['line1', stub({ objectType: 'line', sourceAnchor: { objectId: 'A', anchorPosition: 'right' as const }, targetAnchor: { objectId: 'B', anchorPosition: 'left' as const } })],
+      ['line2', stub({ objectType: 'line', sourceAnchor: { objectId: 'B', anchorPosition: 'right' as const }, targetAnchor: { objectId: 'A', anchorPosition: 'left' as const } })],
+      ['A', stub({ objectType: 'architecture-block' })],
+      ['B', stub({ objectType: 'architecture-block' })],
     ]);
 
     const idx1 = computeParallelIndex('line1', 'A', 'B', objects);

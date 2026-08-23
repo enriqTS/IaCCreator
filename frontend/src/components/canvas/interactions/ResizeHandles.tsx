@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas } from '@/utils/viewport';
 import { findSnapAnchor, getAnchorPoints, findNearestAnchorPosition } from '@/utils/anchor';
@@ -265,7 +265,8 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
   const inverseScale = 1 / viewport.scale;
   const CIRCLE_SIZE_CANVAS = 10 * inverseScale;
 
-  const handleMouseDown = (endpoint: 'start' | 'end') => (e: React.MouseEvent) => {
+  const handleMouseDown = useCallback(
+    (endpoint: 'start' | 'end') => (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
 
@@ -328,7 +329,9 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
 
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
-  };
+    },
+    [object, viewport, updateLineEndpoint],
+  );
 
   return (
     <>

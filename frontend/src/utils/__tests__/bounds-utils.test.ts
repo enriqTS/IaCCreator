@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getShapeTightBounds } from '@/utils/bounds-utils';
+import type { GeometricShape } from '@/types/diagram';
 
 describe('getShapeTightBounds', () => {
   describe('circle/ellipse shapes', () => {
@@ -98,7 +99,7 @@ describe('getShapeTightBounds', () => {
   describe('fallback behavior', () => {
     it('returns rectangle bounds for an unknown shape', () => {
       // Cast to test fallback with a shape not in registry
-      const result = getShapeTightBounds('nonexistent-shape' as any, 100, 60, 4);
+      const result = getShapeTightBounds('nonexistent-shape' as GeometricShape, 100, 60, 4);
       expect(result).toEqual({ x: -2, y: -2, width: 104, height: 64 });
     });
   });

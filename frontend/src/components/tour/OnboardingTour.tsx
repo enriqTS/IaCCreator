@@ -14,7 +14,7 @@
  * dialog version (with screenshots), see the comments in data/tour-pages.ts.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -118,8 +118,12 @@ function StepTooltip({ step, stepIndex, totalSteps, isFirst, isLast, onNext, onP
     setPosition(clamped);
   }, [step]);
 
-  useEffect(() => {
-    // Compute position immediately on mount
+  // The tooltip is placed from the target's measured rect, so it must run after mount
+  // but before paint; a layout effect avoids the visible second render an effect causes.
+  useLayoutEffect(() => {
+    // The position comes from the target's measured rect, which only exists once mounted,
+    // so there is no render-time value to derive. A layout effect runs before paint.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     updatePosition();
     window.addEventListener('resize', updatePosition);
     return () => window.removeEventListener('resize', updatePosition);
