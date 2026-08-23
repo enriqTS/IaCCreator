@@ -86,10 +86,10 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
   const [generalCollapsed, setGeneralCollapsed] = useState(false);
 
   const schemas = getSchemas();
-  const entries = schemas[serviceType] ?? [];
+  const entries = useMemo(() => schemas[serviceType] ?? [], [schemas, serviceType]);
 
   const block = canvasObject?.objectType === 'architecture-block' ? canvasObject : null;
-  const config = block?.config ?? ({} as ResourceConfig);
+  const config = useMemo(() => block?.config ?? ({} as ResourceConfig), [block?.config]);
 
   const groups = useMemo(() => {
     const map = new Map<string, TerraformVariableSchema[]>();

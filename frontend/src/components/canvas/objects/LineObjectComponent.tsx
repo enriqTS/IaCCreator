@@ -104,7 +104,7 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   const effectiveLabel = line.customLabel ?? connectionLabel;
 
   // Label position with offset support
-  const labelOffset = line.labelOffset ?? { x: 0, y: 0 };
+  const labelOffset = useMemo(() => line.labelOffset ?? { x: 0, y: 0 }, [line.labelOffset]);
 
   // Label editing state
   const [isEditingLabel, setIsEditingLabel] = useState(false);
