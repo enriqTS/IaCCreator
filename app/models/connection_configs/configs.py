@@ -7,8 +7,13 @@ from typing import Any
 from pydantic import Field
 
 from app.models.connection_configs._base import BaseConnectionConfig
-from app.models.connection_configs._metadata import ConnectionField, LinkedEntry
+from app.models.connection_configs._metadata import (
+    ConnectionField,
+    LinkedEntry,
+    LinkedEntryField,
+)
 from app.models.input_models._metadata import OptionEntry, ValidationRule
+from app.models.input_models.api_gateway_route import HTTP_METHODS
 
 _ACCESS_PATTERN_VALIDATION = ValidationRule(allowed_values=["read", "write", "full"])
 
@@ -49,6 +54,16 @@ class ApiGatewayRouteHandlerConfig(BaseConnectionConfig):
             },
             target_name_key="integration_name",
             target_id_key="integration_id",
+            entry_fields=[
+                LinkedEntryField(
+                    key="methods",
+                    label="Methods",
+                    type="multiSelect",
+                    default=["ANY"],
+                    options=[OptionEntry(value=m, label=m) for m in HTTP_METHODS],
+                    exclusive_options=["ANY"],
+                )
+            ],
         ),
     )
     integration_type: str = ConnectionField(
