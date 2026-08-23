@@ -69,20 +69,10 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
     };
   }, [elementId]);
 
-  // Set initial active tab
-  useEffect(() => {
-    if (tabs.length > 0 && !tabs.includes(activeTab)) {
-      setActiveTab(tabs[0]);
-    }
-  }, [tabs, activeTab]);
-
-  // When protocol changes and current tab is unavailable, switch to first tab
-  // Also close the detail panel since the context has changed
+  // An unavailable tab falls back during render via effectiveTab, so no effect resets it
+  // Changing protocol changes the context, so the open detail panel no longer applies
   useEffect(() => {
     selectItem(null, null);
-    if (activeTab && !tabs.includes(activeTab)) {
-      setActiveTab(tabs[0]);
-    }
   }, [protocolType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close detail panel when switching tabs
@@ -103,6 +93,7 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
           title: `Route: ${route.methods.join(', ')} ${route.path}`,
           content: (
             <RouteDetailFields
+              key={route.id}
               route={route}
               onUpdate={(updates) => updateRoute(selectedItemId, updates)}
             />
@@ -116,6 +107,7 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
           title: `Stage: ${stage.name}`,
           content: (
             <StageDetailFields
+              key={stage.id}
               stage={stage}
               onUpdate={(updates) => updateStage(selectedItemId, updates)}
             />
@@ -129,6 +121,7 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
           title: `Authorizer: ${authorizer.name}`,
           content: (
             <AuthorizerDetailFields
+              key={authorizer.id}
               authorizer={authorizer}
               onUpdate={(updates) => updateAuthorizer(selectedItemId, updates)}
             />
@@ -142,6 +135,7 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
           title: `API Key: ${apiKey.name || '(unnamed)'}`,
           content: (
             <ApiKeyDetailFields
+              key={apiKey.id}
               apiKey={apiKey}
               onUpdate={(updates) => updateApiKey(selectedItemId, updates)}
             />
@@ -155,6 +149,7 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
           title: `WebSocket Route: ${wsRoute.route_key || '(empty)'}`,
           content: (
             <WebSocketRouteDetailFields
+              key={wsRoute.id}
               route={wsRoute}
               onUpdate={(updates) => updateWebSocketRoute(selectedItemId, updates)}
             />

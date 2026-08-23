@@ -14,6 +14,7 @@ interface StageDetailFieldsProps {
 
 const MAX_STAGE_VARIABLES = 50;
 
+// Selection changes remount this via a key, so drafts reset without an effect
 export default function StageDetailFields({ stage, onUpdate }: StageDetailFieldsProps) {
   // Debounced text states
   const [nameValue, setNameValue] = useState(stage.name);
@@ -25,29 +26,6 @@ export default function StageDetailFields({ stage, onUpdate }: StageDetailFields
   // Validation errors
   const [burstError, setBurstError] = useState('');
   const [rateError, setRateError] = useState('');
-
-  // Sync local state when stage prop changes
-  useEffect(() => {
-    setNameValue(stage.name);
-  }, [stage.id, stage.name]);
-
-  useEffect(() => {
-    setBurstLimitValue(String(stage.throttling_burst_limit));
-    setBurstError('');
-  }, [stage.id, stage.throttling_burst_limit]);
-
-  useEffect(() => {
-    setRateLimitValue(String(stage.throttling_rate_limit));
-    setRateError('');
-  }, [stage.id, stage.throttling_rate_limit]);
-
-  useEffect(() => {
-    setLogRetentionValue(String(stage.log_retention_days ?? ''));
-  }, [stage.id, stage.log_retention_days]);
-
-  useEffect(() => {
-    setLogFormatValue(stage.log_format ?? '');
-  }, [stage.id, stage.log_format]);
 
   // Debounce name
   useEffect(() => {

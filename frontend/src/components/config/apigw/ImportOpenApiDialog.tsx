@@ -57,20 +57,7 @@ export function ImportOpenApiDialog({ open, onOpenChange }: ImportOpenApiDialogP
 
   const hasExistingRoutes = routes.length > 0;
 
-  // Reset state when dialog opens/closes
-  React.useEffect(() => {
-    if (!open) {
-      setState('idle');
-      setErrorMessage('');
-      setPasteContent('');
-      setMapResult(null);
-      setSelectedServerUrl(undefined);
-      setStrategy('replace');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  }, [open]);
+  // Closing remounts this via a key, so every open starts from a clean state
 
   // -------------------------------------------------------------------------
   // Parse logic

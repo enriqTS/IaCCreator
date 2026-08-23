@@ -11,24 +11,12 @@ interface ApiKeyDetailFieldsProps {
   onUpdate: (updates: Partial<ApiKeyItem>) => void;
 }
 
+// Selection changes remount this via a key, so drafts reset without an effect
 export default function ApiKeyDetailFields({ apiKey, onUpdate }: ApiKeyDetailFieldsProps) {
   // Debounced text states
   const [nameValue, setNameValue] = useState(apiKey.name);
   const [descriptionValue, setDescriptionValue] = useState(apiKey.description ?? '');
   const [valueValue, setValueValue] = useState(apiKey.value ?? '');
-
-  // Sync local state when apiKey prop changes
-  useEffect(() => {
-    setNameValue(apiKey.name);
-  }, [apiKey.id, apiKey.name]);
-
-  useEffect(() => {
-    setDescriptionValue(apiKey.description ?? '');
-  }, [apiKey.id, apiKey.description]);
-
-  useEffect(() => {
-    setValueValue(apiKey.value ?? '');
-  }, [apiKey.id, apiKey.value]);
 
   // Debounce name input
   useEffect(() => {

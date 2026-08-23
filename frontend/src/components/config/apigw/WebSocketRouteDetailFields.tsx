@@ -11,14 +11,10 @@ interface WebSocketRouteDetailFieldsProps {
   onUpdate: (updates: Partial<WebSocketRouteItem>) => void;
 }
 
+// Selection changes remount this via a key, so drafts reset without an effect
 export default function WebSocketRouteDetailFields({ route, onUpdate }: WebSocketRouteDetailFieldsProps) {
   // Debounced route_key state
   const [routeKeyValue, setRouteKeyValue] = useState(route.route_key);
-
-  // Sync local state when route prop changes
-  useEffect(() => {
-    setRouteKeyValue(route.route_key);
-  }, [route.id, route.route_key]);
 
   // Debounce route_key
   useEffect(() => {

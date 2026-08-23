@@ -21,29 +21,13 @@ interface AuthorizerDetailFieldsProps {
 const AUTHORIZER_TYPES = ['JWT', 'REQUEST', 'COGNITO_USER_POOLS'] as const;
 const PAYLOAD_FORMAT_VERSIONS = ['1.0', '2.0'] as const;
 
+// Selection changes remount this via a key, so drafts reset without an effect
 export default function AuthorizerDetailFields({ authorizer, onUpdate }: AuthorizerDetailFieldsProps) {
   // Debounced text states
   const [nameValue, setNameValue] = useState(authorizer.name);
   const [issuerUrlValue, setIssuerUrlValue] = useState(authorizer.issuer_url ?? '');
   const [lambdaArnValue, setLambdaArnValue] = useState(authorizer.lambda_function_arn ?? '');
   const [cognitoEndpointValue, setCognitoEndpointValue] = useState(authorizer.cognito_endpoint ?? '');
-
-  // Sync local state when authorizer prop changes
-  useEffect(() => {
-    setNameValue(authorizer.name);
-  }, [authorizer.id, authorizer.name]);
-
-  useEffect(() => {
-    setIssuerUrlValue(authorizer.issuer_url ?? '');
-  }, [authorizer.id, authorizer.issuer_url]);
-
-  useEffect(() => {
-    setLambdaArnValue(authorizer.lambda_function_arn ?? '');
-  }, [authorizer.id, authorizer.lambda_function_arn]);
-
-  useEffect(() => {
-    setCognitoEndpointValue(authorizer.cognito_endpoint ?? '');
-  }, [authorizer.id, authorizer.cognito_endpoint]);
 
   // Debounce name
   useEffect(() => {
