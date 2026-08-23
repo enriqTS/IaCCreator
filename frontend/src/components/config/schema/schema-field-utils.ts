@@ -63,3 +63,28 @@ export function validateField(
 
   return null;
 }
+
+/**
+ * Toggles one value in a multi-select, honouring values that cannot be combined
+ * with any other. Returns the new selection ordered by the given option list.
+ */
+export function toggleExclusiveSelection(
+  selected: readonly string[],
+  toggled: string,
+  exclusive: readonly string[],
+  optionOrder: readonly string[],
+): string[] {
+  const next = new Set(selected);
+
+  if (next.has(toggled)) {
+    next.delete(toggled);
+  } else if (exclusive.includes(toggled)) {
+    next.clear();
+    next.add(toggled);
+  } else {
+    for (const value of exclusive) next.delete(value);
+    next.add(toggled);
+  }
+
+  return optionOrder.filter((value) => next.has(value));
+}

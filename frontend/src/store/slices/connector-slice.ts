@@ -33,6 +33,14 @@ export interface ConnectorSlice {
     removedValue: string,
     connectorConfigKey: string,
   ) => void;
+  updateLinkedEntry: (
+    blockId: string,
+    configPath: string,
+    displayKey: string,
+    entryValue: string,
+    fieldKey: string,
+    fieldValue: unknown,
+  ) => void;
 }
 
 export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorSlice> = (set, get) => ({
@@ -195,6 +203,36 @@ export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorS
         });
 
         return { canvasObjects: nextCanvasObjects, connectors: nextConnectors };
+      });
+    },
+
+    updateLinkedEntry: (
+      blockId: string,
+      configPath: string,
+      displayKey: string,
+      entryValue: string,
+      fieldKey: string,
+      fieldValue: unknown,
+    ): void => {
+      const block = get().canvasObjects.get(blockId);
+      if (!block || block.objectType !== 'architecture-block') return;
+
+      get().pushHistory();
+
+      set((state) => {
+        const currentBlock = state.canvasObjects.get(blockId) as ArchitectureBlock;
+        const existingArray = (currentBlock.config[configPath as keyof ResourceConfig] as unknown as Record<string, unknown>[] | undefined) ?? [];
+        const updatedArray = existingArray.map((entry) =>
+          entry[displayKey] === entryValue ? { ...entry, [fieldKey]: fieldValue } : entry
+        );
+        const updatedBlock: ArchitectureBlock = {
+          ...currentBlock,
+          config: { ...currentBlock.config, [configPath]: updatedArray },
+        };
+
+        const nextCanvasObjects = new Map(state.canvasObjects);
+        nextCanvasObjects.set(blockId, updatedBlock);
+        return { canvasObjects: nextCanvasObjects };
       });
     },
 
