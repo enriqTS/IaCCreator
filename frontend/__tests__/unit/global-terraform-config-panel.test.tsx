@@ -200,7 +200,7 @@ describe('GlobalTerraformConfigPanel', () => {
   });
 
   it('renders in single-column layout when panelWidth is below threshold', () => {
-    const { container } = render(<GlobalTerraformConfigPanel panelWidth={SIDEBAR_RESPONSIVE_THRESHOLD - 1} />);
+    render(<GlobalTerraformConfigPanel panelWidth={SIDEBAR_RESPONSIVE_THRESHOLD - 1} />);
     // The config-sections-container should exist
     expect(screen.getByTestId('config-sections-container')).toBeDefined();
   });

@@ -4,7 +4,6 @@ import { smartSearch } from '@/components/toolbar/ObjectPickerMenu';
 import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
 import ObjectPickerMenu from '@/components/toolbar/ObjectPickerMenu';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
-import { useDiagramStore } from '@/store/diagram-store';
 
 // Requirements: 2.2, 2.5, 3.6, 1.4, 1.6
 

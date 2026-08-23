@@ -90,8 +90,6 @@ describe('Segment drag updates waypoints to reflect new position', () => {
           // Horizontal segment dragged vertically: new y = original y + delta
           const expectedY = origP1.y + delta;
           // Find a point in the new waypoints that has the expected y and matching x values
-          // The waypoints are path[1..n-2], so the segment index in waypoints is seg.index - 1
-          seg.index - 1;
           // After collapse, the waypoint might have been merged, but the segment should still exist
           // if the delta is non-zero and doesn't create a zero-length segment with neighbors
           // Check that the full path contains the expected segment position

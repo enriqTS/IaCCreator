@@ -92,41 +92,19 @@ describe('Segment drag constraint is perpendicular to segment orientation', () =
 
         for (const seg of segments) {
           const newWaypoints = computeNewWaypoints(path, seg.index, seg.orientation, delta);
-          // Reconstruct full path: start + waypoints + end
-          [path[0], ...newWaypoints, path[path.length - 1]];
+          const fullPath = [path[0], ...newWaypoints, path[path.length - 1]];
 
-          // The original segment endpoints
-          const origP1 = path[seg.index];
-          const origP2 = path[seg.index + 1];
-
+          // Dragging along one axis must not invent a coordinate on the other one
           if (seg.orientation === 'horizontal') {
-            // Horizontal segment dragged vertically: x unchanged, y shifted by delta
-            // Find the corresponding points in the new path by checking the segment index
-            // Since waypoints = path[1..n-2], the segment at index `seg.index` in the original
-            // maps to newPath[seg.index] in the reconstructed path (if no collapse happened)
-            // We verify the constraint by checking the original path points that were updated
-            const updatedFull = path.map((p) => ({ ...p }));
-            updatedFull[seg.index] = { x: origP1.x, y: origP1.y + delta };
-            updatedFull[seg.index + 1] = { x: origP2.x, y: origP2.y + delta };
-
-            // x coordinates of the dragged segment should be unchanged
-            expect(updatedFull[seg.index].x).toBe(origP1.x);
-            expect(updatedFull[seg.index + 1].x).toBe(origP2.x);
-            // y coordinates should have shifted by delta
-            expect(updatedFull[seg.index].y).toBe(origP1.y + delta);
-            expect(updatedFull[seg.index + 1].y).toBe(origP2.y + delta);
+            const originalXs = new Set(path.map((p) => p.x));
+            for (const point of fullPath) {
+              expect(originalXs.has(point.x)).toBe(true);
+            }
           } else {
-            // Vertical segment dragged horizontally: y unchanged, x shifted by delta
-            const updatedFull = path.map((p) => ({ ...p }));
-            updatedFull[seg.index] = { x: origP1.x + delta, y: origP1.y };
-            updatedFull[seg.index + 1] = { x: origP2.x + delta, y: origP2.y };
-
-            // y coordinates of the dragged segment should be unchanged
-            expect(updatedFull[seg.index].y).toBe(origP1.y);
-            expect(updatedFull[seg.index + 1].y).toBe(origP2.y);
-            // x coordinates should have shifted by delta
-            expect(updatedFull[seg.index].x).toBe(origP1.x + delta);
-            expect(updatedFull[seg.index + 1].x).toBe(origP2.x + delta);
+            const originalYs = new Set(path.map((p) => p.y));
+            for (const point of fullPath) {
+              expect(originalYs.has(point.y)).toBe(true);
+            }
           }
         }
       }),

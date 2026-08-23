@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ElementLayer from '@/components/canvas/ElementLayer';
 import { useDiagramStore } from '@/store/diagram-store';
-import type { CanvasObject, ArchitectureBlock, GeometricObject, LineObject } from '@/types/diagram';
+import type { CanvasObject, ArchitectureBlock, GeometricObject } from '@/types/diagram';
 
 function makeBlock(id: string, zIndex: number): ArchitectureBlock {
   return {
@@ -28,24 +28,6 @@ function makeGeo(id: string, zIndex: number): GeometricObject {
       width: 120, height: 80, fill: false,
       fillColor: '#3b82f6', borderColor: '#ffffff',
       borderWidth: 2, shape: 'rectangle',
-    },
-    zIndex,
-  };
-}
-
-function makeLine(id: string, zIndex: number): LineObject {
-  return {
-    id,
-    objectType: 'line',
-    name: `line-${id}`,
-    start: { x: 0, y: 0 },
-    end: { x: 100, y: 100 },
-    sourceAnchor: null,
-    targetAnchor: null,
-    visualConfig: {
-      color: '#ffffff', borderWidth: 2,
-      strokeStyle: 'solid', startArrow: false, endArrow: false,
-      routingMode: 'orthogonal',
     },
     zIndex,
   };

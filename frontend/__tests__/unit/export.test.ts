@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { exportToTerraform, type ExportResult } from '@/utils/export';
+import { exportToTerraform } from '@/utils/export';
 import type { ArchitectureBlock, CanvasObject } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
 import type { ArchitectureDescription } from '@/types/serialization';

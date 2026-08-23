@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
-import type { ArchitectureBlock } from '@/types/diagram';
 import type { DiagramState } from '@/types/serialization';
 
 function resetStore() {

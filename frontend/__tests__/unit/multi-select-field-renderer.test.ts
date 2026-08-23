@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import type { SchemaField } from '@/connections';
 
 /**
  * Tests for MultiSelectFieldRenderer logic.
