@@ -11,7 +11,7 @@ import type { AnchorPosition } from '@/utils/anchor';
 import { inferAnchorPosition, routeOrthogonalConnector, collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing';
 import { getConnectionBounds, computeShapeEdgePoint } from '@/utils/bounds-utils';
 import { getObjectBounds } from '@/types/diagram';
-import type { LineObject, Point, CanvasObject } from '@/types/diagram';
+import type { LineObject, Point, CanvasObject, GeometricObject } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
 import { snapPointToGrid } from '@/utils/snap';
 import { computeParallelIndex, applyParallelOffset } from '@/utils/parallel-offset';
@@ -24,7 +24,7 @@ interface LineObjectComponentProps {
 
 const RECTANGULAR_SHAPES = new Set(['rectangle', 'rounded-rectangle', 'process']);
 
-function needsRayIntersection(obj: CanvasObject): boolean {
+function needsRayIntersection(obj: CanvasObject): obj is GeometricObject {
   return obj.objectType === 'geometric' && !RECTANGULAR_SHAPES.has(obj.visualConfig.shape);
 }
 
