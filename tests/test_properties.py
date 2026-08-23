@@ -149,11 +149,18 @@ from app.models.ir_models import ResourceInstanceIR
 
 _resource_name_st = st.from_regex(r"[a-z][a-z0-9\-]{0,14}", fullmatch=True)
 
+
+def _option_values(config_cls, field: str) -> list[str]:
+    """Read a field's offered values from the model, so strategies cannot drift from it."""
+    entry = next(e for e in config_cls.get_variable_schema() if e.name == field)
+    return [str(option.value) for option in entry.options or []]
+
+
 _lambda_config_st = st.builds(
     LambdaConfig,
     function_name=st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True),
     handler=st.just("index.handler"),
-    runtime=st.sampled_from(["python3.12", "python3.11", "nodejs18.x", "nodejs20.x"]),
+    runtime=st.sampled_from(_option_values(LambdaConfig, "runtime")),
     memory_size=st.one_of(st.none(), st.integers(min_value=128, max_value=3008)),
     timeout=st.one_of(st.none(), st.integers(min_value=1, max_value=900)),
     is_layer=st.booleans(),
