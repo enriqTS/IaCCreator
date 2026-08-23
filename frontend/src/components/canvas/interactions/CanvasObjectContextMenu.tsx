@@ -25,6 +25,25 @@ interface CanvasObjectContextMenuProps {
   onRename?: (objectId: string) => void;
 }
 
+const itemClass = 'flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm cursor-default select-none hover:bg-accent hover:text-accent-foreground outline-none';
+const destructiveClass = 'flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm cursor-default select-none text-destructive hover:bg-destructive/10 hover:text-destructive outline-none';
+const disabledClass = 'opacity-50 pointer-events-none';
+const separatorClass = '-mx-1 my-1 h-px bg-border';
+
+// Declared at module scope so it is not recreated, and remounted, on every render
+function Item({ onClick, children, disabled, destructive }: { onClick: () => void; children: React.ReactNode; disabled?: boolean; destructive?: boolean }) {
+  return (
+    <div
+      role="menuitem"
+      tabIndex={-1}
+      className={`${destructive ? destructiveClass : itemClass} ${disabled ? disabledClass : ''}`}
+      onClick={disabled ? undefined : onClick}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function CanvasObjectContextMenu({ menu, onClose, onRename }: CanvasObjectContextMenuProps) {
   const bringToFront = useDiagramStore((s) => s.bringToFront);
   const sendToBack = useDiagramStore((s) => s.sendToBack);
@@ -72,24 +91,6 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
-
-  const itemClass = 'flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm cursor-default select-none hover:bg-accent hover:text-accent-foreground outline-none';
-  const destructiveClass = 'flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm cursor-default select-none text-destructive hover:bg-destructive/10 hover:text-destructive outline-none';
-  const disabledClass = 'opacity-50 pointer-events-none';
-  const separatorClass = '-mx-1 my-1 h-px bg-border';
-
-  function Item({ onClick, children, disabled, destructive }: { onClick: () => void; children: React.ReactNode; disabled?: boolean; destructive?: boolean }) {
-    return (
-      <div
-        role="menuitem"
-        tabIndex={-1}
-        className={`${destructive ? destructiveClass : itemClass} ${disabled ? disabledClass : ''}`}
-        onClick={disabled ? undefined : onClick}
-      >
-        {children}
-      </div>
-    );
-  }
 
   return (
     <div
