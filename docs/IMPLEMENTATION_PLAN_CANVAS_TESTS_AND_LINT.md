@@ -6,13 +6,13 @@ Two independent items left over after the hook-rules refactor:
 
 1. **Canvas interaction behaviour has no test coverage**, including code that
    refactor changed. This is the one with real risk.
-2. **18 ESLint warnings** remain. None affect correctness; three are debris left
-   by a script from the previous session.
+2. **7 ESLint warnings** remain, all needing a judgement call rather than a
+   deletion. The 11 mechanical ones have since been cleared.
 
 Neither blocks anything. Item 1 should be done first, because it protects work
 already shipped.
 
-Current state at the time of writing: 0 TypeScript errors, 0 ESLint errors,
+Current state: 0 TypeScript errors, 0 ESLint errors, 7 ESLint warnings,
 806 backend tests and 1283 frontend tests passing.
 
 ---
@@ -123,47 +123,19 @@ also needs `Element.prototype.scrollIntoView` stubbed; see
 
 ---
 
-## Part 2: The Remaining 18 Warnings
+## Part 2: The Remaining 7 Warnings
 
 Run `corepack pnpm eslint src __tests__` from `frontend/` to see the current list.
 
-### 8 × `@typescript-eslint/no-unused-vars` — dead test bindings
+### Done — 11 mechanical warnings cleared
 
-Straight deletions. A pruning script in the previous session patched 17 of 24
-files and left these:
-
-| File | Line | Binding |
-| --- | --- | --- |
-| `__tests__/unit/diagram-store.test.ts` | 3 | `ArchitectureBlock` |
-| `__tests__/unit/element-layer.test.tsx` | 36 | `makeLine` |
-| `__tests__/unit/export.test.ts` | 2 | `ExportResult` |
-| `__tests__/unit/fixed-connection-routing.test.ts` | 5 | `DEFAULT_LINE_VISUAL` |
-| `__tests__/unit/global-terraform-config-panel.test.tsx` | 203 | `container` |
-| `__tests__/unit/multi-select-field-renderer.test.ts` | 2 | `SchemaField` |
-| `__tests__/unit/object-picker-menu.test.tsx` | 7 | `useDiagramStore` |
-| `__tests__/unit/placement-preview.test.tsx` | 3 | `createRef` |
-
-Delete the import specifier or the binding. Where the right-hand side is a call
-with side effects, keep the call and drop only the binding. The ESLint config
-ignores anything matching `^_`, so a binding that genuinely must stay can be
-renamed instead.
-
-### 3 × `@typescript-eslint/no-unused-expressions` — debris to delete
-
-These are **not** pre-existing. The previous session's pruning script rewrote
-`const x = <expression>;` into a bare `<expression>;` on lines whose right-hand
-side had no side effects, leaving three dead statements:
-
-| File | Line | Left behind |
-| --- | --- | --- |
-| `__tests__/properties/segment-drag-constraint.test.ts` | 96 | `[path[0], ...newWaypoints, path[path.length - 1]];` |
-| `__tests__/properties/segment-drag-waypoints.test.ts` | 94 | `seg.index - 1;` |
-| `__tests__/properties/viewport-transform.test.ts` | 13 | `1e-6;` |
-
-Delete the statements outright. They compute nothing and are read by nothing.
-Check the surrounding test still asserts what its name claims — if a test lost
-its subject when the binding was pruned, restore the binding and use it rather
-than deleting the line.
+The 8 dead test bindings and the 3 bare-expression statements have been removed.
+Deleting one of those statements exposed that
+`__tests__/properties/segment-drag-constraint.test.ts` was tautological: it built
+its expected path by hand and asserted the values it had just written, never
+reading `computeNewWaypoints`'s output. It now asserts the property its name
+claims — that dragging along one axis introduces no new coordinate on the other —
+and was mutation-tested against a deliberately broken `computeNewWaypoints`.
 
 ### 5 × `react-hooks/exhaustive-deps` — unstable dependencies
 
