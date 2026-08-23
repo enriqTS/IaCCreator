@@ -36,6 +36,10 @@ class BaseServiceConfig(BaseModel):
     # position to match the order the editor renders them in.
     _schema_field_order: ClassVar[tuple[str, ...] | None] = None
 
+    def validate_for_generation(self) -> None:
+        """Check rules spanning several fields; raise ValueError to reject the config."""
+        return
+
     @classmethod
     def get_variable_schema(cls) -> list[VariableSchemaEntry]:
         """Introspect this model's fields and return Terraform variable schema entries.

@@ -1,5 +1,6 @@
 """EventBridge-specific configuration model."""
 
+import re
 from typing import ClassVar, Literal
 
 from app.models.input_models._base import BaseServiceConfig
@@ -61,3 +62,19 @@ class EventBridgeConfig(BaseServiceConfig):
         ],
         validation=ValidationRule(allowed_values=["ENABLED", "DISABLED"]),
     )
+
+    # AWS accepts only rate(...) and cron(...) schedules
+    _SCHEDULE: ClassVar[re.Pattern] = re.compile(r"^(rate|cron)\(.+\)$")
+
+    def validate_for_generation(self) -> None:
+        """A rule with neither a pattern nor a schedule cannot be created by AWS."""
+        if not self.event_pattern and not self.schedule_expression:
+            raise ValueError(
+                "an EventBridge rule needs either event_pattern or schedule_expression"
+            )
+        if self.schedule_expression and not self._SCHEDULE.match(
+            self.schedule_expression
+        ):
+            raise ValueError(
+                "schedule_expression must look like rate(5 minutes) or cron(0 12 * * ? *)"
+            )

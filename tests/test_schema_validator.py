@@ -89,6 +89,25 @@ def invalid_value_for_rule(draw, rule):
 # ---------------------------------------------------------------------------
 
 
+# Fields a service needs before its own schema validation is the thing under test
+_REQUIRED_FIELDS: dict[ServiceType, dict] = {
+    ServiceType.LAMBDA: {"function_name": "test-func"},
+    ServiceType.DYNAMODB: {
+        "table_name": "test-table",
+        "hash_key": "pk",
+        "hash_key_type": "S",
+    },
+    ServiceType.API_GATEWAY: {"api_name": "test-api", "protocol_type": "HTTP"},
+    ServiceType.EVENTBRIDGE: {"event_pattern": '{"source": ["aws.s3"]}'},
+}
+
+
+def _apply_required_fields(stype: ServiceType, config_kwargs: dict) -> None:
+    """Fill in what a service needs so an unrelated rule does not fire first."""
+    for key, value in _REQUIRED_FIELDS.get(stype, {}).items():
+        config_kwargs.setdefault(key, value)
+
+
 @given(data=st.data())
 @settings(max_examples=100)
 def test_backend_rejects_invalid_values(data):
@@ -110,16 +129,7 @@ def test_backend_rejects_invalid_values(data):
         # Set the discriminating field so the variable IS visible (and thus validated)
         config_kwargs[visible_when.field] = visible_when.equals
 
-    # Provide required fields for services that need them
-    if stype == ServiceType.LAMBDA:
-        config_kwargs.setdefault("function_name", "test-func")
-    if stype == ServiceType.DYNAMODB:
-        config_kwargs.setdefault("table_name", "test-table")
-        config_kwargs.setdefault("hash_key", "pk")
-        config_kwargs.setdefault("hash_key_type", "S")
-    if stype == ServiceType.API_GATEWAY:
-        config_kwargs.setdefault("api_name", "test-api")
-        config_kwargs.setdefault("protocol_type", "HTTP")
+    _apply_required_fields(stype, config_kwargs)
 
     config = config_cls(**config_kwargs)
 
@@ -163,16 +173,7 @@ def test_valid_values_do_not_raise(data):
     if visible_when is not None:
         config_kwargs[visible_when.field] = visible_when.equals
 
-    # Provide required fields for services that need them
-    if stype == ServiceType.LAMBDA:
-        config_kwargs.setdefault("function_name", "test-func")
-    if stype == ServiceType.DYNAMODB:
-        config_kwargs.setdefault("table_name", "test-table")
-        config_kwargs.setdefault("hash_key", "pk")
-        config_kwargs.setdefault("hash_key_type", "S")
-    if stype == ServiceType.API_GATEWAY:
-        config_kwargs.setdefault("api_name", "test-api")
-        config_kwargs.setdefault("protocol_type", "HTTP")
+    _apply_required_fields(stype, config_kwargs)
 
     config = config_cls(**config_kwargs)
 

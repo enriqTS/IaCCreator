@@ -19,6 +19,14 @@ def validate_config_against_schema(
     conditions, and checks validation rules.
     Raises HTTPException(422) on the first constraint violation.
     """
+    try:
+        config.validate_for_generation()
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid {service_type.value} configuration: {exc}",
+        ) from exc
+
     entries = type(config).get_variable_schema()
 
     for entry in entries:

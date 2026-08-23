@@ -3,8 +3,11 @@
 import json
 
 import pytest
+from fastapi import HTTPException
 
+from app.generators.schema_validator import validate_config_against_schema
 from app.models.input_models import ArchitectureDescription, ServiceType
+from app.models.input_models.eventbridge_config import EventBridgeConfig
 from app.services.code_generator import CodeGenerator
 from app.services.connection_handlers.registry import CONNECTION_REGISTRY, resolve_spec
 from app.services.ir_builder import IRBuilder
@@ -187,3 +190,30 @@ class TestStreamsAreEnabledByTheConnection:
             {"stream_view_type": "KEYS_ONLY"},
         )
         assert "NEW_IMAGE" in self._variable_default(tree, "stream_view_type")
+
+
+class TestEventBridgeRuleNeedsATrigger:
+    """A rule with neither a pattern nor a schedule is rejected by terraform and AWS."""
+
+    @staticmethod
+    def _validate(**config) -> None:
+        validate_config_against_schema(
+            ServiceType.EVENTBRIDGE, EventBridgeConfig(rule_name="r", **config)
+        )
+
+    def test_a_rule_without_a_trigger_is_refused(self):
+        with pytest.raises(HTTPException) as exc:
+            self._validate()
+        assert exc.value.status_code == 422
+        assert "event_pattern or schedule_expression" in exc.value.detail
+
+    def test_an_event_pattern_is_enough(self):
+        self._validate(event_pattern='{"source": ["aws.s3"]}')
+
+    def test_a_schedule_is_enough(self):
+        self._validate(schedule_expression="rate(5 minutes)")
+
+    def test_a_malformed_schedule_is_refused(self):
+        with pytest.raises(HTTPException) as exc:
+            self._validate(schedule_expression="every 5 minutes")
+        assert exc.value.status_code == 422
