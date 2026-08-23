@@ -176,8 +176,9 @@ class TestStreamsAreEnabledByTheConnection:
 
     def test_table_that_never_opted_in_still_gets_a_stream(self):
         tree = self._tree({}, {})
-        assert "stream_enabled = var.stream_enabled" in (
-            tree["p/modules/database/dynamodb/orders/dynamodb.tf"]
+        assert (
+            "stream_enabled = var.stream_enabled"
+            in (tree["p/modules/database/dynamodb/orders/dynamodb.tf"])
         )
         assert "true" in self._variable_default(tree, "stream_enabled")
 

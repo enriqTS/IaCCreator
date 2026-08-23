@@ -93,7 +93,7 @@ describe('DiagramStore - saveDiagramToServer', () => {
   });
 
   it('sets isSaving during operation', async () => {
-    let resolveFn: (v: any) => void;
+    let resolveFn: (v: Awaited<ReturnType<typeof apiClient.saveDiagram>>) => void;
     vi.mocked(apiClient.saveDiagram).mockReturnValue(
       new Promise((resolve) => { resolveFn = resolve; }),
     );
@@ -144,7 +144,7 @@ describe('DiagramStore - updateDiagramOnServer', () => {
   });
 
   it('sets isSaving during operation', async () => {
-    let resolveFn: (v: any) => void;
+    let resolveFn: (v: Awaited<ReturnType<typeof apiClient.updateDiagram>>) => void;
     vi.mocked(apiClient.updateDiagram).mockReturnValue(
       new Promise((resolve) => { resolveFn = resolve; }),
     );
@@ -199,7 +199,7 @@ describe('DiagramStore - loadDiagramFromServer', () => {
   });
 
   it('sets isLoading during operation', async () => {
-    let resolveFn: (v: any) => void;
+    let resolveFn: (v: Awaited<ReturnType<typeof apiClient.loadDiagram>>) => void;
     vi.mocked(apiClient.loadDiagram).mockReturnValue(
       new Promise((resolve) => { resolveFn = resolve; }),
     );
@@ -248,7 +248,7 @@ describe('DiagramStore - listDiagramsFromServer', () => {
   });
 
   it('sets isLoading during operation', async () => {
-    let resolveFn: (v: any) => void;
+    let resolveFn: (v: Awaited<ReturnType<typeof apiClient.listDiagrams>>) => void;
     vi.mocked(apiClient.listDiagrams).mockReturnValue(
       new Promise((resolve) => { resolveFn = resolve; }),
     );

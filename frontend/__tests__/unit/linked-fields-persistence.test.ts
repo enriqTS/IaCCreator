@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
+import type { ArchitectureBlock } from '@/types/diagram';
 
 /**
  * Persistence tests for multiSelect and linkedSelect field values.
@@ -229,7 +230,7 @@ describe('Linked Fields Persistence - source block config.routes', () => {
 
     const restoredBlock = useDiagramStore.getState().canvasObjects.get(sourceId)!;
     // Routes round-trip exactly as configured; the store no longer rewrites them
-    expect((restoredBlock as any).config.routes).toEqual([
+    expect((restoredBlock as ArchitectureBlock).config.routes).toEqual([
       { methods: ['GET', 'POST'], path: '/items/{id}', integration_name: 'my-lambda' },
       { methods: ['ANY'], path: '/products', integration_name: 'products-fn' },
     ]);
@@ -297,7 +298,7 @@ describe('Linked Fields Persistence - source block config.routes', () => {
 
     // Verify block config routes restored with auto-integration fields
     const restoredBlock = useDiagramStore.getState().canvasObjects.get(sourceId)!;
-    expect((restoredBlock as any).config.routes).toEqual([
+    expect((restoredBlock as ArchitectureBlock).config.routes).toEqual([
       { methods: ['POST', 'PUT'], path: '/orders/{id}', integration_name: 'my-lambda' },
     ]);
 
@@ -352,7 +353,7 @@ describe('Linked Fields Persistence - source block config.routes', () => {
 
     const restoredBlock = useDiagramStore.getState().canvasObjects.get(sourceId)!;
     // Each entry round-trips exactly as it was created
-    expect((restoredBlock as any).config.routes).toEqual([
+    expect((restoredBlock as ArchitectureBlock).config.routes).toEqual([
       {
         methods: ['GET'],
         path: '/users',
@@ -383,14 +384,14 @@ describe('Linked Fields Persistence - Round-trip equivalence (Property 6)', () =
     });
 
     const originalConfig = { ...useDiagramStore.getState().connectors.get(connectorId)!.connectionConfig };
-    const originalRoutes = [...(useDiagramStore.getState().canvasObjects.get(sourceId) as any).config.routes];
+    const originalRoutes = [...((useDiagramStore.getState().canvasObjects.get(sourceId) as ArchitectureBlock).config.routes ?? [])];
 
     const serialized = useDiagramStore.getState().serializeDiagramState();
     resetStore();
     useDiagramStore.getState().loadDiagramState(serialized);
 
     const restoredConfig = useDiagramStore.getState().connectors.get(connectorId)!.connectionConfig;
-    const restoredRoutes = (useDiagramStore.getState().canvasObjects.get(sourceId) as any).config.routes;
+    const restoredRoutes = (useDiagramStore.getState().canvasObjects.get(sourceId) as ArchitectureBlock).config.routes;
 
     expect(restoredConfig).toEqual(originalConfig);
     expect(restoredRoutes).toEqual(originalRoutes);

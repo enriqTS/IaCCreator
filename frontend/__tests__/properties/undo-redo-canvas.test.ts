@@ -17,6 +17,7 @@ import {
   architectureBlockWithoutIdArbitrary,
   canvasObjectWithoutIdArbitrary,
 } from './arbitraries';
+import type { ArchitectureBlock } from '@/types/diagram';
 
 /** Helper: deep-compare two Maps by converting to sorted JSON */
 function mapsEqual<K, V>(a: Map<K, V>, b: Map<K, V>): boolean {
@@ -117,20 +118,20 @@ describe('Bug Condition Exploration: Canvas Object Undo/Redo Not Tracked', () =>
 
     // Capture state before mutation
     const objBefore = useDiagramStore.getState().canvasObjects.get(id)!;
-    const originalWidth = (objBefore as any).visualConfig.width;
+    const originalWidth = (objBefore as ArchitectureBlock).visualConfig.width;
     expect(originalWidth).toBe(80);
 
     // Perform mutation — change width to 200
     useDiagramStore.getState().updateVisualConfig(id, { width: 200 });
     const objAfterMutation = useDiagramStore.getState().canvasObjects.get(id)!;
-    expect((objAfterMutation as any).visualConfig.width).toBe(200);
+    expect((objAfterMutation as ArchitectureBlock).visualConfig.width).toBe(200);
 
     // Undo — should restore original width
     useDiagramStore.getState().undo();
 
     const objAfterUndo = useDiagramStore.getState().canvasObjects.get(id)!;
     expect(objAfterUndo).toBeDefined();
-    expect((objAfterUndo as any).visualConfig.width).toBe(80);
+    expect((objAfterUndo as ArchitectureBlock).visualConfig.width).toBe(80);
   });
 
   /**
