@@ -59,6 +59,7 @@ class BedrockKnowledgeBaseConfig(BaseServiceConfig):
                 value="cohere.embed-english-v3", label="Cohere Embed English v3"
             ),
         ],
+        open_options=True,
     )
 
     # ── Storage Configuration ─────────────────────────────────────────────

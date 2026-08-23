@@ -44,6 +44,7 @@ class SageMakerConfig(BaseServiceConfig):
             OptionEntry(value="ml.c5.large", label="ml.c5.large"),
             OptionEntry(value="ml.c5.xlarge", label="ml.c5.xlarge"),
         ],
+        open_options=True,
     )
     role_arn: str | None = TerraformField(
         None,

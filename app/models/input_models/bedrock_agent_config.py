@@ -55,6 +55,7 @@ class BedrockAgentConfig(BaseServiceConfig):
                 label="Meta Llama 3 8B Instruct",
             ),
         ],
+        open_options=True,
     )
     description: str | None = TerraformField(
         None,

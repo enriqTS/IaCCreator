@@ -88,6 +88,8 @@ def TerraformField(
     options: list[OptionEntry] | None = None,
     validation: ValidationRule | None = None,
     visible_when: VisibleWhen | None = None,
+    # Set where AWS keeps growing the catalogue, so the options stay suggestions
+    open_options: bool = False,
     # Pass-through Pydantic Field kwargs
     alias: str | None = None,
     title: str | None = None,
@@ -107,6 +109,14 @@ def TerraformField(
     The metadata is stored under `field.json_schema_extra[_TF_META_KEY]` and
     retrieved by `BaseServiceConfig.get_variable_schema()` to build schema entries.
     """
+    # A declared option list is the complete set of valid values unless said otherwise
+    if options and not open_options:
+        values = [option.value for option in options]
+        if validation is None:
+            validation = ValidationRule(allowed_values=values)
+        elif validation.allowed_values is None:
+            validation = validation.model_copy(update={"allowed_values": values})
+
     meta = TerraformMeta(
         group=group,
         tf_type=tf_type,
