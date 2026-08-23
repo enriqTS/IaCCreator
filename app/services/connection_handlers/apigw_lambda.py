@@ -7,6 +7,7 @@ values only ever flow Lambda → gateway and Terraform sees no dependency cycle.
 import re
 
 from app.generators.hcl_renderer import Expr
+from app.models.connection_previews import ConnectionIssue
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler, safe_identifier
 
@@ -29,6 +30,25 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
         if connection.connection_type == "authorizer":
             return self._handle_authorizer(connection)
         return self._handle_route_handler(connection)
+
+    def validate(
+        self, connection: ConnectionIR, project: ProjectIR
+    ) -> list[ConnectionIssue]:
+        """A route handler with no route deploys an integration nothing can reach."""
+        if connection.connection_type == "authorizer":
+            return []
+        if connection.connection_config.get("routes"):
+            return []
+        return [
+            ConnectionIssue(
+                severity="warning",
+                message=(
+                    f"No route on {connection.source_name} points at "
+                    f"{connection.target_name}, so the integration deploys but the "
+                    f"function can never be invoked."
+                ),
+            )
+        ]
 
     def _lambda_wiring(self, gateway: str, function: str) -> ConnectionContribution:
         """Outputs and inputs every role needs to reach the target Lambda."""

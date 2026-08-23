@@ -16,6 +16,7 @@ from app.models.connection_configs.schema_models import (
     ConnectionSchemaEntry,
     ConnectionSchemasResponse,
 )
+from app.models.connection_previews import ConnectionPreviewResponse
 from app.models.input_models import ArchitectureDescription
 from app.models.input_models._general import _get_cached_service_config_models
 from app.models.input_models._naming import (
@@ -33,6 +34,7 @@ from app.persistence.factory import get_repository
 from app.routers.diagrams import router as diagram_router
 from app.services.code_generator import CodeGenerator
 from app.services.connection_handlers.registry import CONNECTION_SPECS
+from app.services.connection_previewer import ConnectionPreviewer
 from app.services.ir_builder import IRBuilder
 from app.services.openapi.mapper import map_openapi
 from app.services.openapi.models import (
@@ -85,6 +87,7 @@ app.include_router(diagram_router)
 _ir_builder = IRBuilder()
 _code_gen = CodeGenerator()
 _serializer = OutputSerializer()
+_previewer = ConnectionPreviewer()
 
 
 def _build_summary(arch: ArchitectureDescription, file_tree: dict) -> GenerationSummary:
@@ -191,6 +194,15 @@ async def get_connection_schemas() -> ConnectionSchemasResponse:
             for spec in CONNECTION_SPECS
         ]
     )
+
+
+@app.post("/api/connections/preview", response_model=ConnectionPreviewResponse)
+async def preview_connections(
+    arch: ArchitectureDescription,
+) -> ConnectionPreviewResponse:
+    """Describe what every connection contributes, and what is wrong with it."""
+    project = _ir_builder.build(arch)
+    return ConnectionPreviewResponse(previews=_previewer.preview_all(project))
 
 
 @app.get("/api/variable-schemas", response_model=VariableSchemasResponse)

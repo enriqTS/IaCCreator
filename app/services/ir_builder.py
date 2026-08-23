@@ -178,6 +178,8 @@ class IRBuilder:
                 ConnectionIR(
                     source_name=source_resource.name,
                     target_name=target_resource.name,
+                    source_id=source_resource.id,
+                    target_id=target_resource.id,
                     source_service=source_resource.service_type,
                     target_service=target_resource.service_type,
                     connection_type=spec.connection_type,

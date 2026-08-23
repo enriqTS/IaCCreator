@@ -26,6 +26,9 @@ class ConnectionIR(BaseModel):
 
     source_name: str
     target_name: str
+    # Ids survive renames, so the editor matches a connection back by them
+    source_id: str | None = None
+    target_id: str | None = None
     source_service: ServiceType
     target_service: ServiceType
     connection_type: str

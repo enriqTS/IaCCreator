@@ -3,6 +3,7 @@
 from typing import Protocol
 
 from app.generators.hcl_renderer import HCLRenderer
+from app.models.connection_previews import ConnectionIssue
 from app.models.ir_models import (
     ConnectionContribution,
     ConnectionIR,
@@ -30,6 +31,12 @@ class ConnectionHandler(Protocol):
         """Return the module inputs, outputs, resources and IAM this connection adds."""
         ...
 
+    def validate(
+        self, connection: ConnectionIR, project: ProjectIR
+    ) -> list[ConnectionIssue]:
+        """Report what is wrong with this connection without refusing to generate it."""
+        ...
+
 
 class BaseConnectionHandler:
     """Shared helpers for building connection contributions."""
@@ -41,6 +48,12 @@ class BaseConnectionHandler:
         self, connection: ConnectionIR, project: ProjectIR
     ) -> ConnectionContribution:
         raise NotImplementedError
+
+    def validate(
+        self, connection: ConnectionIR, project: ProjectIR
+    ) -> list[ConnectionIssue]:
+        """Nothing is wrong by default; a handler overrides this to say otherwise."""
+        return []
 
     @staticmethod
     def _grant(role_owner: str, statement: IAMStatement) -> IAMGrant:
