@@ -15,7 +15,6 @@ import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
 import {
   architectureBlockWithoutIdArbitrary,
-  canvasObjectWithoutIdArbitrary,
 } from './arbitraries';
 import type { ArchitectureBlock } from '@/types/diagram';
 

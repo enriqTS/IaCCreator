@@ -21,7 +21,7 @@ function makeBlock(overrides?: Partial<ArchitectureBlock['visualConfig']>): Arch
 
 describe('BlockVisualConfig', () => {
   beforeEach(() => {
-    const store = useDiagramStore.getState();
+    useDiagramStore.getState();
     // Reset store canvas objects
     useDiagramStore.setState({ canvasObjects: new Map() });
   });

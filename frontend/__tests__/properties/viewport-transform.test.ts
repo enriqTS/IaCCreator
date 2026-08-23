@@ -10,7 +10,7 @@ import fc from 'fast-check';
 import { canvasToScreen, screenToCanvas } from '@/utils/viewport';
 import { pointArbitrary, viewportArbitrary } from './arbitraries';
 
-const EPSILON = 1e-6;
+1e-6;
 
 describe('Viewport Transform Consistency Property', () => {
   it('Property 6: canvasToScreen then screenToCanvas is the identity (round-trip)', () => {

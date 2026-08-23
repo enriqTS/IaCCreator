@@ -93,7 +93,7 @@ describe('Segment drag constraint is perpendicular to segment orientation', () =
         for (const seg of segments) {
           const newWaypoints = computeNewWaypoints(path, seg.index, seg.orientation, delta);
           // Reconstruct full path: start + waypoints + end
-          const newPath = [path[0], ...newWaypoints, path[path.length - 1]];
+          [path[0], ...newWaypoints, path[path.length - 1]];
 
           // The original segment endpoints
           const origP1 = path[seg.index];

@@ -33,7 +33,7 @@ describe('Property 13: Rename updates object name', () => {
         (payload, newName) => {
           resetStore();
 
-          const { addCanvasObject, updateCanvasObject, canvasObjects } = useDiagramStore.getState();
+          const { addCanvasObject, updateCanvasObject } = useDiagramStore.getState();
           const id = addCanvasObject(payload);
 
           // Perform rename

@@ -4,11 +4,6 @@ import { useDiagramStore } from '@/store/diagram-store';
 import type { CanvasObject, LineObject, GeometricObject, TextObject, UMLObject, ArchitectureBlock } from '@/types/diagram';
 import {
   canvasObjectWithoutIdArbitrary,
-  architectureBlockWithoutIdArbitrary,
-  lineObjectWithoutIdArbitrary,
-  geometricObjectWithoutIdArbitrary,
-  textObjectWithoutIdArbitrary,
-  umlObjectWithoutIdArbitrary,
   anchorRefArbitrary,
   pointArbitrary,
 } from '../arbitraries';
