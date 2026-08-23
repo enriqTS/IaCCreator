@@ -31,6 +31,7 @@ const INTEGRATION_TYPES = [
 
 const PAYLOAD_FORMAT_VERSIONS = ['1.0', '2.0'] as const;
 
+// Selection changes remount this via a key, so drafts reset without an effect
 export default function RouteDetailFields({ route, onUpdate }: RouteDetailFieldsProps) {
   const authorizers = useApigwConfigStore((s) => s.authorizers);
 
@@ -38,19 +39,6 @@ export default function RouteDetailFields({ route, onUpdate }: RouteDetailFields
   const [pathValue, setPathValue] = useState(route.path);
   const [targetUriValue, setTargetUriValue] = useState(route.target_service_uri ?? '');
   const [routeResponseKeyValue, setRouteResponseKeyValue] = useState(route.route_response_key ?? '');
-
-  // Sync local state when route prop changes
-  useEffect(() => {
-    setPathValue(route.path);
-  }, [route.id, route.path]);
-
-  useEffect(() => {
-    setTargetUriValue(route.target_service_uri ?? '');
-  }, [route.id, route.target_service_uri]);
-
-  useEffect(() => {
-    setRouteResponseKeyValue(route.route_response_key ?? '');
-  }, [route.id, route.route_response_key]);
 
   // Debounce path input
   useEffect(() => {

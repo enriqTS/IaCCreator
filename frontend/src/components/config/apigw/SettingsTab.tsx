@@ -48,7 +48,11 @@ export default function SettingsTab() {
         Import OpenAPI Spec
       </Button>
 
-      <ImportOpenApiDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
+      <ImportOpenApiDialog
+        key={importDialogOpen ? 'open' : 'closed'}
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+      />
 
       {/* Protocol Type */}
       <div className="flex flex-col gap-1.5">

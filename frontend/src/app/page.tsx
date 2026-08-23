@@ -361,6 +361,7 @@ export default function DiagramEditorPage() {
         onClose={() => setNewDiagramOpen(false)}
       />
       <ProjectSettingsDialog
+        key={projectSettingsOpen ? 'open' : 'closed'}
         open={projectSettingsOpen}
         onClose={() => setProjectSettingsOpen(false)}
       />

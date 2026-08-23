@@ -35,16 +35,11 @@ export default function ProjectSettingsDialog({ open, onClose }: ProjectSettings
   const storeProjectName = useDiagramStore((s) => s.projectName);
   const storeEnvironments = useDiagramStore((s) => s.environments);
 
-  const [projectName, setProjectName] = useState('');
-  const [environments, setEnvironments] = useState<EditableEnvironment[]>([]);
-
-  // Sync form state when dialog opens
-  useEffect(() => {
-    if (open) {
-      setProjectName(storeProjectName);
-      setEnvironments(toEditable(storeEnvironments));
-    }
-  }, [open, storeProjectName, storeEnvironments]);
+  // Opening remounts this via a key, so the form starts from the stored values
+  const [projectName, setProjectName] = useState(storeProjectName);
+  const [environments, setEnvironments] = useState<EditableEnvironment[]>(() =>
+    toEditable(storeEnvironments),
+  );
 
   const handleSave = useCallback(() => {
     useDiagramStore.getState().setProjectName(projectName);

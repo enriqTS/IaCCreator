@@ -58,10 +58,11 @@ export default function SidebarPanel() {
 
   // Keep latest store actions in a ref so stable listeners can call them
   const storeRef = useRef({ setSidebarWidth, setSidebarExpanded });
-  storeRef.current = { setSidebarWidth, setSidebarExpanded };
+  useEffect(() => {
+    storeRef.current = { setSidebarWidth, setSidebarExpanded };
+  });
 
   // Track dragging state for disabling transitions
-  const isDraggingState = useRef(false);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -102,25 +103,26 @@ export default function SidebarPanel() {
     [],
   );
 
-  const handleMouseUp = useCallback(() => {
+  // One controller drops both document listeners, so neither handler references the other
+  const dragListeners = useRef<AbortController | null>(null);
+
+  const endDrag = useCallback(() => {
     isDragging.current = false;
-    isDraggingState.current = false;
     isCollapsedDuringDrag.current = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
+    dragListeners.current?.abort();
+    dragListeners.current = null;
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
-    // Force re-render to re-enable transitions
+    // Re-enable transitions now the drag is over
     if (panelRef.current) {
       panelRef.current.style.transition = '';
     }
-  }, [handleMouseMove]);
+  }, []);
 
   const handleResizeMouseDown = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
       isDragging.current = true;
-      isDraggingState.current = true;
       isCollapsedDuringDrag.current = false;
       dragStartX.current = e.clientX;
       dragStartWidth.current = sidebarWidth;
@@ -130,21 +132,23 @@ export default function SidebarPanel() {
       if (panelRef.current) {
         panelRef.current.style.transition = 'none';
       }
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      dragListeners.current?.abort();
+      const controller = new AbortController();
+      dragListeners.current = controller;
+      document.addEventListener('mousemove', handleMouseMove, { signal: controller.signal });
+      document.addEventListener('mouseup', endDrag, { signal: controller.signal });
     },
-    [handleMouseMove, handleMouseUp, sidebarWidth],
+    [handleMouseMove, endDrag, sidebarWidth],
   );
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      dragListeners.current?.abort();
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, []);
 
   // Auto-expand/collapse sidebar based on selection state
   useEffect(() => {
@@ -155,12 +159,14 @@ export default function SidebarPanel() {
     }
   }, [selectedObjectIds, setSidebarExpanded]);
 
-  // Activate first available tab when selection changes
-  useEffect(() => {
+  // Selecting a different object returns to its first tab, adjusted during render
+  const [selectionWhenTabReset, setSelectionWhenTabReset] = useState(selectedObjectIds);
+  if (selectedObjectIds !== selectionWhenTabReset) {
+    setSelectionWhenTabReset(selectedObjectIds);
     if (tabs.length > 0) {
       setActiveTab(tabs[0]);
     }
-  }, [selectedObjectIds]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   const isLeft = sidebarSide === 'left';
 
@@ -202,7 +208,6 @@ export default function SidebarPanel() {
       )}
       style={{
         width: sidebarWidth,
-        transition: isDraggingState.current ? 'none' : undefined,
       }}
     >
       {/* Resize handle on the inner edge */}

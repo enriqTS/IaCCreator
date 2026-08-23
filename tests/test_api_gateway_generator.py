@@ -7,7 +7,13 @@ custom domain, and routes.
 
 import json
 
+import pytest
+from fastapi import HTTPException
+
+from app.generators.api_gateway import domain
 from app.generators.api_gateway_generator import APIGatewayGenerator
+from app.generators.hcl_renderer import HCLRenderer
+from app.generators.schema_validator import validate_config_against_schema
 from app.models.input_models import ServiceType
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -633,3 +639,50 @@ class TestUnsetSubResourceFieldsEmitNothing:
 
         leaked = [r for r in self.SUB_RESOURCES.values() if r in hcl]
         assert not leaked, f"Base fields emitted sub-resource blocks: {leaked}"
+
+
+class TestCustomDomainTlsPolicy:
+    """TLS 1.2 is the default, and 1.0 stays reachable for legacy clients."""
+
+    CUSTOM_DOMAIN = {
+        "domain_name": "api.example.com",
+        "certificate_arn": "arn:aws:acm:us-east-1:1:certificate/x",
+    }
+
+    def _domain(self, **overrides) -> str:
+        config = ApiGatewayConfig(
+            api_name="a",
+            protocol_type="HTTP",
+            custom_domain=self.CUSTOM_DOMAIN,
+            **overrides,
+        )
+        instance = ResourceInstanceIR(
+            name="a",
+            service_type=ServiceType.API_GATEWAY,
+            config=config,
+            iam_statements=[],
+            connections=[],
+            terraform_variables={},
+        )
+        return domain.render_domain(instance, config, HCLRenderer())
+
+    def test_the_default_policy_is_tls_1_2(self):
+        assert 'security_policy = "TLS_1_2"' in self._domain()
+
+    def test_tls_1_0_can_be_chosen(self):
+        assert 'security_policy = "TLS_1_0"' in self._domain(security_policy="TLS_1_0")
+
+    def test_an_unsupported_policy_is_refused(self):
+        with pytest.raises(HTTPException):
+            validate_config_against_schema(
+                ServiceType.API_GATEWAY,
+                ApiGatewayConfig(
+                    api_name="a", protocol_type="HTTP", security_policy="SSLv3"
+                ),
+            )
+
+    def test_no_domain_means_no_policy_variable(self):
+        """The field is defaulted, so it must not leak a variable into every gateway."""
+        config = ApiGatewayConfig(api_name="a", protocol_type="HTTP")
+        rendered = domain.render_variables(config, HCLRenderer())
+        assert not any("security_policy" in block for block in rendered)

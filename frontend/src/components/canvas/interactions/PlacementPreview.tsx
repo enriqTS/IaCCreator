@@ -31,12 +31,16 @@ export default function PlacementPreview({ containerRef }: PlacementPreviewProps
   const isPlaceService = typeof activeTool === 'object' && activeTool.type === 'place-service';
   const isActive = isPlaceService;
 
+  // Leaving placement mode drops the stale pointer position, adjusted during render
+  const [wasActive, setWasActive] = useState(isActive);
+  if (isActive !== wasActive) {
+    setWasActive(isActive);
+    if (!isActive) setMouseScreen(null);
+  }
+
   // Track mouse position over the canvas container
   useEffect(() => {
-    if (!isActive) {
-      setMouseScreen(null);
-      return;
-    }
+    if (!isActive) return;
 
     const container = containerRef.current;
     if (!container) return;
