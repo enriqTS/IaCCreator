@@ -7,6 +7,7 @@ from fastapi import HTTPException
 
 from app.generators.schema_validator import validate_config_against_schema
 from app.models.input_models import ArchitectureDescription, ServiceType
+from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.input_models.eventbridge_config import EventBridgeConfig
 from app.services.code_generator import CodeGenerator
 from app.services.connection_handlers.registry import CONNECTION_REGISTRY, resolve_spec
@@ -216,4 +217,27 @@ class TestEventBridgeRuleNeedsATrigger:
     def test_a_malformed_schedule_is_refused(self):
         with pytest.raises(HTTPException) as exc:
             self._validate(schedule_expression="every 5 minutes")
+        assert exc.value.status_code == 422
+
+
+class TestClosedOptionSetsAreEnforced:
+    """A field whose options are the complete set must reject anything outside it."""
+
+    @pytest.mark.parametrize(
+        ("field", "bad_value", "extra"),
+        [
+            ("hash_key_type", "probe", {}),
+            ("range_key_type", "X", {}),
+            # stream_view_type is only validated while the stream is on
+            ("stream_view_type", "EVERYTHING", {"stream_enabled": True}),
+        ],
+    )
+    def test_value_outside_the_option_set_is_refused(self, field, bad_value, extra):
+        kwargs = {"table_name": "t", "hash_key": "id", "hash_key_type": "S"}
+        kwargs.update(extra)
+        kwargs[field] = bad_value
+        with pytest.raises(HTTPException) as exc:
+            validate_config_against_schema(
+                ServiceType.DYNAMODB, DynamoDBConfig(**kwargs)
+            )
         assert exc.value.status_code == 422
