@@ -9,6 +9,7 @@ from app.models.connection_configs.configs import (
     SqsLambdaConfig,
 )
 from app.models.input_models import ServiceType
+from app.models.input_models.api_gateway_route import HTTP_METHODS
 from app.services.connection_handlers.registry import (
     COMPATIBLE_CONNECTIONS,
     CONNECTION_REGISTRY,
@@ -140,3 +141,18 @@ class TestConnectionSchemasEndpoint:
         assert batch["default"] == 10
         assert batch["validation"]["min"] == 1
         assert batch["validation"]["max"] == 10000
+
+    def test_linked_entry_fields_are_served_as_data(self, connection_schemas):
+        """The editor must learn the routable HTTP methods from the API, not invent them."""
+        entry = next(
+            e
+            for e in connection_schemas["connections"]
+            if e["connection_type"] == "route_handler"
+        )
+        route = next(f for f in entry["fields"] if f["key"] == "route_path")
+        methods = next(
+            f for f in route["linked"]["entry_fields"] if f["key"] == "methods"
+        )
+        assert methods["type"] == "multiSelect"
+        assert methods["exclusive_options"] == ["ANY"]
+        assert [o["value"] for o in methods["options"]] == list(HTTP_METHODS)
