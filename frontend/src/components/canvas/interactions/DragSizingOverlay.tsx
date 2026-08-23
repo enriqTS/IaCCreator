@@ -55,9 +55,16 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
 
   // --- Mouse handlers ---
 
+  // Leaving placement mode drops the rendered rect, adjusted during render
+  const [wasPlacement, setWasPlacement] = useState(isPlacement);
+  if (isPlacement !== wasPlacement) {
+    setWasPlacement(isPlacement);
+    if (!isPlacement) setDragRect(null);
+  }
+
   useEffect(() => {
     if (!isPlacement) {
-      // Reset state when leaving placement mode
+      // The bookkeeping refs are not rendered, so they reset after commit
       isDragging.current = false;
       dragActivated.current = false;
       if (activationTimer.current) {
@@ -65,7 +72,6 @@ export default function DragSizingOverlay({ containerRef, onPlaceObject }: DragS
         activationTimer.current = null;
       }
       originScreen.current = null;
-      setDragRect(null);
       return;
     }
 

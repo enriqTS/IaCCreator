@@ -39,11 +39,19 @@ export default function MarqueeSelection({ containerRef }: MarqueeSelectionProps
     return { x: rect.left, y: rect.top };
   }, [containerRef]);
 
+  // Leaving the pointer tool drops the rendered rect, adjusted during render
+  const [toolWasPointer, setToolWasPointer] = useState(activeTool === 'pointer');
+  const isPointer = activeTool === 'pointer';
+  if (isPointer !== toolWasPointer) {
+    setToolWasPointer(isPointer);
+    if (!isPointer) setDragRect(null);
+  }
+
   useEffect(() => {
     if (activeTool !== 'pointer') {
+      // The bookkeeping refs are not rendered, so they reset after commit
       isDragging.current = false;
       originScreen.current = null;
-      setDragRect(null);
       return;
     }
 
