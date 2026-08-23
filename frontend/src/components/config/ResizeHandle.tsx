@@ -19,9 +19,11 @@ export default function ResizeHandle({ onResize, onCollapseThreshold, onExpandFr
   const onResizeRef = useRef(onResize);
   const onCollapseRef = useRef(onCollapseThreshold);
   const onExpandRef = useRef(onExpandFromDrag);
-  onResizeRef.current = onResize;
-  onCollapseRef.current = onCollapseThreshold;
-  onExpandRef.current = onExpandFromDrag;
+  useEffect(() => {
+    onResizeRef.current = onResize;
+    onCollapseRef.current = onCollapseThreshold;
+    onExpandRef.current = onExpandFromDrag;
+  });
 
   // Stable handlers that never change identity — they read from refs
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -53,14 +55,17 @@ export default function ResizeHandle({ onResize, onCollapseThreshold, onExpandFr
     onResizeRef.current(clamped);
   }, []);
 
-  const handleMouseUp = useCallback(() => {
+  // One controller drops both document listeners, so neither handler references the other
+  const dragListeners = useRef<AbortController | null>(null);
+
+  const endDrag = useCallback(() => {
     isDragging.current = false;
     isCollapsed.current = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
+    dragListeners.current?.abort();
+    dragListeners.current = null;
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
-  }, [handleMouseMove]);
+  }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -72,18 +77,20 @@ export default function ResizeHandle({ onResize, onCollapseThreshold, onExpandFr
     startHeight.current = panel ? panel.getBoundingClientRect().height : 250;
     document.body.style.cursor = 'ns-resize';
     document.body.style.userSelect = 'none';
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [handleMouseMove, handleMouseUp]);
+    dragListeners.current?.abort();
+    const controller = new AbortController();
+    dragListeners.current = controller;
+    document.addEventListener('mousemove', handleMouseMove, { signal: controller.signal });
+    document.addEventListener('mouseup', endDrag, { signal: controller.signal });
+  }, [handleMouseMove, endDrag]);
 
   useEffect(() => {
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      dragListeners.current?.abort();
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, []);
 
   return (
     <div

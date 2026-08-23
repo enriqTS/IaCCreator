@@ -17,6 +17,23 @@ interface CanvasContextMenuProps {
   onClose: () => void;
 }
 
+const itemClass = 'flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm cursor-default select-none hover:bg-accent hover:text-accent-foreground outline-none';
+const disabledClass = 'opacity-50 pointer-events-none';
+
+// Declared at module scope so it is not recreated, and remounted, on every render
+function Item({ onClick, children, disabled }: { onClick: () => void; children: React.ReactNode; disabled?: boolean }) {
+  return (
+    <div
+      role="menuitem"
+      tabIndex={-1}
+      className={`${itemClass} ${disabled ? disabledClass : ''}`}
+      onClick={disabled ? undefined : onClick}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function CanvasContextMenu({ menu, onClose }: CanvasContextMenuProps) {
   const clipboard = useDiagramStore((s) => s.clipboard);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
@@ -44,22 +61,6 @@ export default function CanvasContextMenu({ menu, onClose }: CanvasContextMenuPr
 
   const hasObjects = canvasObjects.size > 0;
   const hasClipboard = clipboard.length > 0;
-
-  const itemClass = 'flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm cursor-default select-none hover:bg-accent hover:text-accent-foreground outline-none';
-  const disabledClass = 'opacity-50 pointer-events-none';
-
-  function Item({ onClick, children, disabled }: { onClick: () => void; children: React.ReactNode; disabled?: boolean }) {
-    return (
-      <div
-        role="menuitem"
-        tabIndex={-1}
-        className={`${itemClass} ${disabled ? disabledClass : ''}`}
-        onClick={disabled ? undefined : onClick}
-      >
-        {children}
-      </div>
-    );
-  }
 
   return (
     <div

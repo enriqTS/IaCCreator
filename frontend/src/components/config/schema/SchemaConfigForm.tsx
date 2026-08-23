@@ -115,7 +115,9 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
   const hasErrors = Object.keys(errors).length > 0;
 
   const onValidationChangeRef = useRef(onValidationChange);
-  onValidationChangeRef.current = onValidationChange;
+  useEffect(() => {
+    onValidationChangeRef.current = onValidationChange;
+  });
   useEffect(() => {
     onValidationChangeRef.current?.(hasErrors);
   }, [hasErrors]);
