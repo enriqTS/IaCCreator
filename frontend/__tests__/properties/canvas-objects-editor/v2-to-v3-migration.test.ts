@@ -5,10 +5,7 @@ import type { LineObject, ArchitectureBlock, GeometricObject } from '@/types/dia
 import type { DiagramState, SerializedCanvasObject } from '@/types/serialization';
 import {
   serviceTypeArbitrary,
-  resourceConfigArbitrary,
-  pointArbitrary,
   geometricShapeArbitrary,
-  strokeStyleArbitrary,
 } from '../arbitraries';
 import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
 import { getDefaultVariables } from '@/types/terraform-variables';
@@ -115,7 +112,6 @@ describe('Property 13: v2 to v3 migration preserves existing objects', () => {
             version: 2,
             projectName: 'test-project',
             environments: [],
-            elements: [],
             canvasObjects,
             connectors: [],
             viewport: { offsetX: 0, offsetY: 0, scale: 1 },

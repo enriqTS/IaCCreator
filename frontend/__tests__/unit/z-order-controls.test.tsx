@@ -13,6 +13,7 @@ function makeBlock(id: string, zIndex: number): ArchitectureBlock {
     name: `block-${id}`,
     position: { x: 0, y: 0 },
     config: {},
+    terraformVariables: {},
     visualConfig: { ...DEFAULT_BLOCK_VISUAL },
     zIndex,
   };

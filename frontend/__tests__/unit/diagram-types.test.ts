@@ -44,7 +44,7 @@ describe('getObjectBounds', () => {
       end: { x: 110, y: 80 },
       sourceAnchor: null,
       targetAnchor: null,
-      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
+      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false, routingMode: 'orthogonal' },
       zIndex: 2,
     };
     const bounds = getObjectBounds(line);
@@ -60,7 +60,7 @@ describe('getObjectBounds', () => {
       end: { x: 50, y: 100 },
       sourceAnchor: null,
       targetAnchor: null,
-      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
+      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false, routingMode: 'orthogonal' },
       zIndex: 0,
     };
     const bounds = getObjectBounds(line);
@@ -76,7 +76,7 @@ describe('getObjectBounds', () => {
       end: { x: 50, y: 50 },
       sourceAnchor: null,
       targetAnchor: null,
-      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
+      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false, routingMode: 'orthogonal' },
       zIndex: 0,
     };
     const bounds = getObjectBounds(line);
@@ -128,7 +128,7 @@ describe('Type structure validation', () => {
       end: { x: 10, y: 10 },
       sourceAnchor: null,
       targetAnchor: null,
-      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
+      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false, routingMode: 'orthogonal' },
       zIndex: 3,
     };
     expect(line.zIndex).toBe(3);

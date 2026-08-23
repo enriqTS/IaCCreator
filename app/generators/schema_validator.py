@@ -84,10 +84,13 @@ def _validate_entry(
             detail=f"{label}: value {value} is not in allowed values {rule.allowed_values}",
         )
 
-    if rule.pattern is not None and isinstance(value, str):
-        if not re.match(rule.pattern, value):
-            desc = rule.pattern_description or rule.pattern
-            raise HTTPException(
-                status_code=422,
-                detail=f"{label}: value '{value}' does not match pattern: {desc}",
-            )
+    if (
+        rule.pattern is not None
+        and isinstance(value, str)
+        and not re.match(rule.pattern, value)
+    ):
+        desc = rule.pattern_description or rule.pattern
+        raise HTTPException(
+            status_code=422,
+            detail=f"{label}: value '{value}' does not match pattern: {desc}",
+        )

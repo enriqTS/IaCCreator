@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, SerializeAsAny, model_validator
@@ -14,7 +14,7 @@ from app.models.input_models._naming import (
 )
 
 
-class ServiceType(str, Enum):
+class ServiceType(StrEnum):
     """Supported AWS service types."""
 
     LAMBDA = "lambda"

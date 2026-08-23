@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock } from '@/types/diagram';
+import type { DiagramState } from '@/types/serialization';
 
 function resetStore() {
   useDiagramStore.setState({
@@ -505,7 +506,7 @@ describe('DiagramStore - loadDiagramState', () => {
       viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
     };
 
-    useDiagramStore.getState().loadDiagramState(state as any);
+    useDiagramStore.getState().loadDiagramState(state as DiagramState);
 
     const obj = useDiagramStore.getState().canvasObjects.get('obj1');
     expect(obj).toBeDefined();
@@ -544,7 +545,7 @@ describe('DiagramStore - loadDiagramState', () => {
     };
 
     // Should not throw
-    useDiagramStore.getState().loadDiagramState(state as any);
+    useDiagramStore.getState().loadDiagramState(state as DiagramState);
 
     // Canvas objects should be loaded normally
     expect(useDiagramStore.getState().canvasObjects.size).toBe(1);

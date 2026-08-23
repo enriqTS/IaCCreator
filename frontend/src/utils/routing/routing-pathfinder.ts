@@ -214,7 +214,6 @@ export function findShortestPath(
   }
 
   const adjacency = buildAdjacency(spots, obstacles);
-  const n = spots.length;
 
   // Dijkstra state
   const nodes: GraphNode[] = spots.map((point) => ({

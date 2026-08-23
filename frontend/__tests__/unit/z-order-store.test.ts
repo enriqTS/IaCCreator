@@ -67,7 +67,7 @@ describe('DiagramStore - Z-Order: bringToFront', () => {
   });
 
   it('is no-op if already on top', () => {
-    const id1 = addBlock('a');
+    addBlock('a');
     const id2 = addBlock('b');
     const zBefore = getZ(id2);
     useDiagramStore.getState().bringToFront(id2);

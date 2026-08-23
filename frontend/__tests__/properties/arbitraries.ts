@@ -6,7 +6,6 @@ import type {
   DiagramElement,
   Connector,
   ResourceConfig,
-  CanvasObject,
   CanvasObjectCreationPayload,
   ArchitectureBlock,
   LineObject,
@@ -25,7 +24,6 @@ import {
   DEFAULT_GEO_VISUAL,
   DEFAULT_TEXT_VISUAL,
   DEFAULT_UML_VISUAL,
-  DEFAULT_UML_CLASS_DATA,
 } from '@/types/diagram';
 import { getDefaultVariables } from '@/types/terraform-variables';
 

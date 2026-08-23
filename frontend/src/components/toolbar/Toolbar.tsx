@@ -15,7 +15,6 @@ export default function Toolbar() {
   const toolbarPosition = useLayoutPreferencesStore((s) => s.toolbarPosition);
 
   const isPointer = activeTool === 'pointer';
-  const isConnector = activeTool === 'connector';
   const isLine = activeTool === 'line';
   const isRectangle =
     typeof activeTool === 'object' &&

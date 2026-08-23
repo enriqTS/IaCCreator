@@ -291,16 +291,18 @@ def render_variables(config: ApiGatewayConfig, r: HCLRenderer) -> list[str]:
             )
         )
     # route_selection_expression — only when protocol_type is WEBSOCKET (visible_when)
-    if config.protocol_type == "WEBSOCKET":
-        if config.route_selection_expression is not None:
-            parts.append(
-                r.render_variable(
-                    "route_selection_expression",
-                    "string",
-                    "Route selection expression for WebSocket APIs",
-                    default=config.route_selection_expression,
-                )
+    if (
+        config.protocol_type == "WEBSOCKET"
+        and config.route_selection_expression is not None
+    ):
+        parts.append(
+            r.render_variable(
+                "route_selection_expression",
+                "string",
+                "Route selection expression for WebSocket APIs",
+                default=config.route_selection_expression,
             )
+        )
     if config.authorization_type is not None:
         parts.append(
             r.render_variable(

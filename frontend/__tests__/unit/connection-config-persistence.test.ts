@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
+import type { DiagramState } from '@/types/serialization';
 
 function resetStore() {
   useDiagramStore.setState({
@@ -260,7 +261,7 @@ describe('Connection Config Persistence - loadDiagramState', () => {
       globalRoutingMode: 'straight' as const,
     };
 
-    useDiagramStore.getState().loadDiagramState(diagramState as any);
+    useDiagramStore.getState().loadDiagramState(diagramState as unknown as DiagramState);
 
     const connector = useDiagramStore.getState().connectors.get('c1')!;
     expect(connector.connectionConfig).toBeUndefined();

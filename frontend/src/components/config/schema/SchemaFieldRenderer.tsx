@@ -49,16 +49,17 @@ export default function SchemaFieldRenderer({
 }: SchemaFieldRendererProps) {
   const [touched, setTouched] = useState(false);
 
+  // Declared before any early return so hook order stays stable as visibility flips
+  const handleBlur = useCallback(() => {
+    setTouched(true);
+  }, []);
+
   // Evaluate visibility
   if (!isFieldVisible(field, allValues)) {
     return null;
   }
 
   const error = touched ? validateField(field, value) : null;
-
-  const handleBlur = useCallback(() => {
-    setTouched(true);
-  }, []);
 
   // --- Radio field ---
   if (field.type === 'radio') {

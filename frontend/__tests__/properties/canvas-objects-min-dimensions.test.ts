@@ -5,6 +5,13 @@ import {
   geometricObjectWithoutIdArbitrary,
 } from './arbitraries';
 import { MIN_OBJECT_WIDTH, MIN_OBJECT_HEIGHT } from '@/types/diagram';
+import type { CanvasObject } from '@/types/diagram';
+
+/** Read the size of an object that has one; lines are positioned, not sized. */
+function sized(obj: CanvasObject): { width: number; height: number } {
+  if (obj.objectType === 'line') throw new Error('expected a sized object');
+  return obj.visualConfig;
+}
 
 function resetStore() {
   useDiagramStore.setState({
@@ -49,10 +56,10 @@ describe('Property 5: Minimum dimension enforcement', () => {
           });
 
           const stored = useDiagramStore.getState().canvasObjects.get(id)!;
-          expect(stored.visualConfig.width).toBeGreaterThanOrEqual(MIN_OBJECT_WIDTH);
-          expect(stored.visualConfig.height).toBeGreaterThanOrEqual(MIN_OBJECT_HEIGHT);
-          expect(stored.visualConfig.width).toBe(Math.max(w, MIN_OBJECT_WIDTH));
-          expect(stored.visualConfig.height).toBe(Math.max(h, MIN_OBJECT_HEIGHT));
+          expect(sized(stored).width).toBeGreaterThanOrEqual(MIN_OBJECT_WIDTH);
+          expect(sized(stored).height).toBeGreaterThanOrEqual(MIN_OBJECT_HEIGHT);
+          expect(sized(stored).width).toBe(Math.max(w, MIN_OBJECT_WIDTH));
+          expect(sized(stored).height).toBe(Math.max(h, MIN_OBJECT_HEIGHT));
         },
       ),
       { numRuns: 100 },
@@ -99,10 +106,10 @@ describe('Property 5: Minimum dimension enforcement', () => {
           useDiagramStore.getState().updateVisualConfig(id, { width: w, height: h });
 
           const stored = useDiagramStore.getState().canvasObjects.get(id)!;
-          expect(stored.visualConfig.width).toBeGreaterThanOrEqual(MIN_OBJECT_WIDTH);
-          expect(stored.visualConfig.height).toBeGreaterThanOrEqual(MIN_OBJECT_HEIGHT);
-          expect(stored.visualConfig.width).toBe(Math.max(w, MIN_OBJECT_WIDTH));
-          expect(stored.visualConfig.height).toBe(Math.max(h, MIN_OBJECT_HEIGHT));
+          expect(sized(stored).width).toBeGreaterThanOrEqual(MIN_OBJECT_WIDTH);
+          expect(sized(stored).height).toBeGreaterThanOrEqual(MIN_OBJECT_HEIGHT);
+          expect(sized(stored).width).toBe(Math.max(w, MIN_OBJECT_WIDTH));
+          expect(sized(stored).height).toBe(Math.max(h, MIN_OBJECT_HEIGHT));
         },
       ),
       { numRuns: 100 },
@@ -146,10 +153,10 @@ describe('Property 5: Minimum dimension enforcement', () => {
           useDiagramStore.getState().updateObjectBounds(id, { width: w, height: h });
 
           const stored = useDiagramStore.getState().canvasObjects.get(id)!;
-          expect(stored.visualConfig.width).toBeGreaterThanOrEqual(MIN_OBJECT_WIDTH);
-          expect(stored.visualConfig.height).toBeGreaterThanOrEqual(MIN_OBJECT_HEIGHT);
-          expect(stored.visualConfig.width).toBe(Math.max(w, MIN_OBJECT_WIDTH));
-          expect(stored.visualConfig.height).toBe(Math.max(h, MIN_OBJECT_HEIGHT));
+          expect(sized(stored).width).toBeGreaterThanOrEqual(MIN_OBJECT_WIDTH);
+          expect(sized(stored).height).toBeGreaterThanOrEqual(MIN_OBJECT_HEIGHT);
+          expect(sized(stored).width).toBe(Math.max(w, MIN_OBJECT_WIDTH));
+          expect(sized(stored).height).toBe(Math.max(h, MIN_OBJECT_HEIGHT));
         },
       ),
       { numRuns: 100 },

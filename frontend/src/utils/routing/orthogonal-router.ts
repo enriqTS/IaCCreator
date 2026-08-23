@@ -287,7 +287,6 @@ export function shortDistanceRoute(
       return { waypoints: [], success: true };
     }
     // Not directly facing — use a single-segment S with minimal offset
-    const midOffset = Math.max(shapeMargin / 2, 4);
     if (isVerticalAnchor(sourceSide)) {
       const midY = Math.round((sourcePoint.y + targetPoint.y) / 2);
       return {

@@ -12,6 +12,7 @@ function makeBlock(overrides: Partial<ArchitectureBlock> = {}): ArchitectureBloc
     name: 'lambda-1',
     position: { x: 100, y: 200 },
     config: {},
+    terraformVariables: {},
     visualConfig: { width: 80, height: 80 },
     zIndex: 0,
     ...overrides,

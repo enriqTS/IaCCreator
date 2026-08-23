@@ -6,13 +6,13 @@ describe("Next.js rewrite configuration", () => {
   });
 
   it("should expose an async rewrites function", async () => {
-    const { default: config } = await import("../next.config.ts");
+    const { default: config } = await import("../next.config");
     expect(config.rewrites).toBeDefined();
     expect(typeof config.rewrites).toBe("function");
   });
 
   it("should define rewrite rules for /api and /generate paths", async () => {
-    const { default: config } = await import("../next.config.ts");
+    const { default: config } = await import("../next.config");
     const rewrites = (await config.rewrites!()) as Array<{
       source: string;
       destination: string;
@@ -29,7 +29,7 @@ describe("Next.js rewrite configuration", () => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "");
     vi.stubEnv("BACKEND_URL", "");
 
-    const { default: config } = await import("../next.config.ts");
+    const { default: config } = await import("../next.config");
     const rewrites = (await config.rewrites!()) as Array<{
       source: string;
       destination: string;
@@ -48,7 +48,7 @@ describe("Next.js rewrite configuration", () => {
     vi.stubEnv("BACKEND_URL", "http://my-backend:9000");
     vi.stubEnv("NEXT_PUBLIC_API_URL", "");
 
-    const { default: config } = await import("../next.config.ts");
+    const { default: config } = await import("../next.config");
     const rewrites = (await config.rewrites!()) as Array<{
       source: string;
       destination: string;
@@ -67,7 +67,7 @@ describe("Next.js rewrite configuration", () => {
     vi.stubEnv("BACKEND_URL", "");
     vi.stubEnv("NEXT_PUBLIC_API_URL", "http://my-backend:9000");
 
-    const { default: config } = await import("../next.config.ts");
+    const { default: config } = await import("../next.config");
     const rewrites = (await config.rewrites!()) as Array<{
       source: string;
       destination: string;

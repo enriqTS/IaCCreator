@@ -57,12 +57,10 @@ export default function Canvas() {
   const pan = useDiagramStore((s) => s.pan);
   const selectConnector = useDiagramStore((s) => s.selectConnector);
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
-  const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const clearSelection = useDiagramStore((s) => s.clearSelection);
   const setActiveTool = useDiagramStore((s) => s.setActiveTool);
   const activeTool = useDiagramStore((s) => s.activeTool);
   const viewport = useDiagramStore((s) => s.viewport);
-  const setEditingTextId = useDiagramStore((s) => s.setEditingTextId);
 
   // Reset line placement state when tool changes away from 'line'
   useEffect(() => {

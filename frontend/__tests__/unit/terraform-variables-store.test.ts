@@ -9,6 +9,8 @@ import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
 import type { ArchitectureBlock } from '@/types/diagram';
 import { getDefaultVariables } from '@/types/terraform-variables';
 import { architectureBlockWithoutIdArbitrary } from '../properties/arbitraries';
+import type { DiagramState } from '@/types/serialization';
+import type { ServiceType } from '@/types/diagram';
 
 function resetStore() {
   useDiagramStore.setState({
@@ -102,7 +104,7 @@ describe('DiagramStore - setTerraformVariable', () => {
       end: { x: 100, y: 100 },
       sourceAnchor: null,
       targetAnchor: null,
-      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false },
+      visualConfig: { color: '#fff', borderWidth: 2, strokeStyle: 'solid', startArrow: false, endArrow: false, routingMode: 'orthogonal' },
     });
     // Should not throw
     useDiagramStore.getState().setTerraformVariable(lineId, 'foo', 'bar');
@@ -198,7 +200,7 @@ describe('DiagramStore - terraformVariables serialization/deserialization', () =
       viewport: { offsetX: 0, offsetY: 0, scale: 1.0 },
     };
 
-    useDiagramStore.getState().loadDiagramState(state as any);
+    useDiagramStore.getState().loadDiagramState(state as DiagramState);
 
     const lambdaBlock = getBlock('block-1');
     expect(lambdaBlock.terraformVariables).toEqual(getDefaultVariables('lambda'));
@@ -291,7 +293,7 @@ describe('Property 1: Round-trip consistency — serialize then deserialize prod
           resetStore();
           const id = useDiagramStore.getState().addCanvasObject({
             objectType: 'architecture-block',
-            serviceType: serviceType as any,
+            serviceType: serviceType as ServiceType,
             name: `${serviceType}-test`,
             position: { x: 0, y: 0 },
             config: {},

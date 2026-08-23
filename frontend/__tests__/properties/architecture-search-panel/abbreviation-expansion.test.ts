@@ -68,7 +68,7 @@ describe('Property 2: Abbreviation search expansion', () => {
             nonMatchingItemsArb
           );
         }),
-        ([abbrevKey, fullNames, matchingItems, nonMatchingItems]) => {
+        ([abbrevKey, _fullNames, matchingItems, nonMatchingItems]) => {
           const allItems: PickerItem[] = [...matchingItems, ...nonMatchingItems];
 
           const results = smartSearch(allItems, abbrevKey, ABBREVIATION_MAP);

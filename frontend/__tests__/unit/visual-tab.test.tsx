@@ -12,6 +12,7 @@ function makeBlock(): ArchitectureBlock {
     name: 'lambda-1',
     position: { x: 0, y: 0 },
     config: {},
+    terraformVariables: {},
     visualConfig: { ...DEFAULT_BLOCK_VISUAL },
     zIndex: 0,
   };

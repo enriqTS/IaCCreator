@@ -17,6 +17,7 @@ describe('Property 12: Non-architecture-block tab set', () => {
       strokeStyle: fc.constantFrom('solid' as const, 'dashed' as const),
       startArrow: fc.boolean(),
       endArrow: fc.boolean(),
+      routingMode: fc.constantFrom('orthogonal' as const, 'diagonal' as const),
     }),
     zIndex: fc.integer({ min: 0, max: 1000 }),
     groupId: fc.option(fc.string({ minLength: 1, maxLength: 20 }), { nil: undefined }),

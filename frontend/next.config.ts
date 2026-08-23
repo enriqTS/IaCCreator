@@ -2,10 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  typescript: {
-    // Pre-existing type issues don't affect runtime; skip for Docker builds
-    ignoreBuildErrors: true,
-  },
   async rewrites() {
     // BACKEND_URL is server-only (no NEXT_PUBLIC_ prefix) — never exposed to the browser.
     // The client uses relative paths; Next.js proxies them to the backend via these rewrites.

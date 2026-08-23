@@ -93,7 +93,7 @@ describe('DiagramStore - saveDiagramToServer', () => {
   });
 
   it('sets isSaving during operation', async () => {
-    let resolveFn: (v: any) => void;
+    let resolveFn: (v: Awaited<ReturnType<typeof apiClient.saveDiagram>>) => void;
     vi.mocked(apiClient.saveDiagram).mockReturnValue(
       new Promise((resolve) => { resolveFn = resolve; }),
     );
@@ -144,7 +144,7 @@ describe('DiagramStore - updateDiagramOnServer', () => {
   });
 
   it('sets isSaving during operation', async () => {
-    let resolveFn: (v: any) => void;
+    let resolveFn: (v: Awaited<ReturnType<typeof apiClient.updateDiagram>>) => void;
     vi.mocked(apiClient.updateDiagram).mockReturnValue(
       new Promise((resolve) => { resolveFn = resolve; }),
     );
@@ -170,7 +170,7 @@ describe('DiagramStore - loadDiagramFromServer', () => {
       projectName: 'loaded-project',
       environments: [],
       canvasObjects: [
-        { id: 'e1', objectType: 'architecture-block', serviceType: 'lambda', name: 'lambda-1', x: 10, y: 20, config: {}, visualConfig: { width: 80, height: 80 } },
+        { id: 'e1', objectType: 'architecture-block' as const, serviceType: 'lambda' as const, name: 'lambda-1', x: 10, y: 20, config: {}, visualConfig: { width: 80, height: 80 } },
       ],
       connectors: [],
       viewport: { offsetX: 5, offsetY: 10, scale: 1.5 },
@@ -199,7 +199,7 @@ describe('DiagramStore - loadDiagramFromServer', () => {
   });
 
   it('sets isLoading during operation', async () => {
-    let resolveFn: (v: any) => void;
+    let resolveFn: (v: Awaited<ReturnType<typeof apiClient.loadDiagram>>) => void;
     vi.mocked(apiClient.loadDiagram).mockReturnValue(
       new Promise((resolve) => { resolveFn = resolve; }),
     );
@@ -248,7 +248,7 @@ describe('DiagramStore - listDiagramsFromServer', () => {
   });
 
   it('sets isLoading during operation', async () => {
-    let resolveFn: (v: any) => void;
+    let resolveFn: (v: Awaited<ReturnType<typeof apiClient.listDiagrams>>) => void;
     vi.mocked(apiClient.listDiagrams).mockReturnValue(
       new Promise((resolve) => { resolveFn = resolve; }),
     );

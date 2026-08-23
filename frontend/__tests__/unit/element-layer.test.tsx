@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ElementLayer from '@/components/canvas/ElementLayer';
 import { useDiagramStore } from '@/store/diagram-store';
-import type { ArchitectureBlock, GeometricObject, LineObject } from '@/types/diagram';
+import type { CanvasObject, ArchitectureBlock, GeometricObject, LineObject } from '@/types/diagram';
 
 function makeBlock(id: string, zIndex: number): ArchitectureBlock {
   return {
@@ -12,6 +12,7 @@ function makeBlock(id: string, zIndex: number): ArchitectureBlock {
     name: `block-${id}`,
     position: { x: 100, y: 100 },
     config: {},
+    terraformVariables: {},
     visualConfig: { width: 80, height: 80 },
     zIndex,
   };
@@ -44,6 +45,7 @@ function makeLine(id: string, zIndex: number): LineObject {
     visualConfig: {
       color: '#ffffff', borderWidth: 2,
       strokeStyle: 'solid', startArrow: false, endArrow: false,
+      routingMode: 'orthogonal',
     },
     zIndex,
   };
@@ -64,7 +66,7 @@ describe('ElementLayer', () => {
     const g1 = makeGeo('g1', 3);
 
     useDiagramStore.setState({
-      canvasObjects: new Map([
+      canvasObjects: new Map<string, CanvasObject>([
         ['b1', b1],
         ['b2', b2],
         ['g1', g1],
@@ -96,7 +98,7 @@ describe('ElementLayer', () => {
     const g1 = makeGeo('g1', 2);
 
     useDiagramStore.setState({
-      canvasObjects: new Map([
+      canvasObjects: new Map<string, CanvasObject>([
         ['b1', b1],
         ['b2', b2],
         ['g1', g1],

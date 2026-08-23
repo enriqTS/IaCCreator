@@ -91,9 +91,7 @@ def _build_summary(arch: ArchitectureDescription, file_tree: dict) -> Generation
     """Derive a GenerationSummary from the input and generated file tree."""
     from app.models.input_models import ServiceType
 
-    lambda_names = {
-        r.name for r in arch.resources if r.service_type == ServiceType.LAMBDA
-    }
+    {r.name for r in arch.resources if r.service_type == ServiceType.LAMBDA}
     iam_policy_count = sum(
         1 for p in file_tree if p.endswith("-policy.json") and "/iam-policies/" in p
     )
@@ -133,7 +131,7 @@ async def generate_zip(arch: ArchitectureDescription) -> Response:
         raise HTTPException(
             status_code=500,
             detail=f"Generation failed: {exc}",
-        )
+        ) from exc
 
 
 @app.post("/generate/json", response_model=GenerationResponse)
@@ -157,7 +155,7 @@ async def generate_json(arch: ArchitectureDescription) -> GenerationResponse:
         raise HTTPException(
             status_code=500,
             detail=f"Generation failed: {exc}",
-        )
+        ) from exc
 
 
 @app.post("/api/import/openapi", response_model=OpenApiImportResponse)
