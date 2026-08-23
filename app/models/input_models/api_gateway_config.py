@@ -10,6 +10,7 @@ from app.models.input_models._metadata import (
     ValidationRule,
     VisibleWhen,
 )
+from app.models.input_models.api_gateway_route import ApiGatewayRoute
 
 
 class ApiGatewayConfig(BaseServiceConfig):
@@ -310,7 +311,7 @@ class ApiGatewayConfig(BaseServiceConfig):
     # ─── Generator-facing fields (not Terraform variables) ─────────────────
     # These fields support the HCL generator's list-based API for complex
     # nested configurations. They are NOT exposed as Terraform variables.
-    routes: list[dict] | None = None
+    routes: list[ApiGatewayRoute] | None = None
     stages: list[dict] | None = None
     authorizers: list[dict] | None = None
     api_keys: list[dict] | None = None

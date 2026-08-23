@@ -9,10 +9,11 @@ import re
 
 from app.models.api_gateway_models import ValidationError
 from app.models.input_models._base import BaseServiceConfig
+from app.models.input_models.api_gateway_route import HTTP_METHODS, route_dicts
 from app.models.ir_models import ResourceInstanceIR
 
 # Allowed HTTP methods for API Gateway routes
-ALLOWED_METHODS = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "ANY"}
+ALLOWED_METHODS = set(HTTP_METHODS)
 
 # Regex pattern for valid route paths (allows greedy path variables like {proxy+})
 PATH_PATTERN = re.compile(r"^/[a-zA-Z0-9\-_./{}+]*$")
@@ -68,7 +69,7 @@ class APIGatewayValidator:
         - No duplicate route_keys
         """
         errors: list[ValidationError] = []
-        routes = getattr(config, "routes", None)
+        routes = route_dicts(getattr(config, "routes", None))
         if not routes:
             return errors
 

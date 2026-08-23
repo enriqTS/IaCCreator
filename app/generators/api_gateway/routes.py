@@ -9,6 +9,7 @@ from app.generators.api_gateway._route_rules import (
 from app.generators.api_gateway._support import sanitize_route_name
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
+from app.models.input_models.api_gateway_route import route_dicts
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -46,7 +47,7 @@ def render_routes(
                 integration_names.add(name)
 
     parts: list[str] = []
-    routes = getattr(config, "routes", None)
+    routes = route_dicts(getattr(config, "routes", None))
 
     if is_websocket:
         # WebSocket: always generate special routes + custom routes
