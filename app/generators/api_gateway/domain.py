@@ -119,7 +119,10 @@ def render_variables(config: ApiGatewayConfig, r: HCLRenderer) -> list[str]:
                 default=config.endpoint_type,
             )
         )
-    if config.security_policy is not None:
+    # Defaulted to TLS 1.2, so emit it only when chosen or when a domain uses it
+    if config.security_policy is not None and (
+        "security_policy" in config.model_fields_set or config.custom_domain
+    ):
         parts.append(
             r.render_variable(
                 "security_policy",

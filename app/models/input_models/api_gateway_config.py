@@ -182,11 +182,12 @@ class ApiGatewayConfig(BaseServiceConfig):
         ],
     )
     security_policy: str | None = TerraformField(
-        None,
+        "TLS_1_2",
         group="Custom Domain",
         description="TLS security policy for the custom domain",
         options=[
-            OptionEntry(value="TLS_1_2", label="TLS 1.2"),
+            OptionEntry(value="TLS_1_2", label="TLS 1.2 (recommended)"),
+            OptionEntry(value="TLS_1_0", label="TLS 1.0 (legacy clients)"),
         ],
     )
     mutual_tls_truststore_uri: str | None = TerraformField(
