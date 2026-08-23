@@ -43,6 +43,19 @@ export interface SchemaField {
   targetNameKey?: string;
   /** Template key that receives the connected resource's stable id */
   targetIdKey?: string;
+  /** Fields the editor may change on an existing linked entry */
+  linkedEntryFields?: LinkedEntryField[];
+}
+
+/** One editable field of a linked entry, rendered inline in the entry list */
+export interface LinkedEntryField {
+  key: string;
+  label: string;
+  type: SchemaFieldType;
+  defaultValue?: string | number | boolean | string[];
+  options?: { value: string; label: string }[];
+  /** Values that cannot be combined with any other, such as the ANY method */
+  exclusiveOptions?: string[];
 }
 
 /** Schema for one kind of connection between two services */

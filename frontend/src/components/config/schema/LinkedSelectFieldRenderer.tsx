@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import type { SchemaField } from '@/connections';
+import LinkedEntryFieldRenderer from './LinkedEntryFieldRenderer';
 import type { ArchitectureBlock } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
 import { Label } from '@/components/ui/label';
@@ -36,7 +37,7 @@ export interface LinkedSelectFieldRendererProps {
 export default function LinkedSelectFieldRenderer({
   field,
   value,
-  allValues,
+  allValues: _allValues,
   onChange,
   sourceBlock,
   targetBlock,
@@ -45,10 +46,13 @@ export default function LinkedSelectFieldRenderer({
   const [isCreating, setIsCreating] = useState(false);
   const [newValue, setNewValue] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [newEntryFields, setNewEntryFields] = useState<Record<string, unknown>>({});
 
   const createLinkedEntry = useDiagramStore((s) => s.createLinkedEntry);
+  const updateLinkedEntry = useDiagramStore((s) => s.updateLinkedEntry);
 
   // Read options from source block's config at the linkedConfigPath
+  const entryFields = useMemo(() => field.linkedEntryFields ?? [], [field.linkedEntryFields]);
   const configPath = field.linkedConfigPath ?? '';
   const displayKey = field.displayKey ?? '';
   const sourceArray = (sourceBlock.config as Record<string, unknown>)?.[configPath] as
@@ -67,11 +71,18 @@ export default function LinkedSelectFieldRenderer({
         setIsCreating(true);
         setNewValue('');
         setValidationError(null);
+        setNewEntryFields(
+          Object.fromEntries(
+            entryFields
+              .filter((f) => f.defaultValue !== undefined)
+              .map((f) => [f.key, f.defaultValue]),
+          ),
+        );
       } else {
         onChange(field.key, val);
       }
     },
-    [field.key, onChange],
+    [field.key, onChange, entryFields],
   );
 
   const validateInput = useCallback(
@@ -109,10 +120,8 @@ export default function LinkedSelectFieldRenderer({
     if (field.targetIdKey) {
       template[field.targetIdKey] = targetBlock.id;
     }
-    // Set method from current allValues if available
-    if ('method' in template && allValues.http_method) {
-      template.method = allValues.http_method;
-    }
+    // Whatever the user chose for the schema's per-entry fields
+    Object.assign(template, newEntryFields);
 
     createLinkedEntry(
       sourceBlock.id,
@@ -136,7 +145,7 @@ export default function LinkedSelectFieldRenderer({
     field.targetIdKey,
     targetBlock.name,
     targetBlock.id,
-    allValues,
+    newEntryFields,
     sourceBlock.id,
     configPath,
     connectorId,
@@ -175,15 +184,6 @@ export default function LinkedSelectFieldRenderer({
           : false,
     );
   }, [sourceArray, field.targetIdKey, field.targetNameKey, targetBlock.id, targetBlock.name]);
-
-  // Format methods display for a route entry
-  const formatRouteMethods = (entry: Record<string, unknown>): string => {
-    const methods = entry.methods;
-    if (Array.isArray(methods)) {
-      return (methods as string[]).join(', ');
-    }
-    return 'ANY';
-  };
 
   // Inline create mode
   if (isCreating) {
@@ -227,6 +227,17 @@ export default function LinkedSelectFieldRenderer({
             <X className="h-4 w-4" />
           </Button>
         </div>
+        {entryFields.map((entryField) => (
+          <LinkedEntryFieldRenderer
+            key={entryField.key}
+            field={entryField}
+            value={newEntryFields[entryField.key]}
+            onChange={(next) =>
+              setNewEntryFields((prev) => ({ ...prev, [entryField.key]: next }))
+            }
+            testIdSuffix="create"
+          />
+        ))}
         {validationError && (
           <span data-testid={`error-${field.key}`} className="text-destructive text-xs">
             {validationError}
@@ -274,19 +285,36 @@ export default function LinkedSelectFieldRenderer({
               Routes on this connection ({connectedRoutes.length})
             </span>
           </div>
-          <ul className="flex flex-col gap-0.5 pl-4">
+          <ul className="flex flex-col gap-2 pl-4">
             {connectedRoutes.map((entry, idx) => {
               const path = String(entry[displayKey] ?? '');
-              const methods = formatRouteMethods(entry);
-              const label = `${methods} ${path}`;
-              const truncated = label.length > 40 ? label.slice(0, 37) + '...' : label;
               return (
-                <li
-                  key={`${path}-${idx}`}
-                  className="text-xs text-foreground/80 font-mono truncate"
-                  title={label}
-                >
-                  {truncated}
+                <li key={`${path}-${idx}`} className="flex flex-col gap-1">
+                  <span
+                    className="text-xs text-foreground/80 font-mono truncate"
+                    title={path}
+                  >
+                    {path}
+                  </span>
+                  {entryFields.map((entryField) => (
+                    <LinkedEntryFieldRenderer
+                      key={entryField.key}
+                      field={entryField}
+                      value={entry[entryField.key]}
+                      onChange={(next) =>
+                        updateLinkedEntry(
+                          sourceBlock.id,
+                          configPath,
+                          displayKey,
+                          path,
+                          entryField.key,
+                          next,
+                        )
+                      }
+                      compact
+                      testIdSuffix={path}
+                    />
+                  ))}
                 </li>
               );
             })}

@@ -10,7 +10,7 @@
 
 import type { LineObject, Connector, CanvasObject } from '@/types/diagram';
 import type { ConnectionSchema } from './registry';
-import { getConnectionSchema } from './schema-store';
+import { getConnectionSchema, getDefaultConnectionType } from './schema-store';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -96,6 +96,43 @@ export function getSchemaForConnector(
   );
 }
 
+/** A connection oriented the way the backend can generate it. */
+export interface ResolvedConnection {
+  sourceId: string;
+  targetId: string;
+  connectionType: string;
+}
+
+/**
+ * Decide which direction of a drawn pair the backend can generate, and which
+ * connection kind it defaults to. Returns null when neither direction is offered,
+ * so no connector is created that generation would reject.
+ */
+export function resolveConnectionForPair(
+  sourceObjectId: string,
+  targetObjectId: string,
+  canvasObjects: Map<string, CanvasObject>,
+): ResolvedConnection | null {
+  const sourceObj = canvasObjects.get(sourceObjectId);
+  const targetObj = canvasObjects.get(targetObjectId);
+
+  if (!sourceObj || sourceObj.objectType !== 'architecture-block') return null;
+  if (!targetObj || targetObj.objectType !== 'architecture-block') return null;
+
+  const drawn = getDefaultConnectionType(sourceObj.serviceType, targetObj.serviceType);
+  if (drawn !== null) {
+    return { sourceId: sourceObjectId, targetId: targetObjectId, connectionType: drawn };
+  }
+
+  // A line drawn against the generatable direction still describes the same connection
+  const reversed = getDefaultConnectionType(targetObj.serviceType, sourceObj.serviceType);
+  if (reversed !== null) {
+    return { sourceId: targetObjectId, targetId: sourceObjectId, connectionType: reversed };
+  }
+
+  return null;
+}
+
 /**
  * Finds an existing connector for the line, or creates a new one if the line
  * connects two architecture blocks and no connector exists yet.
@@ -136,13 +173,16 @@ export function ensureConnectorForLine(
     return existing;
   }
 
-  // Create a new connector
-  const newConnector: Connector = {
-    id: uuidv4(),
-    sourceId: sourceObjectId,
-    targetId: targetObjectId,
-    connectionType: 'triggers',
-  };
+  // The backend owns both the generatable direction and the default kind
+  const resolved = resolveConnectionForPair(sourceObjectId, targetObjectId, canvasObjects);
+  if (!resolved) {
+    return null;
+  }
 
-  return newConnector;
+  return {
+    id: uuidv4(),
+    sourceId: resolved.sourceId,
+    targetId: resolved.targetId,
+    connectionType: resolved.connectionType,
+  };
 }

@@ -7,7 +7,7 @@
  */
 
 import type { ServiceType } from '@/types/diagram';
-import type { ConnectionSchema, SchemaField, SchemaFieldType } from './registry';
+import type { ConnectionSchema, LinkedEntryField, SchemaField, SchemaFieldType } from './registry';
 
 interface ApiOption {
   value: string | number | boolean;
@@ -22,12 +22,22 @@ interface ApiValidation {
   allowed_values?: (string | number | boolean)[] | null;
 }
 
+interface ApiLinkedEntryField {
+  key: string;
+  label: string;
+  type: SchemaFieldType;
+  default?: string | number | boolean | string[] | null;
+  options?: ApiOption[] | null;
+  exclusive_options?: string[] | null;
+}
+
 interface ApiLinked {
   config_path: string;
   display_key: string;
   create_template: Record<string, unknown>;
   target_name_key?: string | null;
   target_id_key?: string | null;
+  entry_fields?: ApiLinkedEntryField[] | null;
 }
 
 interface ApiField {
@@ -56,6 +66,21 @@ interface ApiConnection {
 export type CatalogKey = `${ServiceType}::${ServiceType}::${string}`;
 
 let catalog: Map<CatalogKey, ConnectionSchema> | null = null;
+
+function toEntryField(field: ApiLinkedEntryField): LinkedEntryField {
+  return {
+    key: field.key,
+    label: field.label,
+    type: field.type,
+    ...(field.default !== null && field.default !== undefined
+      ? { defaultValue: field.default }
+      : {}),
+    ...(field.options
+      ? { options: field.options.map((o) => ({ value: String(o.value), label: o.label })) }
+      : {}),
+    ...(field.exclusive_options ? { exclusiveOptions: field.exclusive_options } : {}),
+  };
+}
 
 function toField(field: ApiField): SchemaField {
   const validation = field.validation ?? undefined;
@@ -102,6 +127,9 @@ function toField(field: ApiField): SchemaField {
             : {}),
           ...(field.linked.target_id_key
             ? { targetIdKey: field.linked.target_id_key }
+            : {}),
+          ...(field.linked.entry_fields && field.linked.entry_fields.length > 0
+            ? { linkedEntryFields: field.linked.entry_fields.map(toEntryField) }
             : {}),
         }
       : {}),
@@ -166,6 +194,24 @@ export function getConnectionSchemasForPair(
   return [...catalog.values()].filter(
     (schema) => schema.sourcePair[0] === source && schema.sourcePair[1] === target,
   );
+}
+
+/** The connection type the backend marks as default for a pair, if the pair exists. */
+export function getDefaultConnectionType(
+  source: ServiceType,
+  target: ServiceType,
+): string | null {
+  if (!catalog) return null;
+  const forPair = [...catalog.values()].filter(
+    (schema) => schema.sourcePair[0] === source && schema.sourcePair[1] === target,
+  );
+  if (forPair.length === 0) return null;
+  return (forPair.find((schema) => schema.isDefault) ?? forPair[0]).connectionType;
+}
+
+/** Whether the backend can generate a connection in this direction. */
+export function hasConnectionPair(source: ServiceType, target: ServiceType): boolean {
+  return getDefaultConnectionType(source, target) !== null;
 }
 
 /** Clear the cached catalog (used by tests). */

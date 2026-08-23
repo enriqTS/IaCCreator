@@ -5,6 +5,7 @@ import type { SchemaField } from '@/connections';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { toggleExclusiveSelection } from './schema-field-utils';
 
 export interface MultiSelectFieldRendererProps {
   field: SchemaField;
@@ -25,7 +26,6 @@ export default function MultiSelectFieldRenderer({
   onChange,
 }: MultiSelectFieldRendererProps) {
   const options = field.options ?? [];
-  const exclusiveValues = new Set(field.multiSelectExclusive ?? []);
 
   // Parse the current value into a Set of selected values
   const selectedValues = useMemo(() => {
@@ -37,36 +37,14 @@ export default function MultiSelectFieldRenderer({
     return new Set(rawValue.split(',').filter(Boolean));
   }, [value, field.defaultValue]);
 
-  // Serialize selected values as comma-separated string ordered by schema options
-  const serialize = (selected: Set<string>): string => {
-    return options
-      .map((opt) => opt.value)
-      .filter((v) => selected.has(v))
-      .join(',');
-  };
-
   const handleToggle = (toggledValue: string) => {
-    const newSelected = new Set(selectedValues);
-
-    if (newSelected.has(toggledValue)) {
-      // Deselecting a value
-      newSelected.delete(toggledValue);
-    } else {
-      // Selecting a value
-      if (exclusiveValues.has(toggledValue)) {
-        // Toggling an exclusive value: deselect all others
-        newSelected.clear();
-        newSelected.add(toggledValue);
-      } else {
-        // Toggling a non-exclusive value: deselect any exclusive values
-        for (const excl of exclusiveValues) {
-          newSelected.delete(excl);
-        }
-        newSelected.add(toggledValue);
-      }
-    }
-
-    onChange(field.key, serialize(newSelected));
+    const next = toggleExclusiveSelection(
+      [...selectedValues],
+      toggledValue,
+      field.multiSelectExclusive ?? [],
+      options.map((opt) => opt.value),
+    );
+    onChange(field.key, next.join(','));
   };
 
   // Validation: show error if no values are selected

@@ -14,6 +14,7 @@ from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import (
     _get_cached_service_config_models,
 )
+from app.models.input_models.api_gateway_route import route_dicts
 
 logger = logging.getLogger(__name__)
 from app.models.input_models import (
@@ -236,7 +237,7 @@ class IRBuilder:
             return config
 
         # Get the routes array from gateway config
-        routes = getattr(source_config, "routes", None)
+        routes = route_dicts(getattr(source_config, "routes", None))
         if not routes:
             return config
 

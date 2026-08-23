@@ -3,4 +3,5 @@ export { validateValue, isVisible } from './SchemaConfigForm';
 export { default as SchemaFieldRenderer } from './SchemaFieldRenderer';
 export { default as LinkedSelectFieldRenderer } from './LinkedSelectFieldRenderer';
 export { default as MultiSelectFieldRenderer } from './MultiSelectFieldRenderer';
+export { default as LinkedEntryFieldRenderer } from './LinkedEntryFieldRenderer';
 export * from './schema-field-utils';

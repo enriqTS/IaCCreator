@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
+import { resolveConnectionForPair } from '@/connections/connector-utils';
 import { findSnapAnchorWithPosition } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
 import { getConnectionBounds } from '@/utils/bounds-utils';
@@ -82,22 +83,25 @@ export default function PullToConnectOverlay() {
         // Auto-create a Connector (logical connection) if both source and target are architecture blocks.
         // This is intentional: the Connector tool requires both endpoints to be Architecture_Blocks,
         // unlike Object Picker freeform line/arrow placement which has no such restriction.
-        const sourceObj = canvasObjects.get(pullConnectState.sourceObjectId);
-        const targetObj = canvasObjects.get(targetObjectId);
-        if (
-          sourceObj && sourceObj.objectType === 'architecture-block' &&
-          targetObj && targetObj.objectType === 'architecture-block'
-        ) {
-          // Only create if a connector doesn't already exist for this pair
+        const resolved = resolveConnectionForPair(
+          pullConnectState.sourceObjectId,
+          targetObjectId,
+          canvasObjects,
+        );
+        if (resolved) {
+          // A pair is one connection however it was drawn, so match either orientation
           let connectorExists = false;
           for (const conn of connectors.values()) {
-            if (conn.sourceId === pullConnectState.sourceObjectId && conn.targetId === targetObjectId) {
+            if (
+              (conn.sourceId === resolved.sourceId && conn.targetId === resolved.targetId) ||
+              (conn.sourceId === resolved.targetId && conn.targetId === resolved.sourceId)
+            ) {
               connectorExists = true;
               break;
             }
           }
           if (!connectorExists) {
-            addConnector(pullConnectState.sourceObjectId, targetObjectId, 'triggers');
+            addConnector(resolved.sourceId, resolved.targetId, resolved.connectionType);
           }
         }
       } else {

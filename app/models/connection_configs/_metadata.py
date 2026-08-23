@@ -13,6 +13,18 @@ _FIELD_META_KEY = "connection_meta"
 FieldType = str
 
 
+class LinkedEntryField(BaseModel):
+    """One editable field of a linked entry, rendered inline in the entry list."""
+
+    key: str
+    label: str
+    type: FieldType = "text"
+    default: list[str] | str | int | float | bool | None = None
+    options: list[OptionEntry] | None = None
+    # Values that cannot be combined with any other, such as the ANY method
+    exclusive_options: list[str] | None = None
+
+
 class LinkedEntry(BaseModel):
     """Points a field at an array on the source resource's own config."""
 
@@ -22,6 +34,8 @@ class LinkedEntry(BaseModel):
     # Template keys that receive the connected resource's name and stable id
     target_name_key: str | None = None
     target_id_key: str | None = None
+    # Per-entry fields the editor may change on an existing entry
+    entry_fields: list[LinkedEntryField] = Field(default_factory=list)
 
 
 class ConnectionFieldSchema(BaseModel):
