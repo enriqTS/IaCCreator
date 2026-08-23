@@ -34,12 +34,12 @@ export default function Canvas() {
   const [linePreviewEnd, setLinePreviewEnd] = useState<Point | null>(null);
 
   // Line placement state (drag mode for Object Picker 'place-line' tool)
-  const [lineDragPreviewEnd, setLineDragPreviewEnd] = useState<Point | null>(null);
+  const [lineDragPreview, setLineDragPreview] = useState<{ start: Point; end: Point } | null>(null);
   const lineDragStartRef = useRef<Point | null>(null);
   const isLineDragging = useRef(false);
 
   // Arrow placement state (drag mode for Object Picker 'place-arrow' tool)
-  const [arrowDragPreviewEnd, setArrowDragPreviewEnd] = useState<Point | null>(null);
+  const [arrowDragPreview, setArrowDragPreview] = useState<{ start: Point; end: Point } | null>(null);
   const arrowDragStartRef = useRef<Point | null>(null);
   const isArrowDragging = useRef(false);
 
@@ -62,22 +62,31 @@ export default function Canvas() {
   const activeTool = useDiagramStore((s) => s.activeTool);
   const viewport = useDiagramStore((s) => s.viewport);
 
-  // Reset line placement state when tool changes away from 'line'
-  useEffect(() => {
+  // Switching tools abandons a half-drawn placement. The visible parts are adjusted
+  // during render, which React prefers over an effect that re-renders a second time.
+  const [toolWhenReset, setToolWhenReset] = useState(activeTool);
+  if (activeTool !== toolWhenReset) {
+    setToolWhenReset(activeTool);
     if (activeTool !== 'line') {
       setLineStart(null);
       setLinePreviewEnd(null);
     }
-    // Reset drag-mode line placement state when tool changes away from 'place-line'
+    if (!(typeof activeTool === 'object' && activeTool.type === 'place-line')) {
+      setLineDragPreview(null);
+    }
+    if (!(typeof activeTool === 'object' && activeTool.type === 'place-arrow')) {
+      setArrowDragPreview(null);
+    }
+  }
+
+  // The drag bookkeeping is not rendered, so it is cleared after commit instead
+  useEffect(() => {
     if (!(typeof activeTool === 'object' && activeTool.type === 'place-line')) {
       lineDragStartRef.current = null;
-      setLineDragPreviewEnd(null);
       isLineDragging.current = false;
     }
-    // Reset drag-mode arrow placement state when tool changes away from 'place-arrow'
     if (!(typeof activeTool === 'object' && activeTool.type === 'place-arrow')) {
       arrowDragStartRef.current = null;
-      setArrowDragPreviewEnd(null);
       isArrowDragging.current = false;
     }
   }, [activeTool]);
@@ -207,7 +216,7 @@ export default function Canvas() {
           : canvasPoint;
 
         lineDragStartRef.current = snappedCanvasPoint;
-        setLineDragPreviewEnd(snappedCanvasPoint);
+        setLineDragPreview({ start: snappedCanvasPoint, end: snappedCanvasPoint });
         isLineDragging.current = true;
         e.preventDefault();
         return;
@@ -227,7 +236,7 @@ export default function Canvas() {
           : canvasPoint;
 
         arrowDragStartRef.current = snappedCanvasPoint;
-        setArrowDragPreviewEnd(snappedCanvasPoint);
+        setArrowDragPreview({ start: snappedCanvasPoint, end: snappedCanvasPoint });
         isArrowDragging.current = true;
         e.preventDefault();
         return;
@@ -303,7 +312,7 @@ export default function Canvas() {
         if (!rect) return;
         const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
         const canvasPoint = screenToCanvas(screenPoint, viewport);
-        setLineDragPreviewEnd(canvasPoint);
+        setLineDragPreview({ start: lineDragStartRef.current, end: canvasPoint });
       }
 
       // Update drag preview for place-arrow tool
@@ -312,7 +321,7 @@ export default function Canvas() {
         if (!rect) return;
         const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
         const canvasPoint = screenToCanvas(screenPoint, viewport);
-        setArrowDragPreviewEnd(canvasPoint);
+        setArrowDragPreview({ start: arrowDragStartRef.current, end: canvasPoint });
       }
     },
     [activeTool, lineStart, viewport],
@@ -355,7 +364,7 @@ export default function Canvas() {
       if (!(typeof tool === 'object' && tool.type === 'place-line')) {
         isLineDragging.current = false;
         lineDragStartRef.current = null;
-        setLineDragPreviewEnd(null);
+        setLineDragPreview(null);
         return;
       }
 
@@ -398,7 +407,7 @@ export default function Canvas() {
 
       // Reset drag state
       lineDragStartRef.current = null;
-      setLineDragPreviewEnd(null);
+      setLineDragPreview(null);
     };
 
     window.addEventListener('pointerup', handlePlaceLinePointerUp);
@@ -418,7 +427,7 @@ export default function Canvas() {
       if (!(typeof tool === 'object' && tool.type === 'place-arrow')) {
         isArrowDragging.current = false;
         arrowDragStartRef.current = null;
-        setArrowDragPreviewEnd(null);
+        setArrowDragPreview(null);
         return;
       }
 
@@ -461,7 +470,7 @@ export default function Canvas() {
 
       // Reset drag state
       arrowDragStartRef.current = null;
-      setArrowDragPreviewEnd(null);
+      setArrowDragPreview(null);
     };
 
     window.addEventListener('pointerup', handlePlaceArrowPointerUp);
@@ -627,19 +636,19 @@ export default function Canvas() {
 
   // Compute preview line screen coordinates (drag mode for place-line)
   const dragPreviewLineScreen =
-    lineDragStartRef.current && lineDragPreviewEnd
+    lineDragPreview
       ? {
-          start: canvasToScreen(lineDragStartRef.current, viewport),
-          end: canvasToScreen(lineDragPreviewEnd, viewport),
+          start: canvasToScreen(lineDragPreview.start, viewport),
+          end: canvasToScreen(lineDragPreview.end, viewport),
         }
       : null;
 
   // Compute preview arrow screen coordinates (drag mode for place-arrow)
   const dragPreviewArrowScreen =
-    arrowDragStartRef.current && arrowDragPreviewEnd
+    arrowDragPreview
       ? {
-          start: canvasToScreen(arrowDragStartRef.current, viewport),
-          end: canvasToScreen(arrowDragPreviewEnd, viewport),
+          start: canvasToScreen(arrowDragPreview.start, viewport),
+          end: canvasToScreen(arrowDragPreview.end, viewport),
         }
       : null;
 
