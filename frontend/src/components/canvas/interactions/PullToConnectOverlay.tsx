@@ -22,6 +22,7 @@ export default function PullToConnectOverlay() {
   const setPullConnectState = useDiagramStore((s) => s.setPullConnectState);
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
   const addConnector = useDiagramStore((s) => s.addConnector);
+  const selectObject = useDiagramStore((s) => s.selectObject);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const connectors = useDiagramStore((s) => s.connectors);
   const viewport = useDiagramStore((s) => s.viewport);
@@ -70,7 +71,7 @@ export default function PullToConnectOverlay() {
 
       if (targetObjectId && snapResult) {
         // Create an anchored line
-        addCanvasObject({
+        const lineId = addCanvasObject({
           objectType: 'line',
           name: 'Line',
           start: pullConnectState.sourceAnchorPoint,
@@ -104,9 +105,12 @@ export default function PullToConnectOverlay() {
             addConnector(resolved.sourceId, resolved.targetId, resolved.connectionType);
           }
         }
+
+        // Selecting the new line is the only response drawing a connection produces
+        selectObject(lineId);
       } else {
         // Create a free-floating line
-        addCanvasObject({
+        const lineId = addCanvasObject({
           objectType: 'line',
           name: 'Line',
           start: pullConnectState.sourceAnchorPoint,
@@ -115,12 +119,13 @@ export default function PullToConnectOverlay() {
           targetAnchor: null,
           visualConfig: { ...DEFAULT_LINE_VISUAL, routingMode: globalRoutingMode },
         });
+        selectObject(lineId);
       }
 
       setPullConnectState(null);
       setMousePos(null);
     },
-    [pullConnectState, viewport, canvasObjects, addCanvasObject, addConnector, connectors, setPullConnectState, globalRoutingMode],
+    [pullConnectState, viewport, canvasObjects, addCanvasObject, addConnector, selectObject, connectors, setPullConnectState, globalRoutingMode],
   );
 
   useEffect(() => {

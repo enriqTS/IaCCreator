@@ -15,6 +15,7 @@ import type { LineObject, Point, CanvasObject, GeometricObject } from '@/types/d
 import type { AlignmentGuide } from '@/utils/snap';
 import { snapPointToGrid } from '@/utils/snap';
 import { computeParallelIndex, applyParallelOffset } from '@/utils/parallel-offset';
+import ConnectionIssueBadge from './ConnectionIssueBadge';
 
 interface LineObjectComponentProps {
   line: LineObject;
@@ -426,6 +427,9 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
           </defs>
         )}
 
+        {/* Incomplete-connection marker, per the backend's verdict */}
+        <ConnectionIssueBadge line={line} x={midPt.x + 16} y={midPt.y - 16} />
+
         {/* Lock indicator */}
         {line.locked && (
           <text
@@ -627,6 +631,8 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
       )}
 
       {/* Lock indicator at midpoint */}
+      <ConnectionIssueBadge line={line} x={midPt.x + 16} y={midPt.y - 16} />
+
       {line.locked && (
         <text
           data-testid={`lock-badge-${line.id}`}
