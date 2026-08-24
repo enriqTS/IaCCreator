@@ -40,6 +40,16 @@ describe('ConfigTabs', () => {
     expect(screen.getByText('advanced body')).toBeDefined();
   });
 
+  it('scrolls the strip across only, never down', () => {
+    render(<Harness tabs={twoTabs} />);
+
+    // Tailwind classes are the only evidence available: jsdom computes no styles,
+    // and overflow-y left unstated is exactly what CSS turns back into a scroller
+    const strip = screen.getByTestId('test-tab-strip');
+    expect(strip.className).toContain('overflow-x-auto');
+    expect(strip.className).toContain('overflow-y-hidden');
+  });
+
   it('shows no scroll arrows while every tab fits', () => {
     render(<Harness tabs={twoTabs} />);
 

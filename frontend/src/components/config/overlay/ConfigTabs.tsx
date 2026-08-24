@@ -74,8 +74,9 @@ export default function ConfigTabs({
           ref={stripRef}
           data-testid={`${testIdPrefix}-tab-strip`}
           onScroll={syncArrows}
-          // The scrollbar is replaced by the arrows, so it is hidden on every engine
-          className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          // overflow-y must be stated: leaving it visible makes CSS compute it to auto,
+          // which would let the strip scroll vertically as well as across
+          className="overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {/* Tabs keep their natural width so the next one stays partly visible as a hint */}
           <TabsList data-testid={`${testIdPrefix}-tab-bar`} className="w-max">
