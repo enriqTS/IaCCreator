@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
+import { getCanvasViewportSize } from '@/utils/viewport';
 import {
   ClipboardPaste,
   MousePointerSquareDashed,
@@ -76,7 +77,7 @@ export default function CanvasContextMenu({ menu, onClose }: CanvasContextMenuPr
       <Item disabled={!hasObjects} onClick={() => { selectAllObjects(); onClose(); }}>
         <MousePointerSquareDashed className="size-4" /> Select All
       </Item>
-      <Item disabled={!hasObjects} onClick={() => { fitToScreen({ width: window.innerWidth, height: window.innerHeight }); onClose(); }}>
+      <Item disabled={!hasObjects} onClick={() => { fitToScreen(getCanvasViewportSize()); onClose(); }}>
         <Maximize className="size-4" /> Fit to Screen
       </Item>
     </div>

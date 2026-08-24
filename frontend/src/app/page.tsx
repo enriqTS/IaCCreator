@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useToastStore } from '@/store/toast-store';
 import { useTourStore } from '@/store/tour-store';
@@ -23,6 +23,7 @@ import { fetchNamingRules } from '@/store/naming-store';
 import { saveDiagram, listSavedDiagrams, loadDiagram } from '@/utils/storage';
 import { exportToTerraform } from '@/utils/export';
 import { useConnectionPreviewSync } from '@/hooks/useConnectionPreviewSync';
+import { getCanvasViewportSize } from '@/utils/viewport';
 
 export default function DiagramEditorPage() {
   const [newDiagramOpen, setNewDiagramOpen] = useState(false);
@@ -30,7 +31,6 @@ export default function DiagramEditorPage() {
   const [terraformSettingsOpen, setTerraformSettingsOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [shortcutsOverlayOpen, setShortcutsOverlayOpen] = useState(false);
-  const canvasAreaRef = useRef<HTMLDivElement>(null);
 
   // The backend owns service and connection schemas, so load them before anything is configured
   useEffect(() => {
@@ -50,10 +50,7 @@ export default function DiagramEditorPage() {
 
       const store = useDiagramStore.getState();
       const mod = e.ctrlKey || e.metaKey;
-      // The sidebar takes real width, so viewport centers come from the canvas area
-      const area = canvasAreaRef.current?.getBoundingClientRect();
-      const areaWidth = area?.width ?? window.innerWidth;
-      const areaHeight = area?.height ?? window.innerHeight;
+      const { width: areaWidth, height: areaHeight } = getCanvasViewportSize();
 
       // Configuration is a focused mode, so the canvas shortcuts do not reach into it
       if (store.configOverlayTargetId) return;
@@ -352,7 +349,7 @@ export default function DiagramEditorPage() {
           />
         }
       />
-      <div ref={canvasAreaRef} className="relative flex-1 overflow-hidden">
+      <div className="relative flex-1 overflow-hidden">
         <Canvas />
         <Minimap />
         <Toolbar />

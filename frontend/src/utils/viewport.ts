@@ -119,3 +119,15 @@ export function cancelViewportAnimation(): void {
     activeAnimationId = null;
   }
 }
+
+// The object sidebar takes real width, so the visible size comes from the canvas element
+export function getCanvasViewportSize(): { width: number; height: number } {
+  const rect =
+    typeof document === 'undefined'
+      ? null
+      : document.querySelector('[data-testid="canvas-container"]')?.getBoundingClientRect();
+  return {
+    width: rect?.width ?? window.innerWidth,
+    height: rect?.height ?? window.innerHeight,
+  };
+}

@@ -652,6 +652,7 @@ export default function Canvas() {
   return (
     <div
       ref={containerRef}
+      data-testid="canvas-container"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onAuxClick={handleAuxClick}

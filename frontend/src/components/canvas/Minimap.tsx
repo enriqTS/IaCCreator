@@ -3,6 +3,7 @@
 import { useMemo, useRef, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { getObjectBounds } from '@/types/diagram';
+import { getCanvasViewportSize } from '@/utils/viewport';
 import type { Rect } from '@/types/diagram';
 
 /** Minimap dimensions in pixels. */
@@ -105,8 +106,9 @@ export default function Minimap() {
     // The visible area in canvas coordinates
     const visibleLeft = -viewport.offsetX / viewport.scale;
     const visibleTop = -viewport.offsetY / viewport.scale;
-    const visibleWidth = window.innerWidth / viewport.scale;
-    const visibleHeight = window.innerHeight / viewport.scale;
+    const area = getCanvasViewportSize();
+    const visibleWidth = area.width / viewport.scale;
+    const visibleHeight = area.height / viewport.scale;
 
     // Transform to minimap space
     const x = (visibleLeft - contentBounds.x) * minimapTransform.scale + minimapTransform.offsetX;
@@ -130,8 +132,9 @@ export default function Minimap() {
     const canvasY = (my - minimapTransform.offsetY) / minimapTransform.scale + contentBounds.y;
 
     // Center the viewport on this canvas point
-    const targetOffsetX = window.innerWidth / 2 - canvasX * viewport.scale;
-    const targetOffsetY = window.innerHeight / 2 - canvasY * viewport.scale;
+    const area = getCanvasViewportSize();
+    const targetOffsetX = area.width / 2 - canvasX * viewport.scale;
+    const targetOffsetY = area.height / 2 - canvasY * viewport.scale;
 
     const dx = targetOffsetX - viewport.offsetX;
     const dy = targetOffsetY - viewport.offsetY;
