@@ -55,11 +55,12 @@ Configuration panels for selected objects. Object and connection configuration l
 | Component | Purpose |
 |---|---|
 | `ConfigOverlay.tsx` | The single configuration surface: a centered modal built on the shadcn `Dialog`, dimming the canvas behind it. Opens on placing an object, double-clicking one, or the context menu — never on selection alone. Closes on its X, a click outside, or Escape. Owns no per-type knowledge. |
+| `ConfigTabs.tsx` | The shared tabbed layout every configuration panel uses. The strip scrolls horizontally when the tabs overflow, keeping tabs at their natural width so the next one stays partly visible as a hint; the scrollbar is hidden and edge arrows scroll it on click. |
 | `overlay-registry.tsx` | Maps a selected object's type to the panel it contributes. Returns `null` when there is nothing to configure, so an empty overlay never opens. |
-| `ConnectionOverlayPanel.tsx` | Connection fields (when the schema has any) followed by what the connection generates. |
+| `ConnectionOverlayPanel.tsx` | Connection fields under a Settings tab and the contribution preview under a Generated tab. A connection with no fields opens straight onto Generated. |
 | `ConnectionContributionPreview.tsx` | Renders the backend's `ConnectionPreview`: reported issues, emitted Terraform resources, IAM granted. |
 
-Adding a configurable kind of thing means adding a resolver to `overlay-registry.tsx`; the container does not change.
+Adding a configurable kind of thing means adding a resolver to `overlay-registry.tsx`; the container does not change. Every panel is laid out as tabs via `ConfigTabs` — this is the design pattern, so a new panel divides into tabs rather than into collapsible sections or one long form.
 
 ### `SidebarPanel.tsx`
 

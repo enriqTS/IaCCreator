@@ -17,9 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import KeyValueEditor from '../editors/KeyValueEditor';
 import ListEditor from '../editors/ListEditor';
+import ConfigTabs from '../overlay/ConfigTabs';
 
 interface SchemaConfigFormProps {
   elementId: string;
@@ -82,8 +82,7 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
   const canvasObject = useDiagramStore((s) => s.canvasObjects.get(elementId));
   const updateCanvasObject = useDiagramStore((s) => s.updateCanvasObject);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [generalCollapsed, setGeneralCollapsed] = useState(false);
+  const [activeGroup, setActiveGroup] = useState('');
 
   const schemas = getSchemas();
   const entries = useMemo(() => schemas[serviceType] ?? [], [schemas, serviceType]);
@@ -167,61 +166,36 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
 
   if (!block) return null;
 
-  const isGroupExpanded = (group: string): boolean => {
-    if (group === 'General') return !generalCollapsed;
-    return expandedGroups.has(group);
-  };
-
-  const toggleGroup = (group: string) => {
-    if (group === 'General') {
-      setGeneralCollapsed((prev) => !prev);
-    } else {
-      setExpandedGroups((prev) => {
-        const next = new Set(prev);
-        if (next.has(group)) next.delete(group);
-        else next.add(group);
-        return next;
-      });
-    }
-  };
-
   return (
-    <div data-testid="schema-config-form" className="flex flex-col gap-2">
+    <div data-testid="schema-config-form" className="flex flex-col gap-3">
       {hasErrors && (
-        <div data-testid="validation-error-summary" className="text-destructive text-xs py-1">
+        <div data-testid="validation-error-summary" className="text-destructive text-xs">
           ⚠ {Object.keys(errors).length} validation error{Object.keys(errors).length > 1 ? 's' : ''}
         </div>
       )}
 
-      {visibleGroups.map(([group, groupEntries]) => {
-        const expanded = isGroupExpanded(group);
-        return (
-          <div key={group} data-testid={`config-group-${group}`}>
-            <Button
-              data-testid={`group-toggle-${group}`}
-              variant="ghost"
-              onClick={() => toggleGroup(group)}
-              className="w-full justify-start text-sm font-semibold text-muted-foreground hover:text-foreground py-1"
-            >
-              {expanded ? '▾' : '▸'} {group}
-            </Button>
-
-            {expanded && (
-              <div className="flex flex-col gap-3 py-2">
-                {groupEntries.map((entry) => (
-                  <FieldRenderer
-                    key={entry.name}
-                    entry={entry}
-                    config={config}
-                    error={errors[entry.name]}
-                    onChange={handleChange}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+      <ConfigTabs
+        testIdPrefix="schema"
+        value={activeGroup}
+        onValueChange={setActiveGroup}
+        tabs={visibleGroups.map(([group, groupEntries]) => ({
+          id: group,
+          label: group,
+          content: (
+            <div data-testid={`config-group-${group}`} className="flex flex-col gap-3 py-2">
+              {groupEntries.map((entry) => (
+                <FieldRenderer
+                  key={entry.name}
+                  entry={entry}
+                  config={config}
+                  error={errors[entry.name]}
+                  onChange={handleChange}
+                />
+              ))}
+            </div>
+          ),
+        }))}
+      />
     </div>
   );
 }

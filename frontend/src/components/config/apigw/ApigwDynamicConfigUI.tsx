@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { useApigwConfigStore } from '@/store/apigw-config-store';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
+import ConfigTabs, { type ConfigTab } from '../overlay/ConfigTabs';
 import type { ProtocolType } from '@/types/apigw-config';
 import type { ArchitectureBlock } from '@/types/diagram';
 
@@ -161,52 +160,37 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
     }
   }, [selectedItemId, selectedItemType, routes, stages, authorizers, apiKeys, websocketRoutes, updateRoute, updateStage, updateAuthorizer, updateApiKey, updateWebSocketRoute]);
 
-  const effectiveTab = tabs.includes(activeTab) ? activeTab : tabs[0] ?? '';
+  const tabContent: Record<string, ReactNode> = {
+    Routes: <RoutesTab />,
+    Expressions: <ExpressionsTab />,
+    Stages: <StagesTab />,
+    Authorizers: (
+      <>
+        <AuthorizersTab />
+        <div className="mt-4 border-t pt-4">
+          <h4 className="mb-2 text-xs font-medium text-muted-foreground">API Keys</h4>
+          <ApiKeysTab />
+        </div>
+      </>
+    ),
+    Domain: <DomainTab />,
+    Settings: <SettingsTab />,
+  };
+
+  const configTabs: ConfigTab[] = tabs.map((tab) => ({
+    id: tab,
+    label: tab,
+    content: tabContent[tab] ?? null,
+  }));
 
   return (
     <>
-      <Tabs value={effectiveTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList data-testid="apigw-tab-bar" className={cn('w-full h-auto grid gap-0', tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5')}>
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab}
-              value={tab}
-              data-testid={`apigw-tab-${tab.toLowerCase()}`}
-              className="text-xs px-2"
-            >
-              {tab}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        <TabsContent value="Routes">
-          <RoutesTab />
-        </TabsContent>
-
-        <TabsContent value="Expressions">
-          <ExpressionsTab />
-        </TabsContent>
-
-        <TabsContent value="Stages">
-          <StagesTab />
-        </TabsContent>
-
-        <TabsContent value="Authorizers">
-          <AuthorizersTab />
-          <div className="mt-4 border-t pt-4">
-            <h4 className="mb-2 text-xs font-medium text-muted-foreground">API Keys</h4>
-            <ApiKeysTab />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="Domain">
-          <DomainTab />
-        </TabsContent>
-
-        <TabsContent value="Settings">
-          <SettingsTab />
-        </TabsContent>
-      </Tabs>
+      <ConfigTabs
+        testIdPrefix="apigw"
+        value={activeTab}
+        onValueChange={handleTabChange}
+        tabs={configTabs}
+      />
 
       {/* Detail Panel rendered as sibling */}
       <DetailPanel

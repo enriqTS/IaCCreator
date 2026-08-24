@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import type { ArchitectureBlock, Connector } from '@/types/diagram';
 import type { ConnectionSchema } from '@/connections';
 import ConnectionConfigPanel from '@/connections/ConnectionConfigPanel';
 import ConnectionContributionPreview from './ConnectionContributionPreview';
-import { Label } from '@/components/ui/label';
+import ConfigTabs, { type ConfigTab } from './ConfigTabs';
 
 interface ConnectionOverlayPanelProps {
   connector: Connector;
@@ -13,28 +14,45 @@ interface ConnectionOverlayPanelProps {
   schema: ConnectionSchema;
 }
 
-/** Connection configuration, followed by what the backend says it will generate. */
+/** Connection configuration and what the backend says it will generate, as tabs. */
 export default function ConnectionOverlayPanel({
   connector,
   sourceBlock,
   targetBlock,
   schema,
 }: ConnectionOverlayPanelProps) {
-  return (
-    <div data-testid="connection-overlay-panel" className="flex flex-col gap-6">
-      {schema.fields.length > 0 && (
+  const [activeTab, setActiveTab] = useState('');
+
+  const tabs: ConfigTab[] = [];
+  // A connection with no fields opens straight onto what it generates
+  if (schema.fields.length > 0) {
+    tabs.push({
+      id: 'Settings',
+      label: 'Settings',
+      content: (
         <ConnectionConfigPanel
           connector={connector}
           sourceBlock={sourceBlock}
           targetBlock={targetBlock}
           schema={schema}
         />
-      )}
+      ),
+    });
+  }
+  tabs.push({
+    id: 'Generated',
+    label: 'Generated',
+    content: <ConnectionContributionPreview connectorId={connector.id} />,
+  });
 
-      <div className="flex flex-col gap-2">
-        <Label className="text-sm font-semibold text-foreground">What this generates</Label>
-        <ConnectionContributionPreview connectorId={connector.id} />
-      </div>
+  return (
+    <div data-testid="connection-overlay-panel">
+      <ConfigTabs
+        testIdPrefix="connection"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        tabs={tabs}
+      />
     </div>
   );
 }

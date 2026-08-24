@@ -132,6 +132,8 @@ Uses fast-check for property-based testing (100+ iterations each).
 | `visual-tab.test.tsx`                         | Visual tab dispatching                                      |
 | `config-overlay.test.tsx`                     | Overlay opens only when asked, never from selection, closes when dismissed or when its target is deleted, and shows a contribution preview for connections with no fields |
 | `config-overlay-triggers.test.tsx`            | The three gestures that open the overlay: placing a service block, double-clicking an object, and the context menu |
+| `config-tabs.test.tsx`                        | Shared tab strip: one trigger per tab, switching bodies, and the overflow arrows appearing and scrolling |
+| `config-panels-use-tabs.test.tsx`             | Every panel is tabbed: a block gets one tab per schema group, a connection separates Settings from Generated |
 | `connection-issue-badge.test.tsx`             | Canvas marker appears only for connectors the backend reported issues on |
 | `pull-to-connect-selection.test.tsx`          | Drawing a connection selects the line it created             |
 | `z-order-controls.test.tsx`                   | Z-order control buttons                                     |
