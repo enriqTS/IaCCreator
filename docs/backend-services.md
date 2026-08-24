@@ -88,6 +88,8 @@ class ConnectionHandler(Protocol):
 
 Concrete handlers inherit from `BaseConnectionHandler` (which structurally satisfies the `ConnectionHandler` protocol).
 
+Handlers also implement `validate(connection, project) -> list[ConnectionIssue]`. `BaseConnectionHandler` returns an empty list, so a handler only overrides it when a connection can be configured into a state that generates deployable but non-working Terraform. `ApiGatewayLambdaHandler` uses it to report a route handler with no matching route.
+
 ### Registry (`registry.py`)
 
 `CONNECTION_HANDLER_REGISTRY` is a module-level dict mapping `(ServiceType, ServiceType)` tuples to handler instances:
@@ -132,6 +134,10 @@ IAM statements are mutated in-place on `ResourceInstanceIR.iam_statements`.
    ```
 
 That's it — `ConnectionProcessor` picks up new handlers automatically via the registry.
+
+## ConnectionPreviewer (`app/services/connection_previewer.py`)
+
+Answers what each connection contributes without generating a project. For every connection it resolves the spec, calls the handler's `handle()` for the contribution and `validate()` for the issues, then reduces the rendered HCL to the resource types and names it declares. Used only by `POST /api/connections/preview`; generation does not go through it.
 
 ## FileTreeAssembler (`app/services/file_tree_assembler.py`)
 

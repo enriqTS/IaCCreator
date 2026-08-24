@@ -23,6 +23,7 @@ DOM overlay layer that renders interactive canvas object components positioned i
 | Component                          | Object Type          | Description                                    |
 |------------------------------------|----------------------|------------------------------------------------|
 | `ArchitectureBlockComponent.tsx`   | `architecture-block` | AWS service node with icon, name, config       |
+| `ConnectionIssueBadge.tsx` | Marks a line whose connection the backend reported as incomplete; the message is shown as a native tooltip |
 | `LineObjectComponent.tsx`          | `line`               | Line/arrow with optional anchoring to objects, orthogonal/diagonal routing |
 | `GeometricObjectComponent.tsx`     | `geometric`          | SVG shapes (rectangle, ellipse, diamond, etc.) |
 | `TextObjectComponent.tsx`          | `text`               | Editable text label on the canvas              |
@@ -47,11 +48,22 @@ DOM overlay layer that renders interactive canvas object components positioned i
 
 ## Config (`frontend/src/components/config/`)
 
-Configuration panels for selected objects. The primary UI uses a sidebar panel.
+Configuration panels for selected objects. Object and connection configuration lives in the overlay (`overlay/`); the sidebar is now visual configuration only.
+
+### Config Overlay (`frontend/src/components/config/overlay/`)
+
+| Component | Purpose |
+|---|---|
+| `ConfigOverlay.tsx` | The single configuration surface, opened by selection. Non-blocking, dismissible, anchored opposite the sidebar. Owns no per-type knowledge. |
+| `overlay-registry.tsx` | Maps a selected object's type to the panel it contributes. Returns `null` when there is nothing to configure, so an empty overlay never opens. |
+| `ConnectionOverlayPanel.tsx` | Connection fields (when the schema has any) followed by what the connection generates. |
+| `ConnectionContributionPreview.tsx` | Renders the backend's `ConnectionPreview`: reported issues, emitted Terraform resources, IAM granted. |
+
+Adding a configurable kind of thing means adding a resolver to `overlay-registry.tsx`; the container does not change.
 
 ### `SidebarPanel.tsx`
 
-Collapsible sidebar panel (left or right, configurable via preferences). Architecture blocks get "Variables" and "Visual" tabs; other objects get only "Visual". Supports drag-to-resize width. Exports `getTabsForObject()` utility for determining which tabs to show per object type. Includes `MultiSelectionView` and `SingleSelectionView` sub-components.
+Collapsible sidebar panel (left or right, configurable via preferences). Renders visual configuration for a single selection, the group/ungroup summary for a multi-selection, and the global Terraform config when nothing is selected. Supports drag-to-resize width. Includes `MultiSelectionView` and `SingleSelectionView` sub-components.
 
 ### `ConfigPanel.tsx`
 

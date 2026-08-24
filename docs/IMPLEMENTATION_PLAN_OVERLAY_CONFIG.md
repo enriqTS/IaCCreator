@@ -7,8 +7,9 @@ configurable thing — architecture objects, connections, and groups. The sideba
 is reduced to visual configuration only, and may be removed entirely if visual
 editing moves to a floating toolbar.
 
-This is planned work to be started **after** the connection system is finished.
-Nothing here is in progress.
+Phases 1 and 2 are done, along with both carried-over items and the backend
+contribution-preview endpoint they depend on. Phase 3 is decided but not built:
+visual configuration moves to a floating toolbar. Phase 4 remains blocked.
 
 ---
 
@@ -89,7 +90,7 @@ These came out of reviewing the current data and should hold for any design.
 
 ---
 
-## Opportunity: make empty panels informative
+## Delivered: the contribution preview
 
 An overlay has room the sidebar does not. For connections with no fields, it can
 show what the connection *will generate* — the IAM statements it contributes and
@@ -97,17 +98,25 @@ the Terraform resources it emits. That turns the five currently-empty panels int
 the most informative surface in the application, and it fits the existing model
 because the backend already computes exactly this in `ConnectionContribution`.
 
-This would need a backend endpoint that previews a connection's contribution
-rather than the frontend inferring it.
+`POST /api/connections/preview` serves this. It runs the real handlers over the
+built IR and returns, per connection, the Terraform resources emitted, the IAM
+granted, and any issues — so the frontend infers nothing. It validates the same
+way generation does, so a half-configured diagram returns 422 and the editor
+shows no preview rather than a guess.
 
 ---
 
 ## Phases
 
-### Phase 1 — Object configuration overlay
+### Phase 1 — Object configuration overlay — **done**
 
 **Goal:** Move block configuration out of the sidebar. This is the largest
 payoff, because it is where the crowding actually is (45, 37 and 34 fields).
+
+`ConfigOverlay` is the container and `overlay-registry.tsx` is the per-type
+dispatch; the container knows nothing about what it renders. A resolver returns
+`null` when there is nothing to configure, so constraint 1 holds for objects too:
+a service the backend serves no schema for opens no panel.
 
 - Build the overlay container: opened by selection, dismissible, non-blocking.
 - Render object schemas through the existing `SchemaConfigForm`.
@@ -115,23 +124,31 @@ payoff, because it is where the crowding actually is (45, 37 and 34 fields).
   `TerraformField`, which the sidebar cannot exploit well at its width.
 - Leave the sidebar in place for the remaining tabs during this phase.
 
-### Phase 2 — Connection configuration overlay
+### Phase 2 — Connection configuration overlay — **done**
 
 **Goal:** Move connection configuration to the same surface and stop routing it
 through the line's tab list.
+
+Selecting a line resolves its connector and opens the connection panel directly.
+The contribution preview was built rather than suppressing empty panels, so all
+sixteen connections open something worth reading; it is shown for every
+connection, not only the five with no fields.
 
 - Open the overlay from the connector itself rather than from the selected line.
 - Apply constraint 1: connections with no fields either do not open a panel, or
   open the contribution preview described above.
 
-### Phase 3 — Visual configuration split
+### Phase 3 — Visual configuration split — **decided, not built**
 
 **Goal:** Decide the fate of the sidebar.
 
-- Move visual configuration to a floating toolbar, or keep a thin visual-only
-  sidebar.
-- Judge by whether editing a color while watching the canvas still feels direct.
-- Remove `SidebarPanel`'s tab machinery once nothing else depends on it.
+- Visual configuration moves to a floating toolbar; `SidebarPanel` goes away with
+  it. Judge the result by whether editing a color while watching the canvas still
+  feels direct.
+- The tab machinery is already gone: nothing depended on it once phases 1 and 2
+  landed, so `SidebarPanel` now renders visual configuration directly. It still
+  hosts the multi-selection summary and the global Terraform config, which both
+  need a home before it can be removed.
 
 ### Phase 4 — Groups and group connections
 
@@ -159,18 +176,14 @@ rebuilding it afterwards.
 ## Carried over from the connection work
 
 Two improvements were identified while completing the API Gateway to Lambda
-connection and deliberately deferred. Both survive this migration and should be
-picked up with it rather than against the sidebar:
+connection and deliberately deferred. Both are now done:
 
-- **Select a connection when it is created.** `PullToConnectOverlay` currently
-  calls `addConnector` and selects nothing, so drawing a connection produces no
-  visible response. This is store behaviour and is independent of the surface.
-- **Mark incomplete connections on the canvas.** An `api-gateway → lambda`
-  connection with no matching route generates an integration and an invoke
-  permission but no route at all, which is valid Terraform that deploys and can
-  never invoke the function. Under an overlay this matters more, per constraint 4.
-  The judgement of "incomplete" belongs in the backend, since the frontend is a
-  renderer.
+- **Select a connection when it is created.** `PullToConnectOverlay` selects the
+  line it just drew, which also opens its overlay.
+- **Mark incomplete connections on the canvas.** `ConnectionIssueBadge` marks a
+  line whose connection the backend reported an issue on. The judgement lives in
+  the handler's `validate()` hook, so adding a new kind of incompleteness is a
+  backend change with no frontend work.
 
 A third idea — defaulting the sidebar to the `Connection` tab — was dropped on
 purpose, because it is specific to the tab layout this plan removes.

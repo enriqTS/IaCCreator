@@ -116,6 +116,17 @@ Module-level schema cache (not a Zustand store). Fetches variable schemas from t
 - `getSchemas()` — synchronous access to cached or bundled schemas
 - `clearSchemaCache()` — reset cache (for testing)
 
+### `connection-preview-store.ts` — `useConnectionPreviewStore`
+
+Caches the backend's answer to what each connection generates, keyed by connector id.
+
+- `previews: Map<string, ConnectionPreview>` — keyed by connector, matched on the `source_id`/`target_id` the backend echoes back
+- `status` — `idle` | `loading` | `ready` | `unavailable`; `unavailable` means the diagram did not validate, and `error` says why
+- `refresh()` — POSTs the serialized architecture to `/api/connections/preview`
+- `useConnectionPreview(connectorId)` — the preview for one connector
+
+`useConnectionPreviewSync()` (in `frontend/src/hooks/`) calls `refresh()` on a debounce whenever objects or connectors change, and `useConnectionIssues(line)` resolves a line to its connector's reported issues.
+
 ### `recently-used-store.ts` — `useRecentlyUsedStore`
 
 Tracks recently used picker items (via Zustand `persist` middleware with sessionStorage, falling back to in-memory storage when sessionStorage is unavailable):

@@ -43,6 +43,7 @@ Tests that need a `TestClient` against the real `app.main.app` (as opposed to a 
 | `test_schema_serialization.py`                    | Property-based: VariableSchemaEntry serialization round-trip; all entries have non-empty groups |
 | `test_schema_validator.py`                        | Property-based: backend rejects invalid values outside validation bounds; valid values pass |
 | `test_variable_schemas_endpoint.py`               | GET /api/variable-schemas: returns 200, contains all service types, entries have required fields, options structure |
+| `test_connection_preview_endpoint.py`             | POST /api/connections/preview: connections with no fields still report their resources and IAM, incomplete API Gateway route handlers are warned about, stable ids are echoed back, every handler answers the validation hook |
 
 ## Frontend Tests
 
@@ -83,7 +84,8 @@ Uses fast-check for property-based testing (100+ iterations each).
 | `properties/canvas-objects-editor/`           | Canvas editor: anchor detach/follow, empty text removal, icon scaling, label visibility, object creation type, picker search, ray-rect intersection, serialization round-trip, shape path validity, snap threshold, UML data persistence, v2→v3 migration (13 tests) |
 | `properties/enhanced-variable-configuration/` | Schema config form rendering, visible_when conditional logic (2 tests) |
 | `properties/fixed-connection-routing/`        | Connection routing: anchor stability, diagonal no-waypoints, drop threshold, facing anchors, global routing mode isolation, nearest anchor selection, orthogonal segments, perpendicular exit offset (8 tests) |
-| `properties/sidebar-config-panel/`            | Sidebar panel: hamburger opposite side, layout prefs persistence, arch block tabs, deselection collapse, drag collapse, layout mode, multi-selection count, non-block tabs, selection expand, toggle collapse, width clamping/persistence (12 tests) |
+| `properties/sidebar-config-panel/`            | Sidebar panel: hamburger opposite side, layout prefs persistence, deselection collapse, drag collapse, layout mode, multi-selection count, selection expand, toggle collapse, width clamping/persistence (10 tests) |
+| `properties/config-overlay/`                  | Overlay registry: which selected types contribute a panel, and which never open one (1 test) |
 
 ### Additional Property Tests (`frontend/__tests__/property/`)
 
@@ -128,6 +130,9 @@ Uses fast-check for property-based testing (100+ iterations each).
 | `terraform-variables-store.test.ts`           | Terraform variable store operations                         |
 | `variables-panel.test.tsx`                    | Variables panel rendering                                   |
 | `visual-tab.test.tsx`                         | Visual tab dispatching                                      |
+| `config-overlay.test.tsx`                     | Overlay opens on selection, dismisses, reopens on a new selection, and shows a contribution preview for connections with no fields |
+| `connection-issue-badge.test.tsx`             | Canvas marker appears only for connectors the backend reported issues on |
+| `pull-to-connect-selection.test.tsx`          | Drawing a connection selects the line it created             |
 | `z-order-controls.test.tsx`                   | Z-order control buttons                                     |
 | `z-order-store.test.ts`                       | Z-order store operations                                    |
 | `object-picker-menu.test.tsx`                 | Object picker menu rendering and search                     |

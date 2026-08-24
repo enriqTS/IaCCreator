@@ -51,6 +51,14 @@ Ownership checks: `GET /{id}`, `PUT /{id}`, and `DELETE /{id}` compare `record.s
 
 Both endpoints run the same pipeline: validate each resource's config against `VARIABLE_SCHEMAS` via `validate_config_against_schema()`, then `IRBuilder.build()` → `CodeGenerator.generate()` → serialize. The `/generate/zip` endpoint sets `Content-Disposition` with the project name. Errors return `500` with a descriptive message; Pydantic validation failures return `422`; schema validation failures (out-of-range values, disallowed options) also return `422`.
 
+### Connection Preview
+
+| Method | Path                        | Description                                          | Request Body              | Response                    |
+|--------|-----------------------------|------------------------------------------------------|---------------------------|-----------------------------|
+| `POST` | `/api/connections/preview`  | Describe what every connection contributes           | `ArchitectureDescription` | `ConnectionPreviewResponse` |
+
+Runs `IRBuilder.build()` and then `ConnectionPreviewer.preview_all()`, returning one `ConnectionPreview` per connection: the Terraform resources it emits, the IAM it grants, and any `issues` its handler reported. Issues describe connections that generate valid Terraform which cannot work — an API Gateway route handler with no matching route, for example — so they are warnings rather than generation failures. Previews echo `source_id` and `target_id` so the editor can match one back to the connector that produced it. The endpoint validates the same way `/generate/*` does, so a half-configured diagram returns `422` and the editor shows no preview.
+
 ### Variable Schemas
 
 | Method | Path                      | Description                                      | Request Body | Response                          |
