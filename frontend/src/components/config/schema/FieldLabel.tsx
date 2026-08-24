@@ -28,14 +28,17 @@ export default function FieldLabel({
   htmlFor,
 }: FieldLabelProps) {
   return (
-    <Label htmlFor={htmlFor} className="gap-1.5 text-xs leading-none">
-      <span>{label}</span>
-      {unit && <span className="font-normal text-muted-foreground">{unit}</span>}
-      {required && (
-        <span aria-hidden className="text-destructive">
-          *
-        </span>
-      )}
+    // The info control sits beside the label: a click inside one reaches the field
+    <div className="flex items-center gap-1.5">
+      <Label htmlFor={htmlFor} className="gap-1.5 text-xs leading-none">
+        <span>{label}</span>
+        {unit && <span className="font-normal text-muted-foreground">{unit}</span>}
+        {required && (
+          <span aria-hidden className="text-destructive">
+            *
+          </span>
+        )}
+      </Label>
       {description && (
         <TooltipProvider>
           <Tooltip>
@@ -52,6 +55,6 @@ export default function FieldLabel({
           </Tooltip>
         </TooltipProvider>
       )}
-    </Label>
+    </div>
   );
 }
