@@ -48,6 +48,9 @@ export default function DiagramEditorPage() {
       const store = useDiagramStore.getState();
       const mod = e.ctrlKey || e.metaKey;
 
+      // Configuration is a focused mode, so the canvas shortcuts do not reach into it
+      if (store.configOverlayTargetId) return;
+
       // --- Shortcuts that work even when not typing ---
 
       if (!isTyping) {
@@ -248,11 +251,6 @@ export default function DiagramEditorPage() {
       // --- Escape ---
       if (!isTyping && e.key === 'Escape') {
         e.preventDefault();
-        // The overlay covers the canvas, so it is what Escape dismisses first
-        if (store.configOverlayTargetId) {
-          store.closeConfigOverlay();
-          return;
-        }
         store.selectConnector(null);
         store.selectObject(null);
         useDiagramStore.setState({ pendingConnectorSourceId: null });

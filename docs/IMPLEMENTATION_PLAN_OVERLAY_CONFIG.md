@@ -61,10 +61,14 @@ tab layout and the sidebar container are what goes away.
 ## Target State
 
 A single overlay surface whose contents are chosen by the type of the thing being
-configured. It opens on exactly three explicit gestures — placing the object or
-drawing the connection, double-clicking it, and the configure item in its
-right-click context menu. Selection alone never opens it: a panel large enough to
-cover the diagram is opened deliberately. Each type contributes a panel; the overlay itself is
+configured. It is a centered modal over a dimmed canvas — the shape of a
+browser's address-bar palette — so configuration is a focused mode entered and
+left rather than a panel worked beside.
+
+It opens on exactly three explicit gestures — placing the object or drawing the
+connection, double-clicking it, and the configure item in its right-click context
+menu. Selection alone never opens it. It closes on its X button, a click outside,
+or Escape. Each type contributes a panel; the overlay itself is
 a container and owns no per-type knowledge — the same universal-interface split
 already used for connection handlers on the backend.
 
@@ -80,13 +84,14 @@ These came out of reviewing the current data and should hold for any design.
 1. **Never open an empty overlay.** Five of sixteen connections have zero
    configurable fields. An empty panel covering the canvas is worse than an empty
    sidebar that was already being ignored.
-2. **Never block.** No connection has a single required field — all sixteen are
-   fully defaulted. There is nothing to force the user to answer, so the overlay
-   must be dismissible and must not gate the canvas.
+2. **Never block — superseded.** The overlay is now a centered modal that dims
+   the canvas, so it does gate it. What survives of this constraint is that
+   nothing is ever forced: no connection has a single required field, all sixteen
+   are fully defaulted, and the panel is always dismissible by its X, a click
+   outside, or Escape.
 3. **Keep the canvas visible where it matters.** Visual configuration (color,
-   stroke, sizing) is edited while watching the result. That argues against
-   putting visual config in an overlay that covers the canvas, and in favour of
-   keeping a thin sidebar or moving it to a floating toolbar.
+   stroke, sizing) is edited while watching the result, which is exactly why it
+   must not move into the modal. It goes to a floating toolbar instead (phase 3).
 4. **Canvas signals matter more, not less.** An overlay is dismissed and gone,
    so the canvas becomes the only persistent indication of state — most
    importantly, that something is misconfigured.
@@ -122,7 +127,7 @@ dispatch; the container knows nothing about what it renders. Its target lives in
 `null` when there is nothing to configure, so constraint 1 holds for objects too:
 a service the backend serves no schema for opens no panel.
 
-- Build the overlay container: explicitly opened, dismissible, non-blocking.
+- Build the overlay container: explicitly opened, always dismissible, modal.
 - Render object schemas through the existing `SchemaConfigForm`.
 - Use the extra room for grouping — the schemas already carry a `group` on each
   `TerraformField`, which the sidebar cannot exploit well at its width.

@@ -106,13 +106,32 @@ describe('ConfigOverlay', () => {
     expect(screen.queryByTestId('config-overlay')).toBeNull();
   });
 
-  it('closes when dismissed', () => {
+  it('closes when its close button is used', () => {
     render(<ConfigOverlay />);
     open('block-1');
 
-    fireEvent.click(screen.getByTestId('config-overlay-close'));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
 
     expect(screen.queryByTestId('config-overlay')).toBeNull();
+    expect(useDiagramStore.getState().configOverlayTargetId).toBeNull();
+  });
+
+  it('closes on Escape', () => {
+    render(<ConfigOverlay />);
+    open('block-1');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(screen.queryByTestId('config-overlay')).toBeNull();
+    expect(useDiagramStore.getState().configOverlayTargetId).toBeNull();
+  });
+
+  it('dims the canvas behind it while it is open', () => {
+    render(<ConfigOverlay />);
+    open('block-1');
+
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).not.toBeNull();
+    expect(screen.getByTestId('config-overlay').getAttribute('role')).toBe('dialog');
   });
 
   it('switches to whatever it is next asked to configure', () => {
