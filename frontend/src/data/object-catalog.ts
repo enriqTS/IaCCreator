@@ -108,6 +108,27 @@ export const ALL_ITEMS: PickerItem[] = ALL_CATEGORIES.flatMap((c) => c.items);
 
 export const ALL_CATEGORY_NAMES: string[] = ALL_CATEGORIES.map((c) => c.category);
 
+const AWS_CATEGORY_PREFIX = 'AWS: ';
+
+// The prefix repeats on every AWS category and only costs width in a narrow panel
+export function categoryLabel(category: string): string {
+  return category.startsWith(AWS_CATEGORY_PREFIX)
+    ? category.slice(AWS_CATEGORY_PREFIX.length)
+    : category;
+}
+
+export function toolsMatch(a: Tool, b: Tool): boolean {
+  if (typeof a === 'string' || typeof b === 'string') return a === b;
+  if (a.type !== b.type) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+// Resolves an armed placement tool back to the catalog entry it came from
+export function findItemForTool(tool: Tool): PickerItem | null {
+  if (tool === 'pointer') return null;
+  return ALL_ITEMS.find((item) => toolsMatch(item.tool, tool)) ?? null;
+}
+
 export function isAwsServiceItem(item: PickerItem): boolean {
   return typeof item.tool === 'object' && 'type' in item.tool && item.tool.type === 'place-service';
 }

@@ -1,21 +1,18 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { PanelLeftClose, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ABBREVIATION_MAP } from '@/data/abbreviation-map';
-import {
-  ALL_CATEGORIES,
-  ALL_CATEGORY_NAMES,
-  ALL_ITEMS,
-  type PickerCategory,
-} from '@/data/object-catalog';
+import { ALL_CATEGORIES, ALL_ITEMS } from '@/data/object-catalog';
 import { smartSearch, sortCategories } from '@/utils/object-search';
+import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
-import { useRecentlyUsedStore } from '@/store/recently-used-store';
+import ObjectArmedBar from './ObjectArmedBar';
 import ObjectCategorySection from './ObjectCategorySection';
-import ObjectItemButton from './ObjectItemButton';
+import ObjectShortlist from './ObjectShortlist';
+import ObjectSidebarRail from './ObjectSidebarRail';
 
 interface ObjectSidebarProps {
   /** Slot for the hamburger menu, which lives in the sidebar header */
@@ -24,66 +21,58 @@ interface ObjectSidebarProps {
 
 export default function ObjectSidebar({ header }: ObjectSidebarProps) {
   const [search, setSearch] = useState('');
-  // Everything starts collapsed so the category icons stay lazily loaded
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
-    () => new Set(ALL_CATEGORY_NAMES),
-  );
+  const [openCategories, setOpenCategories] = useState<Set<string>>(() => new Set());
+  const searchRef = useRef<HTMLInputElement>(null);
   const collapsed = useLayoutPreferencesStore((s) => s.objectSidebarCollapsed);
-  const toggleSidebar = useLayoutPreferencesStore((s) => s.toggleObjectSidebar);
-  const recentItems = useRecentlyUsedStore((s) => s.recentItems);
+  const setCollapsed = useLayoutPreferencesStore((s) => s.setObjectSidebarCollapsed);
 
-  const { visibleCategories, categoriesWithMatches } = useMemo(() => {
-    const filtered = smartSearch(ALL_ITEMS, search, ABBREVIATION_MAP);
-    const keys = new Set(filtered.map((i) => `${i.name}|${i.category}`));
+  const { categories, matchCount } = useMemo(() => {
+    const term = search.trim();
+    if (!term) return { categories: sortCategories(ALL_CATEGORIES), matchCount: 0 };
 
-    const base = ALL_CATEGORIES.map((cat) => ({
+    const matches = smartSearch(ALL_ITEMS, term, ABBREVIATION_MAP);
+    const keys = new Set(matches.map((i) => `${i.name}|${i.category}`));
+    const filtered = ALL_CATEGORIES.map((cat) => ({
       ...cat,
       items: cat.items.filter((item) => keys.has(`${item.name}|${item.category}`)),
     })).filter((cat) => cat.items.length > 0);
+    return { categories: sortCategories(filtered), matchCount: matches.length };
+  }, [search]);
 
-    const recent: PickerCategory[] =
-      recentItems.length > 0 ? [{ category: 'Recently Used', items: recentItems }] : [];
+  const searching = search.trim() !== '';
 
-    return {
-      visibleCategories: sortCategories([...recent, ...base]),
-      categoriesWithMatches: new Set(filtered.map((item) => item.category)),
-    };
-  }, [search, recentItems]);
+  const focusSearch = useCallback(() => {
+    setCollapsed(false);
+    // The field only exists once the expanded sidebar has rendered
+    requestAnimationFrame(() => searchRef.current?.focus());
+  }, [setCollapsed]);
+
+  // A catalog this large is searched more than it is browsed, so give it a key
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+      if (useDiagramStore.getState().configOverlayTargetId) return;
+      e.preventDefault();
+      focusSearch();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [focusSearch]);
 
   const toggleCategory = (name: string, open: boolean) => {
-    setCollapsedCategories((prev) => {
+    setOpenCategories((prev) => {
       const next = new Set(prev);
-      if (open) next.delete(name);
-      else next.add(name);
+      if (open) next.add(name);
+      else next.delete(name);
       return next;
     });
   };
 
   if (collapsed) {
-    return (
-      <aside
-        data-testid="object-sidebar"
-        data-collapsed="true"
-        className="flex w-12 shrink-0 flex-col items-center gap-2 border-r border-sidebar-border bg-sidebar py-2 text-sidebar-foreground"
-      >
-        {header}
-        <Button
-          data-testid="object-sidebar-toggle"
-          variant="ghost"
-          size="icon"
-          title="Show objects"
-          aria-label="Show objects"
-          onClick={toggleSidebar}
-        >
-          <PanelLeftOpen />
-        </Button>
-        <div className="flex flex-col items-center gap-1 overflow-y-auto">
-          {recentItems.map((item) => (
-            <ObjectItemButton key={`${item.category}-${item.name}`} item={item} iconOnly />
-          ))}
-        </div>
-      </aside>
-    );
+    return <ObjectSidebarRail header={header} onExpand={focusSearch} />;
   }
 
   return (
@@ -100,42 +89,56 @@ export default function ObjectSidebar({ header }: ObjectSidebarProps) {
           size="icon"
           title="Hide objects"
           aria-label="Hide objects"
-          onClick={toggleSidebar}
+          onClick={() => setCollapsed(true)}
         >
           <PanelLeftClose />
         </Button>
       </div>
 
-      <div className="px-2 pb-2">
+      <div className="relative px-2 pb-2.5">
+        <Search className="pointer-events-none absolute top-2.5 left-4 size-4 text-muted-foreground" />
         <Input
+          ref={searchRef}
           data-testid="object-sidebar-search"
           type="text"
-          placeholder="Search objects..."
+          placeholder={`Search ${ALL_ITEMS.length} objects`}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          className="pr-9 pl-8"
         />
+        <kbd className="pointer-events-none absolute top-2.5 right-4 flex h-[18px] min-w-[18px] items-center justify-center rounded-sm border border-input bg-input/30 px-1 text-[10px] text-muted-foreground">
+          /
+        </kbd>
       </div>
 
+      {!searching && (
+        <>
+          <ObjectShortlist />
+          <span className="mx-2.5 mb-2 h-px bg-sidebar-border" />
+        </>
+      )}
+
+      {searching && (
+        <p data-testid="object-search-count" className="px-2.5 pb-1.5 text-[10px] text-muted-foreground tabular-nums">
+          {matchCount === 1 ? '1 match' : `${matchCount} matches`}
+        </p>
+      )}
+
       <div className="flex-1 overflow-y-auto px-1 pb-2">
-        {visibleCategories.length === 0 && (
+        {categories.length === 0 && (
           <p className="px-2 py-3 text-sm text-muted-foreground">No items found</p>
         )}
-        {visibleCategories.map((cat) => {
-          // A search term expands the categories it matched so the hits are visible
-          const open =
-            search.trim() !== '' && categoriesWithMatches.has(cat.category)
-              ? true
-              : !collapsedCategories.has(cat.category);
-          return (
-            <ObjectCategorySection
-              key={cat.category}
-              category={cat}
-              open={open}
-              onOpenChange={(next) => toggleCategory(cat.category, next)}
-            />
-          );
-        })}
+        {categories.map((cat) => (
+          <ObjectCategorySection
+            key={cat.category}
+            category={cat}
+            open={searching || openCategories.has(cat.category)}
+            onOpenChange={(next) => toggleCategory(cat.category, next)}
+          />
+        ))}
       </div>
+
+      <ObjectArmedBar />
     </aside>
   );
 }
