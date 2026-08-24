@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import type { SchemaField } from '@/connections';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import FieldLabel from './FieldLabel';
 import { cn } from '@/lib/utils';
 import { toggleExclusiveSelection } from './schema-field-utils';
 
@@ -52,7 +52,7 @@ export default function MultiSelectFieldRenderer({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs text-muted-foreground">{field.label}</Label>
+      <FieldLabel label={field.label} required={field.validation?.required} />
       <div
         className="flex flex-wrap gap-1.5"
         role="group"

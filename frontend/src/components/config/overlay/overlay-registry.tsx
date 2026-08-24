@@ -13,6 +13,7 @@ import { findConnectorForLine, getSchemaForConnector } from '@/connections/conne
 import SchemaConfigForm from '../schema/SchemaConfigForm';
 import ApigwDynamicConfigUI from '../apigw/ApigwDynamicConfigUI';
 import VisualTab from '../visual/VisualTab';
+import ObjectNameField from '../ObjectNameField';
 import ConfigTabs, { type ConfigTab } from './ConfigTabs';
 import ConnectionOverlayPanel from './ConnectionOverlayPanel';
 
@@ -36,6 +37,9 @@ type PanelResolver = (
   context: OverlayContext,
 ) => ConfigOverlayPanel | null;
 
+/** What a service block's name is used for, said once where it is edited. */
+const BLOCK_NAME_HINT = 'Names the Terraform resource this block generates.';
+
 /** Every object is configurable visually, so every panel ends with this tab. */
 function visualTab(object: CanvasObject): ConfigTab {
   return {
@@ -57,7 +61,13 @@ function resolveArchitectureBlock(selected: CanvasObject): ConfigOverlayPanel {
   if (block.serviceType === 'api-gateway') {
     return {
       ...panel,
-      content: <ApigwDynamicConfigUI elementId={block.id} extraTabs={[visualTab(block)]} />,
+      content: (
+        <ApigwDynamicConfigUI
+          elementId={block.id}
+          extraTabs={[visualTab(block)]}
+          leadingFields={<ObjectNameField objectId={block.id} description={BLOCK_NAME_HINT} />}
+        />
+      ),
     };
   }
 
@@ -68,6 +78,7 @@ function resolveArchitectureBlock(selected: CanvasObject): ConfigOverlayPanel {
         elementId={block.id}
         serviceType={block.serviceType}
         extraTabs={[visualTab(block)]}
+        leadingFields={<ObjectNameField objectId={block.id} description={BLOCK_NAME_HINT} />}
       />
     ),
   };
@@ -115,7 +126,23 @@ function visualOnlyPanel(object: CanvasObject, subtitle: string): ConfigOverlayP
     key: object.id,
     title: object.name,
     subtitle,
-    content: <ConfigTabs testIdPrefix="visual" tabs={[visualTab(object)]} />,
+    content: (
+      <ConfigTabs
+        testIdPrefix="visual"
+        tabs={[
+          {
+            id: 'Visual',
+            label: 'Visual',
+            content: (
+              <div className="flex flex-col gap-3 py-2">
+                <ObjectNameField objectId={object.id} />
+                <VisualTab object={object} />
+              </div>
+            ),
+          },
+        ]}
+      />
+    ),
   };
 }
 

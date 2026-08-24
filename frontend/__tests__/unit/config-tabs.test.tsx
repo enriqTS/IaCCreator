@@ -68,6 +68,17 @@ describe('ConfigTabs', () => {
     expect(screen.queryByTestId('test-tab-scroll-left')).toBeNull();
     expect(screen.queryByTestId('test-tab-scroll-right')).toBeNull();
   });
+
+  it('marks a tab whose contents have a problem, so a closed tab still shows it', () => {
+    render(
+      <Harness
+        tabs={[twoTabs[0], { ...twoTabs[1], status: 'error' }]}
+      />,
+    );
+
+    expect(screen.getByTestId('test-tab-advanced-error')).toBeDefined();
+    expect(screen.queryByTestId('test-tab-general-error')).toBeNull();
+  });
 });
 
 describe('ConfigTabs overflow', () => {
@@ -82,9 +93,9 @@ describe('ConfigTabs overflow', () => {
 
     makeOverflowing(screen.getByTestId('test-tab-strip'));
 
-    expect(screen.getByTestId('test-tab-scroll-right')).toBeDefined();
-    // Nothing is scrolled past yet, so there is nothing to go back to
-    expect(screen.queryByTestId('test-tab-scroll-left')).toBeNull();
+    expect(screen.getByTestId('test-tab-scroll-right').hasAttribute('disabled')).toBe(false);
+    // Both arrows stay put so the strip keeps its width; there is just nothing to go back to
+    expect(screen.getByTestId('test-tab-scroll-left').hasAttribute('disabled')).toBe(true);
   });
 
   it('offers a back arrow once the strip has been scrolled', () => {
@@ -92,7 +103,18 @@ describe('ConfigTabs overflow', () => {
 
     makeOverflowing(screen.getByTestId('test-tab-strip'), 120);
 
-    expect(screen.getByTestId('test-tab-scroll-left')).toBeDefined();
+    expect(screen.getByTestId('test-tab-scroll-left').hasAttribute('disabled')).toBe(false);
+  });
+
+  it('keeps the arrows out of the strip so no tab sits underneath one', () => {
+    render(<Harness tabs={manyTabs} />);
+    const strip = screen.getByTestId('test-tab-strip');
+    makeOverflowing(strip);
+
+    // Siblings in the same row, not absolutely positioned over the tabs
+    const back = screen.getByTestId('test-tab-scroll-left');
+    expect(back.parentElement).toBe(strip.parentElement);
+    expect(back.className).not.toContain('absolute');
   });
 
   it('scrolls the strip forward when the arrow is clicked', () => {

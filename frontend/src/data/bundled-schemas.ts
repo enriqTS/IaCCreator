@@ -11,6 +11,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Amazon Q application",
       "group": "General",
+      "label": "Application name",
       "name": "application_name",
       "required": false,
       "type": "string"
@@ -18,6 +19,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Description of the Amazon Q application",
       "group": "General",
+      "label": "Description",
       "name": "description",
       "required": false,
       "type": "string"
@@ -25,6 +27,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Identity provider type for the Amazon Q application",
       "group": "General",
+      "label": "Identity type",
       "name": "identity_type",
       "options": [
         {
@@ -41,11 +44,19 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "AWS_IAM_IDP",
+          "AWS_IAM_IC",
+          "AWS_QUICKSIGHT"
+        ]
+      }
     },
     {
       "description": "IAM role ARN for the Amazon Q application",
       "group": "General",
+      "label": "Role ARN",
       "name": "role_arn",
       "required": false,
       "type": "string"
@@ -53,6 +64,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the Amazon Q application",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -62,6 +74,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Amplify application",
       "group": "General",
+      "label": "App name",
       "name": "app_name",
       "required": false,
       "type": "string"
@@ -71,6 +84,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the API Gateway",
       "group": "General",
+      "label": "API name",
       "name": "api_name",
       "required": true,
       "type": "string"
@@ -78,6 +92,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "API protocol type",
       "group": "General",
+      "label": "Protocol type",
       "name": "protocol_type",
       "options": [
         {
@@ -90,11 +105,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": true,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "HTTP",
+          "WEBSOCKET"
+        ]
+      }
     },
     {
       "description": "Description of the API",
       "group": "General",
+      "label": "Description",
       "name": "description",
       "required": false,
       "type": "string"
@@ -102,6 +124,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "API key selection expression for the API",
       "group": "General",
+      "label": "API key selection expression",
       "name": "api_key_selection_expression",
       "required": false,
       "type": "string"
@@ -109,6 +132,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "IP address type for the API endpoint",
       "group": "General",
+      "label": "IP address type",
       "name": "ip_address_type",
       "options": [
         {
@@ -121,11 +145,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "ipv4",
+          "dualstack"
+        ]
+      }
     },
     {
       "description": "Version identifier for the API",
       "group": "General",
+      "label": "Version",
       "name": "version",
       "required": false,
       "type": "string"
@@ -133,6 +164,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "OpenAPI specification body for the API",
       "group": "General",
+      "label": "Body",
       "name": "body",
       "required": false,
       "type": "string"
@@ -140,6 +172,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether to roll back the API creation when a warning is encountered",
       "group": "General",
+      "label": "Fail on warnings",
       "name": "fail_on_warnings",
       "required": false,
       "type": "bool"
@@ -147,6 +180,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Route selection expression for WebSocket APIs",
       "group": "Routes",
+      "label": "Route selection expression",
       "name": "route_selection_expression",
       "required": false,
       "type": "string",
@@ -158,6 +192,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Authorization type for the route",
       "group": "Routes",
+      "label": "Authorization type",
       "name": "authorization_type",
       "options": [
         {
@@ -178,11 +213,20 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "NONE",
+          "JWT",
+          "AWS_IAM",
+          "CUSTOM"
+        ]
+      }
     },
     {
       "description": "Authorization scopes for the route",
       "group": "Routes",
+      "label": "Authorization scopes",
       "name": "authorization_scopes",
       "required": false,
       "type": "list"
@@ -190,6 +234,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Operation name for the route",
       "group": "Routes",
+      "label": "Operation name",
       "name": "operation_name",
       "required": false,
       "type": "string"
@@ -197,6 +242,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Model selection expression for the route",
       "group": "Routes",
+      "label": "Model selection expression",
       "name": "model_selection_expression",
       "required": false,
       "type": "string"
@@ -204,6 +250,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Route response selection expression",
       "group": "Routes",
+      "label": "Route response selection expression",
       "name": "route_response_selection_expression",
       "required": false,
       "type": "string"
@@ -211,6 +258,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the CloudWatch log group for access logging",
       "group": "Stages",
+      "label": "Access log destination ARN",
       "name": "access_log_destination_arn",
       "required": false,
       "type": "string"
@@ -218,6 +266,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Access log format string for the stage",
       "group": "Stages",
+      "label": "Access log format",
       "name": "access_log_format",
       "required": false,
       "type": "string"
@@ -225,6 +274,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether data trace logging is enabled for the default route",
       "group": "Stages",
+      "label": "Default route data trace enabled",
       "name": "default_route_data_trace_enabled",
       "required": false,
       "type": "bool"
@@ -232,6 +282,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether detailed metrics are enabled for the default route",
       "group": "Stages",
+      "label": "Default route detailed metrics enabled",
       "name": "default_route_detailed_metrics_enabled",
       "required": false,
       "type": "bool"
@@ -239,6 +290,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Logging level for the default route",
       "group": "Stages",
+      "label": "Default route logging level",
       "name": "default_route_logging_level",
       "options": [
         {
@@ -255,11 +307,19 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "ERROR",
+          "INFO",
+          "OFF"
+        ]
+      }
     },
     {
       "description": "Throttling burst limit for the default route",
       "group": "Stages",
+      "label": "Default route throttling burst limit",
       "name": "default_route_throttling_burst_limit",
       "required": false,
       "type": "number"
@@ -267,6 +327,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Throttling rate limit for the default route",
       "group": "Stages",
+      "label": "Default route throttling rate limit",
       "name": "default_route_throttling_rate_limit",
       "required": false,
       "type": "number"
@@ -274,6 +335,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Time to live (TTL) for cached authorizer results in seconds",
       "group": "Authorizers",
+      "label": "Authorizer result TTL in seconds",
       "name": "authorizer_result_ttl_in_seconds",
       "required": false,
       "type": "number",
@@ -285,6 +347,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether to enable simple responses for the authorizer",
       "group": "Authorizers",
+      "label": "Enable simple responses",
       "name": "enable_simple_responses",
       "required": false,
       "type": "bool"
@@ -292,6 +355,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Credentials ARN for the authorizer",
       "group": "Authorizers",
+      "label": "Authorizer credentials ARN",
       "name": "authorizer_credentials_arn",
       "required": false,
       "type": "string"
@@ -299,6 +363,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Identity sources for the authorizer",
       "group": "Authorizers",
+      "label": "Identity sources",
       "name": "identity_sources",
       "required": false,
       "type": "list"
@@ -306,6 +371,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Endpoint type for the custom domain",
       "group": "Custom Domain",
+      "label": "Endpoint type",
       "name": "endpoint_type",
       "options": [
         {
@@ -314,24 +380,42 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "REGIONAL"
+        ]
+      }
     },
     {
+      "default": "TLS_1_2",
       "description": "TLS security policy for the custom domain",
       "group": "Custom Domain",
+      "label": "Security policy",
       "name": "security_policy",
       "options": [
         {
-          "label": "TLS 1.2",
+          "label": "TLS 1.2 (recommended)",
           "value": "TLS_1_2"
+        },
+        {
+          "label": "TLS 1.0 (legacy clients)",
+          "value": "TLS_1_0"
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "TLS_1_2",
+          "TLS_1_0"
+        ]
+      }
     },
     {
       "description": "S3 URI of the truststore for mutual TLS authentication",
       "group": "Custom Domain",
+      "label": "Mutual TLS truststore URI",
       "name": "mutual_tls_truststore_uri",
       "required": false,
       "type": "string"
@@ -339,6 +423,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Version of the truststore for mutual TLS authentication",
       "group": "Custom Domain",
+      "label": "Mutual TLS truststore version",
       "name": "mutual_tls_truststore_version",
       "required": false,
       "type": "string"
@@ -346,6 +431,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Mutual TLS authentication configuration",
       "group": "Custom Domain",
+      "label": "Mutual TLS authentication",
       "name": "mutual_tls_authentication",
       "required": false,
       "type": "map"
@@ -353,6 +439,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Connection type for the integration",
       "group": "Integrations",
+      "label": "Connection type",
       "name": "connection_type",
       "options": [
         {
@@ -365,11 +452,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "INTERNET",
+          "VPC_LINK"
+        ]
+      }
     },
     {
       "description": "Connection ID for VPC link integrations",
       "group": "Integrations",
+      "label": "Connection ID",
       "name": "connection_id",
       "required": false,
       "type": "string"
@@ -377,6 +471,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Content handling strategy for the integration",
       "group": "Integrations",
+      "label": "Content handling strategy",
       "name": "content_handling_strategy",
       "options": [
         {
@@ -389,11 +484,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "CONVERT_TO_BINARY",
+          "CONVERT_TO_TEXT"
+        ]
+      }
     },
     {
       "description": "Credentials ARN for the integration",
       "group": "Integrations",
+      "label": "Credentials ARN",
       "name": "credentials_arn",
       "required": false,
       "type": "string"
@@ -401,6 +503,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Passthrough behavior for the integration",
       "group": "Integrations",
+      "label": "Passthrough behavior",
       "name": "passthrough_behavior",
       "options": [
         {
@@ -417,11 +520,19 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "WHEN_NO_MATCH",
+          "WHEN_NO_TEMPLATES",
+          "NEVER"
+        ]
+      }
     },
     {
       "description": "Payload format version for the integration",
       "group": "Integrations",
+      "label": "Payload format version",
       "name": "payload_format_version",
       "options": [
         {
@@ -434,11 +545,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "1.0",
+          "2.0"
+        ]
+      }
     },
     {
       "description": "Integration timeout in milliseconds",
       "group": "Integrations",
+      "label": "Timeout milliseconds",
       "name": "timeout_milliseconds",
       "required": false,
       "type": "number",
@@ -450,6 +568,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "TLS server name to verify for the integration",
       "group": "Integrations",
+      "label": "TLS server name to verify",
       "name": "tls_server_name_to_verify",
       "required": false,
       "type": "string"
@@ -457,6 +576,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Integration subtype for AWS service integrations",
       "group": "Integrations",
+      "label": "Integration subtype",
       "name": "integration_subtype",
       "required": false,
       "type": "string"
@@ -464,6 +584,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Maximum number of concurrent requests (burst)",
       "group": "Rate Limiting",
+      "label": "Throttling burst limit",
       "name": "throttling_burst_limit",
       "required": false,
       "type": "number",
@@ -475,6 +596,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Maximum number of requests per second (steady-state)",
       "group": "Rate Limiting",
+      "label": "Throttling rate limit",
       "name": "throttling_rate_limit",
       "required": false,
       "type": "number",
@@ -486,6 +608,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "CORS configuration for the API",
       "group": "Metadata",
+      "label": "CORS configuration",
       "name": "cors_configuration",
       "required": false,
       "type": "map"
@@ -494,6 +617,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": false,
       "description": "Disable the default execute-api endpoint",
       "group": "Metadata",
+      "label": "Disable execute API endpoint",
       "name": "disable_execute_api_endpoint",
       "required": false,
       "type": "bool"
@@ -502,6 +626,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": false,
       "description": "Whether API key is required for routes",
       "group": "Metadata",
+      "label": "API key required",
       "name": "api_key_required",
       "required": false,
       "type": "bool"
@@ -509,6 +634,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the API Gateway",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -518,6 +644,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the App Runner service",
       "group": "General",
+      "label": "Service name",
       "name": "service_name",
       "required": false,
       "type": "string"
@@ -525,6 +652,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Container image identifier for the App Runner service",
       "group": "General",
+      "label": "Image identifier",
       "name": "image_identifier",
       "required": false,
       "type": "string"
@@ -534,6 +662,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the AppStream fleet",
       "group": "General",
+      "label": "Fleet name",
       "name": "fleet_name",
       "required": false,
       "type": "string"
@@ -541,6 +670,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Instance type for the AppStream fleet",
       "group": "General",
+      "label": "Instance type",
       "name": "instance_type",
       "required": false,
       "type": "string"
@@ -550,6 +680,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Athena workgroup",
       "group": "General",
+      "label": "Workgroup name",
       "name": "workgroup_name",
       "required": false,
       "type": "string"
@@ -559,6 +690,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Identifier for the Aurora cluster",
       "group": "General",
+      "label": "Cluster identifier",
       "name": "cluster_identifier",
       "required": false,
       "type": "string"
@@ -566,6 +698,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Database engine for the Aurora cluster",
       "group": "General",
+      "label": "Engine",
       "name": "engine",
       "required": false,
       "type": "string"
@@ -573,6 +706,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Master username for the Aurora cluster",
       "group": "General",
+      "label": "Master username",
       "name": "master_username",
       "required": false,
       "type": "string"
@@ -582,6 +716,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Batch compute environment",
       "group": "General",
+      "label": "Compute environment name",
       "name": "compute_environment_name",
       "required": false,
       "type": "string"
@@ -589,6 +724,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the IAM service role for Batch",
       "group": "General",
+      "label": "Service role ARN",
       "name": "service_role_arn",
       "required": false,
       "type": "string"
@@ -598,6 +734,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the custom model",
       "group": "General",
+      "label": "Model name",
       "name": "model_name",
       "required": false,
       "type": "string"
@@ -605,6 +742,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Base model identifier for customization",
       "group": "General",
+      "label": "Base model identifier",
       "name": "base_model_identifier",
       "options": [
         {
@@ -630,6 +768,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "IAM role ARN for Bedrock",
       "group": "General",
+      "label": "Role ARN",
       "name": "role_arn",
       "required": false,
       "type": "string"
@@ -637,6 +776,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "S3 URI of the training data",
       "group": "Training",
+      "label": "Training data S3 URI",
       "name": "training_data_s3_uri",
       "required": false,
       "type": "string",
@@ -648,6 +788,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "S3 URI for the output data",
       "group": "Training",
+      "label": "Output data S3 URI",
       "name": "output_data_s3_uri",
       "required": false,
       "type": "string",
@@ -659,6 +800,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Key-value pairs for training hyperparameters such as epoch count, batch size, and learning rate",
       "group": "Training",
+      "label": "Hyperparameters",
       "name": "hyperparameters",
       "required": false,
       "type": "map"
@@ -666,6 +808,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "String key-value pairs for resource tagging",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -675,6 +818,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Bedrock Agent",
       "group": "General",
+      "label": "Agent name",
       "name": "agent_name",
       "required": false,
       "type": "string"
@@ -682,6 +826,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Foundation model identifier for the agent",
       "group": "General",
+      "label": "Foundation model",
       "name": "foundation_model",
       "options": [
         {
@@ -711,6 +856,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Description of the Bedrock Agent",
       "group": "General",
+      "label": "Description",
       "name": "description",
       "required": false,
       "type": "string"
@@ -718,6 +864,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Instruction for the Bedrock Agent",
       "group": "General",
+      "label": "Instruction",
       "name": "instruction",
       "required": false,
       "type": "string"
@@ -725,6 +872,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "IAM role ARN for the Bedrock Agent",
       "group": "General",
+      "label": "Agent resource role ARN",
       "name": "agent_resource_role_arn",
       "required": false,
       "type": "string"
@@ -733,6 +881,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": 600,
       "description": "Idle session timeout in seconds",
       "group": "Configuration",
+      "label": "Idle session TTL in seconds",
       "name": "idle_session_ttl_in_seconds",
       "required": false,
       "type": "number",
@@ -744,6 +893,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the Bedrock Agent",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -753,6 +903,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the AgentCore runtime",
       "group": "General",
+      "label": "Agent runtime name",
       "name": "agent_runtime_name",
       "required": false,
       "type": "string"
@@ -760,6 +911,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Foundation model for the agent runtime",
       "group": "General",
+      "label": "Foundation model",
       "name": "foundation_model",
       "options": [
         {
@@ -789,6 +941,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "IAM role ARN for the AgentCore runtime",
       "group": "General",
+      "label": "Role ARN",
       "name": "role_arn",
       "required": false,
       "type": "string"
@@ -796,6 +949,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Description of the agent runtime",
       "group": "General",
+      "label": "Description",
       "name": "description",
       "required": false,
       "type": "string"
@@ -803,6 +957,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Memory store identifier for session context",
       "group": "Configuration",
+      "label": "Memory ID",
       "name": "memory_id",
       "required": false,
       "type": "string"
@@ -811,6 +966,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": 600,
       "description": "Idle session timeout in seconds",
       "group": "Configuration",
+      "label": "Idle session TTL",
       "name": "idle_session_ttl",
       "required": false,
       "type": "number",
@@ -822,6 +978,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the AgentCore runtime",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -831,6 +988,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Bedrock Guardrail",
       "group": "General",
+      "label": "Guardrail name",
       "name": "guardrail_name",
       "required": false,
       "type": "string"
@@ -838,6 +996,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Description of the guardrail",
       "group": "General",
+      "label": "Description",
       "name": "description",
       "required": false,
       "type": "string"
@@ -845,6 +1004,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Message to return when input is blocked",
       "group": "General",
+      "label": "Blocked input messaging",
       "name": "blocked_input_messaging",
       "required": false,
       "type": "string"
@@ -852,6 +1012,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Message to return when output is blocked",
       "group": "General",
+      "label": "Blocked outputs messaging",
       "name": "blocked_outputs_messaging",
       "required": false,
       "type": "string"
@@ -860,6 +1021,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "MEDIUM",
       "description": "Content filtering strength level",
       "group": "Content Policy",
+      "label": "Content policy strength",
       "name": "content_policy_strength",
       "options": [
         {
@@ -880,11 +1042,20 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "NONE",
+          "LOW",
+          "MEDIUM",
+          "HIGH"
+        ]
+      }
     },
     {
       "description": "Tags to apply to the Bedrock Guardrail",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -894,6 +1065,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the knowledge base",
       "group": "General",
+      "label": "Knowledge base name",
       "name": "knowledge_base_name",
       "required": false,
       "type": "string"
@@ -901,6 +1073,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Description of the knowledge base",
       "group": "General",
+      "label": "Description",
       "name": "description",
       "required": false,
       "type": "string"
@@ -908,6 +1081,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "IAM role ARN for the knowledge base",
       "group": "General",
+      "label": "Role ARN",
       "name": "role_arn",
       "required": false,
       "type": "string"
@@ -915,6 +1089,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the embedding model for vector indexing",
       "group": "General",
+      "label": "Embedding model ARN",
       "name": "embedding_model_arn",
       "options": [
         {
@@ -937,6 +1112,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "OPENSEARCH_SERVERLESS",
       "description": "Vector storage type for the knowledge base",
       "group": "Storage Configuration",
+      "label": "Storage type",
       "name": "storage_type",
       "options": [
         {
@@ -953,11 +1129,19 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "OPENSEARCH_SERVERLESS",
+          "PINECONE",
+          "RDS"
+        ]
+      }
     },
     {
       "description": "Name of the vector field in the storage",
       "group": "Storage Configuration",
+      "label": "Vector field",
       "name": "vector_field",
       "required": false,
       "type": "string"
@@ -965,6 +1149,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the text field in the storage",
       "group": "Storage Configuration",
+      "label": "Text field",
       "name": "text_field",
       "required": false,
       "type": "string"
@@ -972,6 +1157,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the metadata field in the storage",
       "group": "Storage Configuration",
+      "label": "Metadata field",
       "name": "metadata_field",
       "required": false,
       "type": "string"
@@ -979,6 +1165,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the Bedrock Knowledge Base",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -988,6 +1175,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the CloudSearch domain",
       "group": "General",
+      "label": "Domain name",
       "name": "domain_name",
       "required": false,
       "type": "string"
@@ -997,6 +1185,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the CloudWatch log group",
       "group": "General",
+      "label": "Log group name",
       "name": "log_group_name",
       "required": false,
       "type": "string"
@@ -1005,6 +1194,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": 30,
       "description": "Number of days to retain log events",
       "group": "General",
+      "label": "Retention in days",
       "name": "retention_in_days",
       "options": [
         {
@@ -1133,6 +1323,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the KMS key to use for encrypting log data",
       "group": "Configuration",
+      "label": "KMS key ID",
       "name": "kms_key_id",
       "required": false,
       "type": "string"
@@ -1141,6 +1332,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "STANDARD",
       "description": "Log group class for the CloudWatch log group",
       "group": "Configuration",
+      "label": "Log group class",
       "name": "log_group_class",
       "options": [
         {
@@ -1153,11 +1345,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "STANDARD",
+          "INFREQUENT_ACCESS"
+        ]
+      }
     },
     {
       "description": "Tags to apply to the CloudWatch log group",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -1167,6 +1366,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the CodeBuild project",
       "group": "General",
+      "label": "Project name",
       "name": "project_name",
       "required": false,
       "type": "string"
@@ -1174,6 +1374,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "IAM service role ARN for CodeBuild",
       "group": "General",
+      "label": "Service role",
       "name": "service_role",
       "required": false,
       "type": "string"
@@ -1181,6 +1382,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Source type for the CodeBuild project",
       "group": "General",
+      "label": "Source type",
       "name": "source_type",
       "required": false,
       "type": "string"
@@ -1190,6 +1392,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the CodeCommit repository",
       "group": "General",
+      "label": "Repository name",
       "name": "repository_name",
       "required": false,
       "type": "string"
@@ -1199,6 +1402,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the CodeDeploy application",
       "group": "General",
+      "label": "App name",
       "name": "app_name",
       "required": false,
       "type": "string"
@@ -1206,6 +1410,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Compute platform for CodeDeploy",
       "group": "General",
+      "label": "Compute platform",
       "name": "compute_platform",
       "required": false,
       "type": "string"
@@ -1215,6 +1420,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the CodePipeline pipeline",
       "group": "General",
+      "label": "Pipeline name",
       "name": "pipeline_name",
       "required": false,
       "type": "string"
@@ -1222,6 +1428,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "IAM role ARN for CodePipeline",
       "group": "General",
+      "label": "Role ARN",
       "name": "role_arn",
       "required": false,
       "type": "string"
@@ -1231,6 +1438,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Identity management type for the Connect instance",
       "group": "General",
+      "label": "Identity management type",
       "name": "identity_management_type",
       "required": false,
       "type": "string"
@@ -1238,6 +1446,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether inbound calls are enabled",
       "group": "General",
+      "label": "Inbound calls enabled",
       "name": "inbound_calls_enabled",
       "required": false,
       "type": "bool"
@@ -1245,6 +1454,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether outbound calls are enabled",
       "group": "General",
+      "label": "Outbound calls enabled",
       "name": "outbound_calls_enabled",
       "required": false,
       "type": "bool"
@@ -1254,6 +1464,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Identifier for the DocumentDB cluster",
       "group": "General",
+      "label": "Cluster identifier",
       "name": "cluster_identifier",
       "required": false,
       "type": "string"
@@ -1261,6 +1472,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Master username for the DocumentDB cluster",
       "group": "General",
+      "label": "Master username",
       "name": "master_username",
       "required": false,
       "type": "string"
@@ -1270,6 +1482,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the DynamoDB table",
       "group": "General",
+      "label": "Table name",
       "name": "table_name",
       "required": true,
       "type": "string"
@@ -1278,6 +1491,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "PAY_PER_REQUEST",
       "description": "Billing mode for read/write throughput",
       "group": "General",
+      "label": "Billing mode",
       "name": "billing_mode",
       "options": [
         {
@@ -1290,12 +1504,19 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "PAY_PER_REQUEST",
+          "PROVISIONED"
+        ]
+      }
     },
     {
       "default": "STANDARD",
       "description": "Storage class for the DynamoDB table",
       "group": "General",
+      "label": "Table class",
       "name": "table_class",
       "options": [
         {
@@ -1308,11 +1529,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "STANDARD",
+          "STANDARD_INFREQUENT_ACCESS"
+        ]
+      }
     },
     {
       "description": "Attribute name for the partition (hash) key",
       "group": "Key Schema",
+      "label": "Hash key",
       "name": "hash_key",
       "required": true,
       "type": "string"
@@ -1320,6 +1548,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Attribute type for the partition (hash) key",
       "group": "Key Schema",
+      "label": "Hash key type",
       "name": "hash_key_type",
       "options": [
         {
@@ -1336,11 +1565,19 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": true,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "S",
+          "N",
+          "B"
+        ]
+      }
     },
     {
       "description": "Attribute name for the sort (range) key",
       "group": "Key Schema",
+      "label": "Range key",
       "name": "range_key",
       "required": false,
       "type": "string"
@@ -1349,6 +1586,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "S",
       "description": "Attribute type for the sort (range) key",
       "group": "Key Schema",
+      "label": "Range key type",
       "name": "range_key_type",
       "options": [
         {
@@ -1365,12 +1603,20 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "S",
+          "N",
+          "B"
+        ]
+      }
     },
     {
       "default": 5,
       "description": "Provisioned read capacity units",
       "group": "Capacity",
+      "label": "Read capacity",
       "name": "read_capacity",
       "required": false,
       "type": "number",
@@ -1387,6 +1633,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": 5,
       "description": "Provisioned write capacity units",
       "group": "Capacity",
+      "label": "Write capacity",
       "name": "write_capacity",
       "required": false,
       "type": "number",
@@ -1402,6 +1649,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Maximum read request units for on-demand capacity mode",
       "group": "Capacity",
+      "label": "On demand max read request units",
       "name": "on_demand_max_read_request_units",
       "required": false,
       "type": "number",
@@ -1413,6 +1661,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Maximum write request units for on-demand capacity mode",
       "group": "Capacity",
+      "label": "On demand max write request units",
       "name": "on_demand_max_write_request_units",
       "required": false,
       "type": "number",
@@ -1424,6 +1673,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Enable DynamoDB Streams on the table",
       "group": "Streams",
+      "label": "Stream enabled",
       "name": "stream_enabled",
       "required": false,
       "type": "bool"
@@ -1431,6 +1681,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Type of information written to the stream",
       "group": "Streams",
+      "label": "Stream view type",
       "name": "stream_view_type",
       "options": [
         {
@@ -1452,6 +1703,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       ],
       "required": false,
       "type": "string",
+      "validation": {
+        "allowed_values": [
+          "NEW_IMAGE",
+          "OLD_IMAGE",
+          "NEW_AND_OLD_IMAGES",
+          "KEYS_ONLY"
+        ]
+      },
       "visible_when": {
         "equals": true,
         "field": "stream_enabled"
@@ -1460,6 +1719,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Enable Time to Live (TTL) for the table",
       "group": "TTL",
+      "label": "TTL enabled",
       "name": "ttl_enabled",
       "required": false,
       "type": "bool"
@@ -1467,6 +1727,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the TTL attribute",
       "group": "TTL",
+      "label": "TTL attribute name",
       "name": "ttl_attribute_name",
       "required": false,
       "type": "string",
@@ -1478,6 +1739,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of global secondary index definitions",
       "group": "Indexes",
+      "label": "Global secondary indexes",
       "name": "global_secondary_indexes",
       "required": false,
       "type": "list"
@@ -1485,6 +1747,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of local secondary index definitions",
       "group": "Indexes",
+      "label": "Local secondary indexes",
       "name": "local_secondary_indexes",
       "required": false,
       "type": "list"
@@ -1492,6 +1755,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Enable server-side encryption with a KMS key",
       "group": "Encryption",
+      "label": "Server side encryption enabled",
       "name": "server_side_encryption_enabled",
       "required": false,
       "type": "bool"
@@ -1499,6 +1763,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the KMS key for server-side encryption",
       "group": "Encryption",
+      "label": "Server side encryption KMS key ARN",
       "name": "server_side_encryption_kms_key_arn",
       "required": false,
       "type": "string",
@@ -1510,6 +1775,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of regions for global table replicas",
       "group": "Global Tables",
+      "label": "Replica regions",
       "name": "replica_regions",
       "required": false,
       "type": "list"
@@ -1517,6 +1783,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the DynamoDB table",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -1525,6 +1792,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": false,
       "description": "Enable point-in-time recovery for the table",
       "group": "Metadata",
+      "label": "Point in time recovery enabled",
       "name": "point_in_time_recovery_enabled",
       "required": false,
       "type": "bool"
@@ -1533,6 +1801,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": false,
       "description": "Enable deletion protection for the table",
       "group": "Metadata",
+      "label": "Deletion protection enabled",
       "name": "deletion_protection_enabled",
       "required": false,
       "type": "bool"
@@ -1542,6 +1811,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name tag for the EC2 instance",
       "group": "General",
+      "label": "Instance name",
       "name": "instance_name",
       "required": false,
       "type": "string"
@@ -1549,6 +1819,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "AMI ID for the instance",
       "group": "General",
+      "label": "AMI",
       "name": "ami",
       "required": false,
       "type": "string"
@@ -1557,6 +1828,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "t3.micro",
       "description": "EC2 instance type",
       "group": "General",
+      "label": "Instance type",
       "name": "instance_type",
       "required": false,
       "type": "string"
@@ -1566,6 +1838,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Image Builder pipeline",
       "group": "General",
+      "label": "Pipeline name",
       "name": "pipeline_name",
       "required": false,
       "type": "string"
@@ -1573,6 +1846,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the image recipe",
       "group": "General",
+      "label": "Image recipe ARN",
       "name": "image_recipe_arn",
       "required": false,
       "type": "string"
@@ -1580,6 +1854,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the infrastructure configuration",
       "group": "General",
+      "label": "Infrastructure configuration ARN",
       "name": "infrastructure_configuration_arn",
       "required": false,
       "type": "string"
@@ -1589,6 +1864,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the ECR repository",
       "group": "General",
+      "label": "Repository name",
       "name": "repository_name",
       "required": false,
       "type": "string"
@@ -1598,6 +1874,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the ECS cluster",
       "group": "General",
+      "label": "Cluster name",
       "name": "cluster_name",
       "required": false,
       "type": "string"
@@ -1605,6 +1882,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Family name for the ECS task definition",
       "group": "General",
+      "label": "Task family",
       "name": "task_family",
       "required": false,
       "type": "string"
@@ -1613,6 +1891,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "256",
       "description": "CPU units for the ECS task",
       "group": "Performance",
+      "label": "ECS CPU",
       "name": "ecs_cpu",
       "required": false,
       "type": "string"
@@ -1621,6 +1900,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "512",
       "description": "Memory (MiB) for the ECS task",
       "group": "Performance",
+      "label": "ECS memory",
       "name": "ecs_memory",
       "required": false,
       "type": "string"
@@ -1630,6 +1910,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the EKS cluster",
       "group": "General",
+      "label": "Cluster name",
       "name": "cluster_name",
       "required": false,
       "type": "string"
@@ -1637,6 +1918,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the IAM role for the EKS cluster",
       "group": "General",
+      "label": "Cluster role ARN",
       "name": "cluster_role_arn",
       "required": false,
       "type": "string"
@@ -1644,6 +1926,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of subnet IDs for the EKS cluster VPC config",
       "group": "Networking",
+      "label": "Subnet IDs",
       "name": "subnet_ids",
       "required": false,
       "type": "list"
@@ -1653,6 +1936,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Elastic Beanstalk application",
       "group": "General",
+      "label": "Application name",
       "name": "application_name",
       "required": false,
       "type": "string"
@@ -1660,6 +1944,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Elastic Beanstalk environment",
       "group": "General",
+      "label": "Environment name",
       "name": "environment_name",
       "required": false,
       "type": "string"
@@ -1669,6 +1954,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Identifier for the ElastiCache cluster",
       "group": "General",
+      "label": "Cluster ID",
       "name": "cluster_id",
       "required": false,
       "type": "string"
@@ -1676,6 +1962,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Cache engine type",
       "group": "General",
+      "label": "Engine",
       "name": "engine",
       "required": false,
       "type": "string"
@@ -1683,6 +1970,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ElastiCache node type",
       "group": "General",
+      "label": "Node type",
       "name": "node_type",
       "required": false,
       "type": "string"
@@ -1690,6 +1978,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Number of cache nodes in the cluster",
       "group": "General",
+      "label": "Num cache nodes",
       "name": "num_cache_nodes",
       "required": false,
       "type": "number"
@@ -1699,6 +1988,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the EMR cluster",
       "group": "General",
+      "label": "Cluster name",
       "name": "cluster_name",
       "required": false,
       "type": "string"
@@ -1706,6 +1996,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "EMR release label",
       "group": "General",
+      "label": "Release label",
       "name": "release_label",
       "required": false,
       "type": "string"
@@ -1713,6 +2004,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "IAM service role for the EMR cluster",
       "group": "General",
+      "label": "Service role",
       "name": "service_role",
       "required": false,
       "type": "string"
@@ -1722,6 +2014,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the EventBridge rule",
       "group": "General",
+      "label": "Rule name",
       "name": "rule_name",
       "required": false,
       "type": "string"
@@ -1729,6 +2022,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Custom event bus to create and attach the rule to",
       "group": "General",
+      "label": "Bus name",
       "name": "bus_name",
       "required": false,
       "type": "string"
@@ -1736,6 +2030,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "JSON event pattern the rule matches",
       "group": "Matching",
+      "label": "Event pattern",
       "name": "event_pattern",
       "required": false,
       "type": "string"
@@ -1743,6 +2038,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Schedule such as rate(5 minutes) or cron(0 12 * * ? *)",
       "group": "Matching",
+      "label": "Schedule expression",
       "name": "schedule_expression",
       "required": false,
       "type": "string"
@@ -1750,6 +2046,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether the rule is enabled",
       "group": "Matching",
+      "label": "State",
       "name": "state",
       "options": [
         {
@@ -1775,6 +2072,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the GameLift fleet",
       "group": "General",
+      "label": "Fleet name",
       "name": "fleet_name",
       "required": false,
       "type": "string"
@@ -1782,6 +2080,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "EC2 instance type for the GameLift fleet",
       "group": "General",
+      "label": "EC2 instance type",
       "name": "ec2_instance_type",
       "required": false,
       "type": "string"
@@ -1791,6 +2090,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Glue catalog database",
       "group": "General",
+      "label": "Database name",
       "name": "database_name",
       "required": false,
       "type": "string"
@@ -1800,6 +2100,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Kinesis stream",
       "group": "General",
+      "label": "Stream name",
       "name": "stream_name",
       "required": false,
       "type": "string"
@@ -1807,6 +2108,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Number of shards for the Kinesis stream",
       "group": "General",
+      "label": "Shard count",
       "name": "shard_count",
       "required": false,
       "type": "number"
@@ -1816,6 +2118,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Firehose delivery stream",
       "group": "General",
+      "label": "Stream name",
       "name": "stream_name",
       "required": false,
       "type": "string"
@@ -1823,6 +2126,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Destination for the Firehose delivery stream",
       "group": "General",
+      "label": "Destination",
       "name": "destination",
       "required": false,
       "type": "string"
@@ -1832,6 +2136,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Lambda function",
       "group": "General",
+      "label": "Function name",
       "name": "function_name",
       "required": true,
       "type": "string"
@@ -1840,6 +2145,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "lambda_function.lambda_handler",
       "description": "Lambda function handler (module.function)",
       "group": "General",
+      "label": "Handler",
       "name": "handler",
       "required": false,
       "type": "string"
@@ -1848,6 +2154,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "python3.14",
       "description": "Lambda function runtime",
       "group": "General",
+      "label": "Runtime",
       "name": "runtime",
       "options": [
         {
@@ -1957,6 +2264,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Description of the Lambda function",
       "group": "General",
+      "label": "Description",
       "name": "description",
       "required": false,
       "type": "string"
@@ -1965,6 +2273,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": 128,
       "description": "Amount of memory available to the function at runtime (MB)",
       "group": "Performance",
+      "label": "Memory size",
       "name": "memory_size",
       "required": false,
       "type": "number",
@@ -1977,6 +2286,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": 3,
       "description": "Function execution timeout in seconds",
       "group": "Performance",
+      "label": "Timeout",
       "name": "timeout",
       "required": false,
       "type": "number",
@@ -1989,6 +2299,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": 512,
       "description": "Size of the function /tmp directory in MB",
       "group": "Performance",
+      "label": "Ephemeral storage size",
       "name": "ephemeral_storage_size",
       "required": false,
       "type": "number",
@@ -2000,6 +2311,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Number of reserved concurrent executions for this function",
       "group": "Performance",
+      "label": "Reserved concurrent executions",
       "name": "reserved_concurrent_executions",
       "required": false,
       "type": "number",
@@ -2012,6 +2324,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "x86_64",
       "description": "Instruction set architecture for the function",
       "group": "Performance",
+      "label": "Architectures",
       "name": "architectures",
       "options": [
         {
@@ -2024,11 +2337,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "x86_64",
+          "arm64"
+        ]
+      }
     },
     {
       "description": "SnapStart setting for the function",
       "group": "Performance",
+      "label": "Snap start apply on",
       "name": "snap_start_apply_on",
       "options": [
         {
@@ -2037,11 +2357,17 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "PublishedVersions"
+        ]
+      }
     },
     {
       "description": "Provisioned concurrency configuration",
       "group": "Performance",
+      "label": "Provisioned concurrency config",
       "name": "provisioned_concurrency_config",
       "required": false,
       "type": "map"
@@ -2049,6 +2375,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Lambda deployment package type",
       "group": "Deployment",
+      "label": "Package type",
       "name": "package_type",
       "options": [
         {
@@ -2061,11 +2388,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "Zip",
+          "Image"
+        ]
+      }
     },
     {
       "description": "ECR image URI for container-based Lambda",
       "group": "Deployment",
+      "label": "Image URI",
       "name": "image_uri",
       "required": false,
       "type": "string",
@@ -2077,6 +2411,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Container image configuration overrides",
       "group": "Deployment",
+      "label": "Image config",
       "name": "image_config",
       "required": false,
       "type": "map",
@@ -2089,6 +2424,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": false,
       "description": "Whether to publish creation/change as a new Lambda function version",
       "group": "Deployment",
+      "label": "Publish",
       "name": "publish",
       "required": false,
       "type": "bool"
@@ -2096,6 +2432,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of Lambda layer ARNs to attach to the function",
       "group": "Deployment",
+      "label": "Layers",
       "name": "layers",
       "required": false,
       "type": "list"
@@ -2103,6 +2440,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "S3 bucket containing the function deployment package",
       "group": "Deployment",
+      "label": "S3 bucket",
       "name": "s3_bucket",
       "required": false,
       "type": "string"
@@ -2110,6 +2448,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "S3 object key of the function deployment package",
       "group": "Deployment",
+      "label": "S3 key",
       "name": "s3_key",
       "required": false,
       "type": "string"
@@ -2117,6 +2456,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "S3 object version of the function deployment package",
       "group": "Deployment",
+      "label": "S3 object version",
       "name": "s3_object_version",
       "required": false,
       "type": "string"
@@ -2124,6 +2464,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Base64-encoded SHA256 hash of the deployment package",
       "group": "Deployment",
+      "label": "Source code hash",
       "name": "source_code_hash",
       "required": false,
       "type": "string"
@@ -2131,6 +2472,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Path to the function deployment package within the local filesystem",
       "group": "Deployment",
+      "label": "Filename",
       "name": "filename",
       "required": false,
       "type": "string"
@@ -2138,6 +2480,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of subnet IDs for VPC configuration",
       "group": "VPC",
+      "label": "VPC subnet IDs",
       "name": "vpc_subnet_ids",
       "required": false,
       "type": "list"
@@ -2145,6 +2488,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of security group IDs for VPC configuration",
       "group": "VPC",
+      "label": "VPC security group IDs",
       "name": "vpc_security_group_ids",
       "required": false,
       "type": "list"
@@ -2152,6 +2496,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "KMS key ARN for environment variable encryption",
       "group": "Encryption",
+      "label": "KMS key ARN",
       "name": "kms_key_arn",
       "required": false,
       "type": "string"
@@ -2159,6 +2504,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "X-Ray tracing mode for the function",
       "group": "Observability",
+      "label": "Tracing mode",
       "name": "tracing_mode",
       "options": [
         {
@@ -2171,11 +2517,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "Active",
+          "PassThrough"
+        ]
+      }
     },
     {
       "description": "Log format for the function (Text or JSON)",
       "group": "Observability",
+      "label": "Logging log format",
       "name": "logging_log_format",
       "options": [
         {
@@ -2188,11 +2541,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "Text",
+          "JSON"
+        ]
+      }
     },
     {
       "description": "CloudWatch log group for the function",
       "group": "Observability",
+      "label": "Logging log group",
       "name": "logging_log_group",
       "required": false,
       "type": "string"
@@ -2200,6 +2560,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Application log level for the function",
       "group": "Observability",
+      "label": "Logging application log level",
       "name": "logging_application_log_level",
       "options": [
         {
@@ -2228,11 +2589,22 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "TRACE",
+          "DEBUG",
+          "INFO",
+          "WARN",
+          "ERROR",
+          "FATAL"
+        ]
+      }
     },
     {
       "description": "System log level for the function",
       "group": "Observability",
+      "label": "Logging system log level",
       "name": "logging_system_log_level",
       "options": [
         {
@@ -2249,11 +2621,19 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "DEBUG",
+          "INFO",
+          "WARN"
+        ]
+      }
     },
     {
       "description": "ARN of the dead letter queue (SQS or SNS) for failed invocations",
       "group": "Error Handling",
+      "label": "Dead letter target ARN",
       "name": "dead_letter_target_arn",
       "required": false,
       "type": "string"
@@ -2261,6 +2641,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the EFS access point for the function",
       "group": "Storage",
+      "label": "File system ARN",
       "name": "file_system_arn",
       "required": false,
       "type": "string"
@@ -2268,6 +2649,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Local mount path for the EFS file system (must start with /mnt/)",
       "group": "Storage",
+      "label": "File system local mount path",
       "name": "file_system_local_mount_path",
       "required": false,
       "type": "string",
@@ -2279,6 +2661,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the code signing configuration for the function",
       "group": "Security",
+      "label": "Code signing config ARN",
       "name": "code_signing_config_arn",
       "required": false,
       "type": "string"
@@ -2286,6 +2669,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Runtime management configuration",
       "group": "Runtime Management",
+      "label": "Runtime management config",
       "name": "runtime_management_config",
       "required": false,
       "type": "map"
@@ -2293,6 +2677,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Lambda Function URL configuration",
       "group": "URL Config",
+      "label": "Function URL config",
       "name": "function_url_config",
       "required": false,
       "type": "map"
@@ -2300,6 +2685,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Environment variables for the Lambda function",
       "group": "Metadata",
+      "label": "Environment variables",
       "name": "environment_variables",
       "required": false,
       "type": "map"
@@ -2307,6 +2693,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the Lambda function",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -2316,6 +2703,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Lightsail instance",
       "group": "General",
+      "label": "Instance name",
       "name": "instance_name",
       "required": false,
       "type": "string"
@@ -2323,6 +2711,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Blueprint ID for the Lightsail instance",
       "group": "General",
+      "label": "Blueprint ID",
       "name": "blueprint_id",
       "required": false,
       "type": "string"
@@ -2330,6 +2719,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Bundle ID for the Lightsail instance",
       "group": "General",
+      "label": "Bundle ID",
       "name": "bundle_id",
       "required": false,
       "type": "string"
@@ -2337,6 +2727,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Availability zone for the Lightsail instance",
       "group": "General",
+      "label": "Availability zone",
       "name": "availability_zone",
       "required": false,
       "type": "string"
@@ -2346,6 +2737,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the MSK cluster",
       "group": "General",
+      "label": "Cluster name",
       "name": "cluster_name",
       "required": false,
       "type": "string"
@@ -2353,6 +2745,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Apache Kafka version for the MSK cluster",
       "group": "General",
+      "label": "Kafka version",
       "name": "kafka_version",
       "required": false,
       "type": "string"
@@ -2360,6 +2753,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Number of broker nodes in the MSK cluster",
       "group": "General",
+      "label": "Number of broker nodes",
       "name": "number_of_broker_nodes",
       "required": false,
       "type": "number"
@@ -2369,6 +2763,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Identifier for the Neptune cluster",
       "group": "General",
+      "label": "Cluster identifier",
       "name": "cluster_identifier",
       "required": false,
       "type": "string"
@@ -2378,6 +2773,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the OpenSearch domain",
       "group": "General",
+      "label": "Domain name",
       "name": "domain_name",
       "required": false,
       "type": "string"
@@ -2387,6 +2783,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Pinpoint application",
       "group": "General",
+      "label": "App name",
       "name": "app_name",
       "required": false,
       "type": "string"
@@ -2396,6 +2793,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Identifier for the RDS instance",
       "group": "General",
+      "label": "DB identifier",
       "name": "db_identifier",
       "required": false,
       "type": "string"
@@ -2403,6 +2801,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Database engine type",
       "group": "General",
+      "label": "Engine",
       "name": "engine",
       "required": false,
       "type": "string"
@@ -2411,6 +2810,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "db.t3.micro",
       "description": "RDS instance class",
       "group": "General",
+      "label": "Instance class",
       "name": "instance_class",
       "required": false,
       "type": "string"
@@ -2419,6 +2819,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": 20,
       "description": "Allocated storage in GB",
       "group": "General",
+      "label": "Allocated storage",
       "name": "allocated_storage",
       "required": false,
       "type": "number"
@@ -2426,6 +2827,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Master username for the database",
       "group": "General",
+      "label": "Username",
       "name": "username",
       "required": false,
       "type": "string"
@@ -2435,6 +2837,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Identifier for the Redshift cluster",
       "group": "General",
+      "label": "Cluster identifier",
       "name": "cluster_identifier",
       "required": false,
       "type": "string"
@@ -2442,6 +2845,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Node type for the Redshift cluster",
       "group": "General",
+      "label": "Node type",
       "name": "node_type",
       "required": false,
       "type": "string"
@@ -2449,6 +2853,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Master username for the Redshift cluster",
       "group": "General",
+      "label": "Master username",
       "name": "master_username",
       "required": false,
       "type": "string"
@@ -2458,6 +2863,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the S3 bucket",
       "group": "General",
+      "label": "Bucket name",
       "name": "bucket_name",
       "required": false,
       "type": "string"
@@ -2465,6 +2871,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Creates a unique bucket name beginning with the specified prefix",
       "group": "General",
+      "label": "Bucket prefix",
       "name": "bucket_prefix",
       "required": false,
       "type": "string"
@@ -2473,6 +2880,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": "Enabled",
       "description": "Versioning status for the S3 bucket",
       "group": "General",
+      "label": "Versioning",
       "name": "versioning",
       "options": [
         {
@@ -2489,12 +2897,20 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "Enabled",
+          "Suspended",
+          "Disabled"
+        ]
+      }
     },
     {
       "default": false,
       "description": "Allow deletion of non-empty bucket by deleting all objects",
       "group": "Configuration",
+      "label": "Force destroy",
       "name": "force_destroy",
       "required": false,
       "type": "bool"
@@ -2503,6 +2919,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": false,
       "description": "Enable S3 Object Lock on the bucket",
       "group": "Configuration",
+      "label": "Object lock enabled",
       "name": "object_lock_enabled",
       "required": false,
       "type": "bool"
@@ -2510,6 +2927,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Transfer acceleration status for the bucket",
       "group": "Configuration",
+      "label": "Acceleration status",
       "name": "acceleration_status",
       "options": [
         {
@@ -2522,11 +2940,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "Enabled",
+          "Suspended"
+        ]
+      }
     },
     {
       "description": "Server-side encryption algorithm to use",
       "group": "Encryption",
+      "label": "SSE algorithm",
       "name": "sse_algorithm",
       "options": [
         {
@@ -2543,11 +2968,19 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "AES256",
+          "aws:kms",
+          "aws:kms:dsse"
+        ]
+      }
     },
     {
       "description": "ARN of the KMS key to use for server-side encryption",
       "group": "Encryption",
+      "label": "SSE KMS key ID",
       "name": "sse_kms_key_id",
       "required": false,
       "type": "string",
@@ -2559,6 +2992,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether to enable S3 Bucket Key for SSE-KMS",
       "group": "Encryption",
+      "label": "SSE bucket key enabled",
       "name": "sse_bucket_key_enabled",
       "required": false,
       "type": "bool"
@@ -2566,6 +3000,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Lifecycle rules for object management",
       "group": "Lifecycle",
+      "label": "Lifecycle rules",
       "name": "lifecycle_rules",
       "required": false,
       "type": "list"
@@ -2573,6 +3008,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of headers allowed in CORS requests",
       "group": "CORS",
+      "label": "CORS allowed headers",
       "name": "cors_allowed_headers",
       "required": false,
       "type": "list"
@@ -2580,6 +3016,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of HTTP methods allowed in CORS requests",
       "group": "CORS",
+      "label": "CORS allowed methods",
       "name": "cors_allowed_methods",
       "options": [
         {
@@ -2604,11 +3041,21 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "list"
+      "type": "list",
+      "validation": {
+        "allowed_values": [
+          "GET",
+          "PUT",
+          "POST",
+          "DELETE",
+          "HEAD"
+        ]
+      }
     },
     {
       "description": "List of origins allowed to make CORS requests",
       "group": "CORS",
+      "label": "CORS allowed origins",
       "name": "cors_allowed_origins",
       "required": false,
       "type": "list"
@@ -2616,6 +3063,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "List of headers exposed to the browser in CORS responses",
       "group": "CORS",
+      "label": "CORS expose headers",
       "name": "cors_expose_headers",
       "required": false,
       "type": "list"
@@ -2623,6 +3071,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Time in seconds the browser can cache the preflight response",
       "group": "CORS",
+      "label": "CORS max age seconds",
       "name": "cors_max_age_seconds",
       "required": false,
       "type": "number"
@@ -2630,6 +3079,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the bucket to receive access logs",
       "group": "Logging",
+      "label": "Logging target bucket",
       "name": "logging_target_bucket",
       "required": false,
       "type": "string"
@@ -2637,6 +3087,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Prefix for access log object keys",
       "group": "Logging",
+      "label": "Logging target prefix",
       "name": "logging_target_prefix",
       "required": false,
       "type": "string"
@@ -2644,6 +3095,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the index document for the website",
       "group": "Website",
+      "label": "Website index document",
       "name": "website_index_document",
       "required": false,
       "type": "string"
@@ -2651,6 +3103,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the error document for the website",
       "group": "Website",
+      "label": "Website error document",
       "name": "website_error_document",
       "required": false,
       "type": "string"
@@ -2658,6 +3111,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Hostname to redirect all website requests to",
       "group": "Website",
+      "label": "Website redirect all requests to",
       "name": "website_redirect_all_requests_to",
       "required": false,
       "type": "string"
@@ -2666,6 +3120,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": true,
       "description": "Whether to block public ACLs for the bucket",
       "group": "Public Access",
+      "label": "Block public ACLs",
       "name": "block_public_acls",
       "required": false,
       "type": "bool"
@@ -2674,6 +3129,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": true,
       "description": "Whether to block public bucket policies",
       "group": "Public Access",
+      "label": "Block public policy",
       "name": "block_public_policy",
       "required": false,
       "type": "bool"
@@ -2682,6 +3138,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": true,
       "description": "Whether to ignore public ACLs for the bucket",
       "group": "Public Access",
+      "label": "Ignore public ACLs",
       "name": "ignore_public_acls",
       "required": false,
       "type": "bool"
@@ -2690,6 +3147,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": true,
       "description": "Whether to restrict public bucket policies",
       "group": "Public Access",
+      "label": "Restrict public buckets",
       "name": "restrict_public_buckets",
       "required": false,
       "type": "bool"
@@ -2697,6 +3155,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the Lambda function for bucket notifications",
       "group": "Notifications",
+      "label": "Notification lambda ARN",
       "name": "notification_lambda_arn",
       "required": false,
       "type": "string"
@@ -2704,6 +3163,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "S3 events that trigger the Lambda notification",
       "group": "Notifications",
+      "label": "Notification lambda events",
       "name": "notification_lambda_events",
       "required": false,
       "type": "list"
@@ -2711,6 +3171,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the SQS queue for bucket notifications",
       "group": "Notifications",
+      "label": "Notification SQS ARN",
       "name": "notification_sqs_arn",
       "required": false,
       "type": "string"
@@ -2718,6 +3179,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "S3 events that trigger the SQS notification",
       "group": "Notifications",
+      "label": "Notification SQS events",
       "name": "notification_sqs_events",
       "required": false,
       "type": "list"
@@ -2725,6 +3187,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the SNS topic for bucket notifications",
       "group": "Notifications",
+      "label": "Notification SNS ARN",
       "name": "notification_sns_arn",
       "required": false,
       "type": "string"
@@ -2732,6 +3195,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "S3 events that trigger the SNS notification",
       "group": "Notifications",
+      "label": "Notification SNS events",
       "name": "notification_sns_events",
       "required": false,
       "type": "list"
@@ -2739,6 +3203,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the IAM role for S3 replication",
       "group": "Replication",
+      "label": "Replication role ARN",
       "name": "replication_role_arn",
       "required": false,
       "type": "string"
@@ -2746,6 +3211,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the destination bucket for replication",
       "group": "Replication",
+      "label": "Replication destination bucket",
       "name": "replication_destination_bucket",
       "required": false,
       "type": "string"
@@ -2753,6 +3219,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Storage class for replicated objects in the destination bucket",
       "group": "Replication",
+      "label": "Replication destination storage class",
       "name": "replication_destination_storage_class",
       "options": [
         {
@@ -2789,11 +3256,24 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         }
       ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "STANDARD",
+          "REDUCED_REDUNDANCY",
+          "STANDARD_IA",
+          "ONEZONE_IA",
+          "INTELLIGENT_TIERING",
+          "GLACIER",
+          "GLACIER_IR",
+          "DEEP_ARCHIVE"
+        ]
+      }
     },
     {
       "description": "Tags to apply to the S3 bucket",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -2803,6 +3283,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the SageMaker notebook instance",
       "group": "General",
+      "label": "Notebook instance name",
       "name": "notebook_instance_name",
       "required": false,
       "type": "string"
@@ -2810,6 +3291,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Instance type for the notebook instance",
       "group": "General",
+      "label": "Instance type",
       "name": "instance_type",
       "options": [
         {
@@ -2843,6 +3325,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "IAM role ARN for the notebook instance",
       "group": "General",
+      "label": "Role ARN",
       "name": "role_arn",
       "required": false,
       "type": "string"
@@ -2851,6 +3334,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": 5,
       "description": "Volume size for the notebook instance in GB",
       "group": "Configuration",
+      "label": "Volume size",
       "name": "volume_size",
       "required": false,
       "type": "number",
@@ -2863,6 +3347,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": true,
       "description": "Whether direct internet access is enabled for the notebook instance",
       "group": "Configuration",
+      "label": "Direct internet access",
       "name": "direct_internet_access",
       "required": false,
       "type": "bool"
@@ -2871,6 +3356,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "default": true,
       "description": "Whether root access is enabled for the notebook instance",
       "group": "Configuration",
+      "label": "Root access",
       "name": "root_access",
       "required": false,
       "type": "bool"
@@ -2878,6 +3364,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the SageMaker notebook instance",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -2887,6 +3374,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Domain name for SES identity",
       "group": "General",
+      "label": "Domain",
       "name": "domain",
       "required": false,
       "type": "string"
@@ -2896,6 +3384,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the SNS topic",
       "group": "General",
+      "label": "Topic name",
       "name": "topic_name",
       "required": false,
       "type": "string"
@@ -2903,6 +3392,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Display name for the SNS topic",
       "group": "General",
+      "label": "Display name",
       "name": "display_name",
       "required": false,
       "type": "string"
@@ -2910,6 +3400,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether the SNS topic is a FIFO topic",
       "group": "Configuration",
+      "label": "Fifo topic",
       "name": "fifo_topic",
       "required": false,
       "type": "bool"
@@ -2917,6 +3408,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Enable content-based deduplication for the SNS topic",
       "group": "Configuration",
+      "label": "Content based deduplication",
       "name": "content_based_deduplication",
       "required": false,
       "type": "bool"
@@ -2924,6 +3416,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "ARN of the KMS key to use for encrypting SNS messages",
       "group": "Configuration",
+      "label": "KMS master key ID",
       "name": "kms_master_key_id",
       "required": false,
       "type": "string"
@@ -2931,6 +3424,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the SNS topic",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -2940,6 +3434,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the SQS queue",
       "group": "General",
+      "label": "Queue name",
       "name": "queue_name",
       "required": false,
       "type": "string"
@@ -2947,6 +3442,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Whether the SQS queue is a FIFO queue",
       "group": "General",
+      "label": "Fifo queue",
       "name": "fifo_queue",
       "required": false,
       "type": "bool"
@@ -2954,6 +3450,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "The visibility timeout for the queue in seconds",
       "group": "Configuration",
+      "label": "Visibility timeout seconds",
       "name": "visibility_timeout_seconds",
       "required": false,
       "type": "number",
@@ -2965,6 +3462,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "The number of seconds to retain a message",
       "group": "Configuration",
+      "label": "Message retention seconds",
       "name": "message_retention_seconds",
       "required": false,
       "type": "number",
@@ -2976,6 +3474,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "The time in seconds that delivery of all messages is delayed",
       "group": "Configuration",
+      "label": "Delay seconds",
       "name": "delay_seconds",
       "required": false,
       "type": "number",
@@ -2987,6 +3486,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "The limit of how many bytes a message can contain",
       "group": "Configuration",
+      "label": "Max message size",
       "name": "max_message_size",
       "required": false,
       "type": "number",
@@ -2998,6 +3498,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Enable content-based deduplication for the SQS queue",
       "group": "Configuration",
+      "label": "Content based deduplication",
       "name": "content_based_deduplication",
       "required": false,
       "type": "bool"
@@ -3005,6 +3506,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Tags to apply to the SQS queue",
       "group": "Metadata",
+      "label": "Tags",
       "name": "tags",
       "required": false,
       "type": "map"
@@ -3014,6 +3516,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     {
       "description": "Name of the Timestream database",
       "group": "General",
+      "label": "Database name",
       "name": "database_name",
       "required": false,
       "type": "string"

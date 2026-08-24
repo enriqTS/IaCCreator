@@ -2,7 +2,7 @@
 
 import type { LinkedEntryField } from '@/connections';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import FieldLabel from './FieldLabel';
 import { Input } from '@/components/ui/input';
 import { toggleExclusiveSelection } from './schema-field-utils';
 
@@ -51,7 +51,7 @@ export default function LinkedEntryFieldRenderer({
 
     return (
       <div className="flex flex-col gap-1">
-        {!compact && <Label className="text-xs text-muted-foreground">{field.label}</Label>}
+        {!compact && <FieldLabel label={field.label} />}
         <div
           className="flex flex-wrap gap-1"
           role="group"
@@ -82,7 +82,7 @@ export default function LinkedEntryFieldRenderer({
 
   return (
     <div className="flex flex-col gap-1">
-      {!compact && <Label className="text-xs text-muted-foreground">{field.label}</Label>}
+      {!compact && <FieldLabel label={field.label} />}
       <Input
         data-testid={`entry-field-${field.key}-${testIdSuffix}`}
         type={field.type === 'number' ? 'number' : 'text'}

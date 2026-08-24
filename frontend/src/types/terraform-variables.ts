@@ -28,6 +28,8 @@ export interface VisibleWhen {
 
 export interface TerraformVariableSchema {
   name: string;
+  /** Short human name for the field; the description is the long explanation. */
+  label: string;
   required?: boolean;
   type: TerraformVariableType;
   description: string;

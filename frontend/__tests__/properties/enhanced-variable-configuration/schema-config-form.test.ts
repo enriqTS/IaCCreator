@@ -53,6 +53,7 @@ const arbVisibleWhen: fc.Arbitrary<VisibleWhen> = fc.record({
 
 const arbSchemaEntry: fc.Arbitrary<TerraformVariableSchema> = fc.record({
   name: fc.string({ minLength: 1, maxLength: 30 }),
+  label: fc.string({ minLength: 1, maxLength: 30 }),
   type: arbVariableType,
   description: fc.string({ minLength: 1, maxLength: 60 }),
   default: fc.option(
@@ -200,6 +201,7 @@ describe('Property 7: Validation error display', () => {
           const validation: ValidationRule = { min, max };
           const entry: TerraformVariableSchema = {
             name: 'test_field',
+            label: 'test_field',
             type: 'number',
             description: 'test',
             validation,
@@ -232,6 +234,7 @@ describe('Property 7: Validation error display', () => {
           const validation: ValidationRule = { allowed_values: allowedValues };
           const entry: TerraformVariableSchema = {
             name: 'test_field',
+            label: 'test_field',
             type: 'number',
             description: 'test',
             validation,
@@ -258,6 +261,7 @@ describe('Property 7: Validation error display', () => {
     };
     const entry: TerraformVariableSchema = {
       name: 'test_field',
+      label: 'test_field',
       type: 'string',
       description: 'test',
       validation,
@@ -289,6 +293,7 @@ describe('Property 7: Validation error display', () => {
           const validation: ValidationRule = { min, max };
           const entry: TerraformVariableSchema = {
             name: 'test_field',
+            label: 'test_field',
             type: 'number',
             description: 'test',
             validation,

@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { getSchemas } from '@/store/schema-store';
 import type { TerraformVariableSchema, ValidationRule } from '@/types/terraform-variables';
 import type { ResourceConfig } from '@/types/diagram';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
@@ -20,6 +19,8 @@ import {
 import KeyValueEditor from '../editors/KeyValueEditor';
 import ListEditor from '../editors/ListEditor';
 import ConfigTabs, { type ConfigTab } from '../overlay/ConfigTabs';
+import FieldLabel from './FieldLabel';
+import ValidationSummary, { type ValidationIssue } from './ValidationSummary';
 
 interface SchemaConfigFormProps {
   elementId: string;
@@ -27,6 +28,8 @@ interface SchemaConfigFormProps {
   onValidationChange?: (hasErrors: boolean) => void;
   /** Appended after the schema's own group tabs, so the strip stays flat. */
   extraTabs?: ConfigTab[];
+  /** Rendered above the first group's fields, for configuration outside the schema. */
+  leadingFields?: ReactNode;
 }
 
 /** Evaluate a visible_when condition against the current config. */
@@ -80,10 +83,12 @@ function validateValue(
   return null;
 }
 
-export default function SchemaConfigForm({ elementId, serviceType, onValidationChange, extraTabs = [] }: SchemaConfigFormProps) {
+export default function SchemaConfigForm({ elementId, serviceType, onValidationChange, extraTabs = [], leadingFields }: SchemaConfigFormProps) {
   const canvasObject = useDiagramStore((s) => s.canvasObjects.get(elementId));
   const updateCanvasObject = useDiagramStore((s) => s.updateCanvasObject);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [openTab, setOpenTab] = useState('');
+  const pendingFocusRef = useRef<string | null>(null);
 
   const schemas = getSchemas();
   const entries = useMemo(() => schemas[serviceType] ?? [], [schemas, serviceType]);
@@ -113,6 +118,26 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
   }, [groups, config]);
 
   const hasErrors = Object.keys(errors).length > 0;
+
+  const issues = useMemo<ValidationIssue[]>(() => {
+    const result: ValidationIssue[] = [];
+    for (const [group, groupEntries] of visibleGroups) {
+      for (const entry of groupEntries) {
+        if (errors[entry.name]) {
+          result.push({ key: entry.name, label: entry.label || entry.name, group });
+        }
+      }
+    }
+    return result;
+  }, [visibleGroups, errors]);
+
+  // Runs after every render so the field is focused once its tab has opened
+  useEffect(() => {
+    const target = pendingFocusRef.current;
+    if (!target) return;
+    pendingFocusRef.current = null;
+    document.getElementById(fieldId(target))?.focus();
+  });
 
   const onValidationChangeRef = useRef(onValidationChange);
   useEffect(() => {
@@ -169,20 +194,28 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
 
   return (
     <div data-testid="schema-config-form" className="flex min-w-0 flex-col gap-3">
-      {hasErrors && (
-        <div data-testid="validation-error-summary" className="text-destructive text-xs">
-          ⚠ {Object.keys(errors).length} validation error{Object.keys(errors).length > 1 ? 's' : ''}
-        </div>
-      )}
+      <ValidationSummary
+        issues={issues}
+        onSelect={(issue) => {
+          setOpenTab(issue.group);
+          pendingFocusRef.current = issue.key;
+        }}
+      />
 
       <ConfigTabs
         testIdPrefix="schema"
+        value={openTab}
+        onValueChange={setOpenTab}
         tabs={[
-          ...visibleGroups.map(([group, groupEntries]) => ({
+          ...visibleGroups.map(([group, groupEntries], groupIndex) => ({
             id: group,
             label: group,
+            status: groupEntries.some((entry) => errors[entry.name])
+              ? ('error' as const)
+              : undefined,
             content: (
               <div data-testid={`config-group-${group}`} className="flex flex-col gap-3 py-2">
+                {groupIndex === 0 && leadingFields}
                 {groupEntries.map((entry) => (
                   <FieldRenderer
                     key={entry.name}
@@ -204,6 +237,11 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
 
 /** Expose helpers for external consumers and testing */
 export { validateValue, isVisible };
+
+/** The DOM id of a field's control, so its label and the summary can reach it. */
+function fieldId(name: string): string {
+  return `config-field-${name}`;
+}
 
 // --- Field Renderer ---
 
@@ -236,7 +274,12 @@ function FieldRenderer({
 
     return (
       <div className="flex flex-col gap-1.5">
-        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+        <FieldLabel
+          label={entry.label || entry.name}
+          description={entry.description}
+          required={entry.required}
+          htmlFor={fieldId(entry.name)}
+        />
         <Select
           value={currentValue !== undefined && currentValue !== null ? String(currentValue) : ''}
           onValueChange={(val) => {
@@ -244,7 +287,7 @@ function FieldRenderer({
             onChange(entry, opt ? opt.value : val);
           }}
         >
-          <SelectTrigger data-testid={`field-${entry.name}`} className="w-full">
+          <SelectTrigger id={fieldId(entry.name)} data-testid={`field-${entry.name}`} className="w-full">
             <SelectValue placeholder="Select..." />
           </SelectTrigger>
           <SelectContent>
@@ -280,7 +323,12 @@ function FieldRenderer({
           checked={currentValue === true}
           onCheckedChange={(checked) => onChange(entry, checked === true)}
         />
-        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+        <FieldLabel
+          label={entry.label || entry.name}
+          description={entry.description}
+          required={entry.required}
+          htmlFor={fieldId(entry.name)}
+        />
       </div>
     );
   }
@@ -289,7 +337,12 @@ function FieldRenderer({
   if (entry.type === 'map') {
     return (
       <div className="flex flex-col gap-1.5">
-        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+        <FieldLabel
+          label={entry.label || entry.name}
+          description={entry.description}
+          required={entry.required}
+          htmlFor={fieldId(entry.name)}
+        />
         <KeyValueEditor
           value={currentValue as Record<string, string> | undefined}
           onChange={(val) => onChange(entry, val)}
@@ -302,7 +355,12 @@ function FieldRenderer({
   if (entry.type === 'list') {
     return (
       <div className="flex flex-col gap-1.5">
-        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+        <FieldLabel
+          label={entry.label || entry.name}
+          description={entry.description}
+          required={entry.required}
+          htmlFor={fieldId(entry.name)}
+        />
         <ListEditor
           value={currentValue as string[] | undefined}
           onChange={(val) => onChange(entry, val)}
@@ -315,8 +373,14 @@ function FieldRenderer({
   if (entry.type === 'number') {
     return (
       <div className="flex flex-col gap-1.5">
-        <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+        <FieldLabel
+          label={entry.label || entry.name}
+          description={entry.description}
+          required={entry.required}
+          htmlFor={fieldId(entry.name)}
+        />
         <Input
+          id={fieldId(entry.name)}
           data-testid={`field-${entry.name}`}
           type="text"
           inputMode="numeric"
@@ -333,8 +397,14 @@ function FieldRenderer({
   // Default: text input
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs text-muted-foreground">{entry.description}</Label>
+      <FieldLabel
+        label={entry.label || entry.name}
+        description={entry.description}
+        required={entry.required}
+        htmlFor={fieldId(entry.name)}
+      />
       <Input
+        id={fieldId(entry.name)}
         data-testid={`field-${entry.name}`}
         type="text"
         value={currentValue !== undefined && currentValue !== null ? String(currentValue) : ''}

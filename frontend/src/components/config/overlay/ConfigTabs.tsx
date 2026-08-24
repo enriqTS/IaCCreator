@@ -10,6 +10,8 @@ export interface ConfigTab {
   id: string;
   label: string;
   content: ReactNode;
+  /** Marks the tab so a problem on a closed tab is still visible. */
+  status?: 'error' | 'warning';
 }
 
 interface ConfigTabsProps {
@@ -75,20 +77,32 @@ export default function ConfigTabs({
     onValueChange?.(next);
   };
 
+  // Both arrows appear together so the strip keeps its width as it scrolls
+  const overflowing = canScroll.left || canScroll.right;
+
   return (
     <Tabs
       value={effectiveTab}
       onValueChange={handleValueChange}
       className={cn('w-full min-w-0', className)}
     >
-      <div className="relative min-w-0">
+      <div className="flex min-w-0 items-center gap-1">
+        {overflowing && (
+          <ScrollArrow
+            side="left"
+            testIdPrefix={testIdPrefix}
+            disabled={!canScroll.left}
+            onClick={() => scrollBy(-1)}
+          />
+        )}
+
         <div
           ref={stripRef}
           data-testid={`${testIdPrefix}-tab-strip`}
           onScroll={syncArrows}
           // overflow-y must be stated: leaving it visible makes CSS compute it to auto,
           // which would let the strip scroll vertically as well as across
-          className="overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="min-w-0 flex-1 overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {/* Tabs keep their natural width so the next one stays partly visible as a hint */}
           <TabsList data-testid={`${testIdPrefix}-tab-bar`} className="w-max">
@@ -100,16 +114,28 @@ export default function ConfigTabs({
                 className="flex-none px-3 text-xs"
               >
                 {tab.label}
+                {tab.status && (
+                  <span
+                    data-testid={`${testIdPrefix}-tab-${tab.id.toLowerCase()}-${tab.status}`}
+                    aria-hidden
+                    className={cn(
+                      'size-1.5 rounded-full',
+                      tab.status === 'error' ? 'bg-destructive' : 'bg-amber-500',
+                    )}
+                  />
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
         </div>
 
-        {canScroll.left && (
-          <ScrollArrow side="left" testIdPrefix={testIdPrefix} onClick={() => scrollBy(-1)} />
-        )}
-        {canScroll.right && (
-          <ScrollArrow side="right" testIdPrefix={testIdPrefix} onClick={() => scrollBy(1)} />
+        {overflowing && (
+          <ScrollArrow
+            side="right"
+            testIdPrefix={testIdPrefix}
+            disabled={!canScroll.right}
+            onClick={() => scrollBy(1)}
+          />
         )}
       </div>
 
@@ -122,36 +148,30 @@ export default function ConfigTabs({
   );
 }
 
-/** An edge arrow standing in for the hidden scrollbar. */
+/** An arrow beside the strip, standing in for the hidden scrollbar. */
 function ScrollArrow({
   side,
   testIdPrefix,
+  disabled,
   onClick,
 }: {
   side: 'left' | 'right';
   testIdPrefix: string;
+  disabled: boolean;
   onClick: () => void;
 }) {
   const Icon = side === 'left' ? ChevronLeft : ChevronRight;
   return (
-    <div
-      className={cn(
-        'pointer-events-none absolute inset-y-0 flex items-center',
-        side === 'left'
-          ? 'left-0 bg-gradient-to-r from-background to-transparent pr-4'
-          : 'right-0 bg-gradient-to-l from-background to-transparent pl-4',
-      )}
+    <Button
+      variant="ghost"
+      size="icon-xs"
+      data-testid={`${testIdPrefix}-tab-scroll-${side}`}
+      aria-label={`Scroll tabs ${side}`}
+      disabled={disabled}
+      onClick={onClick}
+      className="shrink-0"
     >
-      <Button
-        variant="ghost"
-        size="icon-xs"
-        data-testid={`${testIdPrefix}-tab-scroll-${side}`}
-        aria-label={`Scroll tabs ${side}`}
-        onClick={onClick}
-        className="pointer-events-auto"
-      >
-        <Icon />
-      </Button>
-    </div>
+      <Icon />
+    </Button>
   );
 }

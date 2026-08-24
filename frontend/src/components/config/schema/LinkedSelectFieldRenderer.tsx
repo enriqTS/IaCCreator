@@ -5,7 +5,7 @@ import type { SchemaField } from '@/connections';
 import LinkedEntryFieldRenderer from './LinkedEntryFieldRenderer';
 import type { ArchitectureBlock } from '@/types/diagram';
 import { useDiagramStore } from '@/store/diagram-store';
-import { Label } from '@/components/ui/label';
+import FieldLabel from './FieldLabel';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -189,7 +189,7 @@ export default function LinkedSelectFieldRenderer({
   if (isCreating) {
     return (
       <div className="flex flex-col gap-1.5">
-        <Label className="text-xs text-muted-foreground">{field.label}</Label>
+        <FieldLabel label={field.label} required={field.validation?.required} />
         <div className="flex items-center gap-1">
           <Input
             data-testid={`field-${field.key}-create`}
@@ -250,7 +250,7 @@ export default function LinkedSelectFieldRenderer({
   // Normal select mode
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs text-muted-foreground">{field.label}</Label>
+      <FieldLabel label={field.label} required={field.validation?.required} />
       <Select
         value={value ?? ''}
         onValueChange={handleSelectChange}

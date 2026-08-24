@@ -5,6 +5,7 @@ import type { SchemaField } from '@/connections';
 import type { ArchitectureBlock } from '@/types/diagram';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import FieldLabel from './FieldLabel';
 import {
   Select,
   SelectContent,
@@ -155,7 +156,11 @@ function RadioFieldRenderer({
 
   return (
     <div className="flex flex-col gap-2">
-      <Label className="text-xs text-muted-foreground">{field.label}</Label>
+      <FieldLabel
+        label={field.label}
+        required={field.validation?.required}
+        htmlFor={`field-${field.key}`}
+      />
       <RadioGroup
         data-testid={`field-${field.key}`}
         value={currentValue}
@@ -197,7 +202,11 @@ function SelectFieldRenderer({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs text-muted-foreground">{field.label}</Label>
+      <FieldLabel
+        label={field.label}
+        required={field.validation?.required}
+        htmlFor={`field-${field.key}`}
+      />
       <Select
         value={currentValue}
         onValueChange={(val) => {
@@ -206,6 +215,7 @@ function SelectFieldRenderer({
         }}
       >
         <SelectTrigger
+          id={`field-${field.key}`}
           data-testid={`field-${field.key}`}
           className="w-full"
           aria-invalid={error ? true : undefined}
@@ -246,8 +256,13 @@ function NumberFieldRenderer({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs text-muted-foreground">{field.label}</Label>
+      <FieldLabel
+        label={field.label}
+        required={field.validation?.required}
+        htmlFor={`field-${field.key}`}
+      />
       <Input
+        id={`field-${field.key}`}
         data-testid={`field-${field.key}`}
         type="text"
         inputMode="numeric"
@@ -293,8 +308,13 @@ function TextFieldRenderer({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs text-muted-foreground">{field.label}</Label>
+      <FieldLabel
+        label={field.label}
+        required={field.validation?.required}
+        htmlFor={`field-${field.key}`}
+      />
       <Input
+        id={`field-${field.key}`}
         data-testid={`field-${field.key}`}
         type="text"
         value={displayValue}

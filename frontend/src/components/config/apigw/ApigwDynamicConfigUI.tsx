@@ -26,6 +26,8 @@ interface ApigwDynamicConfigUIProps {
   elementId: string;
   /** Appended after the gateway's own tabs, so the strip stays flat. */
   extraTabs?: ConfigTab[];
+  /** Rendered above the Settings tab, for configuration outside the gateway store. */
+  leadingFields?: ReactNode;
 }
 
 const TABS_BY_PROTOCOL: Record<ProtocolType, string[]> = {
@@ -34,7 +36,7 @@ const TABS_BY_PROTOCOL: Record<ProtocolType, string[]> = {
   WEBSOCKET: ['Settings', 'Expressions', 'Stages', 'Authorizers'],
 };
 
-export default function ApigwDynamicConfigUI({ elementId, extraTabs = [] }: ApigwDynamicConfigUIProps) {
+export default function ApigwDynamicConfigUI({ elementId, extraTabs = [], leadingFields }: ApigwDynamicConfigUIProps) {
   const protocolType = useApigwConfigStore((s) => s.protocol_type);
   const selectedItemId = useApigwConfigStore((s) => s.selectedItemId);
   const selectedItemType = useApigwConfigStore((s) => s.selectedItemType);
@@ -172,7 +174,14 @@ export default function ApigwDynamicConfigUI({ elementId, extraTabs = [] }: Apig
       </>
     ),
     Domain: <DomainTab />,
-    Settings: <SettingsTab />,
+    Settings: leadingFields ? (
+      <div className="flex flex-col gap-3">
+        {leadingFields}
+        <SettingsTab />
+      </div>
+    ) : (
+      <SettingsTab />
+    ),
   };
 
   const configTabs: ConfigTab[] = [

@@ -1,7 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useConnectionPreview, useConnectionPreviewStore } from '@/store/connection-preview-store';
-import { Label } from '@/components/ui/label';
 import { AlertTriangle } from 'lucide-react';
 
 interface ConnectionContributionPreviewProps {
@@ -46,20 +46,19 @@ export default function ConnectionContributionPreview({
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
-        <Label className="text-xs font-semibold text-muted-foreground">
-          Terraform resources
-        </Label>
+      <Section heading="Terraform resources" aside="module">
         {preview.resources.length > 0 ? (
-          <ul data-testid="contribution-resources" className="flex flex-col gap-1">
+          <ul data-testid="contribution-resources" className="border-t">
             {preview.resources.map((resource) => (
               <li
                 key={`${resource.module}.${resource.resource_type}.${resource.resource_name}`}
-                className="font-mono text-xs text-foreground"
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-4 border-b py-1 last:border-b-0"
               >
-                {resource.resource_type}
-                <span className="text-muted-foreground">.{resource.resource_name}</span>
-                <span className="text-muted-foreground"> — {resource.module}</span>
+                <span className="truncate font-mono text-xs text-foreground">
+                  {resource.resource_type}
+                  <span className="text-muted-foreground">.{resource.resource_name}</span>
+                </span>
+                <span className="text-xs text-muted-foreground">{resource.module}</span>
               </li>
             ))}
           </ul>
@@ -68,10 +67,9 @@ export default function ConnectionContributionPreview({
             This connection emits no resources of its own.
           </span>
         )}
-      </div>
+      </Section>
 
-      <div className="flex flex-col gap-2">
-        <Label className="text-xs font-semibold text-muted-foreground">IAM</Label>
+      <Section heading="IAM">
         {preview.iam.length > 0 ? (
           <ul data-testid="contribution-iam" className="flex flex-col gap-2">
             {preview.iam.map((grant, index) => (
@@ -90,7 +88,28 @@ export default function ConnectionContributionPreview({
             This connection grants no permissions.
           </span>
         )}
+      </Section>
+    </div>
+  );
+}
+
+/** A titled block; the heading names the list rather than labelling a control. */
+function Section({
+  heading,
+  aside,
+  children,
+}: {
+  heading: string;
+  aside?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between">
+        <h3 className="text-xs font-semibold text-muted-foreground">{heading}</h3>
+        {aside && <span className="text-xs text-muted-foreground">{aside}</span>}
       </div>
+      {children}
     </div>
   );
 }
