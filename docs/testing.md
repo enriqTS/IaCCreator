@@ -137,7 +137,7 @@ Uses fast-check for property-based testing (100+ iterations each).
 | `pull-to-connect-selection.test.tsx`          | Drawing a connection selects the line it created             |
 | `z-order-controls.test.tsx`                   | Z-order control buttons                                     |
 | `z-order-store.test.ts`                       | Z-order store operations                                    |
-| `object-sidebar.test.tsx`                     | Object sidebar rendering, search, tool arming, disabled services, collapse |
+| `object-sidebar.test.tsx`                     | Object sidebar: shortlist, search and match count, tool arming, armed strip, pinning, disabled services, collapse and rail |
 | `recently-used-store.test.ts`                 | Recently used store: add, deduplicate, capacity cap         |
 | `routing.test.ts`                             | Orthogonal connection routing waypoint computation           |
 | `schema-store.test.ts`                        | Schema store: fetch, cache, fallback to bundled schemas     |

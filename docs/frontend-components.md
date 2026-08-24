@@ -130,13 +130,18 @@ Dialog for layout preferences: toolbar position (top/bottom), grid and snapping.
 
 ## Objects (`frontend/src/components/objects/`)
 
-The permanent left sidebar the user picks objects from. It replaced the `+` button and popover that used to sit in the toolbar; the catalog is too large (318 AWS services across 27 categories, plus shapes, UML, text and lines) to live in a transient menu.
+The permanent left sidebar the user picks objects from. It replaced the `+` button and popover that used to sit in the toolbar; the catalog is far too large for a transient menu, and it grows as more AWS services get generators.
+
+There is no way to show several hundred objects at once in a 240px panel, so the sidebar is built around the shortlist a person actually works with — pinned first, recent under it, search above both — and leaves the categories collapsed as the place you go for something you have not used before. Nothing in it is organised around which services are currently implemented; that gap is a backlog, not a category.
 
 | Component | Purpose |
 |---|---|
-| `ObjectSidebar.tsx` | The `<aside>` itself: the hamburger menu in its header, a search box, and the scrolling category list. Collapses to a rail showing only the hamburger and the recently used icons; the collapsed state is a persisted layout preference. Categories start collapsed so their icons stay lazily loaded, and a search term expands the categories it matched. |
-| `ObjectCategorySection.tsx` | One category, as a shadcn `Collapsible` over a grid of items. |
-| `ObjectItemButton.tsx` | One item tile. Clicking it records the item as recently used and arms the matching placement tool — the sidebar stays open, and the tile marks itself `aria-pressed` so the armed placement is visible. AWS services with no generator are listed but disabled. |
+| `ObjectSidebar.tsx` | The `<aside>`: the hamburger menu in its header, the search field, the shortlist, the category list and the armed strip. Owns the search term, which categories are open, and the `/` shortcut that focuses search (suppressed while the config overlay is open). Delegates the collapsed state to `ObjectSidebarRail`. |
+| `ObjectShortlist.tsx` | The pinned band and the recent band. Hidden while searching, since results are the shortlist then. Shows a one-line hint in place of the pinned grid until something is pinned. |
+| `ObjectCategorySection.tsx` | One category, as a shadcn `Collapsible` over a grid of items, with its item count on the right. Renders `categoryLabel()` so the repeated `AWS: ` prefix does not eat the panel width. |
+| `ObjectItemButton.tsx` | One item tile: a 32px icon over a two-line 11px label, plus a pin that appears on hover. Clicking the tile records the item as recently used and arms the matching placement tool; clicking the pin only pins. `iconOnly` renders the bare icon used by the recent band and the rail. AWS services with no generator are listed but disabled and cannot be pinned. |
+| `ObjectArmedBar.tsx` | Pinned to the bottom whenever a placement tool is armed: which object is being placed, how to place it, and a cancel that is not Escape. Resolves the active tool back to its catalog entry with `findItemForTool()`. |
+| `ObjectSidebarRail.tsx` | The collapsed state: the hamburger, a search button that reopens and focuses the panel, and the pinned and recent objects as icons — so collapsing costs canvas width without giving up the feature. |
 
 Placement itself is unchanged: arming a tool hands over to `PlacementPreview` and `DragSizingOverlay` on the canvas.
 

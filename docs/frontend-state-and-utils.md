@@ -129,6 +129,15 @@ Caches the backend's answer to what each connection generates, keyed by connecto
 
 `useConnectionPreviewSync()` (in `frontend/src/hooks/`) calls `refresh()` on a debounce whenever objects or connectors change, and `useConnectionIssues(line)` resolves a line to its connector's reported issues.
 
+### `pinned-objects-store.ts` — `usePinnedObjectsStore`
+
+The user's shortlist of objects, kept at the top of the object sidebar and on its collapsed rail (via Zustand `persist` on localStorage, so pins outlive the tab):
+- `pinnedItems: PickerItem[]` — capped at `MAX_PINNED_ITEMS` (24), in the order they were pinned
+- `togglePin(item)` — pin or unpin, matched on `pickerItemKey(item)` (`category|name`)
+- `clearPins()` — reset list
+
+Pins are the mechanism that keeps the catalog usable as it grows: however many services exist, a person builds with a dozen of them.
+
 ### `recently-used-store.ts` — `useRecentlyUsedStore`
 
 Tracks recently used object-sidebar items (via Zustand `persist` middleware with sessionStorage, falling back to in-memory storage when sessionStorage is unavailable):
@@ -138,7 +147,7 @@ Tracks recently used object-sidebar items (via Zustand `persist` middleware with
 
 ## Object catalog (`frontend/src/data/object-catalog.ts`)
 
-The list of things the object sidebar can place, built once at module load from `aws-icon-registry.ts` plus the static shape, UML, text and line entries. Exports `PickerItem`, `PickerCategory`, `ALL_CATEGORIES`, `ALL_ITEMS`, `ALL_CATEGORY_NAMES`, and the `isAwsServiceItem` / `isUnsupportedAwsItem` predicates.
+The list of things the object sidebar can place, built once at module load from `aws-icon-registry.ts` plus the static shape, UML, text and line entries. Exports `PickerItem`, `PickerCategory`, `ALL_CATEGORIES`, `ALL_ITEMS`, `ALL_CATEGORY_NAMES`, the `isAwsServiceItem` / `isUnsupportedAwsItem` predicates, `categoryLabel()` (strips the repeated `AWS: ` prefix for display), `toolsMatch()` and `findItemForTool()` (resolves an armed placement tool back to its catalog entry, which is what the armed strip renders).
 
 This is the only module the sidebar reads the catalog through, so serving it from the backend later is a one-module change. Which AWS services exist and which are supported is domain data the backend already owns (`ServiceType` in `app/models/input_models/_general.py`), so moving it behind an endpoint is the intended direction.
 
@@ -147,6 +156,10 @@ This is the only module the sidebar reads the catalog through, so serving it fro
 ### `object-search.ts`
 
 Pure helpers for the object sidebar, split out of the old picker component so they are testable on their own: `smartSearch(items, term, abbreviationMap)` matches on a case-insensitive substring and on the full names an abbreviation expands to, and `sortCategories(categories)` puts `Recently Used`, `Shapes`, `UML`, `Text` and `Lines & Arrows` first, then AWS categories alphabetically.
+
+### `safe-storage.ts`
+
+`createSafeStorage('local' | 'session')` returns a Zustand `StateStorage` that guards every access and falls back to an in-memory map when web storage is unavailable — private browsing can make the accessor itself throw. Shared by `pinned-objects-store` and `recently-used-store`; use it rather than reaching for `localStorage` directly in a persisted store.
 
 ### `viewport.ts`
 
