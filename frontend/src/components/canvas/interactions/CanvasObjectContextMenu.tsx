@@ -153,12 +153,12 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
       {/* Type-specific */}
       {(showEditConnection || showConfigureService) && <div className={separatorClass} />}
       {showEditConnection && (
-        <Item onClick={() => { useDiagramStore.getState().setSidebarExpanded(true); onClose(); }}>
+        <Item onClick={() => { useDiagramStore.getState().openConfigOverlay(menu.objectId); onClose(); }}>
           <Cable className="size-4" /> Edit Connection
         </Item>
       )}
       {showConfigureService && (
-        <Item onClick={() => { useDiagramStore.getState().setSidebarExpanded(true); onClose(); }}>
+        <Item onClick={() => { useDiagramStore.getState().openConfigOverlay(menu.objectId); onClose(); }}>
           <Settings className="size-4" /> Configure Service
         </Item>
       )}

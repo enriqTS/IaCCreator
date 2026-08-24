@@ -248,6 +248,11 @@ export default function DiagramEditorPage() {
       // --- Escape ---
       if (!isTyping && e.key === 'Escape') {
         e.preventDefault();
+        // The overlay covers the canvas, so it is what Escape dismisses first
+        if (store.configOverlayTargetId) {
+          store.closeConfigOverlay();
+          return;
+        }
         store.selectConnector(null);
         store.selectObject(null);
         useDiagramStore.setState({ pendingConnectorSourceId: null });

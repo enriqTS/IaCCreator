@@ -36,6 +36,7 @@ describe('Drawing a connection selects it', () => {
       ]),
       connectors: new Map(),
       selectedObjectIds: new Set(),
+      configOverlayTargetId: null,
       viewport: { offsetX: 0, offsetY: 0, scale: 1 },
       pullConnectState: {
         sourceObjectId: 'fn',
@@ -47,7 +48,7 @@ describe('Drawing a connection selects it', () => {
 
   /** Drop on the target block's centre, which is within snapping distance of its anchors. */
   function dropOnTarget() {
-    const target = useDiagramStore.getState().canvasObjects.get('table')!;
+    const target = useDiagramStore.getState().canvasObjects.get('table') as ArchitectureBlock;
     const { width } = target.visualConfig;
     act(() => {
       fireEvent.pointerUp(window, {
@@ -65,6 +66,15 @@ describe('Drawing a connection selects it', () => {
     const created = lines();
     expect(created).toHaveLength(1);
     expect(useDiagramStore.getState().selectedObjectIds).toEqual(new Set([created[0].id]));
+  });
+
+  it('opens the configuration for the connection it just drew', () => {
+    render(<PullToConnectOverlay />);
+
+    dropOnTarget();
+
+    const created = lines();
+    expect(useDiagramStore.getState().configOverlayTargetId).toBe(created[0].id);
   });
 
   it('leaves the pull-to-connect interaction behind once the line exists', () => {

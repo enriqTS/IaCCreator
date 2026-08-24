@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { Button } from '@/components/ui/button';
@@ -10,25 +9,24 @@ import { cn } from '@/lib/utils';
 import { resolveConfigOverlayPanel } from './overlay-registry';
 
 /**
- * The single configuration surface, opened by selection.
+ * The single configuration surface, opened deliberately rather than by selection.
  *
- * It owns no per-type knowledge: the registry decides which panel a selected
- * object contributes, and returns nothing when there is nothing to configure.
+ * A panel this large covers the diagram, so it opens only on placing an object,
+ * double-clicking one, or the context menu — never as a side effect of a click.
+ * It owns no per-type knowledge: the registry decides which panel an object
+ * contributes, and returns nothing when there is nothing to configure.
  */
 export default function ConfigOverlay() {
-  const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
+  const targetId = useDiagramStore((s) => s.configOverlayTargetId);
+  const closeConfigOverlay = useDiagramStore((s) => s.closeConfigOverlay);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const connectors = useDiagramStore((s) => s.connectors);
   const sidebarSide = useLayoutPreferencesStore((s) => s.sidebarSide);
 
-  const selectedId = selectedObjectIds.size === 1 ? Array.from(selectedObjectIds)[0] : null;
-  const selected = selectedId ? canvasObjects.get(selectedId) ?? null : null;
-  const panel = resolveConfigOverlayPanel(selected, { canvasObjects, connectors });
+  const target = targetId ? canvasObjects.get(targetId) ?? null : null;
+  const panel = resolveConfigOverlayPanel(target, { canvasObjects, connectors });
 
-  // Dismissal lasts until a different thing is selected, so the overlay never nags
-  const [dismissedKey, setDismissedKey] = useState<string | null>(null);
-
-  if (!panel || dismissedKey === panel.key) return null;
+  if (!panel) return null;
 
   // Sit opposite the sidebar so both surfaces stay reachable
   const isLeft = sidebarSide === 'right';
@@ -53,7 +51,7 @@ export default function ConfigOverlay() {
           variant="ghost"
           size="icon-sm"
           data-testid="config-overlay-close"
-          onClick={() => setDismissedKey(panel.key)}
+          onClick={closeConfigOverlay}
           aria-label="Close configuration"
         >
           <X className="size-4" />

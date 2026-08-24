@@ -130,7 +130,8 @@ Uses fast-check for property-based testing (100+ iterations each).
 | `terraform-variables-store.test.ts`           | Terraform variable store operations                         |
 | `variables-panel.test.tsx`                    | Variables panel rendering                                   |
 | `visual-tab.test.tsx`                         | Visual tab dispatching                                      |
-| `config-overlay.test.tsx`                     | Overlay opens on selection, dismisses, reopens on a new selection, and shows a contribution preview for connections with no fields |
+| `config-overlay.test.tsx`                     | Overlay opens only when asked, never from selection, closes when dismissed or when its target is deleted, and shows a contribution preview for connections with no fields |
+| `config-overlay-triggers.test.tsx`            | The three gestures that open the overlay: placing a service block, double-clicking an object, and the context menu |
 | `connection-issue-badge.test.tsx`             | Canvas marker appears only for connectors the backend reported issues on |
 | `pull-to-connect-selection.test.tsx`          | Drawing a connection selects the line it created             |
 | `z-order-controls.test.tsx`                   | Z-order control buttons                                     |

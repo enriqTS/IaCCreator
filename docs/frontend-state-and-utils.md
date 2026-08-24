@@ -116,6 +116,8 @@ Module-level schema cache (not a Zustand store). Fetches variable schemas from t
 - `getSchemas()` — synchronous access to cached or bundled schemas
 - `clearSchemaCache()` — reset cache (for testing)
 
+`useDiagramStore` also carries the configuration overlay's target: `configOverlayTargetId`, with `openConfigOverlay(objectId)` and `closeConfigOverlay()`. Opening is always an explicit gesture — placing an object, double-clicking one, or the context menu — so nothing derives this from `selectedObjectIds`. The overlay stays on its target while the selection moves, and closes when its target is deleted.
+
 ### `connection-preview-store.ts` — `useConnectionPreviewStore`
 
 Caches the backend's answer to what each connection generates, keyed by connector id.

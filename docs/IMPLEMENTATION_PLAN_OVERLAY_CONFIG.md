@@ -60,8 +60,11 @@ tab layout and the sidebar container are what goes away.
 
 ## Target State
 
-A single overlay surface, opened by selection, whose contents are chosen by the
-type of the selected thing. Each type contributes a panel; the overlay itself is
+A single overlay surface whose contents are chosen by the type of the thing being
+configured. It opens on exactly three explicit gestures — placing the object or
+drawing the connection, double-clicking it, and the configure item in its
+right-click context menu. Selection alone never opens it: a panel large enough to
+cover the diagram is opened deliberately. Each type contributes a panel; the overlay itself is
 a container and owns no per-type knowledge — the same universal-interface split
 already used for connection handlers on the backend.
 
@@ -114,11 +117,12 @@ shows no preview rather than a guess.
 payoff, because it is where the crowding actually is (45, 37 and 34 fields).
 
 `ConfigOverlay` is the container and `overlay-registry.tsx` is the per-type
-dispatch; the container knows nothing about what it renders. A resolver returns
+dispatch; the container knows nothing about what it renders. Its target lives in
+`configOverlayTargetId` on the store, set by the three opening gestures. A resolver returns
 `null` when there is nothing to configure, so constraint 1 holds for objects too:
 a service the backend serves no schema for opens no panel.
 
-- Build the overlay container: opened by selection, dismissible, non-blocking.
+- Build the overlay container: explicitly opened, dismissible, non-blocking.
 - Render object schemas through the existing `SchemaConfigForm`.
 - Use the extra room for grouping — the schemas already carry a `group` on each
   `TerraformField`, which the sidebar cannot exploit well at its width.
@@ -179,7 +183,7 @@ Two improvements were identified while completing the API Gateway to Lambda
 connection and deliberately deferred. Both are now done:
 
 - **Select a connection when it is created.** `PullToConnectOverlay` selects the
-  line it just drew, which also opens its overlay.
+  line it just drew and opens its configuration.
 - **Mark incomplete connections on the canvas.** `ConnectionIssueBadge` marks a
   line whose connection the backend reported an issue on. The judgement lives in
   the handler's `validate()` hook, so adding a new kind of incompleteness is a

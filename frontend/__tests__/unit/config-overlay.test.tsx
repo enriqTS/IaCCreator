@@ -63,6 +63,12 @@ function seed(objects: CanvasObject[], connectors: Connector[] = []) {
   });
 }
 
+function open(id: string) {
+  act(() => {
+    useDiagramStore.getState().openConfigOverlay(id);
+  });
+}
+
 function select(id: string | null) {
   act(() => {
     useDiagramStore.getState().selectObject(id);
@@ -72,13 +78,23 @@ function select(id: string | null) {
 describe('ConfigOverlay', () => {
   beforeEach(() => {
     seed([makeBlock('block-1'), makeBlock('block-2'), makeGeometric('geo-1')]);
+    act(() => {
+      useDiagramStore.getState().closeConfigOverlay();
+    });
   });
 
-  it('stays closed until something configurable is selected', () => {
+  it('never opens from selection alone', () => {
     render(<ConfigOverlay />);
-    expect(screen.queryByTestId('config-overlay')).toBeNull();
 
     select('block-1');
+
+    expect(screen.queryByTestId('config-overlay')).toBeNull();
+  });
+
+  it('opens for the object it was asked to configure', () => {
+    render(<ConfigOverlay />);
+
+    open('block-1');
 
     expect(screen.getByTestId('config-overlay')).toBeDefined();
     expect(screen.getByTestId('config-overlay-title').textContent).toBe('block-1');
@@ -86,35 +102,45 @@ describe('ConfigOverlay', () => {
 
   it('never opens for an object that carries no configuration', () => {
     render(<ConfigOverlay />);
-    select('geo-1');
+    open('geo-1');
     expect(screen.queryByTestId('config-overlay')).toBeNull();
   });
 
-  it('closes when dismissed and stays closed for the same selection', () => {
+  it('closes when dismissed', () => {
     render(<ConfigOverlay />);
-    select('block-1');
+    open('block-1');
 
     fireEvent.click(screen.getByTestId('config-overlay-close'));
 
     expect(screen.queryByTestId('config-overlay')).toBeNull();
   });
 
-  it('reopens when a different object is selected after a dismissal', () => {
+  it('switches to whatever it is next asked to configure', () => {
     render(<ConfigOverlay />);
-    select('block-1');
-    fireEvent.click(screen.getByTestId('config-overlay-close'));
+    open('block-1');
 
-    select('block-2');
+    open('block-2');
 
-    expect(screen.getByTestId('config-overlay')).toBeDefined();
     expect(screen.getByTestId('config-overlay-title').textContent).toBe('block-2');
   });
 
-  it('does not open for a multi-selection', () => {
+  it('stays open while the selection moves elsewhere', () => {
     render(<ConfigOverlay />);
+    open('block-1');
+
+    select('block-2');
+
+    expect(screen.getByTestId('config-overlay-title').textContent).toBe('block-1');
+  });
+
+  it('closes itself when its target is deleted', () => {
+    render(<ConfigOverlay />);
+    open('block-1');
+
     act(() => {
-      useDiagramStore.setState({ selectedObjectIds: new Set(['block-1', 'block-2']) });
+      useDiagramStore.getState().removeCanvasObject('block-1');
     });
+
     expect(screen.queryByTestId('config-overlay')).toBeNull();
   });
 });
@@ -152,7 +178,7 @@ describe('ConfigOverlay for connections', () => {
 
   it('opens the connection panel from the line, keyed by the connector', () => {
     render(<ConfigOverlay />);
-    select('line-1');
+    open('line-1');
 
     const overlay = screen.getByTestId('config-overlay');
     expect(overlay.getAttribute('data-panel-key')).toBe('conn-1');
@@ -162,7 +188,7 @@ describe('ConfigOverlay for connections', () => {
 
   it('shows what a connection with no fields generates instead of an empty panel', () => {
     render(<ConfigOverlay />);
-    select('line-1');
+    open('line-1');
 
     expect(screen.queryByTestId('connection-config-panel')).toBeNull();
     expect(screen.getByTestId('contribution-preview-empty')).toBeDefined();

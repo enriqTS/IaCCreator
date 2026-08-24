@@ -22,6 +22,11 @@ export interface UISlice {
   setBottomPanelHeight: (height: number) => void;
   toggleBottomPanel: () => void;
 
+  // Configuration overlay — opened deliberately, never by selection alone
+  configOverlayTargetId: string | null;
+  openConfigOverlay: (objectId: string) => void;
+  closeConfigOverlay: () => void;
+
   // Sidebar panel state
   sidebarExpanded: boolean;
   sidebarWidth: number;
@@ -64,6 +69,17 @@ export const createUISlice: StateCreator<DiagramStore, [], [], UISlice> = (set) 
 
     toggleBottomPanel: (): void => {
       set((state) => ({ bottomPanelExpanded: !state.bottomPanelExpanded }));
+    },
+
+    // --- Configuration overlay ---
+    configOverlayTargetId: null,
+
+    openConfigOverlay: (objectId: string): void => {
+      set({ configOverlayTargetId: objectId });
+    },
+
+    closeConfigOverlay: (): void => {
+      set({ configOverlayTargetId: null });
     },
 
     // --- Sidebar panel state ---

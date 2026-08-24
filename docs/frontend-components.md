@@ -54,7 +54,7 @@ Configuration panels for selected objects. Object and connection configuration l
 
 | Component | Purpose |
 |---|---|
-| `ConfigOverlay.tsx` | The single configuration surface, opened by selection. Non-blocking, dismissible, anchored opposite the sidebar. Owns no per-type knowledge. |
+| `ConfigOverlay.tsx` | The single configuration surface. Opens on placing an object, double-clicking one, or the context menu — never on selection alone. Non-blocking, anchored opposite the sidebar, dismissed by its close button or Escape. Owns no per-type knowledge. |
 | `overlay-registry.tsx` | Maps a selected object's type to the panel it contributes. Returns `null` when there is nothing to configure, so an empty overlay never opens. |
 | `ConnectionOverlayPanel.tsx` | Connection fields (when the schema has any) followed by what the connection generates. |
 | `ConnectionContributionPreview.tsx` | Renders the backend's `ConnectionPreview`: reported issues, emitted Terraform resources, IAM granted. |

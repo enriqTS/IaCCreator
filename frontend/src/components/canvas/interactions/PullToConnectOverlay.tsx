@@ -23,6 +23,7 @@ export default function PullToConnectOverlay() {
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
   const addConnector = useDiagramStore((s) => s.addConnector);
   const selectObject = useDiagramStore((s) => s.selectObject);
+  const openConfigOverlay = useDiagramStore((s) => s.openConfigOverlay);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const connectors = useDiagramStore((s) => s.connectors);
   const viewport = useDiagramStore((s) => s.viewport);
@@ -108,6 +109,8 @@ export default function PullToConnectOverlay() {
 
         // Selecting the new line is the only response drawing a connection produces
         selectObject(lineId);
+        // A freshly drawn connection leads straight into its configuration
+        openConfigOverlay(lineId);
       } else {
         // Create a free-floating line
         const lineId = addCanvasObject({
@@ -125,7 +128,7 @@ export default function PullToConnectOverlay() {
       setPullConnectState(null);
       setMousePos(null);
     },
-    [pullConnectState, viewport, canvasObjects, addCanvasObject, addConnector, selectObject, connectors, setPullConnectState, globalRoutingMode],
+    [pullConnectState, viewport, canvasObjects, addCanvasObject, addConnector, selectObject, openConfigOverlay, connectors, setPullConnectState, globalRoutingMode],
   );
 
   useEffect(() => {

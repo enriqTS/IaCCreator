@@ -57,6 +57,7 @@ export default function Canvas() {
   const pan = useDiagramStore((s) => s.pan);
   const selectConnector = useDiagramStore((s) => s.selectConnector);
   const addCanvasObject = useDiagramStore((s) => s.addCanvasObject);
+  const openConfigOverlay = useDiagramStore((s) => s.openConfigOverlay);
   const clearSelection = useDiagramStore((s) => s.clearSelection);
   const setActiveTool = useDiagramStore((s) => s.setActiveTool);
   const activeTool = useDiagramStore((s) => s.activeTool);
@@ -98,26 +99,20 @@ export default function Canvas() {
 
       if (typeof tool === 'object' && tool.type === 'place-service') {
         // width/height === 0 means simple click → use default dimensions
-        if (payload.width > 0 && payload.height > 0) {
-          addCanvasObject({
-            objectType: 'architecture-block',
-            serviceType: tool.serviceType,
-            position: payload.canvasPosition,
-            config: {},
-            terraformVariables: {},
-            visualConfig: { width: payload.width, height: payload.height },
-          });
-        } else {
-          addCanvasObject({
-            objectType: 'architecture-block',
-            serviceType: tool.serviceType,
-            position: payload.canvasPosition,
-            config: {},
-            terraformVariables: {},
-            visualConfig: { ...DEFAULT_BLOCK_VISUAL },
-          });
-        }
+        const sized = payload.width > 0 && payload.height > 0;
+        const blockId = addCanvasObject({
+          objectType: 'architecture-block',
+          serviceType: tool.serviceType,
+          position: payload.canvasPosition,
+          config: {},
+          terraformVariables: {},
+          visualConfig: sized
+            ? { width: payload.width, height: payload.height }
+            : { ...DEFAULT_BLOCK_VISUAL },
+        });
         setActiveTool('pointer');
+        // A freshly placed block leads straight into its configuration
+        openConfigOverlay(blockId);
         return;
       }
 
@@ -161,7 +156,7 @@ export default function Canvas() {
         return;
       }
     },
-    [addCanvasObject, setActiveTool],
+    [addCanvasObject, openConfigOverlay, setActiveTool],
   );
 
   // --- Wheel → Zoom (non-passive to allow preventDefault) ---
@@ -536,8 +531,10 @@ export default function Canvas() {
       // Walk up from target to see if we hit a canvas object
       let target = e.target as HTMLElement | null;
       while (target && target !== e.currentTarget) {
-        if (target.getAttribute('data-object-id')) {
-          // Double-click on existing object — TextObjectComponent handles its own double-click for editing
+        const objectId = target.getAttribute('data-object-id');
+        if (objectId) {
+          // Objects that edit in place, such as text, stop the event before it reaches here
+          openConfigOverlay(objectId);
           return;
         }
         target = target.parentElement;
@@ -577,7 +574,7 @@ export default function Canvas() {
         useDiagramStore.getState().setEditingTextId(newTextId);
       }
     },
-    [],
+    [openConfigOverlay],
   );
 
   // Right-click context menu for canvas objects
