@@ -1,5 +1,5 @@
 import { useRecentlyUsedStore, MAX_RECENT_ITEMS } from '@/store/recently-used-store';
-import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
+import type { PickerItem } from '@/data/object-catalog';
 
 function makeItem(name: string, category = 'Shapes'): PickerItem {
   return { name, category, tool: 'pointer' };

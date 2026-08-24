@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
-import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
+import type { PickerItem } from '@/data/object-catalog';
 
 const STORAGE_KEY = 'recently-used-picker-items';
 

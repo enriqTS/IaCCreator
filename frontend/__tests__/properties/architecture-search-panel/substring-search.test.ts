@@ -1,6 +1,6 @@
 import fc from 'fast-check';
-import { smartSearch } from '@/components/toolbar/ObjectPickerMenu';
-import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
+import { smartSearch } from '@/utils/object-search';
+import type { PickerItem } from '@/data/object-catalog';
 
 /**
  * Arbitrary that generates a PickerItem with a given name.

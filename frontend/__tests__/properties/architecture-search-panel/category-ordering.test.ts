@@ -1,6 +1,6 @@
 import fc from 'fast-check';
-import { sortCategories } from '@/components/toolbar/ObjectPickerMenu';
-import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
+import { sortCategories } from '@/utils/object-search';
+import type { PickerItem } from '@/data/object-catalog';
 
 /**
  * Fixed (non-AWS) categories in their required order.

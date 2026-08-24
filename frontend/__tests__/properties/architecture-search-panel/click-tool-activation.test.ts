@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
-import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
+import type { PickerItem } from '@/data/object-catalog';
 import type { Tool } from '@/types/diagram';
 
 /**

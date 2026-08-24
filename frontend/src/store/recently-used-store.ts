@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
-import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
+import type { PickerItem } from '@/data/object-catalog';
 
 export const MAX_RECENT_ITEMS = 12;
 const STORAGE_KEY = 'recently-used-picker-items';

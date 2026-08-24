@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { describe, it, expect } from 'vitest';
-import { smartSearch } from '@/components/toolbar/ObjectPickerMenu';
-import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
+import { smartSearch } from '@/utils/object-search';
+import type { PickerItem } from '@/data/object-catalog';
 import type { Tool } from '@/types/diagram';
 
 describe('Property 10: Object picker search filters correctly', () => {

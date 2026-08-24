@@ -1,212 +1,18 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { AWS_ICON_REGISTRY } from '@/data/aws-icon-registry';
 import { ABBREVIATION_MAP } from '@/data/abbreviation-map';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
 import { getItemIcon } from '@/data/shape-icons';
-import type { GeometricShape, UMLKind, Tool } from '@/types/diagram';
-
-// --- Picker item types ---
-
-export interface PickerItem {
-  name: string;
-  category: string;
-  icon?: string; // SVG path or icon URL
-  tool: Tool;
-}
-
-// --- Static registries ---
-
-const GEOMETRIC_SHAPES: { name: string; shape: GeometricShape }[] = [
-  { name: 'Rectangle', shape: 'rectangle' },
-  { name: 'Rounded Rectangle', shape: 'rounded-rectangle' },
-  { name: 'Ellipse', shape: 'ellipse' },
-  { name: 'Circle', shape: 'circle' },
-  { name: 'Triangle', shape: 'triangle' },
-  { name: 'Diamond', shape: 'diamond' },
-  { name: 'Parallelogram', shape: 'parallelogram' },
-  { name: 'Trapezoid', shape: 'trapezoid' },
-  { name: 'Hexagon', shape: 'hexagon' },
-  { name: 'Octagon', shape: 'octagon' },
-  { name: 'Pentagon', shape: 'pentagon' },
-  { name: 'Star', shape: 'star' },
-  { name: 'Cross', shape: 'cross' },
-  { name: 'Arrow Right', shape: 'arrow-right' },
-  { name: 'Arrow Left', shape: 'arrow-left' },
-  { name: 'Arrow Up', shape: 'arrow-up' },
-  { name: 'Arrow Down', shape: 'arrow-down' },
-  { name: 'Chevron', shape: 'chevron' },
-  { name: 'Cylinder', shape: 'cylinder' },
-  { name: 'Cloud', shape: 'cloud' },
-  { name: 'Callout', shape: 'callout' },
-  { name: 'Document', shape: 'document' },
-  { name: 'Process', shape: 'process' },
-  { name: 'Decision', shape: 'decision' },
-  { name: 'Data', shape: 'data' },
-  { name: 'Predefined Process', shape: 'predefined-process' },
-];
-
-const UML_ELEMENTS: { name: string; kind: UMLKind }[] = [
-  { name: 'Class', kind: 'class' },
-  { name: 'Interface', kind: 'interface' },
-  { name: 'Actor', kind: 'actor' },
-  { name: 'Use Case', kind: 'use-case' },
-  { name: 'Component', kind: 'component' },
-  { name: 'Package', kind: 'package' },
-  { name: 'Node', kind: 'node' },
-];
-
-// --- Build all picker items ---
-
-function buildAllPickerItems(): { category: string; items: PickerItem[] }[] {
-  const categories: { category: string; items: PickerItem[] }[] = [];
-
-  // AWS Services
-  for (const cat of AWS_ICON_REGISTRY) {
-    const items: PickerItem[] = cat.services.map((svc) => ({
-      name: svc.name,
-      category: `AWS: ${cat.name}`,
-      icon: svc.iconPath,
-      tool: svc.serviceType
-        ? ({ type: 'place-service', serviceType: svc.serviceType } as Tool)
-        : ('pointer' as Tool), // unsupported services default to pointer (disabled)
-    }));
-    categories.push({ category: `AWS: ${cat.name}`, items });
-  }
-
-  // Shapes
-  categories.push({
-    category: 'Shapes',
-    items: GEOMETRIC_SHAPES.map((s) => ({
-      name: s.name,
-      category: 'Shapes',
-      tool: { type: 'place-shape', shape: s.shape } as Tool,
-    })),
-  });
-
-  // UML
-  categories.push({
-    category: 'UML',
-    items: UML_ELEMENTS.map((u) => ({
-      name: u.name,
-      category: 'UML',
-      tool: { type: 'place-uml', umlKind: u.kind } as Tool,
-    })),
-  });
-
-  // Text
-  categories.push({
-    category: 'Text',
-    items: [{ name: 'Text', category: 'Text', tool: 'text' as Tool }],
-  });
-
-  // Lines & Arrows
-  categories.push({
-    category: 'Lines & Arrows',
-    items: [
-      { name: 'Line', category: 'Lines & Arrows', tool: { type: 'place-line' } as Tool },
-      { name: 'Arrow', category: 'Lines & Arrows', tool: { type: 'place-arrow' } as Tool },
-    ],
-  });
-
-  return categories;
-}
-
-const ALL_CATEGORIES = buildAllPickerItems();
-
-// Flat list for search
-const ALL_ITEMS: PickerItem[] = ALL_CATEGORIES.flatMap((c) => c.items);
-
-// All category names for initial collapse state
-const ALL_CATEGORY_NAMES = ALL_CATEGORIES.map((c) => c.category);
-
-/**
- * Smart search: matches items by case-insensitive substring on name,
- * and also expands abbreviation map keys to their full service names.
- *
- * Matching logic:
- * 1. Empty/whitespace search term → return all items
- * 2. Lowercase the term
- * 3. If the term is a key in abbreviationMap, collect expanded full names
- * 4. An item matches if:
- *    - item.name contains the search term as a substring (case-insensitive), OR
- *    - item.name matches any expanded abbreviation name (case-insensitive)
- * 5. All matching is case-insensitive
- */
-export function smartSearch(
-  items: PickerItem[],
-  searchTerm: string,
-  abbreviationMap: Record<string, string[]>
-): PickerItem[] {
-  if (!searchTerm || searchTerm.trim() === '') return items;
-
-  const lower = searchTerm.toLowerCase();
-
-  // Look up expanded names from the abbreviation map
-  // Use Object.hasOwn to avoid matching Object.prototype properties (e.g., "constructor", "toString")
-  const expandedNames = Object.hasOwn(abbreviationMap, lower) ? abbreviationMap[lower] : undefined;
-  const lowerExpandedNames = expandedNames
-    ? expandedNames.map((n) => n.toLowerCase())
-    : [];
-
-  return items.filter((item) => {
-    const itemNameLower = item.name.toLowerCase();
-
-    // Substring match on the search term
-    if (itemNameLower.includes(lower)) return true;
-
-    // Match against any expanded abbreviation name
-    if (lowerExpandedNames.length > 0) {
-      return lowerExpandedNames.some((expanded) => itemNameLower.includes(expanded));
-    }
-
-    return false;
-  });
-}
-
-/**
- * Sort categories in the defined display order:
- * 1. "Recently Used" always first
- * 2. "Shapes" second
- * 3. "UML" third
- * 4. "Text" fourth
- * 5. "Lines & Arrows" fifth
- * 6. All AWS categories (starting with "AWS:") in alphabetical order
- *
- * Returns a new sorted array without mutating the input.
- */
-export function sortCategories(
-  categories: { category: string; items: PickerItem[] }[]
-): { category: string; items: PickerItem[] }[] {
-  const fixedOrder: Record<string, number> = {
-    'Recently Used': 0,
-    'Shapes': 1,
-    'UML': 2,
-    'Text': 3,
-    'Lines & Arrows': 4,
-  };
-
-  return [...categories].sort((a, b) => {
-    const aFixed = fixedOrder[a.category];
-    const bFixed = fixedOrder[b.category];
-
-    // Both have fixed positions
-    if (aFixed !== undefined && bFixed !== undefined) {
-      return aFixed - bFixed;
-    }
-
-    // Only a has a fixed position → a comes first
-    if (aFixed !== undefined) return -1;
-
-    // Only b has a fixed position → b comes first
-    if (bFixed !== undefined) return 1;
-
-    // Neither has a fixed position → alphabetical (AWS categories)
-    return a.category.localeCompare(b.category);
-  });
-}
+import {
+  ALL_CATEGORIES,
+  ALL_CATEGORY_NAMES,
+  ALL_ITEMS,
+  isUnsupportedAwsItem,
+  type PickerCategory,
+} from '@/data/object-catalog';
+import { smartSearch, sortCategories } from '@/utils/object-search';
 
 export default function ObjectPickerMenu() {
   const [open, setOpen] = useState(false);
@@ -254,19 +60,13 @@ export default function ObjectPickerMenu() {
   })).filter((cat) => cat.items.length > 0);
 
   // Build Recently Used category (only when non-empty)
-  const recentlyUsedCategory: { category: string; items: PickerItem[] }[] =
+  const recentlyUsedCategory: PickerCategory[] =
     recentItems.length > 0
       ? [{ category: 'Recently Used', items: recentItems }]
       : [];
 
   // Prepend Recently Used and apply sort ordering
   const visibleCategories = sortCategories([...recentlyUsedCategory, ...baseCategories]);
-
-  const isAWSService = (item: PickerItem) =>
-    typeof item.tool === 'object' && 'type' in item.tool && item.tool.type === 'place-service';
-
-  const isUnsupportedAWS = (item: PickerItem) =>
-    item.category.startsWith('AWS:') && !isAWSService(item);
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
@@ -388,7 +188,7 @@ export default function ObjectPickerMenu() {
                     }}
                   >
                     {cat.items.map((item) => {
-                      const disabled = isUnsupportedAWS(item);
+                      const disabled = isUnsupportedAwsItem(item);
                       return (
                         <button
                           key={`${item.category}-${item.name}`}

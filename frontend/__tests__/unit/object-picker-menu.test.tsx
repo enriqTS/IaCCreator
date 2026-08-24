@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ABBREVIATION_MAP } from '@/data/abbreviation-map';
-import { smartSearch } from '@/components/toolbar/ObjectPickerMenu';
-import type { PickerItem } from '@/components/toolbar/ObjectPickerMenu';
+import { smartSearch } from '@/utils/object-search';
+import type { PickerItem } from '@/data/object-catalog';
 import ObjectPickerMenu from '@/components/toolbar/ObjectPickerMenu';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
 

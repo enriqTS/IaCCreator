@@ -1,6 +1,6 @@
 /**
  * Inline SVG icons for geometric shapes, UML elements, text, and lines.
- * Used in the ObjectPickerMenu icon grid for non-AWS items.
+ * Used in the object sidebar icon grid for non-AWS items.
  */
 
 const S = 24; // viewBox size
