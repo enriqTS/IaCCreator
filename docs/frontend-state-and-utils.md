@@ -105,6 +105,8 @@ Simple notification store:
 Persisted layout preferences (via Zustand `persist` middleware):
 - `toolbarPosition: 'top' | 'bottom'` (default `'top'`)
 - `setToolbarPosition`
+- `gridCellSize`, `snapToGridEnabled`, `alignmentGuidesEnabled` with their setters
+- `objectSidebarCollapsed` (default `false`) with `setObjectSidebarCollapsed` / `toggleObjectSidebar` — whether the permanent object sidebar is collapsed to its rail
 
 ### `schema-store.ts` — `fetchSchemas` / `getSchemas`
 
@@ -129,12 +131,22 @@ Caches the backend's answer to what each connection generates, keyed by connecto
 
 ### `recently-used-store.ts` — `useRecentlyUsedStore`
 
-Tracks recently used picker items (via Zustand `persist` middleware with sessionStorage, falling back to in-memory storage when sessionStorage is unavailable):
+Tracks recently used object-sidebar items (via Zustand `persist` middleware with sessionStorage, falling back to in-memory storage when sessionStorage is unavailable):
 - `recentItems: PickerItem[]` — capped at `MAX_RECENT_ITEMS` (12)
 - `addRecentItem(item)` — prepend item, deduplicate by name+category
 - `clearRecentItems()` — reset list
 
+## Object catalog (`frontend/src/data/object-catalog.ts`)
+
+The list of things the object sidebar can place, built once at module load from `aws-icon-registry.ts` plus the static shape, UML, text and line entries. Exports `PickerItem`, `PickerCategory`, `ALL_CATEGORIES`, `ALL_ITEMS`, `ALL_CATEGORY_NAMES`, and the `isAwsServiceItem` / `isUnsupportedAwsItem` predicates.
+
+This is the only module the sidebar reads the catalog through, so serving it from the backend later is a one-module change. Which AWS services exist and which are supported is domain data the backend already owns (`ServiceType` in `app/models/input_models/_general.py`), so moving it behind an endpoint is the intended direction.
+
 ## Utilities (`frontend/src/utils/`)
+
+### `object-search.ts`
+
+Pure helpers for the object sidebar, split out of the old picker component so they are testable on their own: `smartSearch(items, term, abbreviationMap)` matches on a case-insensitive substring and on the full names an abbreviation expands to, and `sortCategories(categories)` puts `Recently Used`, `Shapes`, `UML`, `Text` and `Lines & Arrows` first, then AWS categories alphabetically.
 
 ### `viewport.ts`
 

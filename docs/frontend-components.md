@@ -1,6 +1,6 @@
 # Frontend Components
 
-The Next.js frontend components in `frontend/src/components/` are organized into seven groups: canvas, config, menu, toast, toolbar, tour, and ui.
+The Next.js frontend components in `frontend/src/components/` are organized into eight groups: canvas, config, menu, objects, toast, toolbar, tour, and ui.
 
 ## Canvas (`frontend/src/components/canvas/`)
 
@@ -48,7 +48,7 @@ DOM overlay layer that renders interactive canvas object components positioned i
 
 ## Config (`frontend/src/components/config/`)
 
-All configuration lives in the overlay (`overlay/`). There is no sidebar: it was removed along with its width, collapse and side preferences, and the canvas is the only other surface.
+All configuration lives in the overlay (`overlay/`). There is no *configuration* sidebar: it was removed along with its width, collapse and side preferences. The permanent sidebar on the left is the object picker (see Objects), not a config surface.
 
 ### Config Overlay (`frontend/src/components/config/overlay/`)
 
@@ -128,6 +128,18 @@ Project-level Terraform configuration — backend, provider, version constraints
 
 Dialog for layout preferences: toolbar position (top/bottom), grid and snapping. Persisted via `useLayoutPreferencesStore`.
 
+## Objects (`frontend/src/components/objects/`)
+
+The permanent left sidebar the user picks objects from. It replaced the `+` button and popover that used to sit in the toolbar; the catalog is too large (318 AWS services across 27 categories, plus shapes, UML, text and lines) to live in a transient menu.
+
+| Component | Purpose |
+|---|---|
+| `ObjectSidebar.tsx` | The `<aside>` itself: the hamburger menu in its header, a search box, and the scrolling category list. Collapses to a rail showing only the hamburger and the recently used icons; the collapsed state is a persisted layout preference. Categories start collapsed so their icons stay lazily loaded, and a search term expands the categories it matched. |
+| `ObjectCategorySection.tsx` | One category, as a shadcn `Collapsible` over a grid of items. |
+| `ObjectItemButton.tsx` | One item tile. Clicking it records the item as recently used and arms the matching placement tool — the sidebar stays open, and the tile marks itself `aria-pressed` so the armed placement is visible. AWS services with no generator are listed but disabled. |
+
+Placement itself is unchanged: arming a tool hands over to `PlacementPreview` and `DragSizingOverlay` on the canvas.
+
 ## Toast (`frontend/src/components/toast/`)
 
 ### `ToastProvider.tsx`
@@ -138,11 +150,7 @@ Renders toast notifications from `useToastStore`. Auto-dismiss after 4 seconds. 
 
 ### `Toolbar.tsx`
 
-Main toolbar with tool selection (pointer, connector) and action buttons (undo, redo, delete, export).
-
-### `ObjectPickerMenu.tsx`
-
-Unified object picker organized into categories: AWS Services (with search, abbreviation expansion, and recently-used tracking), Geometric Shapes (25+ shapes), and UML Diagrams (class, interface, actor, use-case, component, package, node). Selecting an item switches to the appropriate placement tool mode.
+Main toolbar with tool selection (pointer, connector) and action buttons (undo, redo, delete, export). It holds drawing tools only — objects are added from the object sidebar. Positioned `absolute` inside the canvas area so it centers over the canvas rather than the window.
 
 ## Tour (`frontend/src/components/tour/`)
 
@@ -156,4 +164,4 @@ Welcome dialog shown on first visit with options to start the tour or dismiss.
 
 ## UI (`frontend/src/components/ui/`)
 
-Shared shadcn/ui primitives: `button`, `card`, `checkbox`, `dialog`, `dropdown-menu`, `input`, `label`, `radio-group`, `select`, `sheet`, `tabs`, `tooltip`.
+Shared shadcn/ui primitives: `button`, `card`, `checkbox`, `collapsible`, `dialog`, `dropdown-menu`, `input`, `label`, `radio-group`, `select`, `sheet`, `tabs`, `tooltip`.
