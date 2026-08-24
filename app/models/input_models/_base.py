@@ -11,6 +11,7 @@ from app.models.input_models._metadata import (
     _infer_tf_type,
     get_terraform_meta,
 )
+from app.models.input_models._naming import field_label
 
 
 class BaseServiceConfig(BaseModel):
@@ -87,6 +88,7 @@ class BaseServiceConfig(BaseModel):
             # Build schema entry
             entry = VariableSchemaEntry(
                 name=field_name,
+                label=field_info.title or field_label(field_name),
                 type=tf_type,
                 required=field_info.is_required(),
                 description=field_info.description or "",

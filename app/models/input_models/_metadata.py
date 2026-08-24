@@ -49,6 +49,8 @@ class VariableSchemaEntry(BaseModel):
     """
 
     name: str
+    # Short human name for the field, so the editor never has to label it with a sentence
+    label: str = ""
     type: str  # "string" | "number" | "bool" | "map" | "list"
     description: str
     required: bool = False

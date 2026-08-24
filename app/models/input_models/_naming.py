@@ -25,3 +25,85 @@ def is_valid_resource_name(name: str) -> bool:
         and len(name) <= RESOURCE_NAME_MAX_LENGTH
         and bool(_RESOURCE_NAME.match(name))
     )
+
+
+# Words the editor should shout rather than capitalise, so labels read as AWS writes them
+_ACRONYMS = frozenset(
+    {
+        "acl",
+        "alb",
+        "ami",
+        "api",
+        "arn",
+        "asg",
+        "aws",
+        "az",
+        "cidr",
+        "cors",
+        "cpu",
+        "csv",
+        "db",
+        "dns",
+        "ebs",
+        "ec2",
+        "ecr",
+        "ecs",
+        "efs",
+        "eks",
+        "elb",
+        "gb",
+        "http",
+        "https",
+        "iam",
+        "id",
+        "iops",
+        "ip",
+        "jwt",
+        "kb",
+        "kms",
+        "mb",
+        "mfa",
+        "ms",
+        "nat",
+        "nlb",
+        "oidc",
+        "rds",
+        "s3",
+        "saml",
+        "sms",
+        "sns",
+        "sqs",
+        "sse",
+        "ssl",
+        "sts",
+        "tls",
+        "ttl",
+        "uri",
+        "url",
+        "vpc",
+        "vpn",
+        "ws",
+        "xml",
+        "yaml",
+    }
+)
+
+
+def _label_word(word: str) -> str:
+    """Shout a word the industry writes in capitals, keeping a plural s lowercase."""
+    if word in _ACRONYMS:
+        return word.upper()
+    if word.endswith("s") and word[:-1] in _ACRONYMS:
+        return word[:-1].upper() + "s"
+    return word
+
+
+def field_label(field_name: str) -> str:
+    """Turn a snake_case field name into the short label the editor shows above it."""
+    words = [word for word in field_name.split("_") if word]
+    if not words:
+        return field_name
+    parts = [_label_word(word) for word in words]
+    if parts[0] == words[0]:
+        parts[0] = parts[0][:1].upper() + parts[0][1:]
+    return " ".join(parts)

@@ -20,6 +20,7 @@ from app.models.input_models._metadata import (
     _infer_tf_type,
     get_terraform_meta,
 )
+from app.models.input_models._naming import field_label
 
 # ---------------------------------------------------------------------------
 # Test models (used only in this test file)
@@ -320,6 +321,7 @@ class TestVariableSchemaEntrySerialization:
     def test_minimal_entry_serialization(self) -> None:
         entry = VariableSchemaEntry(
             name="bucket_name",
+            label="Bucket name",
             type="string",
             description="Name of the S3 bucket",
             group="General",
@@ -327,6 +329,7 @@ class TestVariableSchemaEntrySerialization:
         data = entry.model_dump(exclude_none=True)
         assert data == {
             "name": "bucket_name",
+            "label": "Bucket name",
             "type": "string",
             "description": "Name of the S3 bucket",
             "required": False,
@@ -336,6 +339,7 @@ class TestVariableSchemaEntrySerialization:
     def test_full_entry_serialization(self) -> None:
         entry = VariableSchemaEntry(
             name="memory_size",
+            label="Memory size",
             type="number",
             description="Memory in MB",
             default=128,
@@ -350,3 +354,31 @@ class TestVariableSchemaEntrySerialization:
         assert data["validation"]["min"] == 128
         assert data["visible_when"]["field"] == "billing_mode"
         assert len(data["options"]) == 1
+
+
+class TestFieldLabel:
+    """The label the editor shows is derived from the field name unless one is given."""
+
+    def test_underscores_become_a_sentence_case_phrase(self) -> None:
+        assert field_label("memory_size") == "Memory size"
+
+    def test_acronyms_are_shouted(self) -> None:
+        assert field_label("vpc_id") == "VPC ID"
+        assert field_label("s3_bucket_arn") == "S3 bucket ARN"
+
+    def test_a_leading_acronym_is_not_capitalised_twice(self) -> None:
+        assert field_label("api_name") == "API name"
+
+    def test_a_single_word_is_capitalised(self) -> None:
+        assert field_label("runtime") == "Runtime"
+
+    def test_an_explicit_title_wins_over_the_derived_label(self) -> None:
+        class Config(BaseServiceConfig):
+            weird_name: str | None = TerraformField(None, title="Something else")
+
+        entry = next(e for e in Config.get_variable_schema() if e.name == "weird_name")
+        assert entry.label == "Something else"
+
+    def test_a_plural_acronym_keeps_its_s_lowercase(self) -> None:
+        assert field_label("block_public_acls") == "Block public ACLs"
+        assert field_label("vpc_security_group_ids") == "VPC security group IDs"

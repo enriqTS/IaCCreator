@@ -80,3 +80,29 @@ def test_all_schema_entries_have_a_group() -> None:
     assert not ungrouped, "Schema entries with a missing or empty group:\n" + "\n".join(
         ungrouped
     )
+
+
+def test_all_schema_entries_have_a_label() -> None:
+    """The editor labels a field with its label, so an entry without one has no name."""
+    schemas = service_schemas()
+    unlabelled = [
+        f"{service_type.value}.{entry.name}"
+        for service_type in schemas
+        for entry in schemas[service_type]
+        if not isinstance(entry.label, str) or not entry.label.strip()
+    ]
+    assert not unlabelled, "Schema entries with a missing or empty label:\n" + "\n".join(
+        unlabelled
+    )
+
+
+def test_labels_are_names_rather_than_sentences() -> None:
+    """A label sits above a field in one line; the sentence belongs in the description."""
+    schemas = service_schemas()
+    wordy = [
+        f"{service_type.value}.{entry.name}: {entry.label!r}"
+        for service_type in schemas
+        for entry in schemas[service_type]
+        if len(entry.label) > 40 or entry.label.endswith(".")
+    ]
+    assert not wordy, "Schema labels that read as sentences:\n" + "\n".join(wordy)
