@@ -68,8 +68,12 @@ export default function ConfigTabs({
   const effectiveTab = tabs.some((tab) => tab.id === value) ? value : tabs[0]?.id ?? '';
 
   return (
-    <Tabs value={effectiveTab} onValueChange={onValueChange} className={cn('w-full', className)}>
-      <div className="relative">
+    <Tabs
+      value={effectiveTab}
+      onValueChange={onValueChange}
+      className={cn('w-full min-w-0', className)}
+    >
+      <div className="relative min-w-0">
         <div
           ref={stripRef}
           data-testid={`${testIdPrefix}-tab-strip`}

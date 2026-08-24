@@ -167,7 +167,7 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
   if (!block) return null;
 
   return (
-    <div data-testid="schema-config-form" className="flex flex-col gap-3">
+    <div data-testid="schema-config-form" className="flex min-w-0 flex-col gap-3">
       {hasErrors && (
         <div data-testid="validation-error-summary" className="text-destructive text-xs">
           ⚠ {Object.keys(errors).length} validation error{Object.keys(errors).length > 1 ? 's' : ''}

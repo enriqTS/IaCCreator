@@ -50,6 +50,18 @@ describe('ConfigTabs', () => {
     expect(strip.className).toContain('overflow-y-hidden');
   });
 
+  it('lets every box above the strip shrink below the tab row', () => {
+    render(<Harness tabs={twoTabs} />);
+
+    // Flex and grid items default to min-width:auto, which floors them at their
+    // content width — the strip then grows instead of scrolling
+    const strip = screen.getByTestId('test-tab-strip');
+    const wrapper = strip.parentElement as HTMLElement;
+    const root = wrapper.parentElement as HTMLElement;
+    expect(wrapper.className).toContain('min-w-0');
+    expect(root.className).toContain('min-w-0');
+  });
+
   it('shows no scroll arrows while every tab fits', () => {
     render(<Harness tabs={twoTabs} />);
 

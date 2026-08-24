@@ -46,7 +46,7 @@ export default function ConnectionOverlayPanel({
   });
 
   return (
-    <div data-testid="connection-overlay-panel">
+    <div data-testid="connection-overlay-panel" className="min-w-0">
       <ConfigTabs
         testIdPrefix="connection"
         value={activeTab}

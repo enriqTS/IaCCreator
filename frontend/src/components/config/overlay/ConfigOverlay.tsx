@@ -38,7 +38,7 @@ export default function ConfigOverlay() {
         <DialogContent
           data-testid="config-overlay"
           data-panel-key={panel.key}
-          className="grid max-h-[85vh] grid-rows-[auto_1fr] gap-0 overflow-hidden p-0 sm:max-w-2xl"
+          className="grid max-h-[85vh] grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr] gap-0 overflow-hidden p-0 sm:max-w-2xl"
         >
           <DialogHeader className="border-b px-6 py-4 pr-14">
             <DialogTitle data-testid="config-overlay-title" className="truncate text-base">
@@ -49,9 +49,10 @@ export default function ConfigOverlay() {
             </DialogDescription>
           </DialogHeader>
 
+          {/* min-w-0 so a wide tab strip scrolls inside the modal instead of stretching it */}
           <div
             data-testid="config-overlay-content"
-            className="overflow-y-auto px-6 py-4"
+            className="min-w-0 overflow-y-auto px-6 py-4"
           >
             {panel.content}
           </div>
