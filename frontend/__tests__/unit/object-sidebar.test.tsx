@@ -5,6 +5,7 @@ import type { PickerItem } from '@/data/object-catalog';
 import ObjectSidebar from '@/components/objects/ObjectSidebar';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
+import { usePinnedObjectsStore } from '@/store/pinned-objects-store';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
 
 // Requirements: 2.2, 2.5, 3.6, 1.4, 1.6
@@ -16,6 +17,7 @@ function makeItem(name: string, category = 'Shapes'): PickerItem {
 describe('ObjectSidebar', () => {
   beforeEach(() => {
     useRecentlyUsedStore.getState().clearRecentItems();
+    usePinnedObjectsStore.getState().clearPins();
     useLayoutPreferencesStore.getState().setObjectSidebarCollapsed(false);
     useDiagramStore.getState().setActiveTool('pointer');
   });
@@ -30,28 +32,26 @@ describe('ObjectSidebar', () => {
   });
 
   test('"No items found" message for nonsense search term', () => {
-    const items: PickerItem[] = [
-      makeItem('Rectangle'),
-      makeItem('Circle'),
-      makeItem('Lambda'),
-    ];
-    const results = smartSearch(items, 'xyzzyplugh999', ABBREVIATION_MAP);
-    expect(results).toHaveLength(0);
+    const items: PickerItem[] = [makeItem('Rectangle'), makeItem('Circle'), makeItem('Lambda')];
+    expect(smartSearch(items, 'xyzzyplugh999', ABBREVIATION_MAP)).toHaveLength(0);
   });
 
-  test('renders without needing to be opened', () => {
+  test('renders the shortlist and the catalog without needing to be opened', () => {
     render(<ObjectSidebar />);
     expect(screen.getByTestId('object-sidebar')).toBeTruthy();
     expect(screen.getByTestId('object-sidebar-search')).toBeTruthy();
+    expect(screen.getByTestId('object-shortlist')).toBeTruthy();
     expect(screen.getByTestId('picker-category-Shapes')).toBeTruthy();
   });
 
-  test('Recently Used group hidden when empty', () => {
+  test('categories stay collapsed until opened', () => {
     render(<ObjectSidebar />);
-    expect(screen.queryByTestId('picker-category-Recently Used')).toBeNull();
+    expect(screen.queryByTestId('picker-item-Rectangle')).toBeNull();
+    fireEvent.click(screen.getByTestId('picker-category-toggle-Shapes'));
+    expect(screen.getByTestId('picker-item-Rectangle')).toBeTruthy();
   });
 
-  test('search hides the categories that have no match', () => {
+  test('search hides the categories that have no match and counts the rest', () => {
     render(<ObjectSidebar />);
 
     fireEvent.change(screen.getByTestId('object-sidebar-search'), {
@@ -60,15 +60,23 @@ describe('ObjectSidebar', () => {
 
     expect(screen.getByTestId('picker-category-Shapes')).toBeTruthy();
     expect(screen.queryByTestId('picker-category-UML')).toBeNull();
+    expect(screen.getByTestId('object-search-count').textContent).toBe('2 matches');
+  });
+
+  test('searching replaces the shortlist with results', () => {
+    render(<ObjectSidebar />);
+    expect(screen.getByTestId('object-shortlist')).toBeTruthy();
+
+    fireEvent.change(screen.getByTestId('object-sidebar-search'), { target: { value: 'lambda' } });
+
+    expect(screen.queryByTestId('object-shortlist')).toBeNull();
   });
 
   test('a nonsense search term reports no items', () => {
     render(<ObjectSidebar />);
-
     fireEvent.change(screen.getByTestId('object-sidebar-search'), {
       target: { value: 'xyzzyplugh999' },
     });
-
     expect(screen.getByText('No items found')).toBeTruthy();
   });
 
@@ -83,21 +91,41 @@ describe('ObjectSidebar', () => {
       shape: 'rectangle',
     });
     expect(screen.getByTestId('object-sidebar')).toBeTruthy();
-    // It now also appears under Recently Used, and both copies show as armed
-    for (const tile of screen.getAllByTestId('picker-item-Rectangle')) {
-      expect(tile.getAttribute('aria-pressed')).toBe('true');
-    }
   });
 
-  test('an AWS service without a generator cannot be placed', () => {
+  test('the armed bar names what is being placed and cancels it', () => {
+    render(<ObjectSidebar />);
+    expect(screen.queryByTestId('object-armed-bar')).toBeNull();
+
+    fireEvent.click(screen.getByTestId('picker-category-toggle-Shapes'));
+    fireEvent.click(screen.getByTestId('picker-item-Rectangle'));
+
+    expect(screen.getByTestId('object-armed-bar').textContent).toContain('Placing Rectangle');
+
+    fireEvent.click(screen.getByTestId('object-armed-cancel'));
+
+    expect(useDiagramStore.getState().activeTool).toBe('pointer');
+    expect(screen.queryByTestId('object-armed-bar')).toBeNull();
+  });
+
+  test('pinning keeps an object at the top without arming it', () => {
     render(<ObjectSidebar />);
 
-    fireEvent.change(screen.getByTestId('object-sidebar-search'), {
-      target: { value: 'AppFlow' },
-    });
+    fireEvent.click(screen.getByTestId('picker-category-toggle-Shapes'));
+    fireEvent.click(screen.getByTestId('picker-pin-Rectangle'));
 
-    const item = screen.getByTestId('picker-item-AppFlow') as HTMLButtonElement;
-    expect(item.disabled).toBe(true);
+    expect(usePinnedObjectsStore.getState().pinnedItems.map((p) => p.name)).toEqual(['Rectangle']);
+    expect(useDiagramStore.getState().activeTool).toBe('pointer');
+    // Once pinned it appears in the shortlist as well as in its category
+    expect(screen.getAllByTestId('picker-item-Rectangle').length).toBe(2);
+  });
+
+  test('an AWS service without a generator cannot be placed or pinned', () => {
+    render(<ObjectSidebar />);
+    fireEvent.change(screen.getByTestId('object-sidebar-search'), { target: { value: 'AppFlow' } });
+
+    expect((screen.getByTestId('picker-item-AppFlow') as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByTestId('picker-pin-AppFlow')).toBeNull();
   });
 
   test('collapsing hides the catalog and persists the preference', () => {
@@ -109,5 +137,15 @@ describe('ObjectSidebar', () => {
     expect(screen.getByTestId('object-sidebar').getAttribute('data-collapsed')).toBe('true');
     expect(screen.queryByTestId('object-sidebar-search')).toBeNull();
     expect(screen.queryByTestId('picker-category-Shapes')).toBeNull();
+  });
+
+  test('the rail keeps pinned objects reachable', () => {
+    usePinnedObjectsStore.getState().togglePin(makeItem('Rectangle'));
+    useLayoutPreferencesStore.getState().setObjectSidebarCollapsed(true);
+    render(<ObjectSidebar />);
+
+    expect(screen.getByTestId('object-sidebar').getAttribute('data-collapsed')).toBe('true');
+    expect(screen.getByTestId('picker-item-Rectangle')).toBeTruthy();
+    expect(screen.getByTestId('object-sidebar-search-open')).toBeTruthy();
   });
 });
