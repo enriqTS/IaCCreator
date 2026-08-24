@@ -155,6 +155,7 @@ Viewport math functions:
 - `screenToCanvas(screenPoint, viewport)` — convert screen pixels to canvas world coordinates
 - `canvasToScreen(canvasPoint, viewport)` — convert canvas world to screen pixels
 - `zoomAtPoint(viewport, factor, screenCenter)` — zoom keeping the cursor point fixed, scale clamped to `[0.1, 5.0]`
+- `getCanvasViewportSize()` — the visible canvas size, measured from the `canvas-container` element. Anything centering or fitting the viewport must use this rather than `window.innerWidth`/`innerHeight`, because the object sidebar takes real width out of the window.
 
 ### `api-client.ts`
 
