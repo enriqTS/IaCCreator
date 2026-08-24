@@ -84,7 +84,6 @@ Uses fast-check for property-based testing (100+ iterations each).
 | `properties/canvas-objects-editor/`           | Canvas editor: anchor detach/follow, empty text removal, icon scaling, label visibility, object creation type, picker search, ray-rect intersection, serialization round-trip, shape path validity, snap threshold, UML data persistence, v2→v3 migration (13 tests) |
 | `properties/enhanced-variable-configuration/` | Schema config form rendering, visible_when conditional logic (2 tests) |
 | `properties/fixed-connection-routing/`        | Connection routing: anchor stability, diagonal no-waypoints, drop threshold, facing anchors, global routing mode isolation, nearest anchor selection, orthogonal segments, perpendicular exit offset (8 tests) |
-| `properties/sidebar-config-panel/`            | Sidebar panel: hamburger opposite side, layout prefs persistence, deselection collapse, drag collapse, layout mode, multi-selection count, selection expand, toggle collapse, width clamping/persistence (10 tests) |
 | `properties/config-overlay/`                  | Overlay registry: which selected types contribute a panel, and which never open one (1 test) |
 
 ### Additional Property Tests (`frontend/__tests__/property/`)

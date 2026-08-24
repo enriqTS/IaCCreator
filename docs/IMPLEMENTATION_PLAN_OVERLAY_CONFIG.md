@@ -7,9 +7,9 @@ configurable thing — architecture objects, connections, and groups. The sideba
 is reduced to visual configuration only, and may be removed entirely if visual
 editing moves to a floating toolbar.
 
-Phases 1 and 2 are done, along with both carried-over items and the backend
-contribution-preview endpoint they depend on. Phase 3 is decided but not built:
-visual configuration moves to a floating toolbar. Phase 4 remains blocked.
+Phases 1 to 3 are done, along with both carried-over items and the backend
+contribution-preview endpoint they depend on. The sidebar has been deleted.
+Phase 4 remains blocked.
 
 ---
 
@@ -89,9 +89,10 @@ These came out of reviewing the current data and should hold for any design.
    nothing is ever forced: no connection has a single required field, all sixteen
    are fully defaulted, and the panel is always dismissible by its X, a click
    outside, or Escape.
-3. **Keep the canvas visible where it matters.** Visual configuration (color,
-   stroke, sizing) is edited while watching the result, which is exactly why it
-   must not move into the modal. It goes to a floating toolbar instead (phase 3).
+3. **Keep the canvas visible where it matters — superseded.** Visual
+   configuration was expected to need the canvas in view while editing. The
+   maintainer chose the single modal surface over that, so colour and stroke are
+   edited in the overlay like everything else.
 4. **Canvas signals matter more, not less.** An overlay is dismissed and gone,
    so the canvas becomes the only persistent indication of state — most
    importantly, that something is misconfigured.
@@ -147,17 +148,24 @@ connection, not only the five with no fields.
 - Apply constraint 1: connections with no fields either do not open a panel, or
   open the contribution preview described above.
 
-### Phase 3 — Visual configuration split — **decided, not built**
+### Phase 3 — Visual configuration and the end of the sidebar — **done**
 
 **Goal:** Decide the fate of the sidebar.
 
-- Visual configuration moves to a floating toolbar; `SidebarPanel` goes away with
-  it. Judge the result by whether editing a color while watching the canvas still
-  feels direct.
-- The tab machinery is already gone: nothing depended on it once phases 1 and 2
-  landed, so `SidebarPanel` now renders visual configuration directly. It still
-  hosts the multi-selection summary and the global Terraform config, which both
-  need a home before it can be removed.
+The floating toolbar was dropped in favour of putting visual configuration in the
+overlay as a Visual tab on every object's panel, and deleting `SidebarPanel`
+outright. Every canvas object therefore opens a panel, since even a plain shape
+has an appearance to edit.
+
+What the sidebar used to host went as follows: visual configuration to the
+overlay; delete and group/ungroup to the canvas context menu, which already
+offered both; the multi-selection count dropped, since the canvas already shows
+the selection; and the global Terraform config to its own dialog from the
+hamburger menu, having never belonged to a canvas object in the first place.
+
+The sidebar's width, collapse and side preferences went with it, so the hamburger
+menu now sits in a fixed corner and the API Gateway detail panel covers the panel
+it was opened from instead of docking beside a sidebar.
 
 ### Phase 4 — Groups and group connections
 

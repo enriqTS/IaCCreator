@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { useApigwConfigStore } from '@/store/apigw-config-store';
 import { useDiagramStore } from '@/store/diagram-store';
-import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import ConfigTabs, { type ConfigTab } from '../overlay/ConfigTabs';
 import type { ProtocolType } from '@/types/apigw-config';
 import type { ArchitectureBlock } from '@/types/diagram';
@@ -25,6 +24,8 @@ import WebSocketRouteDetailFields from './WebSocketRouteDetailFields';
 
 interface ApigwDynamicConfigUIProps {
   elementId: string;
+  /** Appended after the gateway's own tabs, so the strip stays flat. */
+  extraTabs?: ConfigTab[];
 }
 
 const TABS_BY_PROTOCOL: Record<ProtocolType, string[]> = {
@@ -33,7 +34,7 @@ const TABS_BY_PROTOCOL: Record<ProtocolType, string[]> = {
   WEBSOCKET: ['Settings', 'Expressions', 'Stages', 'Authorizers'],
 };
 
-export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUIProps) {
+export default function ApigwDynamicConfigUI({ elementId, extraTabs = [] }: ApigwDynamicConfigUIProps) {
   const protocolType = useApigwConfigStore((s) => s.protocol_type);
   const selectedItemId = useApigwConfigStore((s) => s.selectedItemId);
   const selectedItemType = useApigwConfigStore((s) => s.selectedItemType);
@@ -48,9 +49,6 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
   const updateApiKey = useApigwConfigStore((s) => s.updateApiKey);
   const updateWebSocketRoute = useApigwConfigStore((s) => s.updateWebSocketRoute);
   const selectItem = useApigwConfigStore((s) => s.selectItem);
-
-  const sidebarWidth = useDiagramStore((s) => s.sidebarWidth);
-  const sidebarSide = useLayoutPreferencesStore((s) => s.sidebarSide);
 
   const [activeTab, setActiveTab] = useState<string>('');
 
@@ -177,14 +175,13 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
     Settings: <SettingsTab />,
   };
 
-  const configTabs: ConfigTab[] = tabs.map((tab) => ({
-    id: tab,
-    label: tab,
-    content: tabContent[tab] ?? null,
-  }));
+  const configTabs: ConfigTab[] = [
+    ...tabs.map((tab) => ({ id: tab, label: tab, content: tabContent[tab] ?? null })),
+    ...extraTabs,
+  ];
 
   return (
-    <>
+    <div className="relative min-w-0">
       <ConfigTabs
         testIdPrefix="apigw"
         value={activeTab}
@@ -197,11 +194,9 @@ export default function ApigwDynamicConfigUI({ elementId }: ApigwDynamicConfigUI
         isOpen={detailPanelContent !== null}
         onClose={() => selectItem(null, null)}
         title={detailPanelContent?.title ?? ''}
-        sidebarWidth={sidebarWidth}
-        sidebarSide={sidebarSide}
       >
         {detailPanelContent?.content}
       </DetailPanel>
-    </>
+    </div>
   );
 }

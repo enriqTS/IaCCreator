@@ -8,11 +8,12 @@ import type {
   Connector,
   LineObject,
 } from '@/types/diagram';
-import { getSchemas } from '@/store/schema-store';
 import { getServiceDisplayName } from '@/data/aws-icon-registry';
 import { findConnectorForLine, getSchemaForConnector } from '@/connections/connector-utils';
 import SchemaConfigForm from '../schema/SchemaConfigForm';
 import ApigwDynamicConfigUI from '../apigw/ApigwDynamicConfigUI';
+import VisualTab from '../visual/VisualTab';
+import ConfigTabs, { type ConfigTab } from './ConfigTabs';
 import ConnectionOverlayPanel from './ConnectionOverlayPanel';
 
 /** What the overlay container needs in order to render one kind of thing. */
@@ -35,72 +36,98 @@ type PanelResolver = (
   context: OverlayContext,
 ) => ConfigOverlayPanel | null;
 
-function resolveArchitectureBlock(selected: CanvasObject): ConfigOverlayPanel | null {
+/** Every object is configurable visually, so every panel ends with this tab. */
+function visualTab(object: CanvasObject): ConfigTab {
+  return {
+    id: 'Visual',
+    label: 'Visual',
+    content: <VisualTab object={object} />,
+  };
+}
+
+function resolveArchitectureBlock(selected: CanvasObject): ConfigOverlayPanel {
   const block = selected as ArchitectureBlock;
-  const subtitle = getServiceDisplayName(block.serviceType);
+  const panel = {
+    key: block.id,
+    title: block.name,
+    subtitle: getServiceDisplayName(block.serviceType),
+  };
 
   // API Gateway carries its own editor rather than a flat schema form
   if (block.serviceType === 'api-gateway') {
     return {
-      key: block.id,
-      title: block.name,
-      subtitle,
-      content: <ApigwDynamicConfigUI elementId={block.id} />,
+      ...panel,
+      content: <ApigwDynamicConfigUI elementId={block.id} extraTabs={[visualTab(block)]} />,
     };
   }
 
-  // Never open an empty overlay: a service with no schema has nothing to configure
-  const entries = getSchemas()[block.serviceType] ?? [];
-  if (entries.length === 0) return null;
-
   return {
-    key: block.id,
-    title: block.name,
-    subtitle,
-    content: <SchemaConfigForm elementId={block.id} serviceType={block.serviceType} />,
+    ...panel,
+    content: (
+      <SchemaConfigForm
+        elementId={block.id}
+        serviceType={block.serviceType}
+        extraTabs={[visualTab(block)]}
+      />
+    ),
   };
 }
 
 function resolveLine(
   selected: CanvasObject,
   context: OverlayContext,
-): ConfigOverlayPanel | null {
+): ConfigOverlayPanel {
   const line = selected as LineObject;
   const connector = findConnectorForLine(line, context.connectors, context.canvasObjects);
-  if (!connector) return null;
+  const schema = connector ? getSchemaForConnector(connector, context.canvasObjects) : null;
+  const sourceBlock = connector ? context.canvasObjects.get(connector.sourceId) : undefined;
+  const targetBlock = connector ? context.canvasObjects.get(connector.targetId) : undefined;
 
-  const schema = getSchemaForConnector(connector, context.canvasObjects);
-  const sourceBlock = context.canvasObjects.get(connector.sourceId);
-  const targetBlock = context.canvasObjects.get(connector.targetId);
+  // A line that carries a generatable connection configures that connection too
   if (
-    !schema ||
-    sourceBlock?.objectType !== 'architecture-block' ||
-    targetBlock?.objectType !== 'architecture-block'
+    connector &&
+    schema &&
+    sourceBlock?.objectType === 'architecture-block' &&
+    targetBlock?.objectType === 'architecture-block'
   ) {
-    return null;
+    return {
+      key: connector.id,
+      title: `${sourceBlock.name} → ${targetBlock.name}`,
+      subtitle: schema.label,
+      content: (
+        <ConnectionOverlayPanel
+          connector={connector}
+          sourceBlock={sourceBlock}
+          targetBlock={targetBlock}
+          schema={schema}
+          extraTabs={[visualTab(line)]}
+        />
+      ),
+    };
   }
 
+  return visualOnlyPanel(line, 'Line');
+}
+
+/** Objects with nothing but appearance to configure still open the same surface. */
+function visualOnlyPanel(object: CanvasObject, subtitle: string): ConfigOverlayPanel {
   return {
-    key: connector.id,
-    title: `${sourceBlock.name} → ${targetBlock.name}`,
-    subtitle: schema.label,
-    content: (
-      <ConnectionOverlayPanel
-        connector={connector}
-        sourceBlock={sourceBlock}
-        targetBlock={targetBlock}
-        schema={schema}
-      />
-    ),
+    key: object.id,
+    title: object.name,
+    subtitle,
+    content: <ConfigTabs testIdPrefix="visual" tabs={[visualTab(object)]} />,
   };
 }
 
 const RESOLVERS: Partial<Record<CanvasObjectType, PanelResolver>> = {
   'architecture-block': resolveArchitectureBlock,
   line: resolveLine,
+  geometric: (selected) => visualOnlyPanel(selected, 'Shape'),
+  text: (selected) => visualOnlyPanel(selected, 'Text'),
+  uml: (selected) => visualOnlyPanel(selected, 'UML'),
 };
 
-/** The panel for a selected object, or null when it has nothing to configure. */
+/** The panel for a selected object, or null when its type has none. */
 export function resolveConfigOverlayPanel(
   selected: CanvasObject | null,
   context: OverlayContext,

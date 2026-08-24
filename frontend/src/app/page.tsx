@@ -8,11 +8,11 @@ import Canvas from '@/components/canvas/Canvas';
 import Minimap from '@/components/canvas/Minimap';
 import Toolbar from '@/components/toolbar/Toolbar';
 import HamburgerMenu from '@/components/menu/HamburgerMenu';
-import SidebarPanel from '@/components/config/SidebarPanel';
 import ConfigOverlay from '@/components/config/overlay/ConfigOverlay';
 import PreferencesDialog from '@/components/menu/PreferencesDialog';
 import NewDiagramDialog from '@/components/menu/NewDiagramDialog';
 import ProjectSettingsDialog from '@/components/menu/ProjectSettingsDialog';
+import TerraformSettingsDialog from '@/components/menu/TerraformSettingsDialog';
 import ToastProvider from '@/components/toast/ToastProvider';
 import OnboardingTour from '@/components/tour/OnboardingTour';
 import KeyboardShortcutsOverlay from '@/components/shortcuts/KeyboardShortcutsOverlay';
@@ -26,6 +26,7 @@ import { useConnectionPreviewSync } from '@/hooks/useConnectionPreviewSync';
 export default function DiagramEditorPage() {
   const [newDiagramOpen, setNewDiagramOpen] = useState(false);
   const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
+  const [terraformSettingsOpen, setTerraformSettingsOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [shortcutsOverlayOpen, setShortcutsOverlayOpen] = useState(false);
 
@@ -222,18 +223,6 @@ export default function DiagramEditorPage() {
         // If typing inside an inline canvas editor (textarea/contenteditable), let it behave normally
         if (isTyping && (e.target as HTMLElement)?.closest('[data-testid="viewport-transform-container"]')) return;
 
-        // If typing inside the sidebar config panel, blur the input and delete the object
-        if (isTyping && (e.target as HTMLElement)?.closest('[data-testid="sidebar-panel"]')) {
-          if (e.key === 'Backspace') return; // Let browser handle normal text editing
-          if (store.selectedObjectIds.size > 0) {
-            e.preventDefault();
-            (document.activeElement as HTMLElement)?.blur();
-            store.removeMultipleCanvasObjects(store.selectedObjectIds);
-            return;
-          }
-          return;
-        }
-
         // If typing in some other input (e.g. dialog), let it behave normally
         if (isTyping) return;
 
@@ -360,10 +349,10 @@ export default function DiagramEditorPage() {
         onLoad={handleLoad}
         onExport={handleExport}
         onProjectSettings={handleProjectSettings}
+        onTerraformSettings={() => setTerraformSettingsOpen(true)}
         onPreferences={() => setPreferencesOpen(true)}
         onReplayTour={handleReplayTour}
       />
-      <SidebarPanel />
       <ConfigOverlay />
       <NewDiagramDialog
         open={newDiagramOpen}
@@ -373,6 +362,10 @@ export default function DiagramEditorPage() {
         key={projectSettingsOpen ? 'open' : 'closed'}
         open={projectSettingsOpen}
         onClose={() => setProjectSettingsOpen(false)}
+      />
+      <TerraformSettingsDialog
+        open={terraformSettingsOpen}
+        onClose={() => setTerraformSettingsOpen(false)}
       />
       <PreferencesDialog
         open={preferencesOpen}

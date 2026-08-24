@@ -14,8 +14,9 @@ export interface ConfigTab {
 
 interface ConfigTabsProps {
   tabs: ConfigTab[];
-  value: string;
-  onValueChange: (id: string) => void;
+  /** Omit both to let the strip track the open tab itself. */
+  value?: string;
+  onValueChange?: (id: string) => void;
   /** Prefix for the strip and trigger test ids, so panels stay distinguishable. */
   testIdPrefix?: string;
   className?: string;
@@ -34,6 +35,8 @@ export default function ConfigTabs({
 }: ConfigTabsProps) {
   const stripRef = useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = useState({ left: false, right: false });
+  const [ownTab, setOwnTab] = useState('');
+  const selected = value ?? ownTab;
 
   const syncArrows = useCallback(() => {
     const strip = stripRef.current;
@@ -65,12 +68,17 @@ export default function ConfigTabs({
     }
   }, []);
 
-  const effectiveTab = tabs.some((tab) => tab.id === value) ? value : tabs[0]?.id ?? '';
+  const effectiveTab = tabs.some((tab) => tab.id === selected) ? selected : tabs[0]?.id ?? '';
+
+  const handleValueChange = (next: string) => {
+    setOwnTab(next);
+    onValueChange?.(next);
+  };
 
   return (
     <Tabs
       value={effectiveTab}
-      onValueChange={onValueChange}
+      onValueChange={handleValueChange}
       className={cn('w-full min-w-0', className)}
     >
       <div className="relative min-w-0">

@@ -92,7 +92,6 @@ The primary application store managing all diagram state. Created with Zustand's
 
 **Panel State:**
 - `bottomPanelExpanded / bottomPanelHeight / toggleBottomPanel`
-- `sidebarExpanded / sidebarWidth / setSidebarWidth`
 
 ### `toast-store.ts` — `useToastStore`
 
@@ -104,9 +103,8 @@ Simple notification store:
 ### `layout-preferences-store.ts` — `useLayoutPreferencesStore`
 
 Persisted layout preferences (via Zustand `persist` middleware):
-- `sidebarSide: 'left' | 'right'` (default `'right'`)
 - `toolbarPosition: 'top' | 'bottom'` (default `'top'`)
-- `setSidebarSide / setToolbarPosition`
+- `setToolbarPosition`
 
 ### `schema-store.ts` — `fetchSchemas` / `getSchemas`
 

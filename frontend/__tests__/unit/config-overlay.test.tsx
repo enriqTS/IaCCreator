@@ -100,10 +100,13 @@ describe('ConfigOverlay', () => {
     expect(screen.getByTestId('config-overlay-title').textContent).toBe('block-1');
   });
 
-  it('never opens for an object that carries no configuration', () => {
+  it('opens a visual-only panel for an object with no settings of its own', () => {
     render(<ConfigOverlay />);
+
     open('geo-1');
-    expect(screen.queryByTestId('config-overlay')).toBeNull();
+
+    expect(screen.getByTestId('config-overlay')).toBeDefined();
+    expect(screen.getByTestId('visual-tab-visual')).toBeDefined();
   });
 
   it('closes when its close button is used', () => {

@@ -49,17 +49,17 @@ describe('Property: the overlay registry picks a panel from the selected type al
     );
   });
 
-  test('a service the backend serves no schema for never opens a panel', () => {
+  test('a service the backend serves no schema for still opens its visual panel', () => {
     const schemaless: ServiceType[] = ['clean-rooms', 'data-exchange', 'finspace'];
     fc.assert(
       fc.property(fc.constantFrom(...schemaless), (serviceType) => {
-        expect(resolveConfigOverlayPanel(block('b', serviceType), EMPTY_CONTEXT)).toBeNull();
+        expect(resolveConfigOverlayPanel(block('b', serviceType), EMPTY_CONTEXT)).not.toBeNull();
       }),
       { numRuns: 50 },
     );
   });
 
-  test('objects that carry no configuration never open a panel', () => {
+  test('objects with only an appearance still open a panel, labelled by kind', () => {
     const geometric: GeometricObject = {
       id: 'geo-1',
       objectType: 'geometric',
@@ -68,11 +68,16 @@ describe('Property: the overlay registry picks a panel from the selected type al
       visualConfig: { ...DEFAULT_GEO_VISUAL },
       zIndex: 0,
     };
-    expect(resolveConfigOverlayPanel(geometric, EMPTY_CONTEXT)).toBeNull();
+    const panel = resolveConfigOverlayPanel(geometric, EMPTY_CONTEXT);
+    expect(panel?.subtitle).toBe('Shape');
+    expect(panel?.title).toBe('shape');
+  });
+
+  test('nothing selected opens nothing', () => {
     expect(resolveConfigOverlayPanel(null, EMPTY_CONTEXT)).toBeNull();
   });
 
-  test('a line with no connector behind it never opens a panel', () => {
+  test('a line with no connector behind it falls back to its visual panel', () => {
     fc.assert(
       fc.property(arbName, (name) => {
         const line: LineObject = {
@@ -86,7 +91,9 @@ describe('Property: the overlay registry picks a panel from the selected type al
           visualConfig: { ...DEFAULT_LINE_VISUAL },
           zIndex: 0,
         };
-        expect(resolveConfigOverlayPanel(line, EMPTY_CONTEXT)).toBeNull();
+        const panel = resolveConfigOverlayPanel(line, EMPTY_CONTEXT);
+        expect(panel?.key).toBe('line-1');
+        expect(panel?.subtitle).toBe('Line');
       }),
       { numRuns: 50 },
     );

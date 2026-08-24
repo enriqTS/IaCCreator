@@ -55,7 +55,9 @@ describe('Every configuration panel is laid out as tabs', () => {
     );
     const rendered = screen.getByTestId('schema-tab-bar').querySelectorAll('[role="tab"]');
     expect(rendered.length).toBeGreaterThan(1);
-    expect(rendered.length).toBeLessThanOrEqual(groups.size);
+    // Every panel ends with Visual, so the strip is the visible groups plus one
+    expect(rendered.length).toBeLessThanOrEqual(groups.size + 1);
+    expect(screen.getByTestId('schema-tab-visual')).toBeDefined();
   });
 
   it('shows only the fields of the open group', () => {

@@ -7,6 +7,7 @@ import {
   FolderOpen,
   FileOutput,
   Settings,
+  FileCog,
   Wrench,
   HelpCircle,
 } from 'lucide-react';
@@ -18,7 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 
 export interface HamburgerMenuProps {
   onNewDiagram: () => void;
@@ -26,21 +26,17 @@ export interface HamburgerMenuProps {
   onLoad: () => void;
   onExport: () => void;
   onProjectSettings: () => void;
+  onTerraformSettings: () => void;
   onPreferences: () => void;
   onReplayTour: () => void;
 }
 
 export default function HamburgerMenu(props: HamburgerMenuProps) {
-  const sidebarSide = useLayoutPreferencesStore((s) => s.sidebarSide);
-
-  // Position opposite to sidebar: top-left when sidebar is right, top-right when sidebar is left
-  const positionStyle: React.CSSProperties =
-    sidebarSide === 'left'
-      ? { position: 'fixed', top: 16, right: 16, zIndex: 50 }
-      : { position: 'fixed', top: 16, left: 16, zIndex: 50 };
-
   return (
-    <div data-testid="hamburger-menu" style={positionStyle}>
+    <div
+      data-testid="hamburger-menu"
+      style={{ position: 'fixed', top: 16, left: 16, zIndex: 50 }}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -89,6 +85,14 @@ export default function HamburgerMenu(props: HamburgerMenuProps) {
             Project Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem
+            data-testid="menu-item-onTerraformSettings"
+            onSelect={props.onTerraformSettings}
+          >
+            <FileCog />
+            Terraform Settings
+          </DropdownMenuItem>
+
           <DropdownMenuItem
             data-testid="menu-item-onPreferences"
             onSelect={props.onPreferences}

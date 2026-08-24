@@ -1,7 +1,7 @@
 'use client';
 
 import { useDiagramStore } from '@/store/diagram-store';
-import { SIDEBAR_RESPONSIVE_THRESHOLD } from '@/components/config/panel-constants';
+import { TWO_COLUMN_THRESHOLD } from '@/components/config/panel-constants';
 import type { GlobalTerraformConfig, TerraformVariableType } from '@/types/terraform-variables';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ export default function GlobalTerraformConfigPanel({ panelWidth }: GlobalTerrafo
     updateConfig({ versionConstraints: { ...config.versionConstraints, ...updates } });
   };
 
-  const isTwoColumn = panelWidth !== undefined && panelWidth >= SIDEBAR_RESPONSIVE_THRESHOLD;
+  const isTwoColumn = panelWidth !== undefined && panelWidth >= TWO_COLUMN_THRESHOLD;
   const fieldGrid = isTwoColumn ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3';
 
   return (

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import type { ArchitectureBlock, Connector } from '@/types/diagram';
 import type { ConnectionSchema } from '@/connections';
 import ConnectionConfigPanel from '@/connections/ConnectionConfigPanel';
@@ -12,6 +11,8 @@ interface ConnectionOverlayPanelProps {
   sourceBlock: ArchitectureBlock;
   targetBlock: ArchitectureBlock;
   schema: ConnectionSchema;
+  /** Appended after the connection's own tabs, so the strip stays flat. */
+  extraTabs?: ConfigTab[];
 }
 
 /** Connection configuration and what the backend says it will generate, as tabs. */
@@ -20,9 +21,8 @@ export default function ConnectionOverlayPanel({
   sourceBlock,
   targetBlock,
   schema,
+  extraTabs = [],
 }: ConnectionOverlayPanelProps) {
-  const [activeTab, setActiveTab] = useState('');
-
   const tabs: ConfigTab[] = [];
   // A connection with no fields opens straight onto what it generates
   if (schema.fields.length > 0) {
@@ -44,15 +44,11 @@ export default function ConnectionOverlayPanel({
     label: 'Generated',
     content: <ConnectionContributionPreview connectorId={connector.id} />,
   });
+  tabs.push(...extraTabs);
 
   return (
     <div data-testid="connection-overlay-panel" className="min-w-0">
-      <ConfigTabs
-        testIdPrefix="connection"
-        value={activeTab}
-        onValueChange={setActiveTab}
-        tabs={tabs}
-      />
+      <ConfigTabs testIdPrefix="connection" tabs={tabs} />
     </div>
   );
 }

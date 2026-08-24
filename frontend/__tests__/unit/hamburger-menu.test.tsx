@@ -11,6 +11,7 @@ function makeProps(overrides: Partial<Record<string, () => void>> = {}) {
     onLoad: vi.fn(),
     onExport: vi.fn(),
     onProjectSettings: vi.fn(),
+    onTerraformSettings: vi.fn(),
     onPreferences: vi.fn(),
     onReplayTour: vi.fn(),
     ...overrides,
@@ -18,7 +19,7 @@ function makeProps(overrides: Partial<Record<string, () => void>> = {}) {
 }
 
 beforeEach(() => {
-  useLayoutPreferencesStore.setState({ sidebarSide: 'right', toolbarPosition: 'top' });
+  useLayoutPreferencesStore.setState({ toolbarPosition: 'top' });
 });
 
 describe('HamburgerMenu', () => {
@@ -106,19 +107,19 @@ describe('HamburgerMenu', () => {
     expect(btn.getAttribute('aria-label')).toBe('Menu');
   });
 
-  it('positions at top-left when sidebarSide is right', () => {
-    useLayoutPreferencesStore.setState({ sidebarSide: 'right' });
+  it('sits in the top-left corner', () => {
     render(<HamburgerMenu {...makeProps()} />);
     const container = screen.getByTestId('hamburger-menu');
     expect(container.style.left).toBe('16px');
     expect(container.style.right).toBe('');
   });
 
-  it('positions at top-right when sidebarSide is left', () => {
-    useLayoutPreferencesStore.setState({ sidebarSide: 'left' });
-    render(<HamburgerMenu {...makeProps()} />);
-    const container = screen.getByTestId('hamburger-menu');
-    expect(container.style.right).toBe('16px');
-    expect(container.style.left).toBe('');
+  it('opens the Terraform settings from its own entry', async () => {
+    const user = userEvent.setup();
+    const props = makeProps();
+    render(<HamburgerMenu {...props} />);
+    await user.click(screen.getByTestId('hamburger-button'));
+    await user.click(await screen.findByTestId('menu-item-onTerraformSettings'));
+    expect(props.onTerraformSettings).toHaveBeenCalledOnce();
   });
 });

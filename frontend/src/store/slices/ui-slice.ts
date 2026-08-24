@@ -3,7 +3,7 @@
  */
 
 import type { StateCreator } from 'zustand';
-import { DEFAULT_PANEL_HEIGHT, DEFAULT_SIDEBAR_WIDTH, MAX_PANEL_HEIGHT_RATIO, MAX_SIDEBAR_WIDTH_RATIO, MIN_PANEL_HEIGHT, MIN_SIDEBAR_WIDTH } from '@/components/config/panel-constants';
+import { DEFAULT_PANEL_HEIGHT, MAX_PANEL_HEIGHT_RATIO, MIN_PANEL_HEIGHT } from '@/components/config/panel-constants';
 import type { RoutingMode, Tool } from '@/types/diagram';
 import type { DiagramStore } from './store-types';
 
@@ -26,13 +26,6 @@ export interface UISlice {
   configOverlayTargetId: string | null;
   openConfigOverlay: (objectId: string) => void;
   closeConfigOverlay: () => void;
-
-  // Sidebar panel state
-  sidebarExpanded: boolean;
-  sidebarWidth: number;
-  setSidebarExpanded: (expanded: boolean) => void;
-  setSidebarWidth: (width: number) => void;
-  toggleSidebar: () => void;
 
   // Global routing mode
   globalRoutingMode: RoutingMode;
@@ -80,24 +73,6 @@ export const createUISlice: StateCreator<DiagramStore, [], [], UISlice> = (set) 
 
     closeConfigOverlay: (): void => {
       set({ configOverlayTargetId: null });
-    },
-
-    // --- Sidebar panel state ---
-    sidebarExpanded: false,
-    sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
-
-    setSidebarExpanded: (expanded: boolean): void => {
-      set({ sidebarExpanded: expanded });
-    },
-
-    setSidebarWidth: (width: number): void => {
-      const maxWidth = MAX_SIDEBAR_WIDTH_RATIO * window.innerWidth;
-      const clamped = Math.min(Math.max(width, MIN_SIDEBAR_WIDTH), maxWidth);
-      set({ sidebarWidth: clamped });
-    },
-
-    toggleSidebar: (): void => {
-      set((state) => ({ sidebarExpanded: !state.sidebarExpanded }));
     },
 
     // --- Global routing mode ---

@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import GlobalTerraformConfigPanel from '@/components/config/GlobalTerraformConfigPanel';
 import { useDiagramStore } from '@/store/diagram-store';
 import { DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
-import { SIDEBAR_RESPONSIVE_THRESHOLD } from '@/components/config/panel-constants';
+import { TWO_COLUMN_THRESHOLD } from '@/components/config/panel-constants';
 
 describe('GlobalTerraformConfigPanel', () => {
   beforeEach(() => {
@@ -200,13 +200,13 @@ describe('GlobalTerraformConfigPanel', () => {
   });
 
   it('renders in single-column layout when panelWidth is below threshold', () => {
-    render(<GlobalTerraformConfigPanel panelWidth={SIDEBAR_RESPONSIVE_THRESHOLD - 1} />);
+    render(<GlobalTerraformConfigPanel panelWidth={TWO_COLUMN_THRESHOLD - 1} />);
     // The config-sections-container should exist
     expect(screen.getByTestId('config-sections-container')).toBeDefined();
   });
 
   it('renders in two-column layout when panelWidth is at or above threshold', () => {
-    render(<GlobalTerraformConfigPanel panelWidth={SIDEBAR_RESPONSIVE_THRESHOLD} />);
+    render(<GlobalTerraformConfigPanel panelWidth={TWO_COLUMN_THRESHOLD} />);
     expect(screen.getByTestId('config-sections-container')).toBeDefined();
   });
 

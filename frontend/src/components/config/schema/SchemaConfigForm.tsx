@@ -19,12 +19,14 @@ import {
 } from '@/components/ui/select';
 import KeyValueEditor from '../editors/KeyValueEditor';
 import ListEditor from '../editors/ListEditor';
-import ConfigTabs from '../overlay/ConfigTabs';
+import ConfigTabs, { type ConfigTab } from '../overlay/ConfigTabs';
 
 interface SchemaConfigFormProps {
   elementId: string;
   serviceType: string;
   onValidationChange?: (hasErrors: boolean) => void;
+  /** Appended after the schema's own group tabs, so the strip stays flat. */
+  extraTabs?: ConfigTab[];
 }
 
 /** Evaluate a visible_when condition against the current config. */
@@ -78,11 +80,10 @@ function validateValue(
   return null;
 }
 
-export default function SchemaConfigForm({ elementId, serviceType, onValidationChange }: SchemaConfigFormProps) {
+export default function SchemaConfigForm({ elementId, serviceType, onValidationChange, extraTabs = [] }: SchemaConfigFormProps) {
   const canvasObject = useDiagramStore((s) => s.canvasObjects.get(elementId));
   const updateCanvasObject = useDiagramStore((s) => s.updateCanvasObject);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [activeGroup, setActiveGroup] = useState('');
 
   const schemas = getSchemas();
   const entries = useMemo(() => schemas[serviceType] ?? [], [schemas, serviceType]);
@@ -176,25 +177,26 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
 
       <ConfigTabs
         testIdPrefix="schema"
-        value={activeGroup}
-        onValueChange={setActiveGroup}
-        tabs={visibleGroups.map(([group, groupEntries]) => ({
-          id: group,
-          label: group,
-          content: (
-            <div data-testid={`config-group-${group}`} className="flex flex-col gap-3 py-2">
-              {groupEntries.map((entry) => (
-                <FieldRenderer
-                  key={entry.name}
-                  entry={entry}
-                  config={config}
-                  error={errors[entry.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          ),
-        }))}
+        tabs={[
+          ...visibleGroups.map(([group, groupEntries]) => ({
+            id: group,
+            label: group,
+            content: (
+              <div data-testid={`config-group-${group}`} className="flex flex-col gap-3 py-2">
+                {groupEntries.map((entry) => (
+                  <FieldRenderer
+                    key={entry.name}
+                    entry={entry}
+                    config={config}
+                    error={errors[entry.name]}
+                    onChange={handleChange}
+                  />
+                ))}
+              </div>
+            ),
+          })),
+          ...extraTabs,
+        ]}
       />
     </div>
   );

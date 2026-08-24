@@ -10,8 +10,6 @@ interface DetailPanelProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  sidebarWidth: number;
-  sidebarSide: 'left' | 'right';
 }
 
 export default function DetailPanel({
@@ -19,8 +17,6 @@ export default function DetailPanel({
   onClose,
   title,
   children,
-  sidebarWidth,
-  sidebarSide,
 }: DetailPanelProps) {
   // Close on Escape key press
   useEffect(() => {
@@ -38,23 +34,13 @@ export default function DetailPanel({
 
   if (!isOpen) return null;
 
-  const isLeft = sidebarSide === 'left';
-
   return (
+    // Covers the panel it was opened from, so the master list stays where it was
     <div
       data-testid="detail-panel"
       className={cn(
-        'fixed inset-y-0 z-50 flex flex-col bg-background shadow-lg',
-        'transition-transform duration-200 ease-in-out',
-        isLeft ? 'border-r' : 'border-l',
-        isLeft ? 'translate-x-0' : 'translate-x-0',
+        'absolute inset-0 z-10 flex flex-col rounded-md border bg-background shadow-lg',
       )}
-      style={{
-        width: `min(${sidebarWidth}px, calc(50% - ${sidebarWidth}px))`,
-        ...(isLeft
-          ? { left: `${sidebarWidth}px` }
-          : { right: `${sidebarWidth}px` }),
-      }}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b px-3 py-2">

@@ -19,9 +19,7 @@ export interface PreferencesDialogProps {
 }
 
 export default function PreferencesDialog({ open, onClose }: PreferencesDialogProps) {
-  const sidebarSide = useLayoutPreferencesStore((s) => s.sidebarSide);
   const toolbarPosition = useLayoutPreferencesStore((s) => s.toolbarPosition);
-  const setSidebarSide = useLayoutPreferencesStore((s) => s.setSidebarSide);
   const setToolbarPosition = useLayoutPreferencesStore((s) => s.setToolbarPosition);
   const gridCellSize = useLayoutPreferencesStore((s) => s.gridCellSize);
   const setGridCellSize = useLayoutPreferencesStore((s) => s.setGridCellSize);
@@ -41,25 +39,6 @@ export default function PreferencesDialog({ open, onClose }: PreferencesDialogPr
         </DialogHeader>
 
         <div className="flex flex-col gap-6">
-          {/* Sidebar Position */}
-          <fieldset className="flex flex-col gap-3">
-            <legend className="text-sm font-medium">Sidebar Position</legend>
-            <RadioGroup
-              value={sidebarSide}
-              onValueChange={(value) => setSidebarSide(value as 'left' | 'right')}
-              data-testid="sidebar-side-radio"
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="left" id="sidebar-left" />
-                <Label htmlFor="sidebar-left">Left</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="right" id="sidebar-right" />
-                <Label htmlFor="sidebar-right">Right</Label>
-              </div>
-            </RadioGroup>
-          </fieldset>
-
           {/* Toolbar Position */}
           <fieldset className="flex flex-col gap-3">
             <legend className="text-sm font-medium">Toolbar Position</legend>
