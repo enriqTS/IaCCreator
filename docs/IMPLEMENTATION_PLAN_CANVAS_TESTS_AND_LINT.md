@@ -16,6 +16,10 @@ already shipped.
 0 ESLint warnings, 806 backend tests and 1323 frontend tests passing, and the
 production frontend image builds.
 
+This is a record of finished work, so it still names `SidebarPanel.tsx` and its
+tab test ids. The sidebar has since been deleted and all configuration moved into
+the overlay — see `IMPLEMENTATION_PLAN_OVERLAY_CONFIG.md`.
+
 ---
 
 ## Part 1: Canvas Interaction Test Coverage

@@ -4,8 +4,8 @@
  * OnboardingTour — Lightweight tooltip-based tour.
  *
  * Shows short messages anchored to the actual UI elements (toolbar, canvas,
- * menu, sidebar) using their data-testid attributes. Steps through each area
- * with Next/Back/Skip controls.
+ * menu) using their data-testid attributes. Steps through each area with
+ * Next/Back/Skip controls.
  *
  * Each step renders a fresh tooltip instance (via React key) so there's no
  * flash of content at the old position when navigating between steps.
@@ -71,16 +71,6 @@ function clampToViewport(pos: TooltipPosition, width: number, height: number): T
   };
 }
 
-function getTargetInfo(step: TourStepData): { testId: string; placement: 'top' | 'bottom' | 'left' | 'right' | 'center' } {
-  if (step.id === 'sidebar') {
-    const expandedPanel = document.querySelector('[data-testid="sidebar-panel"]');
-    if (!expandedPanel) {
-      return { testId: 'sidebar-toggle-collapsed', placement: 'left' };
-    }
-  }
-  return { testId: step.targetTestId, placement: step.placement };
-}
-
 // ─── Individual tooltip instance (keyed per step, so it mounts fresh) ────────
 
 interface StepTooltipProps {
@@ -98,8 +88,7 @@ function StepTooltip({ step, stepIndex, totalSteps, isFirst, isLast, onNext, onP
   const [position, setPosition] = useState<TooltipPosition | null>(null);
 
   const updatePosition = useCallback(() => {
-    const { testId, placement } = getTargetInfo(step);
-    const target = document.querySelector(`[data-testid="${testId}"]`);
+    const target = document.querySelector(`[data-testid="${step.targetTestId}"]`);
 
     if (!target) {
       setPosition({
@@ -113,7 +102,7 @@ function StepTooltip({ step, stepIndex, totalSteps, isFirst, isLast, onNext, onP
     const tooltipWidth = 280;
     const tooltipHeight = 120;
 
-    const raw = computePosition(targetRect, placement, tooltipWidth, tooltipHeight);
+    const raw = computePosition(targetRect, step.placement, tooltipWidth, tooltipHeight);
     const clamped = clampToViewport(raw, tooltipWidth, tooltipHeight);
     setPosition(clamped);
   }, [step]);

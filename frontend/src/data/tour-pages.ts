@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { MousePointer2, Move, Menu, PanelRight } from 'lucide-react';
+import { MousePointer2, Move, Menu, SlidersHorizontal } from 'lucide-react';
 
 export interface TourStepData {
   id: string;
@@ -36,11 +36,12 @@ export const TOUR_STEPS: TourStepData[] = [
     icon: Menu,
   },
   {
-    id: 'sidebar',
-    message: 'Configure selected elements and service properties here.',
-    targetTestId: 'sidebar-panel',
-    placement: 'left',
-    icon: PanelRight,
+    id: 'configure',
+    message:
+      'Double-click an element, or right-click it and choose Configure, to open its settings.',
+    targetTestId: 'viewport-transform-container',
+    placement: 'center',
+    icon: SlidersHorizontal,
   },
 ];
 
@@ -94,10 +95,10 @@ export const TOUR_STEP_COUNT = TOUR_STEPS.length;
 //     description: 'Access save, load, export to Terraform, project settings, and preferences from the hamburger menu.',
 //   },
 //   {
-//     id: 'sidebar',
-//     title: 'The Sidebar',
-//     icon: PanelRight,
-//     image: '/tour-images/sidebar.png',
-//     description: 'Configure selected elements here. Set service properties, visual styles, and Terraform variables.',
+//     id: 'configure',
+//     title: 'Configuring elements',
+//     icon: SlidersHorizontal,
+//     image: '/tour-images/configure.png',
+//     description: 'Double-click an element to open its settings: service properties, visual styles, and Terraform variables.',
 //   },
 // ];
