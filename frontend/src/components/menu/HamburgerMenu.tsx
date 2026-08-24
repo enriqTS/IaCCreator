@@ -33,10 +33,7 @@ export interface HamburgerMenuProps {
 
 export default function HamburgerMenu(props: HamburgerMenuProps) {
   return (
-    <div
-      data-testid="hamburger-menu"
-      style={{ position: 'fixed', top: 16, left: 16, zIndex: 50 }}
-    >
+    <div data-testid="hamburger-menu">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

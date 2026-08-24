@@ -1,4 +1,7 @@
 import { useTourStore } from '@/store/tour-store';
+import { TOUR_STEP_COUNT } from '@/data/tour-pages';
+
+const LAST_STEP = TOUR_STEP_COUNT - 1;
 
 describe('tour-store', () => {
   beforeEach(() => {
@@ -35,18 +38,18 @@ describe('tour-store', () => {
       expect(useTourStore.getState().currentStep).toBe(1);
     });
 
-    it('clamps to max step index (3)', () => {
-      useTourStore.setState({ currentStep: 3 });
+    it('clamps to the last step index', () => {
+      useTourStore.setState({ currentStep: LAST_STEP });
       useTourStore.getState().nextStep();
-      expect(useTourStore.getState().currentStep).toBe(3);
+      expect(useTourStore.getState().currentStep).toBe(LAST_STEP);
     });
 
     it('does not exceed bounds when called multiple times from last step', () => {
-      useTourStore.setState({ currentStep: 3 });
+      useTourStore.setState({ currentStep: LAST_STEP });
       useTourStore.getState().nextStep();
       useTourStore.getState().nextStep();
       useTourStore.getState().nextStep();
-      expect(useTourStore.getState().currentStep).toBe(3);
+      expect(useTourStore.getState().currentStep).toBe(LAST_STEP);
     });
   });
 

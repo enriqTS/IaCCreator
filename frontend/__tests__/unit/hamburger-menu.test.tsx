@@ -107,11 +107,11 @@ describe('HamburgerMenu', () => {
     expect(btn.getAttribute('aria-label')).toBe('Menu');
   });
 
-  it('sits in the top-left corner', () => {
+  it('leaves its placement to the surface that hosts it', () => {
     render(<HamburgerMenu {...makeProps()} />);
     const container = screen.getByTestId('hamburger-menu');
-    expect(container.style.left).toBe('16px');
-    expect(container.style.right).toBe('');
+    expect(container.style.position).toBe('');
+    expect(container.style.left).toBe('');
   });
 
   it('opens the Terraform settings from its own entry', async () => {

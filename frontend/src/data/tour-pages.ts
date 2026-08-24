@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { MousePointer2, Move, Menu, SlidersHorizontal } from 'lucide-react';
+import { MousePointer2, Move, Menu, PlusSquare, SlidersHorizontal } from 'lucide-react';
 
 export interface TourStepData {
   id: string;
@@ -15,8 +15,15 @@ export interface TourStepData {
 
 export const TOUR_STEPS: TourStepData[] = [
   {
+    id: 'objects',
+    message: 'Pick an object here, then click the canvas to place it.',
+    targetTestId: 'object-sidebar',
+    placement: 'right',
+    icon: PlusSquare,
+  },
+  {
     id: 'toolbar',
-    message: 'Select tools and add elements to the canvas from here.',
+    message: 'Select drawing tools and undo or redo from here.',
     targetTestId: 'toolbar',
     placement: 'bottom',
     icon: MousePointer2,

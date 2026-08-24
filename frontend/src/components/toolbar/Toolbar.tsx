@@ -3,7 +3,6 @@
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { Button } from '@/components/ui/button';
-import ObjectPickerMenu from './ObjectPickerMenu';
 
 export default function Toolbar() {
   const activeTool = useDiagramStore((s) => s.activeTool);
@@ -35,7 +34,7 @@ export default function Toolbar() {
     <div
       data-testid="toolbar"
       style={{
-        position: 'fixed',
+        position: 'absolute',
         ...positionStyle,
         zIndex: 50,
         display: 'flex',
@@ -125,19 +124,6 @@ export default function Toolbar() {
       >
         ↪
       </Button>
-
-      {/* Separator */}
-      <div
-        style={{
-          width: 1,
-          height: 24,
-          background: '#444',
-          margin: '0 4px',
-        }}
-      />
-
-      {/* Object Picker */}
-      <ObjectPickerMenu />
     </div>
   );
 }

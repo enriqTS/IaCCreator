@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useToastStore } from '@/store/toast-store';
 import { useTourStore } from '@/store/tour-store';
@@ -8,6 +8,7 @@ import Canvas from '@/components/canvas/Canvas';
 import Minimap from '@/components/canvas/Minimap';
 import Toolbar from '@/components/toolbar/Toolbar';
 import HamburgerMenu from '@/components/menu/HamburgerMenu';
+import ObjectSidebar from '@/components/objects/ObjectSidebar';
 import ConfigOverlay from '@/components/config/overlay/ConfigOverlay';
 import PreferencesDialog from '@/components/menu/PreferencesDialog';
 import NewDiagramDialog from '@/components/menu/NewDiagramDialog';
@@ -29,6 +30,7 @@ export default function DiagramEditorPage() {
   const [terraformSettingsOpen, setTerraformSettingsOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [shortcutsOverlayOpen, setShortcutsOverlayOpen] = useState(false);
+  const canvasAreaRef = useRef<HTMLDivElement>(null);
 
   // The backend owns service and connection schemas, so load them before anything is configured
   useEffect(() => {
@@ -48,6 +50,10 @@ export default function DiagramEditorPage() {
 
       const store = useDiagramStore.getState();
       const mod = e.ctrlKey || e.metaKey;
+      // The sidebar takes real width, so viewport centers come from the canvas area
+      const area = canvasAreaRef.current?.getBoundingClientRect();
+      const areaWidth = area?.width ?? window.innerWidth;
+      const areaHeight = area?.height ?? window.innerHeight;
 
       // Configuration is a focused mode, so the canvas shortcuts do not reach into it
       if (store.configOverlayTargetId) return;
@@ -90,8 +96,8 @@ export default function DiagramEditorPage() {
           e.preventDefault();
           // Paste at center of viewport
           const { viewport } = store;
-          const centerX = (window.innerWidth / 2 - viewport.offsetX) / viewport.scale;
-          const centerY = (window.innerHeight / 2 - viewport.offsetY) / viewport.scale;
+          const centerX = (areaWidth / 2 - viewport.offsetX) / viewport.scale;
+          const centerY = (areaHeight / 2 - viewport.offsetY) / viewport.scale;
           store.pasteObjects({ x: centerX, y: centerY });
           return;
         }
@@ -169,27 +175,27 @@ export default function DiagramEditorPage() {
         // Zoom
         if (mod && (e.key === '=' || e.key === '+')) {
           e.preventDefault();
-          const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+          const center = { x: areaWidth / 2, y: areaHeight / 2 };
           store.zoom(1.2, center);
           return;
         }
         if (mod && e.key === '-') {
           e.preventDefault();
-          const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+          const center = { x: areaWidth / 2, y: areaHeight / 2 };
           store.zoom(0.8, center);
           return;
         }
         if (mod && e.key === '0') {
           e.preventDefault();
-          store.fitToScreen({ width: window.innerWidth, height: window.innerHeight });
+          store.fitToScreen({ width: areaWidth, height: areaHeight });
           return;
         }
         if (mod && e.key === '1') {
           e.preventDefault();
           // Reset to 100% zoom centered on current view
           const { viewport } = store;
-          const centerX = window.innerWidth / 2;
-          const centerY = window.innerHeight / 2;
+          const centerX = areaWidth / 2;
+          const centerY = areaHeight / 2;
           const factor = 1 / viewport.scale;
           store.zoom(factor, { x: centerX, y: centerY });
           return;
@@ -331,28 +337,26 @@ export default function DiagramEditorPage() {
   }, []);
 
   return (
-    <div
-      style={{
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-        background: '#121212',
-        position: 'relative',
-      }}
-    >
-      <Canvas />
-      <Minimap />
-      <Toolbar />
-      <HamburgerMenu
-        onNewDiagram={handleNewDiagram}
-        onSave={handleSave}
-        onLoad={handleLoad}
-        onExport={handleExport}
-        onProjectSettings={handleProjectSettings}
-        onTerraformSettings={() => setTerraformSettingsOpen(true)}
-        onPreferences={() => setPreferencesOpen(true)}
-        onReplayTour={handleReplayTour}
+    <div className="flex h-screen w-screen overflow-hidden bg-[#121212]">
+      <ObjectSidebar
+        header={
+          <HamburgerMenu
+            onNewDiagram={handleNewDiagram}
+            onSave={handleSave}
+            onLoad={handleLoad}
+            onExport={handleExport}
+            onProjectSettings={handleProjectSettings}
+            onTerraformSettings={() => setTerraformSettingsOpen(true)}
+            onPreferences={() => setPreferencesOpen(true)}
+            onReplayTour={handleReplayTour}
+          />
+        }
       />
+      <div ref={canvasAreaRef} className="relative flex-1 overflow-hidden">
+        <Canvas />
+        <Minimap />
+        <Toolbar />
+      </div>
       <ConfigOverlay />
       <NewDiagramDialog
         open={newDiagramOpen}
