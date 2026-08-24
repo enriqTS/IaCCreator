@@ -9,6 +9,7 @@ import Minimap from '@/components/canvas/Minimap';
 import Toolbar from '@/components/toolbar/Toolbar';
 import HamburgerMenu from '@/components/menu/HamburgerMenu';
 import SidebarPanel from '@/components/config/SidebarPanel';
+import ConfigOverlay from '@/components/config/overlay/ConfigOverlay';
 import PreferencesDialog from '@/components/menu/PreferencesDialog';
 import NewDiagramDialog from '@/components/menu/NewDiagramDialog';
 import ProjectSettingsDialog from '@/components/menu/ProjectSettingsDialog';
@@ -20,6 +21,7 @@ import { fetchConnectionSchemas } from '@/connections/schema-store';
 import { fetchNamingRules } from '@/store/naming-store';
 import { saveDiagram, listSavedDiagrams, loadDiagram } from '@/utils/storage';
 import { exportToTerraform } from '@/utils/export';
+import { useConnectionPreviewSync } from '@/hooks/useConnectionPreviewSync';
 
 export default function DiagramEditorPage() {
   const [newDiagramOpen, setNewDiagramOpen] = useState(false);
@@ -33,6 +35,9 @@ export default function DiagramEditorPage() {
     void fetchConnectionSchemas();
     void fetchNamingRules();
   }, []);
+
+  // The backend judges what each connection generates and whether it is incomplete
+  useConnectionPreviewSync();
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -356,6 +361,7 @@ export default function DiagramEditorPage() {
         onReplayTour={handleReplayTour}
       />
       <SidebarPanel />
+      <ConfigOverlay />
       <NewDiagramDialog
         open={newDiagramOpen}
         onClose={() => setNewDiagramOpen(false)}
