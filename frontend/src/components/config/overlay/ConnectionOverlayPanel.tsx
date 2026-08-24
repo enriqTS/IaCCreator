@@ -1,6 +1,7 @@
 'use client';
 
 import type { ArchitectureBlock, Connector } from '@/types/diagram';
+import { useConnectionPreview } from '@/store/connection-preview-store';
 import type { ConnectionSchema } from '@/connections';
 import ConnectionConfigPanel from '@/connections/ConnectionConfigPanel';
 import ConnectionContributionPreview from './ConnectionContributionPreview';
@@ -23,6 +24,7 @@ export default function ConnectionOverlayPanel({
   schema,
   extraTabs = [],
 }: ConnectionOverlayPanelProps) {
+  const preview = useConnectionPreview(connector.id);
   const tabs: ConfigTab[] = [];
   // A connection with no fields opens straight onto what it generates
   if (schema.fields.length > 0) {
@@ -42,6 +44,8 @@ export default function ConnectionOverlayPanel({
   tabs.push({
     id: 'Generated',
     label: 'Generated',
+    // What the backend says is wrong with the connection lives here, so flag it on the tab
+    status: preview && preview.issues.length > 0 ? 'warning' : undefined,
     content: <ConnectionContributionPreview connectorId={connector.id} />,
   });
   tabs.push(...extraTabs);

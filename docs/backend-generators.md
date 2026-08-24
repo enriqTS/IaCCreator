@@ -212,7 +212,7 @@ Generates project-level Terraform configuration files from `GlobalTerraformConfi
 
 | Class                  | Purpose                                                                 |
 |------------------------|-------------------------------------------------------------------------|
-| `VariableSchemaEntry`  | Schema for a single variable: `name`, `type`, `description`, `default`, `group`, `options`, `validation`, `visible_when` |
+| `VariableSchemaEntry`  | Schema for a single variable: `name`, `label`, `type`, `description`, `default`, `group`, `options`, `validation`, `visible_when`. `label` is the short name the editor puts above the field, derived from the field name by `field_label()` unless `TerraformField(title=...)` gives one |
 | `ValidationRule`       | Constraints: `min`, `max`, `pattern`, `pattern_description`, `allowed_values` |
 | `OptionEntry`          | Predefined selectable option: `value`, `label`, `group`                 |
 | `VisibleWhen`          | Conditional visibility: show variable only when `field` equals `equals` |

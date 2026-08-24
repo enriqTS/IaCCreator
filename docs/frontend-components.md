@@ -55,20 +55,24 @@ All configuration lives in the overlay (`overlay/`). There is no sidebar: it was
 | Component | Purpose |
 |---|---|
 | `ConfigOverlay.tsx` | The single configuration surface: a centered modal built on the shadcn `Dialog`, dimming the canvas behind it. Opens on placing an object, double-clicking one, or the context menu — never on selection alone. Closes on its X, a click outside, or Escape. Owns no per-type knowledge. |
-| `ConfigTabs.tsx` | The shared tabbed layout every configuration panel uses. The strip scrolls horizontally when the tabs overflow, keeping tabs at their natural width so the next one stays partly visible as a hint; the scrollbar is hidden and edge arrows scroll it on click. |
+| `ConfigTabs.tsx` | The shared tabbed layout every configuration panel uses. The strip scrolls horizontally when the tabs overflow, keeping tabs at their natural width so the next one stays partly visible as a hint; the scrollbar is hidden and arrows beside the strip scroll it on click. Both arrows appear together, the inactive one disabled, so the strip keeps its width as it scrolls and no tab sits under an arrow. A tab may carry a `status` dot so a problem on a closed tab is still visible. |
 | `overlay-registry.tsx` | Maps an object's type to the panel it contributes. Every canvas object gets one, because every object ends its tab strip with a Visual tab; objects with nothing else to configure open a visual-only panel. |
-| `ConnectionOverlayPanel.tsx` | Connection fields under a Settings tab and the contribution preview under a Generated tab. A connection with no fields opens straight onto Generated. |
+| `ConnectionOverlayPanel.tsx` | Connection fields under a Settings tab and the contribution preview under a Generated tab. A connection with no fields opens straight onto Generated. Issues reported by the backend mark the Generated tab. |
 | `ConnectionContributionPreview.tsx` | Renders the backend's `ConnectionPreview`: reported issues, emitted Terraform resources, IAM granted. |
 
 Adding a configurable kind of thing means adding a resolver to `overlay-registry.tsx`; the container does not change. Panels that own their own tabs (`SchemaConfigForm`, `ApigwDynamicConfigUI`, `ConnectionOverlayPanel`) take an `extraTabs` prop so the registry can append Visual without nesting a second tab strip. Every panel is laid out as tabs via `ConfigTabs` — this is the design pattern, so a new panel divides into tabs rather than into collapsible sections or one long form.
 
-### `ConfigPanel.tsx`
-
-Router component that renders the appropriate config form based on the selected element's `serviceType`.
-
 ### `SchemaConfigForm.tsx`
 
-Schema-driven config form that dynamically renders fields based on `VARIABLE_SCHEMAS` fetched from the backend. Handles conditional visibility (`visible_when`), validation rules, grouped field layout, and option dropdowns. Replaces the individual per-service config forms with a single data-driven component.
+Schema-driven config form that dynamically renders fields based on `VARIABLE_SCHEMAS` fetched from the backend. Handles conditional visibility (`visible_when`), validation rules, grouped field layout, and option dropdowns. Each schema group becomes a tab; a group holding an invalid field is marked, and `leadingFields` puts configuration that is not part of the schema — the object's name — above the first group.
+
+### Field furniture
+
+| Component | Purpose |
+|---|---|
+| `schema/FieldLabel.tsx` | The one label every configuration field uses: the schema's short `label`, an optional unit, a marker for required fields, and the long `description` on an info tooltip rather than in the label itself. |
+| `schema/ValidationSummary.tsx` | Names every invalid field and the tab it sits on, and opens and focuses it on click — tabs otherwise hide the errors you are not looking at. |
+| `ObjectNameField.tsx` | Renames the object from inside its panel, so the name that becomes the Terraform resource name is editable where it is configured rather than only from the canvas context menu. |
 
 ### Visual Config Panels
 

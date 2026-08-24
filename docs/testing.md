@@ -40,7 +40,7 @@ Tests that need a `TestClient` against the real `app.main.app` (as opposed to a 
 | `test_tfvars_generator.py`                        | TfvarsGenerator: string/number/bool formatting, prefix collision avoidance, variable block correspondence |
 | `test_file_tree_assembler_terraform_variables.py` | Integration: file tree contains terraform.tfvars, backend.tf, provider.tf, versions.tf |
 | `test_schema_content.py`                          | VARIABLE_SCHEMAS content: variable names per service, defaults, options, group assignments |
-| `test_schema_serialization.py`                    | Property-based: VariableSchemaEntry serialization round-trip; all entries have non-empty groups |
+| `test_schema_serialization.py`                    | Property-based: VariableSchemaEntry serialization round-trip; all entries have non-empty groups and short labels |
 | `test_schema_validator.py`                        | Property-based: backend rejects invalid values outside validation bounds; valid values pass |
 | `test_variable_schemas_endpoint.py`               | GET /api/variable-schemas: returns 200, contains all service types, entries have required fields, options structure |
 | `test_connection_preview_endpoint.py`             | POST /api/connections/preview: connections with no fields still report their resources and IAM, incomplete API Gateway route handlers are warned about, stable ids are echoed back, every handler answers the validation hook |
