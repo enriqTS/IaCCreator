@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { screenToCanvas } from '@/utils/viewport';
+import { clientToCanvas } from '@/utils/viewport';
 import { findSnapAnchor, getAnchorPoints, findNearestAnchorPosition } from '@/utils/anchor';
 import { getObjectBounds } from '@/types/diagram';
 import { getShapeTightBounds, getConnectionBounds } from '@/utils/bounds-utils';
@@ -275,13 +275,18 @@ function LineEndpointHandles({ object, viewport, updateLineEndpoint }: LineEndpo
     const origPoint = endpoint === 'start' ? { ...object.start } : { ...object.end };
     draggingRef.current = { endpoint, origPoint };
 
+    const canvasRect = document
+      .querySelector('[data-testid="canvas-container"]')
+      ?.getBoundingClientRect();
+    const canvasOrigin = { x: canvasRect?.left ?? 0, y: canvasRect?.top ?? 0 };
+
     const onMouseMove = (ev: MouseEvent) => {
-      const canvasPos = screenToCanvas({ x: ev.clientX, y: ev.clientY }, viewport);
+      const canvasPos = clientToCanvas({ x: ev.clientX, y: ev.clientY }, viewport, canvasOrigin);
       updateLineEndpoint(object.id, endpoint, canvasPos);
     };
 
     const onMouseUp = (ev: MouseEvent) => {
-      const canvasPos = screenToCanvas({ x: ev.clientX, y: ev.clientY }, viewport);
+      const canvasPos = clientToCanvas({ x: ev.clientX, y: ev.clientY }, viewport, canvasOrigin);
       const store = useDiagramStore.getState();
 
       // Try to snap to an anchor on a nearby object

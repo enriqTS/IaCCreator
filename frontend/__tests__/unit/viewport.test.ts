@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { screenToCanvas, canvasToScreen, zoomAtPoint, clamp } from '@/utils/viewport';
+import { screenToCanvas, clientToCanvas, canvasToScreen, zoomAtPoint, clamp } from '@/utils/viewport';
 import type { Viewport, Point } from '@/types/diagram';
 
 describe('clamp', () => {
@@ -43,6 +43,17 @@ describe('screenToCanvas', () => {
     const result = screenToCanvas(screen, viewport);
     expect(result.x).toBe(100);
     expect(result.y).toBe(100);
+  });
+});
+
+describe('clientToCanvas', () => {
+  it('removes the canvas element offset before applying the viewport', () => {
+    const viewport: Viewport = { offsetX: 20, offsetY: 10, scale: 2 };
+
+    expect(clientToCanvas({ x: 340, y: 230 }, viewport, { x: 120, y: 20 })).toEqual({
+      x: 100,
+      y: 100,
+    });
   });
 });
 

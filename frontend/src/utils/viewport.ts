@@ -20,6 +20,17 @@ export function screenToCanvas(screenPoint: Point, viewport: Viewport): Point {
   };
 }
 
+export function clientToCanvas(
+  clientPoint: Point,
+  viewport: Viewport,
+  canvasOrigin: Point,
+): Point {
+  return screenToCanvas(
+    { x: clientPoint.x - canvasOrigin.x, y: clientPoint.y - canvasOrigin.y },
+    viewport,
+  );
+}
+
 /**
  * Convert canvas (world) coordinates to screen (pixel) coordinates.
  *

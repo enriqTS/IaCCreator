@@ -7,6 +7,7 @@ import { findSnapAnchorWithPosition } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
 import { getConnectionBounds } from '@/utils/bounds-utils';
 import { DEFAULT_LINE_VISUAL, getObjectBounds } from '@/types/diagram';
+import { clientToCanvas } from '@/utils/viewport';
 import type { Point } from '@/types/diagram';
 import { inferAnchorPosition, routeOrthogonalConnector, collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing';
 
@@ -31,24 +32,33 @@ export default function PullToConnectOverlay() {
 
   const [mousePos, setMousePos] = useState<Point | null>(null);
 
+  const pointerCanvasPosition = useCallback(
+    (e: PointerEvent | MouseEvent): Point => {
+      const rect = document
+        .querySelector('[data-testid="canvas-container"]')
+        ?.getBoundingClientRect();
+      return clientToCanvas(
+        { x: e.clientX, y: e.clientY },
+        viewport,
+        { x: rect?.left ?? 0, y: rect?.top ?? 0 },
+      );
+    },
+    [viewport],
+  );
+
   const handleMouseMove = useCallback(
     (e: PointerEvent | MouseEvent) => {
       if (!pullConnectState) return;
-      // Convert screen coordinates to canvas coordinates
-      const canvasX = (e.clientX - viewport.offsetX) / viewport.scale;
-      const canvasY = (e.clientY - viewport.offsetY) / viewport.scale;
-      setMousePos({ x: canvasX, y: canvasY });
+      setMousePos(pointerCanvasPosition(e));
     },
-    [pullConnectState, viewport],
+    [pullConnectState, pointerCanvasPosition],
   );
 
   const handleMouseUp = useCallback(
     (e: PointerEvent | MouseEvent) => {
       if (!pullConnectState) return;
 
-      const canvasX = (e.clientX - viewport.offsetX) / viewport.scale;
-      const canvasY = (e.clientY - viewport.offsetY) / viewport.scale;
-      const dropPoint: Point = { x: canvasX, y: canvasY };
+      const dropPoint = pointerCanvasPosition(e);
 
       // Try to find a snap target on another object
       let targetObjectId: string | null = null;
@@ -128,7 +138,7 @@ export default function PullToConnectOverlay() {
       setPullConnectState(null);
       setMousePos(null);
     },
-    [pullConnectState, viewport, canvasObjects, addCanvasObject, addConnector, selectObject, openConfigOverlay, connectors, setPullConnectState, globalRoutingMode],
+    [pullConnectState, pointerCanvasPosition, canvasObjects, addCanvasObject, addConnector, selectObject, openConfigOverlay, connectors, setPullConnectState, globalRoutingMode],
   );
 
   useEffect(() => {
