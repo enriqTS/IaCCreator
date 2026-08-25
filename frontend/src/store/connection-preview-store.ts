@@ -48,7 +48,7 @@ export const useConnectionPreviewStore = create<ConnectionPreviewState>()((set) 
 
     set({ status: 'loading' });
     const result = await apiClient.previewConnections(
-      store.serializeToArchitectureDescription(),
+      store.serializeDiagramState(),
     );
 
     if (!result.ok) {

@@ -20,7 +20,6 @@ import KeyboardShortcutsOverlay from '@/components/shortcuts/KeyboardShortcutsOv
 import { fetchSchemas } from '@/store/schema-store';
 import { fetchConnectionSchemas } from '@/connections/schema-store';
 import { fetchNamingRules } from '@/store/naming-store';
-import { saveDiagram, listSavedDiagrams, loadDiagram } from '@/utils/storage';
 import { exportToTerraform } from '@/utils/export';
 import { useConnectionPreviewSync } from '@/hooks/useConnectionPreviewSync';
 import { getCanvasViewportSize } from '@/utils/viewport';
@@ -268,53 +267,26 @@ export default function DiagramEditorPage() {
   }, []);
 
   const handleSave = useCallback(() => {
-    try {
-      const store = useDiagramStore.getState();
-      const name = store.projectName || 'untitled';
-      const state = store.serializeDiagramState();
-      const result = saveDiagram(name, state);
-      if (result.success) {
-        addToast(`Diagram saved as "${name}"`, 'success');
-      } else {
-        addToast(`Save failed: ${result.error}`, 'error');
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unknown save error';
-      addToast(`Save failed: ${msg}`, 'error');
-    }
-  }, [addToast]);
+    const store = useDiagramStore.getState();
+    void (store.currentDiagramId
+      ? store.updateDiagramOnServer(store.currentDiagramId)
+      : store.saveDiagramToServer());
+  }, []);
 
-  const handleLoad = useCallback(() => {
-    try {
-      const saved = listSavedDiagrams();
-      if (saved.length === 0) {
-        addToast('No saved diagrams found.', 'error');
-        return;
-      }
-      // Load the most recently saved diagram
-      const latest = saved.sort(
-        (a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime(),
-      )[0];
-      const result = loadDiagram(latest.name);
-      if (result.success && result.state) {
-        useDiagramStore.getState().loadDiagramState(result.state);
-        addToast(`Loaded diagram "${latest.name}"`, 'success');
-      } else {
-        addToast(`Load failed: ${result.error}`, 'error');
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unknown load error';
-      addToast(`Load failed: ${msg}`, 'error');
+  const handleLoad = useCallback(async () => {
+    const store = useDiagramStore.getState();
+    const diagrams = await store.listDiagramsFromServer();
+    if (diagrams.length === 0) {
+      addToast('No saved diagrams found.', 'error');
+      return;
     }
+    await store.loadDiagramFromServer(diagrams[0].diagram_id);
   }, [addToast]);
 
   const handleExport = useCallback(async () => {
     try {
       const store = useDiagramStore.getState();
-      const result = await exportToTerraform(
-        store.serializeToArchitectureDescription,
-        store.canvasObjects,
-      );
+      const result = await exportToTerraform(store.serializeDiagramState);
       if (result.success) {
         addToast('Terraform export downloaded successfully!', 'success');
       } else {

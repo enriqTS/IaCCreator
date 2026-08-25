@@ -7,7 +7,7 @@
 
 import type { DiagramSummary, ApiResult } from '@/types/api';
 import type { ConnectionPreviewResponse } from '@/types/connection-preview';
-import type { ArchitectureDescription, DiagramState } from '@/types/serialization';
+import type { DiagramState } from '@/types/serialization';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -133,23 +133,23 @@ export const apiClient = {
 
   /** POST /api/connections/preview — ask what every connection contributes. */
   previewConnections(
-    arch: ArchitectureDescription,
+    diagram: DiagramState,
   ): Promise<ApiResult<ConnectionPreviewResponse>> {
-    return request('/api/connections/preview', {
+    return request('/api/diagrams/connections/preview', {
       method: 'POST',
       headers: jsonHeaders(),
-      body: JSON.stringify(arch),
+      body: JSON.stringify(diagram),
     }, (res) => res.json() as Promise<ConnectionPreviewResponse>);
   },
 
   /** POST /generate/zip — generate Terraform from an architecture description. */
   generateTerraform(
-    arch: ArchitectureDescription,
+    diagram: DiagramState,
   ): Promise<ApiResult<Blob>> {
-    return request('/generate/zip', {
+    return request('/api/diagrams/generate/zip', {
       method: 'POST',
       headers: jsonHeaders(),
-      body: JSON.stringify(arch),
+      body: JSON.stringify(diagram),
     }, (res) => res.blob());
   },
 };
