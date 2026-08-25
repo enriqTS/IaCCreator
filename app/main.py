@@ -9,6 +9,7 @@ from fastapi.responses import Response
 
 from app.exception_handlers import domain_error_handler
 from app.exceptions import DomainError
+from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.schema_validator import validate_config_against_schema
 from app.logging_config import configure_logging
 from app.middleware.session_middleware import SessionMiddleware
@@ -17,7 +18,14 @@ from app.models.connection_configs.schema_models import (
     ConnectionSchemasResponse,
 )
 from app.models.connection_previews import ConnectionPreviewResponse
-from app.models.input_models import ArchitectureDescription
+from app.models.diagram_models import (
+    DiagramStateInput,
+    ResourceInitializationRequest,
+    ResourceInitializationResponse,
+)
+from app.models.diagram_state import CURRENT_DIAGRAM_VERSION
+from app.models.editor_models import EditorBootstrapResponse, ServiceCatalogEntry
+from app.models.input_models import ArchitectureDescription, ServiceType
 from app.models.input_models._general import _get_cached_service_config_models
 from app.models.input_models._naming import (
     RESOURCE_NAME_DESCRIPTION,
@@ -35,6 +43,8 @@ from app.routers.diagrams import router as diagram_router
 from app.services.code_generator import CodeGenerator
 from app.services.connection_handlers.registry import CONNECTION_SPECS
 from app.services.connection_previewer import ConnectionPreviewer
+from app.services.diagram_converter import DiagramConverter
+from app.services.diagram_normalizer import DiagramNormalizer
 from app.services.ir_builder import IRBuilder
 from app.services.openapi.mapper import map_openapi
 from app.services.openapi.models import (
@@ -88,6 +98,8 @@ _ir_builder = IRBuilder()
 _code_gen = CodeGenerator()
 _serializer = OutputSerializer()
 _previewer = ConnectionPreviewer()
+_diagram_converter = DiagramConverter()
+_diagram_normalizer = DiagramNormalizer()
 
 
 def _build_summary(arch: ArchitectureDescription, file_tree: dict) -> GenerationSummary:
@@ -159,6 +171,88 @@ async def generate_json(arch: ArchitectureDescription) -> GenerationResponse:
             status_code=500,
             detail=f"Generation failed: {exc}",
         ) from exc
+
+
+@app.get("/api/editor-bootstrap", response_model=EditorBootstrapResponse)
+async def get_editor_bootstrap() -> EditorBootstrapResponse:
+    """Return backend-owned editor domain metadata."""
+    config_models = _get_cached_service_config_models()
+    return EditorBootstrapResponse(
+        services=[
+            ServiceCatalogEntry(
+                service_type=service.value,
+                display_name=service.value.replace("-", " ").title(),
+                supported=service in GENERATOR_REGISTRY,
+            )
+            for service in ServiceType
+        ],
+        variable_schemas={
+            service.value: model.get_variable_schema()
+            for service, model in config_models.items()
+            if model.has_terraform_schema()
+        },
+        connection_schemas=(await get_connection_schemas()).connections,
+        naming_rules=await get_naming_rules(),
+        global_terraform_defaults={
+            "backend": {"type": "local", "config": {}},
+            "provider": {"region": "us-east-1"},
+            "versionConstraints": {},
+        },
+        diagram_version=CURRENT_DIAGRAM_VERSION,
+    )
+
+
+@app.post("/api/resources/initialize", response_model=ResourceInitializationResponse)
+async def initialize_resource(
+    request: ResourceInitializationRequest,
+) -> ResourceInitializationResponse:
+    """Derive a unique resource name and typed defaults."""
+    service = ServiceType(request.service_type)
+    if service not in GENERATOR_REGISTRY:
+        raise HTTPException(status_code=422, detail="Service is not supported")
+    existing = set(request.existing_names)
+    index = 1
+    while f"{service.value}-{index}" in existing:
+        index += 1
+    model = _get_cached_service_config_models()[service]
+    config = model().model_dump(exclude_none=True)
+    variables = {}
+    if model.has_terraform_schema():
+        variables = {
+            field.name: field.default
+            for field in model.get_variable_schema()
+            if field.default is not None
+        }
+    return ResourceInitializationResponse(
+        name=f"{service.value}-{index}", config=config, terraform_variables=variables
+    )
+
+
+@app.post("/api/diagrams/architecture", response_model=ArchitectureDescription)
+async def diagram_architecture(diagram: DiagramStateInput) -> ArchitectureDescription:
+    """Convert canonical editor state to generation input."""
+    canonical = _diagram_normalizer.normalize(diagram.model_dump())
+    return _diagram_converter.convert(canonical)
+
+
+@app.post("/api/diagrams/generate/json", response_model=GenerationResponse)
+async def generate_diagram_json(diagram: DiagramStateInput) -> GenerationResponse:
+    """Generate JSON output directly from editor state."""
+    return await generate_json(await diagram_architecture(diagram))
+
+
+@app.post("/api/diagrams/generate/zip")
+async def generate_diagram_zip(diagram: DiagramStateInput) -> Response:
+    """Generate a ZIP directly from editor state."""
+    return await generate_zip(await diagram_architecture(diagram))
+
+
+@app.post("/api/diagrams/connections/preview", response_model=ConnectionPreviewResponse)
+async def preview_diagram_connections(
+    diagram: DiagramStateInput,
+) -> ConnectionPreviewResponse:
+    """Preview connections directly from editor state."""
+    return await preview_connections(await diagram_architecture(diagram))
 
 
 @app.post("/api/import/openapi", response_model=OpenApiImportResponse)

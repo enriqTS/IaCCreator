@@ -54,6 +54,13 @@ def _upgrade_v1_to_v2(state: dict[str, Any]) -> dict[str, Any]:
         )
     state["canvasObjects"] = objects
     state.pop("elements", None)
+    viewport = state.get("viewport") or {}
+    if "x" in viewport or "y" in viewport or "zoom" in viewport:
+        state["viewport"] = {
+            "offsetX": viewport.get("x", 0),
+            "offsetY": viewport.get("y", 0),
+            "scale": viewport.get("zoom", 1),
+        }
     state["version"] = 2
     return state
 
