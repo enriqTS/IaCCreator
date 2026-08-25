@@ -9,6 +9,8 @@ import { apiClient } from '@/utils/api-client';
 import { v4 as uuidv4 } from 'uuid';
 import type { DiagramStore } from './store-types';
 
+let resourceInitializationQueue = Promise.resolve();
+
 export interface CanvasSlice {
   // Canvas object state
   canvasObjects: Map<string, CanvasObject>;
@@ -60,22 +62,30 @@ export const createCanvasSlice: StateCreator<DiagramStore, [], [], CanvasSlice> 
         const explicitName = (obj as { name?: string }).name;
         canvasObject = {
           ...canvasObject,
-          name: explicitName || canvasObject.serviceType,
+          name: explicitName || `${canvasObject.serviceType}-${id.slice(0, 8)}`,
           terraformVariables: {
             ...(obj as { terraformVariables?: Record<string, string | number | boolean> }).terraformVariables,
           },
         };
         if (!explicitName) {
-          const existingNames = Array.from(canvasObjects.values()).map((item) => item.name);
-          void apiClient.initializeResource(canvasObject.serviceType, existingNames).then((result) => {
+          const temporaryName = canvasObject.name;
+          const serviceType = canvasObject.serviceType;
+          resourceInitializationQueue = resourceInitializationQueue.then(async () => {
+            const existingNames = Array.from(get().canvasObjects.values())
+              .filter((item) => item.id !== id)
+              .map((item) => item.name);
+            const result = await apiClient.initializeResource(serviceType, existingNames);
             if (!result.ok) return;
             const current = get().canvasObjects.get(id);
             if (!current || current.objectType !== 'architecture-block') return;
             get().updateCanvasObject(id, {
-              name: result.data.name,
+              name: current.name === temporaryName ? result.data.name : current.name,
               defaultName: result.data.name,
-              config: result.data.config,
-              terraformVariables: result.data.terraform_variables,
+              config: { ...result.data.config, ...current.config },
+              terraformVariables: {
+                ...result.data.terraform_variables,
+                ...current.terraformVariables,
+              },
             } as Partial<CanvasObject>);
           });
         }

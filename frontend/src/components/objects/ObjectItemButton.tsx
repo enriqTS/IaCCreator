@@ -4,6 +4,7 @@ import { Pin } from 'lucide-react';
 import { getItemIcon } from '@/data/shape-icons';
 import { isUnsupportedAwsItem, toolsMatch, type PickerItem } from '@/data/object-catalog';
 import { useDiagramStore } from '@/store/diagram-store';
+import { useEditorDomainStore } from '@/store/editor-domain-store';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
 import { usePinnedObjectsStore, pickerItemKey } from '@/store/pinned-objects-store';
 import { cn } from '@/lib/utils';
@@ -20,8 +21,13 @@ export default function ObjectItemButton({ item, iconOnly = false }: ObjectItemB
   const addRecentItem = useRecentlyUsedStore((s) => s.addRecentItem);
   const pinnedItems = usePinnedObjectsStore((s) => s.pinnedItems);
   const togglePin = usePinnedObjectsStore((s) => s.togglePin);
+  const supportedServices = useEditorDomainStore((s) => s.supportedServices);
 
-  const disabled = isUnsupportedAwsItem(item);
+  const serviceType = typeof item.tool === 'object' && item.tool.type === 'place-service'
+    ? item.tool.serviceType
+    : null;
+  const disabled = isUnsupportedAwsItem(item)
+    || (serviceType !== null && (supportedServices === null || !supportedServices.has(serviceType)));
   const active = !disabled && toolsMatch(activeTool, item.tool);
   const pinned = pinnedItems.some((p) => pickerItemKey(p) === pickerItemKey(item));
 

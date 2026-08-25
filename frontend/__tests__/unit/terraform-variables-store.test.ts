@@ -5,9 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import fc from 'fast-check';
 import { useDiagramStore } from '@/store/diagram-store';
-import { BUNDLED_SCHEMAS } from '@/data/bundled-schemas';
 import type { ArchitectureBlock } from '@/types/diagram';
-import { getDefaultVariables } from '@/types/terraform-variables';
 import { architectureBlockWithoutIdArbitrary } from '../properties/arbitraries';
 import type { DiagramState } from '@/types/serialization';
 import type { ServiceType } from '@/types/diagram';
@@ -62,8 +60,7 @@ describe('DiagramStore - setTerraformVariable', () => {
     const vars = getBlock(id).terraformVariables;
     expect(vars.function_name).toBe('hello');
     expect(vars.timeout).toBe(30);
-    // default should still be present
-    expect(vars.memory_size).toBe(128);
+    expect(vars.memory_size).toBeUndefined();
   });
 
   it('does not affect other blocks', () => {
@@ -83,10 +80,7 @@ describe('DiagramStore - setTerraformVariable', () => {
     const s3Block = getBlock(id2);
     expect(s3Block.terraformVariables.function_name).toBeUndefined();
     // Read the expected defaults from the schema so a field rename cannot rot this
-    for (const entry of BUNDLED_SCHEMAS['s3']) {
-      if (entry.default === undefined) continue;
-      expect(s3Block.terraformVariables[entry.name]).toBe(entry.default);
-    }
+    expect(s3Block.terraformVariables).toEqual({});
   });
 
   it('is a no-op for non-existent object', () => {
@@ -128,7 +122,7 @@ describe('DiagramStore - setTerraformVariables (batch)', () => {
     expect(vars.function_name).toBe('batch-func');
     expect(vars.handler).toBe('main.handler');
     expect(vars.timeout).toBe(60);
-    expect(vars.memory_size).toBe(128); // default preserved
+    expect(vars.memory_size).toBeUndefined();
   });
 });
 
@@ -162,7 +156,7 @@ describe('DiagramStore - terraformVariables serialization/deserialization', () =
     const block = getBlock(id);
     expect(block.terraformVariables.function_name).toBe('restored-func');
     expect(block.terraformVariables.timeout).toBe(15);
-    expect(block.terraformVariables.memory_size).toBe(128); // default
+    expect(block.terraformVariables.memory_size).toBeUndefined();
   });
 
   it('backward-compatible load: missing terraformVariables gets schema defaults', () => {
@@ -203,10 +197,10 @@ describe('DiagramStore - terraformVariables serialization/deserialization', () =
     useDiagramStore.getState().loadDiagramState(state as DiagramState);
 
     const lambdaBlock = getBlock('block-1');
-    expect(lambdaBlock.terraformVariables).toEqual(getDefaultVariables('lambda'));
+    expect(lambdaBlock.terraformVariables).toEqual({});
 
     const s3Block = getBlock('block-2');
-    expect(s3Block.terraformVariables).toEqual(getDefaultVariables('s3'));
+    expect(s3Block.terraformVariables).toEqual({});
   });
 
   it('serializeToArchitectureDescription includes terraform_variables per resource', () => {
@@ -218,7 +212,7 @@ describe('DiagramStore - terraformVariables serialization/deserialization', () =
 
     expect(resource.terraform_variables).toBeDefined();
     expect(resource.terraform_variables!.function_name).toBe('api-handler');
-    expect(resource.terraform_variables!.memory_size).toBe(128);
+    expect(resource.terraform_variables!.memory_size).toBeUndefined();
   });
 });
 

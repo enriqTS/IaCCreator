@@ -20,6 +20,7 @@ import KeyboardShortcutsOverlay from '@/components/shortcuts/KeyboardShortcutsOv
 import { fetchSchemas } from '@/store/schema-store';
 import { fetchConnectionSchemas } from '@/connections/schema-store';
 import { fetchNamingRules } from '@/store/naming-store';
+import { useEditorDomainStore } from '@/store/editor-domain-store';
 import { exportToTerraform } from '@/utils/export';
 import { useConnectionPreviewSync } from '@/hooks/useConnectionPreviewSync';
 import { getCanvasViewportSize } from '@/utils/viewport';
@@ -36,6 +37,7 @@ export default function DiagramEditorPage() {
     void fetchSchemas();
     void fetchConnectionSchemas();
     void fetchNamingRules();
+    void useEditorDomainStore.getState().load();
   }, []);
 
   // The backend judges what each connection generates and whether it is incomplete

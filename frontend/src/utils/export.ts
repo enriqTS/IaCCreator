@@ -16,7 +16,7 @@ function triggerDownload(blob: Blob, filename: string): void {
   anchor.download = filename;
   document.body.appendChild(anchor);
   anchor.click();
-  anchor.remove();
+  document.body.removeChild(anchor);
   URL.revokeObjectURL(url);
 }
 
@@ -34,9 +34,13 @@ export async function exportToTerraform(
   if (result.error.type === 'network') {
     return { success: false, error: `Network error: ${result.error.message}` };
   }
-  return {
-    success: false,
-    error: result.error.message,
-    fieldErrors: result.error.fieldErrors,
-  };
+  if (result.error.status === 422) {
+    return {
+      success: false,
+      error: 'Validation error from server',
+      fieldErrors: result.error.fieldErrors ?? { detail: 'Validation error' },
+    };
+  }
+  return { success: false, error: result.error.message };
+
 }

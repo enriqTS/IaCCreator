@@ -92,6 +92,14 @@ function jsonHeaders(): HeadersInit {
 }
 
 export const apiClient = {
+  /** GET /api/editor-bootstrap — load backend-owned editor metadata. */
+  getEditorBootstrap(): Promise<ApiResult<{
+    services: { service_type: string; display_name: string; category: string; supported: boolean }[];
+    diagram_version: number;
+  }>> {
+    return request('/api/editor-bootstrap', { method: 'GET' }, (res) => res.json());
+  },
+
   /** POST /api/resources/initialize — derive backend-owned resource defaults. */
   initializeResource(
     serviceType: string,

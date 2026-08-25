@@ -7,7 +7,6 @@ import type { AnchorRef, ArchitectureBlock, CanvasObject, Connector, GeometricOb
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_LINE_VISUAL, DEFAULT_TEXT_VISUAL, DEFAULT_UML_VISUAL } from '@/types/diagram';
 import type { ArchitectureDescription, DiagramState, SerializedCanvasObject } from '@/types/serialization';
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
-import { getDefaultVariables } from '@/types/terraform-variables';
 import type { AnchorPosition } from '@/utils/anchor';
 import { DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
 import type { DiagramStore } from './store-types';
@@ -141,7 +140,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
               config: sObj.config ? { ...sObj.config } : {},
               terraformVariables: sObj.terraformVariables
                 ? { ...sObj.terraformVariables }
-                : getDefaultVariables(sObj.serviceType!),
+                : {},
               visualConfig: {
                 width: (sObj.visualConfig.width as number) ?? DEFAULT_BLOCK_VISUAL.width,
                 height: (sObj.visualConfig.height as number) ?? DEFAULT_BLOCK_VISUAL.height,

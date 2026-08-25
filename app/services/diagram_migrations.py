@@ -37,7 +37,7 @@ def _upgrade_v1_to_v2(state: dict[str, Any]) -> dict[str, Any]:
     """Turn flat `elements` into canvas objects carrying default visuals."""
     objects = []
     for index, element in enumerate(state.get("elements") or []):
-        service_type = element.get("serviceType", "")
+        service_type = element.get("serviceType") or element.get("type", "")
         objects.append(
             {
                 "id": element.get("id"),
