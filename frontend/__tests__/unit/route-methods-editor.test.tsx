@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock } from '@/types/diagram';
 import type { SchemaField } from '@/connections';
 import LinkedSelectFieldRenderer from '@/components/config/schema/LinkedSelectFieldRenderer';
+import { apiClient } from '@/utils/api-client';
+import type { DiagramState } from '@/types/serialization';
 
 const METHOD_OPTIONS = ['ANY', 'GET', 'POST', 'DELETE'].map((m) => ({ value: m, label: m }));
 
@@ -87,10 +89,38 @@ function routesOf(sourceId: string): Record<string, unknown>[] {
   return (block.config as Record<string, unknown>).routes as Record<string, unknown>[];
 }
 
-describe('route methods editor', () => {
-  beforeEach(() => resetStore());
+function mockBackendOperations(): void {
+  vi.spyOn(apiClient, 'applyConnectionOperation').mockImplementation(async (diagram, operation) => {
+    const next = structuredClone(diagram) as DiagramState;
+    const connector = next.connectors.find((item) => item.id === operation.connector_id)!;
+    const source = next.canvasObjects!.find((item) => item.id === connector.sourceId)!;
+    const target = next.canvasObjects!.find((item) => item.id === connector.targetId)!;
+    const routes = (source.config!.routes ?? []) as Record<string, unknown>[];
+    if (operation.operation === 'create') {
+      routes.push({
+        path: operation.display_value,
+        integration_id: target.id,
+        integration_name: target.name,
+        ...(operation.entry_values as Record<string, unknown>),
+      });
+      connector.connection_config = { route_path: operation.display_value as string };
+    } else {
+      const route = routes.find((item) => item.path === operation.display_value)!;
+      route[operation.entry_field_key as string] = operation.entry_field_value;
+    }
+    source.config!.routes = routes;
+    return { ok: true, data: next };
+  });
+}
 
-  it('edits the methods of a route already on the connection', () => {
+describe('route methods editor', () => {
+  beforeEach(() => {
+    resetStore();
+    vi.restoreAllMocks();
+    mockBackendOperations();
+  });
+
+  it('edits the methods of a route already on the connection', async () => {
     const ctx = setup([
       { path: '/users', methods: ['ANY'], integration_id: '', integration_name: 'my-lambda' },
     ]);
@@ -108,10 +138,10 @@ describe('route methods editor', () => {
     );
 
     fireEvent.click(screen.getByTestId('entry-option-methods-GET-/users'));
-    expect(routesOf(ctx.sourceId)[0].methods).toEqual(['GET']);
+    await waitFor(() => expect(routesOf(ctx.sourceId)[0].methods).toEqual(['GET']));
   });
 
-  it('keeps ANY exclusive of the other methods', () => {
+  it('keeps ANY exclusive of the other methods', async () => {
     const ctx = setup([
       { path: '/users', methods: ['GET', 'POST'], integration_name: 'my-lambda' },
     ]);
@@ -129,10 +159,10 @@ describe('route methods editor', () => {
     );
 
     fireEvent.click(screen.getByTestId('entry-option-methods-ANY-/users'));
-    expect(routesOf(ctx.sourceId)[0].methods).toEqual(['ANY']);
+    await waitFor(() => expect(routesOf(ctx.sourceId)[0].methods).toEqual(['ANY']));
   });
 
-  it('creates a route with the methods chosen in the create form', () => {
+  it('creates a route with the methods chosen in the create form', async () => {
     const ctx = setup([]);
 
     render(
@@ -156,8 +186,8 @@ describe('route methods editor', () => {
     fireEvent.click(screen.getByTestId('entry-option-methods-POST-create'));
     fireEvent.click(screen.getByLabelText('Confirm'));
 
+    await waitFor(() => expect(routesOf(ctx.sourceId)).toHaveLength(1));
     const routes = routesOf(ctx.sourceId);
-    expect(routes).toHaveLength(1);
     expect(routes[0].path).toBe('/orders');
     expect(routes[0].methods).toEqual(['POST']);
     expect(routes[0].integration_id).toBe(ctx.targetId);

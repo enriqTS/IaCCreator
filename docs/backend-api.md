@@ -25,6 +25,7 @@ The app configures CORS from `CORS_ORIGIN` (default `http://localhost:3000`), cr
 | POST | `/api/diagrams/generate/json` | `DiagramStateInput` | `GenerationResponse` |
 | POST | `/api/diagrams/generate/zip` | `DiagramStateInput` | ZIP download |
 | POST | `/api/diagrams/connections/preview` | `DiagramStateInput` | `ConnectionPreviewResponse` |
+| POST | `/api/diagrams/connections/apply` | `ApplyConnectionOperationRequest` | `DiagramStateInput` |
 | POST | `/api/diagrams` | `DiagramStateInput` | diagram ID |
 | GET | `/api/diagrams` | — | session-scoped diagram summaries |
 | GET | `/api/diagrams/{diagram_id}` | — | saved diagram state |
@@ -59,3 +60,5 @@ Generation validates each typed service config, builds a `ProjectIR`, generates 
 Diagram CRUD is session scoped. Writes normalize and validate state before persistence, and reads return the canonical current version. Reading, updating, or deleting a diagram owned by another session returns `403`; a missing diagram returns `404`.
 
 The editor bootstrap describes backend support and domain defaults. Resource initialization derives unique names, typed config defaults, and Terraform variable defaults. Diagram-based generation and preview convert canonical canvas state on the backend; the direct `/generate/*` endpoints remain available for API consumers.
+
+Linked connection entry creation, editing, and removal use `/api/diagrams/connections/apply`. The backend resolves the connection registry metadata, materializes templates and target bindings, and returns canonical diagram state; the frontend only submits user intent.

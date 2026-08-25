@@ -7,7 +7,7 @@
 
 import type { DiagramSummary, ApiResult } from '@/types/api';
 import type { ConnectionPreviewResponse } from '@/types/connection-preview';
-import type { ArchitectureDescription, DiagramState } from '@/types/serialization';
+import type { DiagramState } from '@/types/serialization';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -100,6 +100,18 @@ export const apiClient = {
     return request('/api/editor-bootstrap', { method: 'GET' }, (res) => res.json());
   },
 
+  /** POST /api/diagrams/connections/apply — materialize linked connection intent. */
+  applyConnectionOperation(
+    diagram: DiagramState,
+    operation: Record<string, unknown>,
+  ): Promise<ApiResult<DiagramState>> {
+    return request('/api/diagrams/connections/apply', {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ diagram, operation }),
+    }, (res) => res.json());
+  },
+
   /** POST /api/resources/initialize — derive backend-owned resource defaults. */
   initializeResource(
     serviceType: string,
@@ -153,7 +165,7 @@ export const apiClient = {
 
   /** POST /api/connections/preview — ask what every connection contributes. */
   previewConnections(
-    diagram: DiagramState | ArchitectureDescription,
+    diagram: DiagramState,
   ): Promise<ApiResult<ConnectionPreviewResponse>> {
     return request('/api/diagrams/connections/preview', {
       method: 'POST',
@@ -164,7 +176,7 @@ export const apiClient = {
 
   /** POST /generate/zip — generate Terraform from an architecture description. */
   generateTerraform(
-    diagram: DiagramState | ArchitectureDescription,
+    diagram: DiagramState,
   ): Promise<ApiResult<Blob>> {
     return request('/api/diagrams/generate/zip', {
       method: 'POST',

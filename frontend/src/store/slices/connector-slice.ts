@@ -3,8 +3,9 @@
  */
 
 import type { StateCreator } from 'zustand';
-import type { ArchitectureBlock, Connector, ResourceConfig } from '@/types/diagram';
+import type { Connector } from '@/types/diagram';
 import { v4 as uuidv4 } from 'uuid';
+import { apiClient } from '@/utils/api-client';
 import type { DiagramStore } from './store-types';
 
 export interface ConnectorSlice {
@@ -25,14 +26,14 @@ export interface ConnectorSlice {
     connectorId: string,
     connectorConfigKey: string,
     connectorConfigValue: string,
-  ) => void;
+  ) => Promise<void>;
   removeLinkedEntry: (
     blockId: string,
     configPath: string,
     displayKey: string,
     removedValue: string,
     connectorConfigKey: string,
-  ) => void;
+  ) => Promise<void>;
   updateLinkedEntry: (
     blockId: string,
     configPath: string,
@@ -40,7 +41,9 @@ export interface ConnectorSlice {
     entryValue: string,
     fieldKey: string,
     fieldValue: unknown,
-  ) => void;
+    connectorId: string,
+    connectionFieldKey: string,
+  ) => Promise<void>;
 }
 
 export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorSlice> = (set, get) => ({
@@ -163,122 +166,106 @@ export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorS
     },
 
     // --- Linked entry actions ---
-    createLinkedEntry: (
+    createLinkedEntry: async (
       blockId: string,
       configPath: string,
       newEntry: Record<string, unknown>,
       connectorId: string,
       connectorConfigKey: string,
       connectorConfigValue: string,
-    ): void => {
+    ): Promise<void> => {
       const block = get().canvasObjects.get(blockId);
       if (!block || block.objectType !== 'architecture-block') return;
-      const connector = get().connectors.get(connectorId);
-      if (!connector) return;
-
+      if (!get().connectors.has(connectorId)) return;
+      const result = await apiClient.applyConnectionOperation(get().serializeDiagramState(), {
+        operation: 'create', connector_id: connectorId, field_key: connectorConfigKey,
+        display_value: connectorConfigValue, entry_values: newEntry,
+      });
+      if (!result.ok) return;
       get().pushHistory();
-
-      // The connection schema's template already carries any service-specific defaults
-      const entryToAdd = newEntry;
-
+      const canonicalBlock = result.data.canvasObjects?.find((item) => item.id === blockId);
+      const canonicalConnector = result.data.connectors.find((item) => item.id === connectorId);
       set((state) => {
-        // Update block config: read existing array at configPath, append newEntry
-        const currentBlock = state.canvasObjects.get(blockId) as ArchitectureBlock;
-        const existingArray = (currentBlock.config[configPath as keyof ResourceConfig] as unknown as Record<string, unknown>[] | undefined) ?? [];
-        const updatedArray = [...existingArray, entryToAdd];
-        const updatedBlock: ArchitectureBlock = {
-          ...currentBlock,
-          config: { ...currentBlock.config, [configPath]: updatedArray },
-        };
-
-        const nextCanvasObjects = new Map(state.canvasObjects);
-        nextCanvasObjects.set(blockId, updatedBlock);
-
-        // Update connector connectionConfig
-        const currentConnector = state.connectors.get(connectorId)!;
-        const nextConnectors = new Map(state.connectors);
-        nextConnectors.set(connectorId, {
-          ...currentConnector,
-          connectionConfig: { ...currentConnector.connectionConfig, [connectorConfigKey]: connectorConfigValue },
-        });
-
-        return { canvasObjects: nextCanvasObjects, connectors: nextConnectors };
+        const canvasObjects = new Map(state.canvasObjects);
+        const connectors = new Map(state.connectors);
+        const currentBlock = canvasObjects.get(blockId);
+        const currentConnector = connectors.get(connectorId);
+        if (canonicalBlock?.config && currentBlock?.objectType === 'architecture-block') {
+          canvasObjects.set(blockId, { ...currentBlock, config: canonicalBlock.config });
+        }
+        if (canonicalConnector && currentConnector) {
+          connectors.set(connectorId, {
+            ...currentConnector,
+            connectionConfig: canonicalConnector.connection_config,
+          });
+        }
+        return { canvasObjects, connectors };
       });
     },
 
-    updateLinkedEntry: (
+    updateLinkedEntry: async (
       blockId: string,
       configPath: string,
       displayKey: string,
       entryValue: string,
       fieldKey: string,
       fieldValue: unknown,
-    ): void => {
-      const block = get().canvasObjects.get(blockId);
-      if (!block || block.objectType !== 'architecture-block') return;
-
+      connectorId: string,
+      connectionFieldKey: string,
+    ): Promise<void> => {
+      const connector = get().connectors.get(connectorId);
+      if (!connector || connector.sourceId !== blockId) return;
+      const result = await apiClient.applyConnectionOperation(get().serializeDiagramState(), {
+        operation: 'update', connector_id: connector.id, field_key: connectionFieldKey,
+        display_value: entryValue, entry_field_key: fieldKey, entry_field_value: fieldValue,
+      });
+      if (!result.ok) return;
+      const canonicalBlock = result.data.canvasObjects?.find((item) => item.id === blockId);
+      if (!canonicalBlock?.config) return;
       get().pushHistory();
-
       set((state) => {
-        const currentBlock = state.canvasObjects.get(blockId) as ArchitectureBlock;
-        const existingArray = (currentBlock.config[configPath as keyof ResourceConfig] as unknown as Record<string, unknown>[] | undefined) ?? [];
-        const updatedArray = existingArray.map((entry) =>
-          entry[displayKey] === entryValue ? { ...entry, [fieldKey]: fieldValue } : entry
-        );
-        const updatedBlock: ArchitectureBlock = {
-          ...currentBlock,
-          config: { ...currentBlock.config, [configPath]: updatedArray },
-        };
-
-        const nextCanvasObjects = new Map(state.canvasObjects);
-        nextCanvasObjects.set(blockId, updatedBlock);
-        return { canvasObjects: nextCanvasObjects };
+        const canvasObjects = new Map(state.canvasObjects);
+        const current = canvasObjects.get(blockId);
+        if (current?.objectType === 'architecture-block') {
+          canvasObjects.set(blockId, { ...current, config: canonicalBlock.config! });
+        }
+        return { canvasObjects };
       });
     },
 
-    removeLinkedEntry: (
+    removeLinkedEntry: async (
       blockId: string,
       configPath: string,
       displayKey: string,
       removedValue: string,
       connectorConfigKey: string,
-    ): void => {
+    ): Promise<void> => {
       const block = get().canvasObjects.get(blockId);
       if (!block || block.objectType !== 'architecture-block') return;
-
+      const result = await apiClient.applyConnectionOperation(get().serializeDiagramState(), {
+        operation: 'remove', source_block_id: blockId, field_key: connectorConfigKey,
+        display_value: removedValue,
+      });
+      if (!result.ok) return;
       get().pushHistory();
-
+      const canonicalBlock = result.data.canvasObjects?.find((item) => item.id === blockId);
       set((state) => {
-        // Remove the entry from the block's config array
-        const currentBlock = state.canvasObjects.get(blockId) as ArchitectureBlock;
-        const existingArray = (currentBlock.config[configPath as keyof ResourceConfig] as unknown as Record<string, unknown>[] | undefined) ?? [];
-        const updatedArray = existingArray.filter(
-          (entry) => entry[displayKey] !== removedValue
-        );
-        const updatedBlock: ArchitectureBlock = {
-          ...currentBlock,
-          config: { ...currentBlock.config, [configPath]: updatedArray },
-        };
-
-        const nextCanvasObjects = new Map(state.canvasObjects);
-        nextCanvasObjects.set(blockId, updatedBlock);
-
-        // Clear stale connector references: find all connectors where sourceId or targetId
-        // matches the block and their connectionConfig has the removed value
-        const nextConnectors = new Map(state.connectors);
-        for (const [connId, connector] of state.connectors) {
-          if (connector.sourceId === blockId || connector.targetId === blockId) {
-            const configValue = connector.connectionConfig?.[connectorConfigKey];
-            if (configValue === removedValue) {
-              nextConnectors.set(connId, {
-                ...connector,
-                connectionConfig: { ...connector.connectionConfig, [connectorConfigKey]: '' },
-              });
-            }
+        const canvasObjects = new Map(state.canvasObjects);
+        const connectors = new Map(state.connectors);
+        const currentBlock = canvasObjects.get(blockId);
+        if (canonicalBlock?.config && currentBlock?.objectType === 'architecture-block') {
+          canvasObjects.set(blockId, { ...currentBlock, config: canonicalBlock.config });
+        }
+        for (const canonical of result.data.connectors) {
+          const current = connectors.get(canonical.id);
+          if (current) {
+            connectors.set(canonical.id, {
+              ...current,
+              connectionConfig: canonical.connection_config,
+            });
           }
         }
-
-        return { canvasObjects: nextCanvasObjects, connectors: nextConnectors };
+        return { canvasObjects, connectors };
       });
     },
 });

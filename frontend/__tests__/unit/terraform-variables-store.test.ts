@@ -203,17 +203,7 @@ describe('DiagramStore - terraformVariables serialization/deserialization', () =
     expect(s3Block.terraformVariables).toEqual({});
   });
 
-  it('serializeToArchitectureDescription includes terraform_variables per resource', () => {
-    const id = addLambdaBlock();
-    useDiagramStore.getState().setTerraformVariable(id, 'function_name', 'api-handler');
 
-    const desc = useDiagramStore.getState().serializeToArchitectureDescription();
-    const resource = desc.resources.find((r) => r.name === 'lambda-1')!;
-
-    expect(resource.terraform_variables).toBeDefined();
-    expect(resource.terraform_variables!.function_name).toBe('api-handler');
-    expect(resource.terraform_variables!.memory_size).toBeUndefined();
-  });
 });
 
 describe('Property 1: Round-trip consistency — serialize then deserialize produces equivalent terraformVariables', () => {

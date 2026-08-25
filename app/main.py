@@ -17,6 +17,7 @@ from app.models.connection_configs.schema_models import (
     ConnectionSchemaEntry,
     ConnectionSchemasResponse,
 )
+from app.models.connection_operations import ApplyConnectionOperationRequest
 from app.models.connection_previews import ConnectionPreviewResponse
 from app.models.diagram_models import (
     DiagramStateInput,
@@ -42,6 +43,7 @@ from app.persistence.factory import get_repository
 from app.routers.diagrams import router as diagram_router
 from app.services.code_generator import CodeGenerator
 from app.services.connection_handlers.registry import CONNECTION_SPECS
+from app.services.connection_operation_service import ConnectionOperationService
 from app.services.connection_previewer import ConnectionPreviewer
 from app.services.diagram_converter import DiagramConverter
 from app.services.diagram_normalizer import DiagramNormalizer
@@ -100,6 +102,7 @@ _serializer = OutputSerializer()
 _previewer = ConnectionPreviewer()
 _diagram_converter = DiagramConverter()
 _diagram_normalizer = DiagramNormalizer()
+_connection_operations = ConnectionOperationService()
 
 
 def _build_summary(arch: ArchitectureDescription, file_tree: dict) -> GenerationSummary:
@@ -234,6 +237,17 @@ async def initialize_resource(
     return ResourceInitializationResponse(
         name=f"{service.value}-{index}", config=config, terraform_variables=variables
     )
+
+
+@app.post("/api/diagrams/connections/apply", response_model=DiagramStateInput)
+async def apply_connection_operation(
+    request: ApplyConnectionOperationRequest,
+) -> DiagramStateInput:
+    """Apply linked connection intent using backend schema semantics."""
+    try:
+        return _connection_operations.apply(request.diagram, request.operation)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/api/diagrams/architecture", response_model=ArchitectureDescription)

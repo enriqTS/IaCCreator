@@ -69,10 +69,12 @@ function getApiMethods(): MethodEntry[] {
       name: 'generateTerraform',
       call: () =>
         apiClient.generateTerraform({
-          project_name: 'test',
+          version: 3,
+          projectName: 'test',
           environments: [],
-          resources: [],
-          connections: [],
+          canvasObjects: [],
+          connectors: [],
+          viewport: { offsetX: 0, offsetY: 0, scale: 1 },
         }),
     },
   ];
@@ -265,12 +267,14 @@ describe('API client unit tests', () => {
 
       // Test generateTerraform path
       await apiClient.generateTerraform({
-        project_name: 'test',
+        version: 3,
+        projectName: 'test',
         environments: [],
-        resources: [],
-        connections: [],
+        canvasObjects: [],
+        connectors: [],
+        viewport: { offsetX: 0, offsetY: 0, scale: 1 },
       });
-      expect(fetchMock.mock.calls[1][0]).toContain('/generate/zip');
+      expect(fetchMock.mock.calls[1][0]).toContain('/api/diagrams/generate/zip');
     });
   });
 });

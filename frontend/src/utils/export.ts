@@ -1,6 +1,6 @@
 /** Browser download adapter for backend-owned diagram generation. */
 
-import type { ArchitectureDescription, DiagramState } from '@/types/serialization';
+import type { DiagramState } from '@/types/serialization';
 import { apiClient } from '@/utils/api-client';
 
 export interface ExportResult {
@@ -21,14 +21,12 @@ function triggerDownload(blob: Blob, filename: string): void {
 }
 
 export async function exportToTerraform(
-  serializeDiagramState: () => DiagramState | ArchitectureDescription,
-  _legacyCanvasObjects?: unknown,
+  serializeDiagramState: () => DiagramState,
 ): Promise<ExportResult> {
   const diagram = serializeDiagramState();
   const result = await apiClient.generateTerraform(diagram);
   if (result.ok) {
-    const name = 'projectName' in diagram ? diagram.projectName : diagram.project_name;
-    triggerDownload(result.data, `${name || 'terraform'}.zip`);
+    triggerDownload(result.data, `${diagram.projectName || 'terraform'}.zip`);
     return { success: true };
   }
   if (result.error.type === 'network') {

@@ -108,25 +108,10 @@ export default function LinkedSelectFieldRenderer({
       return;
     }
 
-    // Build the new entry from createTemplate
-    const template = { ...(field.createTemplate ?? {}) };
-    if (displayKey) {
-      template[displayKey] = newValue;
-    }
-    // The schema names the keys that bind an entry to the connected resource
-    if (field.targetNameKey) {
-      template[field.targetNameKey] = targetBlock.name;
-    }
-    if (field.targetIdKey) {
-      template[field.targetIdKey] = targetBlock.id;
-    }
-    // Whatever the user chose for the schema's per-entry fields
-    Object.assign(template, newEntryFields);
-
-    createLinkedEntry(
+    void createLinkedEntry(
       sourceBlock.id,
       configPath,
-      template,
+      newEntryFields,
       connectorId,
       field.key,
       newValue,
@@ -138,13 +123,7 @@ export default function LinkedSelectFieldRenderer({
   }, [
     newValue,
     validateInput,
-    field.createTemplate,
     field.key,
-    displayKey,
-    field.targetNameKey,
-    field.targetIdKey,
-    targetBlock.name,
-    targetBlock.id,
     newEntryFields,
     sourceBlock.id,
     configPath,
@@ -302,13 +281,15 @@ export default function LinkedSelectFieldRenderer({
                       field={entryField}
                       value={entry[entryField.key]}
                       onChange={(next) =>
-                        updateLinkedEntry(
+                        void updateLinkedEntry(
                           sourceBlock.id,
                           configPath,
                           displayKey,
                           path,
                           entryField.key,
                           next,
+                          connectorId,
+                          field.key,
                         )
                       }
                       compact

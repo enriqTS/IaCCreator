@@ -5,7 +5,7 @@
 import type { StateCreator } from 'zustand';
 import type { AnchorRef, ArchitectureBlock, CanvasObject, Connector, GeometricObject, GeometricShape, LineObject, ObjectGroup, Point, RoutingMode, TextObject, UMLKind, UMLObject } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_LINE_VISUAL, DEFAULT_TEXT_VISUAL, DEFAULT_UML_VISUAL } from '@/types/diagram';
-import type { ArchitectureDescription, DiagramState, SerializedCanvasObject } from '@/types/serialization';
+import type { DiagramState, SerializedCanvasObject } from '@/types/serialization';
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 import type { AnchorPosition } from '@/utils/anchor';
 import { DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
@@ -15,7 +15,6 @@ export interface SerializationSlice {
   // Serialization
   serializeDiagramState: () => DiagramState;
   loadDiagramState: (state: DiagramState) => void;
-  serializeToArchitectureDescription: () => ArchitectureDescription;
 }
 
 export const createSerializationSlice: StateCreator<DiagramStore, [], [], SerializationSlice> = (set, get) => ({
@@ -290,59 +289,5 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
         canUndo: false,
         canRedo: false,
       });
-    },
-
-    serializeToArchitectureDescription: (): ArchitectureDescription => {
-      const { canvasObjects, connectors, projectName, environments, globalTerraformConfig } = get();
-
-      // Use canvasObjects (architecture blocks) as the source of resources
-      const resources = Array.from(canvasObjects.values())
-        .filter((obj): obj is ArchitectureBlock => obj.objectType === 'architecture-block')
-        .map((block) => ({
-          id: block.id,
-          name: block.name,
-          service_type: block.serviceType,
-          config: { ...block.config },
-          terraform_variables: { ...block.terraformVariables },
-        }));
-
-      // Build a name lookup from canvasObjects for connector resolution
-      const nameById = new Map<string, string>();
-      for (const obj of canvasObjects.values()) {
-        nameById.set(obj.id, obj.name);
-      }
-
-      // Ids are the real reference; names are sent alongside for readability
-      const connections = Array.from(connectors.values()).map((c) => ({
-        source: nameById.get(c.sourceId) ?? '',
-        target: nameById.get(c.targetId) ?? '',
-        source_id: c.sourceId,
-        target_id: c.targetId,
-        connection_type: c.connectionType,
-        ...(c.connectionConfig !== undefined && Object.keys(c.connectionConfig).length > 0 && { connection_config: { ...c.connectionConfig } }),
-      }));
-
-      // Fall back to a default "dev" environment if none are configured
-      const envList = environments.length > 0
-        ? environments
-        : [{ name: 'dev', variables: {} }];
-
-      return {
-        project_name: projectName || 'my-project',
-        environments: envList.map((e) => ({
-          name: e.name,
-          variables: { ...e.variables },
-        })),
-        resources,
-        connections,
-        global_terraform_config: {
-          backend_type: globalTerraformConfig.backend.type,
-          backend_config: { ...globalTerraformConfig.backend.config },
-          provider_region: globalTerraformConfig.provider.region,
-          ...(globalTerraformConfig.provider.profile && { provider_profile: globalTerraformConfig.provider.profile }),
-          ...(globalTerraformConfig.versionConstraints.terraformVersion && { terraform_version: globalTerraformConfig.versionConstraints.terraformVersion }),
-          ...(globalTerraformConfig.versionConstraints.awsProviderVersion && { aws_provider_version: globalTerraformConfig.versionConstraints.awsProviderVersion }),
-        },
-      };
     },
 });
