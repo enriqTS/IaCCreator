@@ -5,9 +5,8 @@
 import type { StateCreator } from 'zustand';
 import type { ArchitectureBlockVisualConfig, CanvasObject, CanvasObjectCreationPayload, GeometricVisualConfig, LineObject, LineVisualConfig, Point, Rect, TextVisualConfig, UMLVisualConfig } from '@/types/diagram';
 import { MIN_OBJECT_HEIGHT, MIN_OBJECT_WIDTH, getObjectBounds } from '@/types/diagram';
-import { generateDefaultName } from '@/utils/name-utils';
+import { apiClient } from '@/utils/api-client';
 import { v4 as uuidv4 } from 'uuid';
-import { getDefaultVariables } from '@/types/terraform-variables';
 import type { DiagramStore } from './store-types';
 
 export interface CanvasSlice {
@@ -57,20 +56,29 @@ export const createCanvasSlice: StateCreator<DiagramStore, [], [], CanvasSlice> 
       }
       let canvasObject = { ...obj, id, zIndex: maxZ + 1 } as CanvasObject;
 
-      // Initialize architecture blocks: generate default name and terraform variables
       if (canvasObject.objectType === 'architecture-block') {
-        const defaultName = generateDefaultName(canvasObject.serviceType, canvasObjects);
-        // Preserve explicit name if provided, otherwise use generated default name
-        const assignedName = (obj as { name?: string }).name || defaultName;
+        const explicitName = (obj as { name?: string }).name;
         canvasObject = {
           ...canvasObject,
-          name: assignedName,
-          defaultName,
+          name: explicitName || canvasObject.serviceType,
           terraformVariables: {
-            ...getDefaultVariables(canvasObject.serviceType),
             ...(obj as { terraformVariables?: Record<string, string | number | boolean> }).terraformVariables,
           },
         };
+        if (!explicitName) {
+          const existingNames = Array.from(canvasObjects.values()).map((item) => item.name);
+          void apiClient.initializeResource(canvasObject.serviceType, existingNames).then((result) => {
+            if (!result.ok) return;
+            const current = get().canvasObjects.get(id);
+            if (!current || current.objectType !== 'architecture-block') return;
+            get().updateCanvasObject(id, {
+              name: result.data.name,
+              defaultName: result.data.name,
+              config: result.data.config,
+              terraformVariables: result.data.terraform_variables,
+            } as Partial<CanvasObject>);
+          });
+        }
       }
 
       set((state) => {

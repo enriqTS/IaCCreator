@@ -7,7 +7,7 @@
 
 import type { DiagramSummary, ApiResult } from '@/types/api';
 import type { ConnectionPreviewResponse } from '@/types/connection-preview';
-import type { DiagramState } from '@/types/serialization';
+import type { ArchitectureDescription, DiagramState } from '@/types/serialization';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -92,6 +92,18 @@ function jsonHeaders(): HeadersInit {
 }
 
 export const apiClient = {
+  /** POST /api/resources/initialize — derive backend-owned resource defaults. */
+  initializeResource(
+    serviceType: string,
+    existingNames: string[],
+  ): Promise<ApiResult<{ name: string; config: Record<string, unknown>; terraform_variables: Record<string, string | number | boolean> }>> {
+    return request('/api/resources/initialize', {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ service_type: serviceType, existing_names: existingNames }),
+    }, (res) => res.json());
+  },
+
   /** POST /api/diagrams — create a new diagram, returns its id. */
   saveDiagram(state: DiagramState): Promise<ApiResult<{ id: string }>> {
     return request('/api/diagrams', {
@@ -133,7 +145,7 @@ export const apiClient = {
 
   /** POST /api/connections/preview — ask what every connection contributes. */
   previewConnections(
-    diagram: DiagramState,
+    diagram: DiagramState | ArchitectureDescription,
   ): Promise<ApiResult<ConnectionPreviewResponse>> {
     return request('/api/diagrams/connections/preview', {
       method: 'POST',
@@ -144,7 +156,7 @@ export const apiClient = {
 
   /** POST /generate/zip — generate Terraform from an architecture description. */
   generateTerraform(
-    diagram: DiagramState,
+    diagram: DiagramState | ArchitectureDescription,
   ): Promise<ApiResult<Blob>> {
     return request('/api/diagrams/generate/zip', {
       method: 'POST',
