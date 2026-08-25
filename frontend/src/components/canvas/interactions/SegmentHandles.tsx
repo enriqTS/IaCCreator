@@ -10,6 +10,10 @@ import type { LineObject, Point } from '@/types/diagram';
 
 const HANDLE_SIZE = 8;
 
+function buildPath(points: Point[]): string {
+  return points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
+}
+
 interface SegmentHandlesProps {
   line: LineObject;
   pathPoints: Point[];
@@ -168,8 +172,6 @@ export default function SegmentHandles({ line, pathPoints, displayPathPoints = p
     segIndex: number;
     orientation: SegmentOrientation;
     delta: number;
-    p1: Point;
-    p2: Point;
   } | null>(null);
 
   const draggingRef = useRef<{
@@ -177,8 +179,6 @@ export default function SegmentHandles({ line, pathPoints, displayPathPoints = p
     orientation: SegmentOrientation;
     startMouseCoord: number; // screen coordinate along drag axis
     origCoord: number; // original canvas coordinate of the segment
-    p1: Point;
-    p2: Point;
   } | null>(null);
 
   // Don't render for locked lines
@@ -189,6 +189,18 @@ export default function SegmentHandles({ line, pathPoints, displayPathPoints = p
 
   const inverseScale = 1 / viewport.scale;
   const handleSizeCanvas = HANDLE_SIZE * inverseScale;
+  const previewPath = dragState
+    ? [
+        displayPathPoints[0],
+        ...computeNewWaypoints(
+          displayPathPoints,
+          dragState.segIndex,
+          dragState.orientation,
+          dragState.delta,
+        ),
+        displayPathPoints[displayPathPoints.length - 1],
+      ]
+    : null;
 
   const handleMouseDown = (segment: DraggableSegment) => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -209,13 +221,11 @@ export default function SegmentHandles({ line, pathPoints, displayPathPoints = p
       orientation: segment.orientation,
       startMouseCoord,
       origCoord,
-      p1: { ...segment.p1 },
-      p2: { ...segment.p2 },
     };
 
     const onMouseMove = (ev: MouseEvent) => {
       if (!draggingRef.current) return;
-      const { orientation, startMouseCoord: startCoord, origCoord: orig, segIndex, p1, p2 } = draggingRef.current;
+      const { orientation, startMouseCoord: startCoord, origCoord: orig, segIndex } = draggingRef.current;
 
       const currentMouseCoord = orientation === 'horizontal' ? ev.clientY : ev.clientX;
       let delta = (currentMouseCoord - startCoord) / viewport.scale;
@@ -231,8 +241,6 @@ export default function SegmentHandles({ line, pathPoints, displayPathPoints = p
         segIndex,
         orientation,
         delta,
-        p1,
-        p2,
       });
     };
 
@@ -294,31 +302,18 @@ export default function SegmentHandles({ line, pathPoints, displayPathPoints = p
         );
       })}
 
-      {/* Drag preview: dashed line showing new segment position */}
-      {dragState && (
-        <>
-          {dragState.orientation === 'horizontal' ? (
-            <line
-              x1={dragState.p1.x}
-              y1={dragState.p1.y + dragState.delta}
-              x2={dragState.p2.x}
-              y2={dragState.p2.y + dragState.delta}
-              stroke="#3b82f6"
-              strokeWidth={2 * inverseScale}
-              strokeDasharray={`${4 * inverseScale} ${3 * inverseScale}`}
-            />
-          ) : (
-            <line
-              x1={dragState.p1.x + dragState.delta}
-              y1={dragState.p1.y}
-              x2={dragState.p2.x + dragState.delta}
-              y2={dragState.p2.y}
-              stroke="#3b82f6"
-              strokeWidth={2 * inverseScale}
-              strokeDasharray={`${4 * inverseScale} ${3 * inverseScale}`}
-            />
-          )}
-        </>
+      {previewPath && (
+        <path
+          data-testid="segment-drag-preview"
+          d={buildPath(previewPath)}
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth={2 * inverseScale}
+          strokeDasharray={`${4 * inverseScale} ${3 * inverseScale}`}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          pointerEvents="none"
+        />
       )}
     </>
   );
