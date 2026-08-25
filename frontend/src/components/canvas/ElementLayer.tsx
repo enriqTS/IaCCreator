@@ -20,7 +20,6 @@ import type { AnchorPosition } from '@/utils/anchor';
 import { inferAnchorPosition, routeOrthogonalConnector, collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing';
 import type { Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
-import { applyParallelOffset, computeParallelIndex } from '@/utils/parallel-offset';
 
 const ANCHOR_POSITIONS_LIST: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
@@ -31,6 +30,13 @@ export default function ElementLayer() {
   const activeTool = useDiagramStore((s) => s.activeTool);
 
   const [hoveredObjectId, setHoveredObjectId] = useState<string | null>(null);
+  const [renderedLinePath, setRenderedLinePath] = useState<{
+    lineId: string;
+    points: Point[];
+  } | null>(null);
+  const renderedPathCallback = useCallback((lineId: string, points: Point[]) => {
+    setRenderedLinePath({ lineId, points });
+  }, []);
 
   // Track alignment guides from line objects (they render inside SVG and can't
   // render the AlignmentGuides component inline like non-line objects do)
@@ -161,19 +167,6 @@ export default function ElementLayer() {
     return [startPt, ...result.waypoints, endPt];
   }, [selectedObject, canvasObjects, snapToGridEnabled, gridCellSize]);
 
-  const selectedLineDisplayPathPoints = useMemo((): Point[] | null => {
-    if (!selectedLinePathPoints || !selectedObject || selectedObject.objectType !== 'line') {
-      return null;
-    }
-    const parallelIndex = computeParallelIndex(
-      selectedObject.id,
-      selectedObject.sourceAnchor?.objectId,
-      selectedObject.targetAnchor?.objectId,
-      canvasObjects,
-    );
-    return applyParallelOffset(selectedLinePathPoints, parallelIndex);
-  }, [selectedLinePathPoints, selectedObject, canvasObjects]);
-
   return (
     <div
       onMouseOver={handleMouseOver}
@@ -291,6 +284,7 @@ export default function ElementLayer() {
                 line={obj}
                 isSelected={selectedObjectIds.has(obj.id)}
                 onAlignmentGuidesChange={lineGuidesCallback}
+                onRenderedPathChange={renderedPathCallback}
               />
             );
           })}
@@ -308,7 +302,11 @@ export default function ElementLayer() {
         <SegmentHandles
           line={selectedObject}
           pathPoints={selectedLinePathPoints}
-          displayPathPoints={selectedLineDisplayPathPoints ?? selectedLinePathPoints}
+          displayPathPoints={
+            renderedLinePath?.lineId === selectedObject.id
+              ? renderedLinePath.points
+              : selectedLinePathPoints
+          }
         />
       )}
 

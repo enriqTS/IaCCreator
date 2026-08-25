@@ -21,6 +21,7 @@ interface LineObjectComponentProps {
   line: LineObject;
   isSelected: boolean;
   onAlignmentGuidesChange?: (guides: AlignmentGuide[]) => void;
+  onRenderedPathChange?: (lineId: string, points: Point[]) => void;
 }
 
 const RECTANGULAR_SHAPES = new Set(['rectangle', 'rounded-rectangle', 'process']);
@@ -80,7 +81,12 @@ function shortenPath(points: Point[], startInset: number, endInset: number): Poi
   return result;
 }
 
-export default function LineObjectComponent({ line, isSelected, onAlignmentGuidesChange }: LineObjectComponentProps) {
+export default function LineObjectComponent({
+  line,
+  isSelected,
+  onAlignmentGuidesChange,
+  onRenderedPathChange,
+}: LineObjectComponentProps) {
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const viewportScale = useDiagramStore((s) => s.viewport.scale);
   const updateLineLabelOffset = useDiagramStore((s) => s.updateLineLabelOffset);
@@ -281,6 +287,10 @@ export default function LineObjectComponent({ line, isSelected, onAlignmentGuide
   }, [pathPoints, line.id, line.sourceAnchor?.objectId, line.targetAnchor?.objectId, canvasObjects]);
 
   const pathD = useMemo(() => buildPathD(offsetPathPoints), [offsetPathPoints]);
+
+  useEffect(() => {
+    if (isSelected) onRenderedPathChange?.(line.id, offsetPathPoints);
+  }, [isSelected, line.id, offsetPathPoints, onRenderedPathChange]);
 
   // Override strokeStyle to dashed when connector schema says so (e.g., authorizer connections)
   const effectiveStrokeStyle = connectionDashed ? 'dashed' : strokeStyle;
