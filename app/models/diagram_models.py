@@ -17,7 +17,22 @@ class DiagramStateInput(DiagramState):
     @classmethod
     def migrate_legacy(cls, value: object) -> object:
         """Upgrade legacy API consumers before canonical validation."""
-        if isinstance(value, dict) and value.get("version", 1) < 3:
+        required = {"version", "projectName", "environments", "connectors", "viewport"}
+        if isinstance(value, dict) and not required.issubset(value):
+            raise ValueError("Diagram is missing required fields")
+        if isinstance(value, dict) and not isinstance(value.get("version"), int):
+            raise ValueError("Diagram version must be an integer")
+        if isinstance(value, dict) and value["version"] < 3:
+            elements = value.get("elements")
+            viewport = value.get("viewport")
+            if not isinstance(elements, list) or not all(
+                isinstance(element, dict) for element in elements
+            ):
+                raise ValueError("Legacy elements must be a list of objects")
+            if not isinstance(viewport, dict) or not all(
+                key in viewport for key in ("x", "y", "zoom")
+            ):
+                raise ValueError("Legacy viewport requires x, y and zoom")
             return migrate_diagram_state(value)
         return value
 
