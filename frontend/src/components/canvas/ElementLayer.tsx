@@ -35,7 +35,14 @@ export default function ElementLayer() {
     points: Point[];
   } | null>(null);
   const renderedPathCallback = useCallback((lineId: string, points: Point[]) => {
-    setRenderedLinePath({ lineId, points });
+    setRenderedLinePath((current) => {
+      const unchanged = current?.lineId === lineId
+        && current.points.length === points.length
+        && current.points.every((point, index) => (
+          point.x === points[index].x && point.y === points[index].y
+        ));
+      return unchanged ? current : { lineId, points };
+    });
   }, []);
 
   // Track alignment guides from line objects (they render inside SVG and can't
