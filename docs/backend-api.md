@@ -1,128 +1,53 @@
 # Backend API
 
-The FastAPI application entry point, routers, middleware, and endpoint reference.
+The FastAPI application in `app/main.py` converts an architecture description into Terraform and persists anonymous-session diagrams.
 
-## Application Entry Point (`app/main.py`)
+## Application setup
 
-The FastAPI app is created in `app/main.py` with the title "Terraform IaC Generator". On startup it:
+The app configures CORS from `CORS_ORIGIN` (default `http://localhost:3000`), creates a repository through `get_repository()`, and adds `SessionMiddleware`. The middleware creates or resumes the 30-day `session_id` cookie and exposes it as `request.state.session_id`.
 
-1. Adds CORS middleware (origin from `CORS_ORIGIN` env var, default `http://localhost:3000`)
-2. Creates the persistence repository via `get_repository()`
-3. Wraps the app with `SessionMiddleware` for anonymous cookie-based sessions
-4. Registers the diagram CRUD router at `/api/diagrams`
-5. Defines the Terraform generation endpoints inline
+`app/routers/diagrams.py` is mounted at `/api/diagrams`. Its repository is a FastAPI dependency (`get_repo`), so tests can override it through `app.dependency_overrides`.
 
-Service instances (`IRBuilder`, `CodeGenerator`, `OutputSerializer`) are created at module level and reused across requests.
+## Endpoints
 
-## Middleware (`app/middleware/session_middleware.py`)
+| Method | Path | Request | Response |
+|---|---|---|---|
+| POST | `/generate/json` | `ArchitectureDescription` | `GenerationResponse` |
+| POST | `/generate/zip` | `ArchitectureDescription` | ZIP download |
+| POST | `/api/import/openapi` | `OpenApiImportRequest` | `OpenApiImportResponse` |
+| GET | `/api/naming-rules` | — | `NamingRulesResponse` |
+| GET | `/api/variable-schemas` | — | `VariableSchemasResponse` |
+| GET | `/api/connection-schemas` | — | `ConnectionSchemasResponse` |
+| POST | `/api/connections/preview` | `ArchitectureDescription` | `ConnectionPreviewResponse` |
+| POST | `/api/diagrams` | `DiagramStateInput` | diagram ID |
+| GET | `/api/diagrams` | — | session-scoped diagram summaries |
+| GET | `/api/diagrams/{diagram_id}` | — | saved diagram state |
+| PUT | `/api/diagrams/{diagram_id}` | `DiagramStateInput` | diagram ID |
+| DELETE | `/api/diagrams/{diagram_id}` | — | `204 No Content` |
 
-`SessionMiddleware` extends Starlette's `BaseHTTPMiddleware`. On every request it:
+Generation validates each typed service config, builds a `ProjectIR`, generates its file tree, and serializes it. Domain and validation errors become client responses; unexpected generation failures become `500` responses.
 
-- Reads the `session_id` cookie
-- If present and valid, touches the session (updates `last_active`) and sets `request.state.session_id`
-- If missing or invalid, creates a new session via `SessionManager.create_session()` and sets a `session_id` cookie with `httponly=True`, `samesite=lax`, `max_age=2592000` (30 days)
+`/api/connections/preview` builds the same IR and returns each connection's generated resources, IAM grants, and warnings. The editor uses this rather than inferring Terraform behavior.
 
-## Routers
+`/api/variable-schemas` introspects the typed per-service configuration models and their `TerraformField` metadata. `/api/connection-schemas` exposes the connection registry's labels, defaults, and editable fields. `/api/naming-rules` exposes the backend rule applied to Terraform resource names.
 
-### Diagram CRUD (`app/routers/diagrams.py`)
+## Architecture payload
 
-Mounted at `/api/diagrams`. Uses a module-level `AbstractRepository` reference set during startup via `set_repository()`. All endpoints read `request.state.session_id` for session scoping.
-
-## API Endpoints
-
-### Diagram CRUD
-
-| Method   | Path                    | Description                                      | Request Body         | Response                          |
-|----------|-------------------------|--------------------------------------------------|----------------------|-----------------------------------|
-| `POST`   | `/api/diagrams`         | Create a new diagram for the current session      | `DiagramStateInput`  | `{"id": "<uuid>"}`               |
-| `GET`    | `/api/diagrams`         | List diagram summaries for the current session    | —                    | `DiagramSummary[]`                |
-| `GET`    | `/api/diagrams/{id}`    | Load full diagram state (ownership-checked)       | —                    | `dict` (diagram_state)            |
-| `PUT`    | `/api/diagrams/{id}`    | Update an existing diagram (ownership-checked)    | `DiagramStateInput`  | `{"id": "<uuid>"}`               |
-| `DELETE` | `/api/diagrams/{id}`    | Delete a diagram (ownership-checked)              | —                    | `204 No Content`                  |
-
-Ownership checks: `GET /{id}`, `PUT /{id}`, and `DELETE /{id}` compare `record.session_id` against the caller's session. Mismatches return `403 Forbidden`. Missing diagrams return `404`.
-
-### Terraform Generation
-
-| Method | Path             | Description                                        | Request Body               | Response                     |
-|--------|------------------|----------------------------------------------------|----------------------------|------------------------------|
-| `POST` | `/generate/json` | Generate Terraform files, return as JSON + summary | `ArchitectureDescription`  | `{"summary": ..., "files": ...}` |
-| `POST` | `/generate/zip`  | Generate Terraform files, return as ZIP download   | `ArchitectureDescription`  | `application/zip` binary     |
-
-Both endpoints run the same pipeline: validate each resource's config against `VARIABLE_SCHEMAS` via `validate_config_against_schema()`, then `IRBuilder.build()` → `CodeGenerator.generate()` → serialize. The `/generate/zip` endpoint sets `Content-Disposition` with the project name. Errors return `500` with a descriptive message; Pydantic validation failures return `422`; schema validation failures (out-of-range values, disallowed options) also return `422`.
-
-### Connection Preview
-
-| Method | Path                        | Description                                          | Request Body              | Response                    |
-|--------|-----------------------------|------------------------------------------------------|---------------------------|-----------------------------|
-| `POST` | `/api/connections/preview`  | Describe what every connection contributes           | `ArchitectureDescription` | `ConnectionPreviewResponse` |
-
-Runs `IRBuilder.build()` and then `ConnectionPreviewer.preview_all()`, returning one `ConnectionPreview` per connection: the Terraform resources it emits, the IAM it grants, and any `issues` its handler reported. Issues describe connections that generate valid Terraform which cannot work — an API Gateway route handler with no matching route, for example — so they are warnings rather than generation failures. Previews echo `source_id` and `target_id` so the editor can match one back to the connector that produced it. The endpoint validates the same way `/generate/*` does, so a half-configured diagram returns `422` and the editor shows no preview.
-
-### Variable Schemas
-
-| Method | Path                      | Description                                      | Request Body | Response                          |
-|--------|---------------------------|--------------------------------------------------|--------------|-----------------------------------|
-| `GET`  | `/api/variable-schemas`   | Return all variable schemas keyed by service type | —            | `dict[str, list[dict]]`           |
-
-Returns the full `VARIABLE_SCHEMAS` dictionary serialized as JSON. Each key is a service type value (e.g., `"lambda"`, `"s3"`), and each value is a list of schema entry objects with `name`, `type`, `description`, `default`, `group`, `options`, `validation`, and `visible_when` fields. Used by the frontend to drive the schema-based config form.
-
-### Request Body: `ArchitectureDescription`
+`ArchitectureDescription` contains a project name, at least one environment and resource, optional connections, and global Terraform configuration. Resources may carry a stable `id`; connections may carry `source_id` and `target_id`, allowing the backend to resolve endpoints after a rename. Names remain in the payload for generated Terraform labels and backward compatibility.
 
 ```json
 {
   "project_name": "my-project",
   "environments": [{"name": "dev", "variables": {"region": "us-east-1"}}],
-  "resources": [
-    {
-      "name": "my-func",
-      "service_type": "lambda",
-      "config": {"handler": "index.handler", "runtime": "python3.12"},
-      "terraform_variables": {"function_name": "my-func", "memory_size": 256}
-    }
-  ],
-  "connections": [
-    {"source": "my-func", "target": "my-table", "connection_type": "reads_from"}
-  ],
-  "global_terraform_config": {
-    "backend_type": "s3",
-    "backend_config": {"bucket": "my-tf-state"},
-    "provider_region": "us-east-1"
-  }
+  "resources": [{
+    "id": "resource-1",
+    "name": "my-function",
+    "service_type": "lambda",
+    "config": {"handler": "index.handler", "runtime": "python3.12"}
+  }],
+  "connections": [],
+  "global_terraform_config": {"provider_region": "us-east-1"}
 }
 ```
 
-### Response: `/generate/json`
-
-```json
-{
-  "summary": {
-    "project_name": "my-project",
-    "environment_count": 1,
-    "module_count": 1,
-    "resource_instance_count": 1,
-    "iam_policy_count": 1
-  },
-  "files": {
-    "my-project/environments/dev/main.tf": "...",
-    "my-project/modules/lambda/my-func/lambda.tf": "..."
-  }
-}
-```
-
-### Request Body: `DiagramStateInput`
-
-```json
-{
-  "version": 3,
-  "projectName": "my-project",
-  "environments": [{"name": "dev", "variables": {}}],
-  "elements": [{"id": "...", "type": "lambda", "x": 100, "y": 200, "name": "my-func"}],
-  "connectors": [{"id": "...", "sourceId": "...", "targetId": "...", "type": "triggers"}],
-  "viewport": {"x": 0, "y": 0, "zoom": 1.0},
-  "globalTerraformConfig": {
-    "backend_type": "local",
-    "provider_region": "us-east-1"
-  }
-}
-```
+Diagram CRUD is session scoped. Reading, updating, or deleting a diagram owned by another session returns `403`; a missing diagram returns `404`.

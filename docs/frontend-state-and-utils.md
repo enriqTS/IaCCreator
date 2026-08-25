@@ -1,277 +1,40 @@
-# Frontend State & Utilities
+# Frontend State and Utilities
 
-Zustand stores, utility modules, and TypeScript type definitions in the frontend.
+## Store composition
 
-## Zustand Stores (`frontend/src/store/`)
+`frontend/src/store/diagram-store.ts` is only a Zustand composition point. State belongs in focused slices under `store/slices/`:
 
-### `diagram-store.ts` — `useDiagramStore`
+- `canvas-slice`, `connector-slice`, and `anchoring-slice` own objects, connectors, anchors, and line geometry.
+- `clipboard-slice`, `grouping-slice`, and `zorder-slice` own editing operations.
+- `history-slice` and `history-support` own undo/redo snapshots.
+- `project-slice`, `serialization-slice`, and `persistence-slice` own project state, API/local persistence, and architecture export.
+- `ui-slice` and `viewport-slice` own tool, selection, overlay, and viewport state.
 
-The primary application store managing all diagram state. Created with Zustand's `create()`.
+Canvas objects are the active diagram model. Legacy element state is not the model to extend. The serialization contract is in `src/types/serialization.ts`; it includes canvas objects, connector configuration, groups, line anchors/waypoints, and global routing mode.
 
-**Element State (legacy — kept for backward compatibility):**
-- `elements: Map<string, DiagramElement>` — legacy diagram nodes keyed by ID (superseded by `canvasObjects`)
-- `addElement(serviceType, position)` — creates a new legacy element with UUID
-- `updateElementPosition / updateElementConfig / updateElementName / removeElement`
-- Note: All runtime usage now goes through `canvasObjects` with `architecture-block` type. The `elements` map is retained only for serialization backward compatibility.
+## Supporting stores
 
-**Canvas Object State:**
-- `canvasObjects: Map<string, CanvasObject>` — all canvas objects (architecture blocks, lines, geometric shapes, text, UML)
-- `selectedObjectIds: Set<string>` — multi-selection set
-- `addCanvasObject(payload)` — creates a new object with UUID and auto-assigned zIndex
-- `updateCanvasObject(id, updates)` — partial update
-- `removeCanvasObject(id)` — deletes object and cleans up anchored lines
-- `selectObject / toggleObjectSelection / selectObjectsByRect / clearSelection / selectAllObjects`
-- `updateVisualConfig(id, config)` — update visual properties (size, color, etc.)
-- `updateObjectBounds(id, bounds)` — resize width/height
-- `updateLineEndpoint(id, endpoint, position)` — move line start/end point
+- `schema-store.ts` fetches backend variable schemas and falls back to generated `data/bundled-schemas.ts`.
+- `connection-preview-store.ts` caches backend connection contributions and issues.
+- `apigw-config-store.ts` owns API Gateway editing state.
+- `naming-store.ts` fetches the backend naming rule used by client validation.
+- `layout-preferences-store.ts`, `pinned-objects-store.ts`, `recently-used-store.ts`, and `tour-store.ts` hold persisted UI preferences and onboarding state.
+- `toast-store.ts` provides transient notifications.
 
-**Z-Order:**
-- `bringToFront / sendToBack / bringForward / sendBackward`
+## Catalog and types
 
-**Grouping:**
-- `objectGroups: Map<string, ObjectGroup>` — named groups of objects
-- `groupSelectedObjects()` — create a group from selection
-- `ungroupObjects(groupId)` — dissolve a group
+`data/object-catalog.ts` is the frontend catalog boundary. It combines AWS icon entries with shapes, UML, text, and lines, and marks services unsupported when no generator is available. The backend `ServiceType` and generator registry remain the domain authority.
 
-**Clipboard & Duplicate:**
-- `clipboard: CanvasObject[]`
-- `copySelectedObjects() / pasteObjects(position) / duplicateSelectedObjects()`
+`types/diagram.ts` defines canvas objects, tools, visual configuration, geometry, and service-related client types. `types/serialization.ts` defines saved diagram and generation payloads. `types/api.ts`, `types/connection-preview.ts`, and `types/apigw-config.ts` define API-facing data.
 
-**Lock & Move:**
-- `toggleLockObjects(ids)` — toggle lock state on objects
-- `moveSelectedObjects(dx, dy)` — batch move all selected objects
+## Utilities
 
-**Text Editing:**
-- `editingTextId` / `setEditingTextId` / `updateTextContent`
+- `api-client.ts` centralizes cookie-authenticated requests and structured API errors.
+- `export.ts` submits serialized architecture to `/generate/zip`.
+- `viewport.ts`, `bounds-utils.ts`, `anchor.ts`, and `snap.ts` provide canvas geometry and snapping.
+- `utils/routing/` contains the grid builder, pathfinder, obstacle collector, and orthogonal-router entry point; `parallel-offset.ts` separates parallel lines.
+- `keyboard-shortcuts.ts` centralizes shortcut behavior.
+- `name-utils.ts` and `object-search.ts` provide naming and catalog search helpers.
+- `safe-storage.ts` wraps browser storage for persisted Zustand stores.
 
-**Anchor Management:**
-- `updateLineAnchors(lineId, anchors)` — set source/target anchor refs
-- `recomputeAnchoredEndpoints(movedObjectId)` — recalculate line endpoints when an anchored object moves
-
-**Pull-to-Connect:**
-- `pullConnectState` / `setPullConnectState` — state for drag-to-connect interaction
-
-**Connector State:**
-- `connectors: Map<string, Connector>` — all connectors keyed by ID
-- `addConnector / updateConnectorType / removeConnector`
-
-**Viewport State:**
-- `viewport: Viewport` — `{offsetX, offsetY, scale}`
-- `pan(dx, dy)` / `zoom(factor, center)` — via `zoomAtPoint()`
-- `fitToScreen(containerRect)` — auto-fit all objects into view
-
-**UI State:**
-- `activeTool: Tool` — current tool (pointer, connector, place-service, place-shape, place-uml, line, text)
-- `selectedElementId / selectedConnectorId` — legacy single selection
-- `pendingConnectorSourceId` — source element when drawing a connector
-
-**History (Undo/Redo):**
-- Snapshot-based history with `MAX_HISTORY = 50` levels
-- `undo() / redo()` — restore previous/next snapshot
-- `canUndo / canRedo` — boolean flags
-- `beginDragGesture()` — capture snapshot before a drag operation
-- Snapshots deep-clone `elements`, `connectors`, `canvasObjects`, and `objectGroups` Maps
-
-**Project State:**
-- `projectName` / `environments` / `setProjectName` / `setEnvironments`
-
-**Terraform Variables:**
-- `setTerraformVariable(objectId, varName, value)` — set a single variable
-- `setTerraformVariables(objectId, vars)` — set multiple variables
-- `globalTerraformConfig` / `updateGlobalTerraformConfig`
-
-**Serialization:**
-- `serializeDiagramState() -> DiagramState` — for save/load
-- `loadDiagramState(state)` — restores from a `DiagramState`
-- `serializeToArchitectureDescription() -> ArchitectureDescription` — for Terraform export
-
-**Server Persistence:**
-- `currentDiagramId / diagramSummaries / isSaving / isLoading`
-- `saveDiagramToServer() / updateDiagramOnServer(id) / loadDiagramFromServer(id)`
-- `listDiagramsFromServer() / deleteDiagramFromServer(id)`
-
-**Panel State:**
-- `bottomPanelExpanded / bottomPanelHeight / toggleBottomPanel`
-
-### `toast-store.ts` — `useToastStore`
-
-Simple notification store:
-- `toasts: Toast[]` — array of `{id, message, type}`
-- `addToast(message, type)` — adds a toast, auto-removes after 4 seconds
-- `removeToast(id)` — manual removal
-
-### `layout-preferences-store.ts` — `useLayoutPreferencesStore`
-
-Persisted layout preferences (via Zustand `persist` middleware):
-- `toolbarPosition: 'top' | 'bottom'` (default `'top'`)
-- `setToolbarPosition`
-- `gridCellSize`, `snapToGridEnabled`, `alignmentGuidesEnabled` with their setters
-- `objectSidebarCollapsed` (default `false`) with `setObjectSidebarCollapsed` / `toggleObjectSidebar` — whether the permanent object sidebar is collapsed to its rail
-
-### `schema-store.ts` — `fetchSchemas` / `getSchemas`
-
-Module-level schema cache (not a Zustand store). Fetches variable schemas from the backend `/api/variable-schemas` endpoint and caches in memory. Falls back to bundled schemas (`frontend/src/data/bundled-schemas.ts`) when the API is unreachable.
-
-- `fetchSchemas()` — async fetch with in-memory caching
-- `getSchemas()` — synchronous access to cached or bundled schemas
-- `clearSchemaCache()` — reset cache (for testing)
-
-`useDiagramStore` also carries the configuration overlay's target: `configOverlayTargetId`, with `openConfigOverlay(objectId)` and `closeConfigOverlay()`. Opening is always an explicit gesture — placing an object, double-clicking one, or the context menu — so nothing derives this from `selectedObjectIds`. The overlay stays on its target while the selection moves, and closes when its target is deleted. While it is open the canvas keyboard shortcuts are suppressed, since configuration is a focused mode rather than a panel worked beside.
-
-### `connection-preview-store.ts` — `useConnectionPreviewStore`
-
-Caches the backend's answer to what each connection generates, keyed by connector id.
-
-- `previews: Map<string, ConnectionPreview>` — keyed by connector, matched on the `source_id`/`target_id` the backend echoes back
-- `status` — `idle` | `loading` | `ready` | `unavailable`; `unavailable` means the diagram did not validate, and `error` says why
-- `refresh()` — POSTs the serialized architecture to `/api/connections/preview`
-- `useConnectionPreview(connectorId)` — the preview for one connector
-
-`useConnectionPreviewSync()` (in `frontend/src/hooks/`) calls `refresh()` on a debounce whenever objects or connectors change, and `useConnectionIssues(line)` resolves a line to its connector's reported issues.
-
-### `pinned-objects-store.ts` — `usePinnedObjectsStore`
-
-The user's shortlist of objects, kept at the top of the object sidebar and on its collapsed rail (via Zustand `persist` on localStorage, so pins outlive the tab):
-- `pinnedItems: PickerItem[]` — capped at `MAX_PINNED_ITEMS` (24), in the order they were pinned
-- `togglePin(item)` — pin or unpin, matched on `pickerItemKey(item)` (`category|name`)
-- `clearPins()` — reset list
-
-Pins are the mechanism that keeps the catalog usable as it grows: however many services exist, a person builds with a dozen of them.
-
-### `recently-used-store.ts` — `useRecentlyUsedStore`
-
-Tracks recently used object-sidebar items (via Zustand `persist` middleware with sessionStorage, falling back to in-memory storage when sessionStorage is unavailable):
-- `recentItems: PickerItem[]` — capped at `MAX_RECENT_ITEMS` (12)
-- `addRecentItem(item)` — prepend item, deduplicate by name+category
-- `clearRecentItems()` — reset list
-
-## Object catalog (`frontend/src/data/object-catalog.ts`)
-
-The list of things the object sidebar can place, built once at module load from `aws-icon-registry.ts` plus the static shape, UML, text and line entries. Exports `PickerItem`, `PickerCategory`, `ALL_CATEGORIES`, `ALL_ITEMS`, `ALL_CATEGORY_NAMES`, the `isAwsServiceItem` / `isUnsupportedAwsItem` predicates, `categoryLabel()` (strips the repeated `AWS: ` prefix for display), `toolsMatch()` and `findItemForTool()` (resolves an armed placement tool back to its catalog entry, which is what the armed strip renders).
-
-This is the only module the sidebar reads the catalog through, so serving it from the backend later is a one-module change. Which AWS services exist and which are supported is domain data the backend already owns (`ServiceType` in `app/models/input_models/_general.py`), so moving it behind an endpoint is the intended direction.
-
-## Utilities (`frontend/src/utils/`)
-
-### `object-search.ts`
-
-Pure helpers for the object sidebar, split out of the old picker component so they are testable on their own: `smartSearch(items, term, abbreviationMap)` matches on a case-insensitive substring and on the full names an abbreviation expands to, and `sortCategories(categories)` puts `Recently Used`, `Shapes`, `UML`, `Text` and `Lines & Arrows` first, then AWS categories alphabetically.
-
-### `safe-storage.ts`
-
-`createSafeStorage('local' | 'session')` returns a Zustand `StateStorage` that guards every access and falls back to an in-memory map when web storage is unavailable — private browsing can make the accessor itself throw. Shared by `pinned-objects-store` and `recently-used-store`; use it rather than reaching for `localStorage` directly in a persisted store.
-
-### `viewport.ts`
-
-Viewport math functions:
-- `clamp(value, min, max)` — clamp a number
-- `screenToCanvas(screenPoint, viewport)` — convert screen pixels to canvas world coordinates
-- `canvasToScreen(canvasPoint, viewport)` — convert canvas world to screen pixels
-- `zoomAtPoint(viewport, factor, screenCenter)` — zoom keeping the cursor point fixed, scale clamped to `[0.1, 5.0]`
-- `getCanvasViewportSize()` — the visible canvas size, measured from the `canvas-container` element. Anything centering or fitting the viewport must use this rather than `window.innerWidth`/`innerHeight`, because the object sidebar takes real width out of the window.
-
-### `api-client.ts`
-
-Centralized API client. Every method returns `ApiResult<T>` (discriminated union: `{ok: true, data}` or `{ok: false, error}`).
-
-Methods:
-- `saveDiagram(state)` — `POST /api/diagrams`
-- `updateDiagram(id, state)` — `PUT /api/diagrams/{id}`
-- `listDiagrams()` — `GET /api/diagrams`
-- `loadDiagram(id)` — `GET /api/diagrams/{id}`
-- `deleteDiagram(id)` — `DELETE /api/diagrams/{id}`
-- `generateTerraform(arch)` — `POST /generate/zip` (returns `Blob`)
-
-All requests include `credentials: 'include'` for cookie-based sessions. Base URL from `NEXT_PUBLIC_API_URL` env var (default empty = relative paths). Pydantic 422 errors are parsed into `fieldErrors`.
-
-### `export.ts`
-
-Export utility for Terraform generation:
-- `exportToTerraform(serializeFn, canvasObjects)` — validates non-empty diagram (requires at least one `architecture-block`), checks required config fields (e.g., `hash_key` for DynamoDB), calls `apiClient.generateTerraform()`, triggers browser download of `terraform.zip`
-- Returns `ExportResult` with `success`, optional `error`, and optional `fieldErrors`
-
-### `storage.ts`
-
-localStorage-based save/load:
-- `saveDiagram(name, state)` — saves under `diagram-editor:{name}`, handles quota exceeded
-- `loadDiagram(name)` — loads and validates JSON + version field
-- `listSavedDiagrams()` — returns `SavedDiagramEntry[]` with name and savedAt
-- `deleteSavedDiagram(name)` — removes from localStorage
-
-### `routing.ts`
-
-Orthogonal connection routing between anchor ports. Computes waypoints for right-angle paths between two anchor positions on objects.
-
-- `computeOrthogonalWaypoints(start, startPosition, end, endPosition, minOffset)` — returns intermediate waypoints (excluding start/end) for an orthogonal route
-- Handles five cases: facing anchors (aligned, offset, wrong direction), perpendicular anchors, and same-side anchors (U-shape)
-- `MIN_OFFSET` (20px) — minimum distance from the object before the first turn
-
-### `anchor.ts`
-
-Anchor and connection geometry utilities:
-- `getAnchorPoints(bounds)` — returns 4 cardinal anchor points (top, right, bottom, left) for a bounding rect
-- `computeAnchorPoint(bounds, externalPoint)` — closest point on a rect's edge to an external point
-- `rayRectIntersection(rect, target)` — where a ray from rect center to target intersects the rect boundary
-- `findSnapAnchor(point, bounds, threshold)` — snap to nearest anchor within threshold (default 20px)
-
-### `shape-paths.ts`
-
-SVG path registry for geometric shapes. `SHAPE_PATH_REGISTRY` maps each `GeometricShape` to a function `(width, height) => string` returning an SVG path `d` attribute. Covers 25+ shapes including basic shapes, polygons, arrows, flowchart shapes, and special shapes (cylinder, cloud, callout).
-
-## Data Modules (`frontend/src/data/`)
-
-| Module                    | Purpose                                                              |
-|---------------------------|----------------------------------------------------------------------|
-| `bundled-schemas.ts`      | Bundled copy of variable schemas for offline/fallback use            |
-| `aws-icon-registry.ts`    | Maps AWS service types to icon components/paths                      |
-| `abbreviation-map.ts`     | Maps abbreviations to full service names for search (e.g., "ec2" → "Elastic Compute Cloud") |
-| `shape-icons.tsx`         | Icon components for geometric shapes in the picker                   |
-
-## Type Definitions (`frontend/src/types/`)
-
-### `diagram.ts`
-
-### `diagram.ts`
-
-Core diagram types:
-- `ServiceType` — union: `'lambda' | 's3' | 'api-gateway' | 'dynamodb' | 'iam' | 'cloudwatch'`
-- `Point` — `{x, y}`
-- `DiagramElement` — `{id, serviceType, name, position, config}` (legacy, superseded by `ArchitectureBlock`)
-- `Connector` — `{id, sourceId, targetId, connectionType}`
-- `Viewport` — `{offsetX, offsetY, scale}` (scale range 0.1–5.0)
-- `Tool` — `'pointer' | 'connector' | 'line' | 'text' | {type: 'place-service', serviceType} | {type: 'place-shape', shape} | {type: 'place-uml', umlKind}`
-- `ResourceConfig` — mirrors the backend's `ResourceConfig` Pydantic schema
-- `EnvironmentConfig` — `{name, variables}`
-- `CanvasObjectType` — `'architecture-block' | 'line' | 'geometric' | 'text' | 'uml'`
-- `CanvasObject` — discriminated union of `ArchitectureBlock | LineObject | GeometricObject | TextObject | UMLObject`
-- `GeometricShape` — 25+ shape types (rectangle, ellipse, diamond, hexagon, star, cloud, flowchart shapes, etc.)
-- `UMLKind` — `'class' | 'interface' | 'actor' | 'use-case' | 'component' | 'package' | 'node'`
-- Visual config interfaces: `ArchitectureBlockVisualConfig`, `LineVisualConfig`, `GeometricVisualConfig`, `TextVisualConfig`, `UMLVisualConfig`
-- `ObjectGroup` — `{id, name, memberIds}`
-- `AnchorRef` — `{objectId}` for line anchoring
-- `Rect` — `{x, y, width, height}` axis-aligned bounding box
-- `getObjectBounds(obj)` — compute bounding box for any canvas object
-- Default visual configs: `DEFAULT_BLOCK_VISUAL`, `DEFAULT_LINE_VISUAL`, `DEFAULT_GEO_VISUAL`, `DEFAULT_TEXT_VISUAL`, `DEFAULT_UML_VISUAL`
-
-### `serialization.ts`
-
-Serialization types:
-- `CURRENT_DIAGRAM_VERSION = 3`
-- `DiagramState` — full state for save/load: `version`, `projectName`, `environments`, `elements`, `canvasObjects`, `connectors`, `viewport`, `objectGroups`, `globalTerraformConfig`
-- `SerializedElement` / `SerializedCanvasObject` / `SerializedConnector` / `SerializedObjectGroup`
-- `ArchitectureDescription` — maps to the backend's Pydantic schema for Terraform export
-
-### `terraform-variables.ts`
-
-Terraform variable schemas and global configuration:
-- `VARIABLE_SCHEMAS` — per-service variable definitions (name, type, description, default)
-- `GlobalTerraformConfig` — backend, provider, version constraints, environments, global variables
-- `DEFAULT_GLOBAL_CONFIG` — sensible defaults (local backend, us-east-1)
-- `getDefaultVariables(serviceType)` — returns default variable values for a service type
-
-### `api.ts`
-
-API response types:
-- `DiagramSummary` — `{diagram_id, project_name, updated_at}`
-- `ApiError` — `{type: 'network' | 'http', status?, message, fieldErrors?}`
-- `ApiResult<T>` — discriminated union: `{ok: true, data: T} | {ok: false, error: ApiError}`
+Use these shared utilities and the existing slices rather than adding unrelated behavior to `diagram-store.ts`.
