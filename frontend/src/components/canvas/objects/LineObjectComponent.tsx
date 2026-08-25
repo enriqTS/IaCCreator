@@ -16,12 +16,12 @@ import type { AlignmentGuide } from '@/utils/snap';
 import { snapPointToGrid } from '@/utils/snap';
 import { computeParallelIndex, applyParallelOffset } from '@/utils/parallel-offset';
 import ConnectionIssueBadge from './ConnectionIssueBadge';
+import SegmentHandles from '../interactions/SegmentHandles';
 
 interface LineObjectComponentProps {
   line: LineObject;
   isSelected: boolean;
   onAlignmentGuidesChange?: (guides: AlignmentGuide[]) => void;
-  onRenderedPathChange?: (lineId: string, points: Point[]) => void;
 }
 
 const RECTANGULAR_SHAPES = new Set(['rectangle', 'rounded-rectangle', 'process']);
@@ -85,7 +85,6 @@ export default function LineObjectComponent({
   line,
   isSelected,
   onAlignmentGuidesChange,
-  onRenderedPathChange,
 }: LineObjectComponentProps) {
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
   const viewportScale = useDiagramStore((s) => s.viewport.scale);
@@ -287,10 +286,6 @@ export default function LineObjectComponent({
   }, [pathPoints, line.id, line.sourceAnchor?.objectId, line.targetAnchor?.objectId, canvasObjects]);
 
   const pathD = useMemo(() => buildPathD(offsetPathPoints), [offsetPathPoints]);
-
-  useEffect(() => {
-    if (isSelected) onRenderedPathChange?.(line.id, offsetPathPoints);
-  }, [isSelected, line.id, offsetPathPoints, onRenderedPathChange]);
 
   // Override strokeStyle to dashed when connector schema says so (e.g., authorizer connections)
   const effectiveStrokeStyle = connectionDashed ? 'dashed' : strokeStyle;
@@ -499,6 +494,14 @@ export default function LineObjectComponent({
             </text>
           </>
         )}
+        {isSelected && !line.locked && (
+          <SegmentHandles
+            line={line}
+            pathPoints={pathPoints}
+            displayPathPoints={offsetPathPoints}
+          />
+        )}
+
         {/* Inline label editor */}
         {isEditingLabel && (
           <foreignObject

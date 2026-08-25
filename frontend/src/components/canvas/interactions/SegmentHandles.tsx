@@ -281,40 +281,26 @@ export default function SegmentHandles({ line, pathPoints, displayPathPoints = p
       {draggableSegments.map((seg) => {
         const cursor = seg.orientation === 'horizontal' ? 'ns-resize' : 'ew-resize';
         return (
-          <div
+          <rect
             key={`seg-handle-${seg.index}`}
             data-testid={`segment-handle-${seg.index}`}
+            x={seg.midpoint.x - handleSizeCanvas / 2}
+            y={seg.midpoint.y - handleSizeCanvas / 2}
+            width={handleSizeCanvas}
+            height={handleSizeCanvas}
+            rx={handleSizeCanvas / 2}
+            fill="#3b82f6"
+            stroke="#fff"
+            strokeWidth={inverseScale}
             onMouseDown={handleMouseDown(seg)}
-            style={{
-              position: 'absolute',
-              left: seg.midpoint.x - handleSizeCanvas / 2,
-              top: seg.midpoint.y - handleSizeCanvas / 2,
-              width: handleSizeCanvas,
-              height: handleSizeCanvas,
-              backgroundColor: '#3b82f6',
-              border: `${inverseScale}px solid #fff`,
-              cursor,
-              zIndex: 1001,
-              pointerEvents: 'auto',
-              boxSizing: 'border-box',
-            }}
+            style={{ cursor, pointerEvents: 'auto' }}
           />
         );
       })}
 
       {/* Drag preview: dashed line showing new segment position */}
       {dragState && (
-        <svg
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-            overflow: 'visible',
-            zIndex: 1000,
-          }}
-        >
+        <>
           {dragState.orientation === 'horizontal' ? (
             <line
               x1={dragState.p1.x}
@@ -336,7 +322,7 @@ export default function SegmentHandles({ line, pathPoints, displayPathPoints = p
               strokeDasharray={`${4 * inverseScale} ${3 * inverseScale}`}
             />
           )}
-        </svg>
+        </>
       )}
     </>
   );

@@ -1,24 +1,19 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import ArchitectureBlockComponent from './objects/ArchitectureBlockComponent';
 import LineObjectComponent from './objects/LineObjectComponent';
 import GeometricObjectComponent from './objects/GeometricObjectComponent';
 import TextObjectComponent from './objects/TextObjectComponent';
 import UMLObjectComponent from './objects/UMLObjectComponent';
 import ResizeHandles from './interactions/ResizeHandles';
-import SegmentHandles from './interactions/SegmentHandles';
 import GroupBoundingBox from './interactions/GroupBoundingBox';
 import AnchorIndicators from './interactions/AnchorIndicators';
 import AlignmentGuides from './interactions/AlignmentGuides';
 import { getObjectBounds } from '@/types/diagram';
-import { getConnectionBounds } from '@/utils/bounds-utils';
 import { getAnchorPoints } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
-import { inferAnchorPosition, routeOrthogonalConnector, collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing';
-import type { Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
 
 const ANCHOR_POSITIONS_LIST: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
@@ -30,20 +25,6 @@ export default function ElementLayer() {
   const activeTool = useDiagramStore((s) => s.activeTool);
 
   const [hoveredObjectId, setHoveredObjectId] = useState<string | null>(null);
-  const [renderedLinePath, setRenderedLinePath] = useState<{
-    lineId: string;
-    points: Point[];
-  } | null>(null);
-  const renderedPathCallback = useCallback((lineId: string, points: Point[]) => {
-    setRenderedLinePath((current) => {
-      const unchanged = current?.lineId === lineId
-        && current.points.length === points.length
-        && current.points.every((point, index) => (
-          point.x === points[index].x && point.y === points[index].y
-        ));
-      return unchanged ? current : { lineId, points };
-    });
-  }, []);
 
   // Track alignment guides from line objects (they render inside SVG and can't
   // render the AlignmentGuides component inline like non-line objects do)
@@ -94,85 +75,6 @@ export default function ElementLayer() {
   const selectedObject = selectedObjectIds.size === 1
     ? canvasObjects.get([...selectedObjectIds][0]) ?? null
     : null;
-
-  // Read snap settings for grid-aware routing (used by segment handles pathPoints)
-  const snapToGridEnabled = useLayoutPreferencesStore((s) => s.snapToGridEnabled);
-  const gridCellSize = useLayoutPreferencesStore((s) => s.gridCellSize);
-
-  // Compute pathPoints for the selected line (needed by SegmentHandles)
-  const selectedLinePathPoints = useMemo((): Point[] | null => {
-    if (!selectedObject || selectedObject.objectType !== 'line') return null;
-    if (selectedObject.locked) return null;
-    if (selectedObject.visualConfig.routingMode !== 'orthogonal') return null;
-
-    const line = selectedObject;
-
-    // Resolve anchor endpoints
-    let startPt = line.start;
-    let endPt = line.end;
-
-    if (line.sourceAnchor) {
-      const sourceObj = canvasObjects.get(line.sourceAnchor.objectId);
-      if (sourceObj && line.sourceAnchor.anchorPosition) {
-        const bounds = getConnectionBounds(sourceObj);
-        startPt = getAnchorPoints(bounds)[line.sourceAnchor.anchorPosition];
-      }
-    }
-
-    if (line.targetAnchor) {
-      const targetObj = canvasObjects.get(line.targetAnchor.objectId);
-      if (targetObj && line.targetAnchor.anchorPosition) {
-        const bounds = getConnectionBounds(targetObj);
-        endPt = getAnchorPoints(bounds)[line.targetAnchor.anchorPosition];
-      }
-    }
-
-    // Guard against undefined endpoints
-    if (!startPt || !endPt) return null;
-
-    // If user-modified waypoints exist, use them directly
-    if (line.waypoints && line.waypoints.length > 0) {
-      return [startPt, ...line.waypoints, endPt];
-    }
-
-    // Compute orthogonal waypoints
-    const startPos = line.sourceAnchor
-      ? line.sourceAnchor.anchorPosition
-      : inferAnchorPosition(startPt, endPt);
-    const endPos = line.targetAnchor
-      ? line.targetAnchor.anchorPosition
-      : inferAnchorPosition(endPt, startPt);
-
-    // Collect obstacles for routing (all non-line objects except source/target)
-    const sourceObjId = line.sourceAnchor?.objectId;
-    const targetObjId = line.targetAnchor?.objectId;
-    const excludeIds = new Set<string>(
-      [line.id, sourceObjId, targetObjId].filter((id): id is string => id != null)
-    );
-    const obstacles = collectObstacles(canvasObjects, excludeIds);
-
-    const sourceObj = sourceObjId ? canvasObjects.get(sourceObjId) : undefined;
-    const targetObj = targetObjId ? canvasObjects.get(targetObjId) : undefined;
-    const sourceRect = sourceObj
-      ? boundsToRoutingRect(getObjectBounds(sourceObj))
-      : pointToMinimalRect(startPt);
-    const targetRect = targetObj
-      ? boundsToRoutingRect(getObjectBounds(targetObj))
-      : pointToMinimalRect(endPt);
-
-    const result = routeOrthogonalConnector({
-      sourcePoint: startPt,
-      sourceSide: startPos,
-      sourceRect,
-      targetPoint: endPt,
-      targetSide: endPos,
-      targetRect,
-      obstacles,
-      shapeMargin: snapToGridEnabled ? gridCellSize : 20,
-      gridSize: snapToGridEnabled ? gridCellSize : undefined,
-    });
-    return [startPt, ...result.waypoints, endPt];
-  }, [selectedObject, canvasObjects, snapToGridEnabled, gridCellSize]);
 
   return (
     <div
@@ -291,7 +193,6 @@ export default function ElementLayer() {
                 line={obj}
                 isSelected={selectedObjectIds.has(obj.id)}
                 onAlignmentGuidesChange={lineGuidesCallback}
-                onRenderedPathChange={renderedPathCallback}
               />
             );
           })}
@@ -303,19 +204,6 @@ export default function ElementLayer() {
 
       {/* Resize handles on the selected canvas object */}
       {selectedObject && <ResizeHandles object={selectedObject} />}
-
-      {/* Segment handles for selected orthogonal line */}
-      {selectedObject && selectedObject.objectType === 'line' && selectedLinePathPoints && (
-        <SegmentHandles
-          line={selectedObject}
-          pathPoints={selectedLinePathPoints}
-          displayPathPoints={
-            renderedLinePath?.lineId === selectedObject.id
-              ? renderedLinePath.points
-              : selectedLinePathPoints
-          }
-        />
-      )}
 
       {/* Group bounding boxes for selected groups */}
       {(() => {
