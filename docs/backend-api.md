@@ -18,7 +18,13 @@ The app configures CORS from `CORS_ORIGIN` (default `http://localhost:3000`), cr
 | GET | `/api/naming-rules` | — | `NamingRulesResponse` |
 | GET | `/api/variable-schemas` | — | `VariableSchemasResponse` |
 | GET | `/api/connection-schemas` | — | `ConnectionSchemasResponse` |
+| GET | `/api/editor-bootstrap` | — | `EditorBootstrapResponse` |
+| POST | `/api/resources/initialize` | `ResourceInitializationRequest` | `ResourceInitializationResponse` |
 | POST | `/api/connections/preview` | `ArchitectureDescription` | `ConnectionPreviewResponse` |
+| POST | `/api/diagrams/architecture` | `DiagramStateInput` | `ArchitectureDescription` |
+| POST | `/api/diagrams/generate/json` | `DiagramStateInput` | `GenerationResponse` |
+| POST | `/api/diagrams/generate/zip` | `DiagramStateInput` | ZIP download |
+| POST | `/api/diagrams/connections/preview` | `DiagramStateInput` | `ConnectionPreviewResponse` |
 | POST | `/api/diagrams` | `DiagramStateInput` | diagram ID |
 | GET | `/api/diagrams` | — | session-scoped diagram summaries |
 | GET | `/api/diagrams/{diagram_id}` | — | saved diagram state |
@@ -50,4 +56,6 @@ Generation validates each typed service config, builds a `ProjectIR`, generates 
 }
 ```
 
-Diagram CRUD is session scoped. Reading, updating, or deleting a diagram owned by another session returns `403`; a missing diagram returns `404`.
+Diagram CRUD is session scoped. Writes normalize and validate state before persistence, and reads return the canonical current version. Reading, updating, or deleting a diagram owned by another session returns `403`; a missing diagram returns `404`.
+
+The editor bootstrap describes backend support and domain defaults. Resource initialization derives unique names, typed config defaults, and Terraform variable defaults. Diagram-based generation and preview convert canonical canvas state on the backend; the direct `/generate/*` endpoints remain available for API consumers.
