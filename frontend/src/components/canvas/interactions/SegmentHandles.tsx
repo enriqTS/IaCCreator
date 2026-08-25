@@ -13,6 +13,7 @@ const HANDLE_SIZE = 8;
 interface SegmentHandlesProps {
   line: LineObject;
   pathPoints: Point[];
+  displayPathPoints?: Point[];
 }
 
 export type SegmentOrientation = 'horizontal' | 'vertical';
@@ -163,7 +164,7 @@ function evaluateAdaptiveAnchors(
   }
 }
 
-export default function SegmentHandles({ line, pathPoints }: SegmentHandlesProps) {
+export default function SegmentHandles({ line, pathPoints, displayPathPoints = pathPoints }: SegmentHandlesProps) {
   const viewport = useDiagramStore((s) => s.viewport);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
 
@@ -187,7 +188,7 @@ export default function SegmentHandles({ line, pathPoints }: SegmentHandlesProps
   // Don't render for locked lines
   if (line.locked) return null;
 
-  const draggableSegments = computeDraggableSegments(pathPoints);
+  const draggableSegments = computeDraggableSegments(displayPathPoints);
   if (draggableSegments.length === 0 && !dragState) return null;
 
   const inverseScale = 1 / viewport.scale;

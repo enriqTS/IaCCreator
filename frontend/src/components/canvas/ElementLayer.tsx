@@ -20,6 +20,7 @@ import type { AnchorPosition } from '@/utils/anchor';
 import { inferAnchorPosition, routeOrthogonalConnector, collectObstacles, boundsToRoutingRect, pointToMinimalRect } from '@/utils/routing';
 import type { Point } from '@/types/diagram';
 import type { AlignmentGuide } from '@/utils/snap';
+import { applyParallelOffset, computeParallelIndex } from '@/utils/parallel-offset';
 
 const ANCHOR_POSITIONS_LIST: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
@@ -160,6 +161,19 @@ export default function ElementLayer() {
     return [startPt, ...result.waypoints, endPt];
   }, [selectedObject, canvasObjects, snapToGridEnabled, gridCellSize]);
 
+  const selectedLineDisplayPathPoints = useMemo((): Point[] | null => {
+    if (!selectedLinePathPoints || !selectedObject || selectedObject.objectType !== 'line') {
+      return null;
+    }
+    const parallelIndex = computeParallelIndex(
+      selectedObject.id,
+      selectedObject.sourceAnchor?.objectId,
+      selectedObject.targetAnchor?.objectId,
+      canvasObjects,
+    );
+    return applyParallelOffset(selectedLinePathPoints, parallelIndex);
+  }, [selectedLinePathPoints, selectedObject, canvasObjects]);
+
   return (
     <div
       onMouseOver={handleMouseOver}
@@ -291,7 +305,11 @@ export default function ElementLayer() {
 
       {/* Segment handles for selected orthogonal line */}
       {selectedObject && selectedObject.objectType === 'line' && selectedLinePathPoints && (
-        <SegmentHandles line={selectedObject} pathPoints={selectedLinePathPoints} />
+        <SegmentHandles
+          line={selectedObject}
+          pathPoints={selectedLinePathPoints}
+          displayPathPoints={selectedLineDisplayPathPoints ?? selectedLinePathPoints}
+        />
       )}
 
       {/* Group bounding boxes for selected groups */}
