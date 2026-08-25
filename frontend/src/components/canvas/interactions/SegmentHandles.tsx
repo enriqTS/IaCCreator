@@ -26,19 +26,12 @@ export interface DraggableSegment {
   p2: Point;
 }
 
-/**
- * Identify which segments of the path are draggable.
- * A segment is draggable if:
- * - It is not the first or last segment
- * - It is horizontal (same y) or vertical (same x)
- * Horizontal segments can be dragged vertically, vertical segments horizontally.
- */
+/** Identify every orthogonal segment so each midpoint can be manipulated. */
 export function computeDraggableSegments(pathPoints: Point[]): DraggableSegment[] {
-  if (pathPoints.length < 4) return []; // Need at least 4 points for a middle segment
+  if (pathPoints.length < 2) return [];
 
   const segments: DraggableSegment[] = [];
-  // Skip first segment (index 0) and last segment (index length-2)
-  for (let i = 1; i < pathPoints.length - 2; i++) {
+  for (let i = 0; i < pathPoints.length - 1; i++) {
     const p1 = pathPoints[i];
     const p2 = pathPoints[i + 1];
 
@@ -92,8 +85,11 @@ export function computeNewWaypoints(
     updated[segIndex + 1].x += delta;
   }
 
-  // Extract waypoints (exclude start and end)
   const waypoints = updated.slice(1, updated.length - 1);
+
+  // Terminal segments gain a bend so their anchored endpoint stays fixed.
+  if (segIndex === 0) waypoints.unshift(updated[0]);
+  if (segIndex === pathPoints.length - 2) waypoints.push(updated[updated.length - 1]);
 
   // Collapse zero-length segments: remove consecutive duplicate points
   const collapsed: Point[] = [];

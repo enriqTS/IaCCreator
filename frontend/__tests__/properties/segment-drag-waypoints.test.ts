@@ -63,6 +63,44 @@ function isOrthogonalPath(points: Point[]): boolean {
 }
 
 describe('Segment drag updates waypoints to reflect new position', () => {
+  it('provides a handle for every segment', () => {
+    const path = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 80 },
+      { x: 200, y: 80 },
+    ];
+
+    expect(computeDraggableSegments(path).map((segment) => segment.index)).toEqual([0, 1, 2]);
+  });
+
+  it('keeps terminal points fixed when their segments move', () => {
+    const path = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 80 },
+      { x: 200, y: 80 },
+    ];
+
+    const firstPath = [path[0], ...computeNewWaypoints(path, 0, 'horizontal', 20), path[3]];
+    const lastPath = [path[0], ...computeNewWaypoints(path, 2, 'horizontal', 20), path[3]];
+
+    expect(firstPath).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 20 },
+      { x: 100, y: 20 },
+      { x: 100, y: 80 },
+      { x: 200, y: 80 },
+    ]);
+    expect(lastPath).toEqual([
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 100 },
+      { x: 200, y: 100 },
+      { x: 200, y: 80 },
+    ]);
+  });
+
   it('dragged segment appears at the new position in the resulting waypoints', () => {
     /**
      *
