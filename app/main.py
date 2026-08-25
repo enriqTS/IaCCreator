@@ -215,13 +215,21 @@ async def initialize_resource(
     while f"{service.value}-{index}" in existing:
         index += 1
     model = _get_cached_service_config_models()[service]
-    config = model().model_dump(exclude_none=True)
+    config = {
+        name: field.get_default(call_default_factory=True)
+        for name, field in model.model_fields.items()
+        if not field.is_required()
+        and field.get_default(call_default_factory=True) is not None
+    }
     variables = {}
     if model.has_terraform_schema():
+        fallbacks = {"string": "", "number": 0, "bool": False}
         variables = {
             field.name: field.default
-            for field in model.get_variable_schema()
             if field.default is not None
+            else fallbacks[field.type]
+            for field in model.get_variable_schema()
+            if field.default is not None or field.type in fallbacks
         }
     return ResourceInitializationResponse(
         name=f"{service.value}-{index}", config=config, terraform_variables=variables
