@@ -102,6 +102,7 @@ from app.generators.target_group_generator import TargetGroupGenerator
 from app.generators.timestream_generator import TimestreamGenerator
 from app.generators.vpc_generator import VpcGenerator
 from app.generators.waf_generator import WafGenerator
+from app.generators.workspaces_generator import WorkSpacesGenerator
 from app.generators.xray_generator import XRayGenerator
 from app.models.input_models import ServiceType
 
@@ -184,6 +185,7 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.CODEPIPELINE: CodePipelineGenerator(),
     # End User Computing
     ServiceType.APPSTREAM: AppStreamGenerator(),
+    ServiceType.WORKSPACES: WorkSpacesGenerator(),
     # Front End Web Mobile
     ServiceType.AMPLIFY: AmplifyGenerator(),
     # Games

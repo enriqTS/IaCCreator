@@ -121,6 +121,7 @@ EXPECTED_SERVICE_TYPES = {
     "codepipeline",
     # End User Computing
     "appstream",
+    "workspaces",
     # Front End Web Mobile
     "amplify",
     # Games

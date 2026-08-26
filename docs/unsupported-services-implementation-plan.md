@@ -507,15 +507,17 @@ Promote the most useful existing typed services:
 - Lake Formation — implemented
 - DataZone — implemented
 - Kinesis Data Analytics — retired; SQL applications reached end of support in January 2026
-- WorkSpaces
+- WorkSpaces — implemented as a provisionable resource separate from WorkSpaces Family
 
-Resolve service identity before implementation:
+Phase 3 service identity decisions:
 
-- Decide whether `kinesis` and `kinesis-data-streams` are aliases or separate resources.
-- Model Fargate as an ECS/EKS execution mode unless a valid standalone Terraform ownership model is established.
-- Consolidate duplicate Compute and Containers catalog mappings.
-- Split broad family icons such as Outposts and WorkSpaces Family into provisionable resource types where necessary.
-- Do not promote hardware, runtime, or deployment-mode icons as standalone Terraform resources without clear ownership.
+- `kinesis` is the provisionable data-stream resource; `kinesis-data-streams` remains a compatibility alias without separate Terraform ownership.
+- Fargate remains an ECS/EKS execution-mode capability rather than a standalone Terraform resource.
+- The duplicate Compute Fargate mapping was removed; Fargate is cataloged under Containers.
+- WorkSpaces is split from the WorkSpaces Family composite; Outposts family, rack, and server icons remain composites until they have independent Terraform ownership.
+- Hardware, runtime, and deployment-mode icons remain non-resource concepts unless clear ownership is established.
+
+Phase 3 is complete with all selected resources implemented or explicitly resolved through lifecycle and ownership classification.
 
 ## Phase 4 — Observability and governance
 

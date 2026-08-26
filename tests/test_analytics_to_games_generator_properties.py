@@ -120,6 +120,7 @@ FULL_GENERATOR_SERVICES = [
     ServiceType.CODEDEPLOY,
     ServiceType.CODEPIPELINE,
     ServiceType.APPSTREAM,
+    ServiceType.WORKSPACES,
     ServiceType.AMPLIFY,
     ServiceType.GAMELIFT,
 ]
@@ -587,6 +588,11 @@ EXPECTED_BLOCKS: dict[ServiceType, tuple[list[str], list[str], list[str]]] = {
         ['resource "aws_codepipeline"'],
         ["pipeline_name"],
         ["pipeline_arn", "pipeline_name"],
+    ),
+    ServiceType.WORKSPACES: (
+        ['resource "aws_workspaces_workspace"'],
+        ["directory_id", "bundle_id", "user_name"],
+        ["workspace_id", "computer_name"],
     ),
     ServiceType.APPSTREAM: (
         ['resource "aws_appstream_fleet"'],

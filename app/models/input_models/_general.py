@@ -134,6 +134,7 @@ class ServiceType(StrEnum):
 
     # End User Computing – full-generator services
     APPSTREAM = "appstream"
+    WORKSPACES = "workspaces"
 
     # Front End Web Mobile – full-generator services
     AMPLIFY = "amplify"
@@ -455,6 +456,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.timestream_config import TimestreamConfig
     from app.models.input_models.vpc_config import VpcConfig
     from app.models.input_models.waf_config import WafConfig
+    from app.models.input_models.workspaces_config import WorkSpacesConfig
     from app.models.input_models.xray_config import XRayConfig
 
     return {
@@ -530,6 +532,7 @@ def _build_service_config_models() -> dict:
         ServiceType.CODEDEPLOY: CodeDeployConfig,
         ServiceType.CODEPIPELINE: CodePipelineConfig,
         ServiceType.APPSTREAM: AppStreamConfig,
+        ServiceType.WORKSPACES: WorkSpacesConfig,
         ServiceType.AMPLIFY: AmplifyConfig,
         ServiceType.GAMELIFT: GameLiftConfig,
         ServiceType.BEDROCK: BedrockConfig,

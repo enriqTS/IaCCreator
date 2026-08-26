@@ -157,6 +157,7 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
     },
     "end-user-computing": {
         ServiceType.APPSTREAM,
+        ServiceType.WORKSPACES,
         ServiceType.WORKLINK,
         ServiceType.WORKSPACES_FAMILY,
     },

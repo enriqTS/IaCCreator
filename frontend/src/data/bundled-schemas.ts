@@ -5690,6 +5690,103 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "workspaces": [
+    {
+      "default": "",
+      "description": "AWS Directory Service directory ID",
+      "group": "General",
+      "label": "Directory ID",
+      "name": "directory_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "WorkSpaces bundle ID",
+      "group": "General",
+      "label": "Bundle ID",
+      "name": "bundle_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Directory user name",
+      "group": "General",
+      "label": "User name",
+      "name": "user_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "AUTO_STOP",
+      "description": "Workspace running mode",
+      "group": "General",
+      "label": "Running mode",
+      "name": "running_mode",
+      "options": [
+        {
+          "label": "Auto stop",
+          "value": "AUTO_STOP"
+        },
+        {
+          "label": "Always on",
+          "value": "ALWAYS_ON"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "AUTO_STOP",
+          "ALWAYS_ON"
+        ]
+      }
+    },
+    {
+      "default": 60,
+      "description": "Idle time before an auto-stop workspace stops",
+      "group": "General",
+      "label": "Auto-stop timeout",
+      "name": "running_mode_auto_stop_timeout_in_minutes",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 600,
+        "min": 60
+      },
+      "visible_when": {
+        "equals": "AUTO_STOP",
+        "field": "running_mode"
+      }
+    },
+    {
+      "default": true,
+      "description": "Encrypt the root volume",
+      "group": "General",
+      "label": "Root volume encryption enabled",
+      "name": "root_volume_encryption_enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": true,
+      "description": "Encrypt the user volume",
+      "group": "General",
+      "label": "User volume encryption enabled",
+      "name": "user_volume_encryption_enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "description": "KMS key ARN or alias",
+      "group": "General",
+      "label": "Volume encryption key",
+      "name": "volume_encryption_key",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "x-ray": [
     {
       "default": "application-traces",

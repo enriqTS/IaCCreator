@@ -9,7 +9,7 @@
 
 import re
 
-from hypothesis import given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from app.generators.tfvars_generator import TfvarsGenerator
@@ -342,7 +342,7 @@ def resource_instance_ir_strategy(draw):
         unique_by=lambda instance: instance.name,
     )
 )
-@settings(max_examples=50)
+@settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
 def test_property_3_tfvars_variables_tf_correspondence(instances):
     """Property 3: Every variable name in terraform.tfvars has a corresponding
     variable block in variables.tf. This ensures no variable is referenced

@@ -105,8 +105,11 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - SES
 - Pinpoint
 
-**Other:**
+**End User Computing:**
 - AppStream
+- WorkSpaces
+
+**Other:**
 - Amplify
 - GameLift
 

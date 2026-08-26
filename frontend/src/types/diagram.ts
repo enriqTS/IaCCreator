@@ -173,8 +173,9 @@ export type ServiceType =
   | 'corretto'
   | 'tools-and-sdks'
   | 'x-ray'
-  // End User Computing — full-generator services
+  // End User Computing – full-generator services
   | 'appstream'
+  | 'workspaces'
   // End User Computing — icon-only services
   | 'worklink'
   | 'workspaces-family'

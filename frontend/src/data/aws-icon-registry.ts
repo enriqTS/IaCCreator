@@ -114,7 +114,6 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
       { name: 'EC2', iconPath: '/aws-icons/Compute/EC2.svg', serviceType: 'ec2' },
       { name: 'Elastic Beanstalk', iconPath: '/aws-icons/Compute/Elastic-Beanstalk.svg', serviceType: 'elastic-beanstalk' },
       { name: 'Elastic Fabric Adapter', iconPath: '/aws-icons/Compute/Elastic-Fabric-Adapter.svg', serviceType: 'elastic-fabric-adapter' },
-      { name: 'Fargate', iconPath: '/aws-icons/Compute/Fargate.svg', serviceType: 'fargate' },
       { name: 'Genomics CLI', iconPath: '/aws-icons/Compute/Genomics-CLI.svg', serviceType: 'genomics-cli' },
       { name: 'Lambda', iconPath: '/aws-icons/Compute/Lambda.svg', serviceType: 'lambda' },
       { name: 'Lightsail', iconPath: '/aws-icons/Compute/Lightsail.svg', serviceType: 'lightsail' },
@@ -211,6 +210,7 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
     services: [
       { name: 'AppStream', iconPath: '/aws-icons/End-User-Computing/AppStream.svg', serviceType: 'appstream' },
       { name: 'WorkLink', iconPath: '/aws-icons/End-User-Computing/WorkLink.svg', serviceType: 'worklink' },
+      { name: 'WorkSpaces', iconPath: '/aws-icons/End-User-Computing/WorkSpaces-Family.svg', serviceType: 'workspaces' },
       { name: 'WorkSpaces Family', iconPath: '/aws-icons/End-User-Computing/WorkSpaces-Family.svg', serviceType: 'workspaces-family' },
     ],
   },
