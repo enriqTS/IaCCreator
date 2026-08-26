@@ -90,6 +90,13 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - OpenSearch
 - Redshift
 
+**Machine-learning APIs:**
+- Comprehend document classifiers
+- Rekognition face collections
+- Transcribe custom vocabularies
+- Kendra indexes
+- Lex V2 bots
+
 **Database:**
 - Database Migration Service replication instances
 - Keyspaces

@@ -47,6 +47,7 @@ from app.generators.codepipeline_generator import CodePipelineGenerator
 from app.generators.cognito_generator import CognitoGenerator
 
 # Business Applications generators
+from app.generators.comprehend_generator import ComprehendGenerator
 from app.generators.connect_generator import ConnectGenerator
 from app.generators.datazone_generator import DataZoneGenerator
 from app.generators.dms_generator import DmsGenerator
@@ -73,12 +74,14 @@ from app.generators.gamelift_generator import GameLiftGenerator
 from app.generators.glue_generator import GlueGenerator
 from app.generators.iam_generator import IAMGenerator
 from app.generators.internet_gateway_generator import InternetGatewayGenerator
+from app.generators.kendra_generator import KendraGenerator
 from app.generators.keyspaces_generator import KeyspacesGenerator
 from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
 from app.generators.kinesis_generator import KinesisGenerator
 from app.generators.kms_generator import KmsGenerator
 from app.generators.lake_formation_generator import LakeFormationGenerator
 from app.generators.lambda_generator import LambdaGenerator
+from app.generators.lex_generator import LexGenerator
 from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.load_balancer_generator import LoadBalancerGenerator
 from app.generators.managed_grafana_generator import ManagedGrafanaGenerator
@@ -95,6 +98,7 @@ from app.generators.pinpoint_generator import PinpointGenerator
 from app.generators.quicksight_generator import QuickSightGenerator
 from app.generators.rds_generator import RDSGenerator
 from app.generators.redshift_generator import RedshiftGenerator
+from app.generators.rekognition_generator import RekognitionGenerator
 from app.generators.route53_generator import Route53Generator
 from app.generators.route_table_generator import RouteTableGenerator
 from app.generators.s3_generator import S3Generator
@@ -109,6 +113,7 @@ from app.generators.subnet_generator import SubnetGenerator
 from app.generators.systems_manager_generator import SystemsManagerGenerator
 from app.generators.target_group_generator import TargetGroupGenerator
 from app.generators.timestream_generator import TimestreamGenerator
+from app.generators.transcribe_generator import TranscribeGenerator
 from app.generators.vpc_generator import VpcGenerator
 from app.generators.waf_generator import WafGenerator
 from app.generators.workspaces_generator import WorkSpacesGenerator
@@ -214,4 +219,9 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.BEDROCK_GUARDRAIL: BedrockGuardrailGenerator(),
     ServiceType.BEDROCK_KNOWLEDGE_BASE: BedrockKnowledgeBaseGenerator(),
     ServiceType.BEDROCK_AGENTCORE: BedrockAgentCoreGenerator(),
+    ServiceType.COMPREHEND: ComprehendGenerator(),
+    ServiceType.REKOGNITION: RekognitionGenerator(),
+    ServiceType.TRANSCRIBE: TranscribeGenerator(),
+    ServiceType.KENDRA: KendraGenerator(),
+    ServiceType.LEX: LexGenerator(),
 }

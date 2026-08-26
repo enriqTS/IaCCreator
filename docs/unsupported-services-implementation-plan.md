@@ -540,17 +540,24 @@ Implement the remaining useful services in coherent batches. A batch includes mo
 
 ### Machine-learning APIs
 
-- Comprehend and Comprehend Medical
-- Textract
-- Rekognition
-- Transcribe
-- Translate
-- Personalize
-- Kendra
-- Lex
-- Forecast
-- Fraud Detector
-- HealthLake
+- Comprehend — implemented as custom document classifiers
+- Comprehend Medical — classified as an API capability; the AWS provider has no owned resource
+- Textract — classified as an API capability; the AWS provider has no owned resource
+- Rekognition — implemented as face collections
+- Transcribe — implemented as custom vocabularies
+- Translate — classified as an API capability; the AWS provider has no owned resource
+- Personalize — classified as an API capability; current AWS provider support is insufficient
+- Kendra — implemented as indexes
+- Lex — implemented as Lex V2 bots
+- Forecast — classified as an API capability; current AWS provider support is insufficient
+- Fraud Detector — classified as an API capability; current AWS provider support is insufficient
+- HealthLake — classified as an API capability; the standard AWS provider has no owned resource
+
+Machine-learning API batch identity decisions:
+
+- API-only product icons remain typed, placeable capabilities without misleading Terraform ownership.
+- Provisionable product icons own a stable foundational resource rather than attempting to model every training or runtime operation.
+- AWS Cloud Control resources are not mixed into modules generated for the standard AWS provider.
 
 Training frameworks, client environments, and broad branding icons should remain capabilities or decorative entries unless they own Terraform resources.
 

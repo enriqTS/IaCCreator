@@ -142,6 +142,11 @@ EXPECTED_SERVICE_TYPES = {
     "bedrock-guardrail",
     "bedrock-knowledge-base",
     "bedrock-agentcore",
+    "comprehend",
+    "rekognition",
+    "transcribe",
+    "kendra",
+    "lex",
 }
 
 

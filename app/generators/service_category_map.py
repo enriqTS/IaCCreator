@@ -101,6 +101,11 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.BEDROCK_GUARDRAIL: "machine-learning",
     ServiceType.BEDROCK_KNOWLEDGE_BASE: "machine-learning",
     ServiceType.BEDROCK_AGENTCORE: "machine-learning",
+    ServiceType.COMPREHEND: "machine-learning",
+    ServiceType.REKOGNITION: "machine-learning",
+    ServiceType.TRANSCRIBE: "machine-learning",
+    ServiceType.KENDRA: "machine-learning",
+    ServiceType.LEX: "machine-learning",
     # End user computing
     ServiceType.WORKSPACES: "end-user-computing",
     # Other

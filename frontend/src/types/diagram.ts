@@ -207,7 +207,19 @@ export type ServiceType =
   | 'bedrock-agent'
   | 'bedrock-guardrail'
   | 'bedrock-knowledge-base'
-  | 'bedrock-agentcore';
+  | 'bedrock-agentcore'
+  | 'comprehend'
+  | 'comprehend-medical'
+  | 'textract'
+  | 'rekognition'
+  | 'transcribe'
+  | 'translate'
+  | 'personalize'
+  | 'kendra'
+  | 'lex'
+  | 'forecast'
+  | 'fraud-detector'
+  | 'healthlake';
 
 export interface Point {
   x: number;

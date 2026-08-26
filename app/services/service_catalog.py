@@ -181,6 +181,18 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.BEDROCK_GUARDRAIL,
         ServiceType.BEDROCK_KNOWLEDGE_BASE,
         ServiceType.BEDROCK_AGENTCORE,
+        ServiceType.COMPREHEND,
+        ServiceType.COMPREHEND_MEDICAL,
+        ServiceType.TEXTRACT,
+        ServiceType.REKOGNITION,
+        ServiceType.TRANSCRIBE,
+        ServiceType.TRANSLATE,
+        ServiceType.PERSONALIZE,
+        ServiceType.KENDRA,
+        ServiceType.LEX,
+        ServiceType.FORECAST,
+        ServiceType.FRAUD_DETECTOR,
+        ServiceType.HEALTHLAKE,
     },
     "management-governance": {
         ServiceType.CLOUDWATCH,
@@ -227,6 +239,13 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
 }
 
 _CAPABILITIES = {
+    ServiceType.COMPREHEND_MEDICAL,
+    ServiceType.TEXTRACT,
+    ServiceType.TRANSLATE,
+    ServiceType.PERSONALIZE,
+    ServiceType.FORECAST,
+    ServiceType.FRAUD_DETECTOR,
+    ServiceType.HEALTHLAKE,
     ServiceType.BOTTLEROCKET,
     ServiceType.ELASTIC_FABRIC_ADAPTER,
     ServiceType.FARGATE,

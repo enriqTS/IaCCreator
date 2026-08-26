@@ -243,6 +243,18 @@ class ServiceType(StrEnum):
     BEDROCK_GUARDRAIL = "bedrock-guardrail"
     BEDROCK_KNOWLEDGE_BASE = "bedrock-knowledge-base"
     BEDROCK_AGENTCORE = "bedrock-agentcore"
+    COMPREHEND = "comprehend"
+    COMPREHEND_MEDICAL = "comprehend-medical"
+    TEXTRACT = "textract"
+    REKOGNITION = "rekognition"
+    TRANSCRIBE = "transcribe"
+    TRANSLATE = "translate"
+    PERSONALIZE = "personalize"
+    KENDRA = "kendra"
+    LEX = "lex"
+    FORECAST = "forecast"
+    FRAUD_DETECTOR = "fraud-detector"
+    HEALTHLAKE = "healthlake"
 
 
 class ResourceInstance(BaseModel):
@@ -414,6 +426,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.codedeploy_config import CodeDeployConfig
     from app.models.input_models.codepipeline_config import CodePipelineConfig
     from app.models.input_models.cognito_config import CognitoConfig
+    from app.models.input_models.comprehend_config import ComprehendConfig
     from app.models.input_models.connect_config import ConnectConfig
     from app.models.input_models.datazone_config import DataZoneConfig
     from app.models.input_models.dms_config import DmsConfig
@@ -437,12 +450,14 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.gamelift_config import GameLiftConfig
     from app.models.input_models.glue_config import GlueConfig
     from app.models.input_models.internet_gateway_config import InternetGatewayConfig
+    from app.models.input_models.kendra_config import KendraConfig
     from app.models.input_models.keyspaces_config import KeyspacesConfig
     from app.models.input_models.kinesis_config import KinesisConfig
     from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
     from app.models.input_models.kms_config import KmsConfig
     from app.models.input_models.lake_formation_config import LakeFormationConfig
     from app.models.input_models.lambda_config import LambdaConfig
+    from app.models.input_models.lex_config import LexConfig
     from app.models.input_models.lightsail_config import LightsailConfig
     from app.models.input_models.load_balancer_config import LoadBalancerConfig
     from app.models.input_models.managed_grafana_config import ManagedGrafanaConfig
@@ -461,6 +476,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.quicksight_config import QuickSightConfig
     from app.models.input_models.rds_config import RdsConfig
     from app.models.input_models.redshift_config import RedshiftConfig
+    from app.models.input_models.rekognition_config import RekognitionConfig
     from app.models.input_models.route53_config import Route53Config
     from app.models.input_models.route_table_config import RouteTableConfig
     from app.models.input_models.s3_config import S3Config
@@ -475,6 +491,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.systems_manager_config import SystemsManagerConfig
     from app.models.input_models.target_group_config import TargetGroupConfig
     from app.models.input_models.timestream_config import TimestreamConfig
+    from app.models.input_models.transcribe_config import TranscribeConfig
     from app.models.input_models.vpc_config import VpcConfig
     from app.models.input_models.waf_config import WafConfig
     from app.models.input_models.workspaces_config import WorkSpacesConfig
@@ -570,6 +587,11 @@ def _build_service_config_models() -> dict:
         ServiceType.BEDROCK_GUARDRAIL: BedrockGuardrailConfig,
         ServiceType.BEDROCK_KNOWLEDGE_BASE: BedrockKnowledgeBaseConfig,
         ServiceType.BEDROCK_AGENTCORE: BedrockAgentcoreConfig,
+        ServiceType.COMPREHEND: ComprehendConfig,
+        ServiceType.REKOGNITION: RekognitionConfig,
+        ServiceType.TRANSCRIBE: TranscribeConfig,
+        ServiceType.KENDRA: KendraConfig,
+        ServiceType.LEX: LexConfig,
     }
 
 

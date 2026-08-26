@@ -2078,6 +2078,53 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "comprehend": [
+    {
+      "default": "document-classifier",
+      "description": "Document classifier name",
+      "group": "General",
+      "label": "Classifier name",
+      "name": "classifier_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "IAM role ARN used to access training data",
+      "group": "General",
+      "label": "Data access role ARN",
+      "name": "data_access_role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "en",
+      "description": "Training language code",
+      "group": "General",
+      "label": "Language code",
+      "name": "language_code",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "S3 URI containing labeled training data",
+      "group": "General",
+      "label": "Training data S3 URI",
+      "name": "training_data_s3_uri",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "S3 URI receiving classifier output",
+      "group": "General",
+      "label": "Output data S3 URI",
+      "name": "output_data_s3_uri",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "connect": [
     {
       "description": "Identity management type for the Connect instance",
@@ -3251,6 +3298,35 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "kendra": [
+    {
+      "default": "search-index",
+      "description": "Kendra index name",
+      "group": "General",
+      "label": "Index name",
+      "name": "index_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "IAM role ARN used by Kendra",
+      "group": "General",
+      "label": "Role ARN",
+      "name": "role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "DEVELOPER_EDITION",
+      "description": "Kendra index edition",
+      "group": "General",
+      "label": "Edition",
+      "name": "edition",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "keyspaces": [
     {
       "default": "application",
@@ -3963,6 +4039,44 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "tags",
       "required": false,
       "type": "map"
+    }
+  ],
+  "lex": [
+    {
+      "default": "assistant",
+      "description": "Lex bot name",
+      "group": "General",
+      "label": "Bot name",
+      "name": "bot_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "IAM role ARN used by Lex",
+      "group": "General",
+      "label": "Role ARN",
+      "name": "role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 300,
+      "description": "Idle session timeout in seconds",
+      "group": "General",
+      "label": "Idle session TTL in seconds",
+      "name": "idle_session_ttl_in_seconds",
+      "required": false,
+      "type": "number"
+    },
+    {
+      "default": false,
+      "description": "Whether the bot is directed at children",
+      "group": "General",
+      "label": "Child directed",
+      "name": "child_directed",
+      "required": false,
+      "type": "bool"
     }
   ],
   "lightsail": [
@@ -4722,6 +4836,17 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "group": "General",
       "label": "Master username",
       "name": "master_username",
+      "required": false,
+      "type": "string"
+    }
+  ],
+  "rekognition": [
+    {
+      "default": "faces",
+      "description": "Face collection identifier",
+      "group": "General",
+      "label": "Collection ID",
+      "name": "collection_id",
       "required": false,
       "type": "string"
     }
@@ -5883,6 +6008,34 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "database_name",
       "required": false,
       "type": "string"
+    }
+  ],
+  "transcribe": [
+    {
+      "default": "custom-vocabulary",
+      "description": "Vocabulary name",
+      "group": "General",
+      "label": "Vocabulary name",
+      "name": "vocabulary_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "en-US",
+      "description": "Vocabulary language code",
+      "group": "General",
+      "label": "Language code",
+      "name": "language_code",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Words and phrases in the vocabulary",
+      "group": "General",
+      "label": "Phrases",
+      "name": "phrases",
+      "required": false,
+      "type": "list"
     }
   ],
   "vpc": [
