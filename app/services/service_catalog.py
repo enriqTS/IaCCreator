@@ -256,6 +256,7 @@ _RETIRED = {
     ServiceType.ALEXA_FOR_BUSINESS,
     ServiceType.DATA_PIPELINE,
     ServiceType.GLUE_ELASTIC_VIEWS,
+    ServiceType.KINESIS_DATA_ANALYTICS,
     ServiceType.HONEYCODE,
     ServiceType.WORKLINK,
     ServiceType.GAMEKIT,

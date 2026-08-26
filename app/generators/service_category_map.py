@@ -65,6 +65,9 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.MSK: "analytics",
     ServiceType.OPENSEARCH: "analytics",
     ServiceType.REDSHIFT: "analytics",
+    ServiceType.QUICKSIGHT: "analytics",
+    ServiceType.LAKE_FORMATION: "analytics",
+    ServiceType.DATAZONE: "analytics",
     # Developer Tools
     ServiceType.CODEARTIFACT: "developer-tools",
     ServiceType.X_RAY: "developer-tools",

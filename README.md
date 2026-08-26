@@ -68,6 +68,9 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - ECR
 
 **Analytics:**
+- QuickSight namespaces
+- Lake Formation resource registration
+- DataZone domains
 - Athena
 - CloudSearch
 - EMR

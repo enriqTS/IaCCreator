@@ -339,7 +339,8 @@ def resource_instance_ir_strategy(draw):
         resource_instance_ir_strategy(),
         min_size=1,
         max_size=5,
-    ).filter(lambda insts: len({i.name for i in insts}) == len(insts))
+        unique_by=lambda instance: instance.name,
+    )
 )
 @settings(max_examples=50)
 def test_property_3_tfvars_variables_tf_correspondence(instances):

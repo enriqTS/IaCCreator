@@ -2093,6 +2093,42 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "datazone": [
+    {
+      "description": "Domain description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "data-domain",
+      "description": "DataZone domain name",
+      "group": "General",
+      "label": "Domain name",
+      "name": "domain_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "DataZone domain execution role ARN",
+      "group": "General",
+      "label": "Domain execution role",
+      "name": "domain_execution_role",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "KMS key ARN or ID",
+      "group": "General",
+      "label": "KMS key identifier",
+      "name": "kms_key_identifier",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "documentdb": [
     {
       "description": "Identifier for the DocumentDB cluster",
@@ -3176,6 +3212,56 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "group": "General",
       "label": "Multi region",
       "name": "multi_region",
+      "required": false,
+      "type": "bool"
+    }
+  ],
+  "lake-formation": [
+    {
+      "default": "",
+      "description": "S3 resource ARN registered with Lake Formation",
+      "group": "General",
+      "label": "Resource ARN",
+      "name": "resource_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Use the Lake Formation service-linked role",
+      "group": "General",
+      "label": "Use service linked role",
+      "name": "use_service_linked_role",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "description": "IAM role used to access the resource",
+      "group": "General",
+      "label": "Role ARN",
+      "name": "role_arn",
+      "required": false,
+      "type": "string",
+      "visible_when": {
+        "equals": false,
+        "field": "use_service_linked_role"
+      }
+    },
+    {
+      "default": false,
+      "description": "Enable hybrid IAM and Lake Formation permissions",
+      "group": "General",
+      "label": "Hybrid access enabled",
+      "name": "hybrid_access_enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": false,
+      "description": "Enable access through a federated catalog",
+      "group": "General",
+      "label": "With federation",
+      "name": "with_federation",
       "required": false,
       "type": "bool"
     }
@@ -4273,6 +4359,46 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "app_name",
       "required": false,
       "type": "string"
+    }
+  ],
+  "quicksight": [
+    {
+      "default": "default",
+      "description": "QuickSight namespace name",
+      "group": "General",
+      "label": "Namespace name",
+      "name": "namespace_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "AWS account ID",
+      "group": "General",
+      "label": "AWS account ID",
+      "name": "aws_account_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "QUICKSIGHT",
+      "description": "Namespace identity store",
+      "group": "General",
+      "label": "Identity store",
+      "name": "identity_store",
+      "options": [
+        {
+          "label": "QuickSight",
+          "value": "QUICKSIGHT"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "QUICKSIGHT"
+        ]
+      }
     }
   ],
   "rds": [

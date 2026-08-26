@@ -503,10 +503,10 @@ Promote the most useful existing typed services:
 - MemoryDB for Redis — implemented
 - CodeArtifact — implemented
 - X-Ray — implemented
-- QuickSight
-- Lake Formation
-- DataZone
-- Kinesis Data Analytics
+- QuickSight — implemented
+- Lake Formation — implemented
+- DataZone — implemented
+- Kinesis Data Analytics — retired; SQL applications reached end of support in January 2026
 - WorkSpaces
 
 Resolve service identity before implementation:

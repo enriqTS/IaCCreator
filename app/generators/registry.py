@@ -46,6 +46,7 @@ from app.generators.cognito_generator import CognitoGenerator
 
 # Business Applications generators
 from app.generators.connect_generator import ConnectGenerator
+from app.generators.datazone_generator import DataZoneGenerator
 from app.generators.dms_generator import DmsGenerator
 from app.generators.documentdb_generator import DocumentDBGenerator
 from app.generators.dynamodb_generator import DynamoDBGenerator
@@ -71,6 +72,7 @@ from app.generators.keyspaces_generator import KeyspacesGenerator
 from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
 from app.generators.kinesis_generator import KinesisGenerator
 from app.generators.kms_generator import KmsGenerator
+from app.generators.lake_formation_generator import LakeFormationGenerator
 from app.generators.lambda_generator import LambdaGenerator
 from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.load_balancer_generator import LoadBalancerGenerator
@@ -82,6 +84,7 @@ from app.generators.nat_gateway_generator import NatGatewayGenerator
 from app.generators.neptune_generator import NeptuneGenerator
 from app.generators.opensearch_generator import OpenSearchGenerator
 from app.generators.pinpoint_generator import PinpointGenerator
+from app.generators.quicksight_generator import QuickSightGenerator
 from app.generators.rds_generator import RDSGenerator
 from app.generators.redshift_generator import RedshiftGenerator
 from app.generators.route53_generator import Route53Generator
@@ -155,6 +158,9 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.MSK: MSKGenerator(),
     ServiceType.OPENSEARCH: OpenSearchGenerator(),
     ServiceType.REDSHIFT: RedshiftGenerator(),
+    ServiceType.QUICKSIGHT: QuickSightGenerator(),
+    ServiceType.LAKE_FORMATION: LakeFormationGenerator(),
+    ServiceType.DATAZONE: DataZoneGenerator(),
     # Business Applications
     ServiceType.CONNECT: ConnectGenerator(),
     ServiceType.SES: SESGenerator(),

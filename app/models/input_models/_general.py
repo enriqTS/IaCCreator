@@ -402,6 +402,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.codepipeline_config import CodePipelineConfig
     from app.models.input_models.cognito_config import CognitoConfig
     from app.models.input_models.connect_config import ConnectConfig
+    from app.models.input_models.datazone_config import DataZoneConfig
     from app.models.input_models.dms_config import DmsConfig
     from app.models.input_models.documentdb_config import DocumentDbConfig
     from app.models.input_models.dynamodb_config import DynamoDBConfig
@@ -424,6 +425,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.kinesis_config import KinesisConfig
     from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
     from app.models.input_models.kms_config import KmsConfig
+    from app.models.input_models.lake_formation_config import LakeFormationConfig
     from app.models.input_models.lambda_config import LambdaConfig
     from app.models.input_models.lightsail_config import LightsailConfig
     from app.models.input_models.load_balancer_config import LoadBalancerConfig
@@ -435,6 +437,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.neptune_config import NeptuneConfig
     from app.models.input_models.opensearch_config import OpenSearchConfig
     from app.models.input_models.pinpoint_config import PinpointConfig
+    from app.models.input_models.quicksight_config import QuickSightConfig
     from app.models.input_models.rds_config import RdsConfig
     from app.models.input_models.redshift_config import RedshiftConfig
     from app.models.input_models.route53_config import Route53Config
@@ -505,6 +508,9 @@ def _build_service_config_models() -> dict:
         ServiceType.MSK: MskConfig,
         ServiceType.OPENSEARCH: OpenSearchConfig,
         ServiceType.REDSHIFT: RedshiftConfig,
+        ServiceType.QUICKSIGHT: QuickSightConfig,
+        ServiceType.LAKE_FORMATION: LakeFormationConfig,
+        ServiceType.DATAZONE: DataZoneConfig,
         ServiceType.CONNECT: ConnectConfig,
         ServiceType.SES: SesConfig,
         ServiceType.PINPOINT: PinpointConfig,

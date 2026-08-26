@@ -95,6 +95,9 @@ EXPECTED_SERVICE_TYPES = {
     "msk",
     "opensearch",
     "redshift",
+    "quicksight",
+    "lake-formation",
+    "datazone",
     # Business Applications
     "connect",
     "ses",

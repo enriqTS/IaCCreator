@@ -98,6 +98,9 @@ FULL_GENERATOR_SERVICES = [
     ServiceType.MSK,
     ServiceType.OPENSEARCH,
     ServiceType.REDSHIFT,
+    ServiceType.QUICKSIGHT,
+    ServiceType.LAKE_FORMATION,
+    ServiceType.DATAZONE,
     ServiceType.CONNECT,
     ServiceType.SES,
     ServiceType.PINPOINT,
@@ -127,15 +130,12 @@ ICON_ONLY_SERVICES = [
     ServiceType.CLEAN_ROOMS,
     ServiceType.DATA_EXCHANGE,
     ServiceType.DATA_PIPELINE,
-    ServiceType.DATAZONE,
     ServiceType.FINSPACE,
     ServiceType.GLUE_DATABREW,
     ServiceType.GLUE_ELASTIC_VIEWS,
     ServiceType.KINESIS_DATA_ANALYTICS,
     ServiceType.KINESIS_DATA_STREAMS,
     ServiceType.KINESIS_VIDEO_STREAMS,
-    ServiceType.LAKE_FORMATION,
-    ServiceType.QUICKSIGHT,
     # Blockchain icon-only (2)
     ServiceType.MANAGED_BLOCKCHAIN,
     ServiceType.QUANTUM_LEDGER_DATABASE,
@@ -435,6 +435,21 @@ def test_property_2_conditional_config_field_inclusion(data, name):
 
 # Expected blocks per service: (resource_type_strings, variable_names, output_names)
 EXPECTED_BLOCKS: dict[ServiceType, tuple[list[str], list[str], list[str]]] = {
+    ServiceType.QUICKSIGHT: (
+        ['resource "aws_quicksight_namespace"'],
+        ["namespace_name", "aws_account_id", "identity_store"],
+        ["namespace_arn", "namespace_name"],
+    ),
+    ServiceType.LAKE_FORMATION: (
+        ['resource "aws_lakeformation_resource"'],
+        ["resource_arn", "use_service_linked_role"],
+        ["resource_arn"],
+    ),
+    ServiceType.DATAZONE: (
+        ['resource "aws_datazone_domain"'],
+        ["domain_name", "domain_execution_role"],
+        ["domain_id", "domain_arn"],
+    ),
     ServiceType.CODEARTIFACT: (
         [
             'resource "aws_codeartifact_domain"',
