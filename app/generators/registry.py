@@ -10,6 +10,7 @@ from app.generators.app_runner_generator import AppRunnerGenerator
 
 # End User Computing generators
 from app.generators.appstream_generator import AppStreamGenerator
+from app.generators.appsync_generator import AppSyncGenerator
 
 # Analytics generators
 from app.generators.athena_generator import AthenaGenerator
@@ -66,7 +67,9 @@ from app.generators.kms_generator import KmsGenerator
 from app.generators.lambda_generator import LambdaGenerator
 from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.load_balancer_generator import LoadBalancerGenerator
+from app.generators.mq_generator import MqGenerator
 from app.generators.msk_generator import MSKGenerator
+from app.generators.mwaa_generator import MwaaGenerator
 from app.generators.nat_gateway_generator import NatGatewayGenerator
 from app.generators.neptune_generator import NeptuneGenerator
 from app.generators.opensearch_generator import OpenSearchGenerator
@@ -82,6 +85,7 @@ from app.generators.security_group_generator import SecurityGroupGenerator
 from app.generators.ses_generator import SESGenerator
 from app.generators.sns_generator import SNSGenerator
 from app.generators.sqs_generator import SQSGenerator
+from app.generators.step_functions_generator import StepFunctionsGenerator
 from app.generators.subnet_generator import SubnetGenerator
 from app.generators.target_group_generator import TargetGroupGenerator
 from app.generators.timestream_generator import TimestreamGenerator
@@ -117,6 +121,10 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.EBS: EbsGenerator(),
     ServiceType.EFS: EfsGenerator(),
     ServiceType.BACKUP: BackupGenerator(),
+    ServiceType.STEP_FUNCTIONS: StepFunctionsGenerator(),
+    ServiceType.APPSYNC: AppSyncGenerator(),
+    ServiceType.MQ: MqGenerator(),
+    ServiceType.MWAA: MwaaGenerator(),
     ServiceType.EC2: EC2Generator(),
     ServiceType.ECS: ECSGenerator(),
     ServiceType.EKS: EKSGenerator(),

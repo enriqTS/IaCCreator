@@ -51,6 +51,12 @@ class ServiceType(StrEnum):
     EFS = "efs"
     BACKUP = "backup"
 
+    # Application integration – full-generator services
+    STEP_FUNCTIONS = "step-functions"
+    APPSYNC = "appsync"
+    MQ = "mq"
+    MWAA = "mwaa"
+
     # Compute – full-generator services
     EC2 = "ec2"
     ECS = "ecs"
@@ -371,6 +377,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.api_gateway_config import ApiGatewayConfig
     from app.models.input_models.app_runner_config import AppRunnerConfig
     from app.models.input_models.appstream_config import AppStreamConfig
+    from app.models.input_models.appsync_config import AppSyncConfig
     from app.models.input_models.athena_config import AthenaConfig
     from app.models.input_models.aurora_config import AuroraConfig
     from app.models.input_models.backup_config import BackupConfig
@@ -413,7 +420,9 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.lambda_config import LambdaConfig
     from app.models.input_models.lightsail_config import LightsailConfig
     from app.models.input_models.load_balancer_config import LoadBalancerConfig
+    from app.models.input_models.mq_config import MqConfig
     from app.models.input_models.msk_config import MskConfig
+    from app.models.input_models.mwaa_config import MwaaConfig
     from app.models.input_models.nat_gateway_config import NatGatewayConfig
     from app.models.input_models.neptune_config import NeptuneConfig
     from app.models.input_models.opensearch_config import OpenSearchConfig
@@ -429,6 +438,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.ses_config import SesConfig
     from app.models.input_models.sns_config import SnsConfig
     from app.models.input_models.sqs_config import SqsConfig
+    from app.models.input_models.step_functions_config import StepFunctionsConfig
     from app.models.input_models.subnet_config import SubnetConfig
     from app.models.input_models.target_group_config import TargetGroupConfig
     from app.models.input_models.timestream_config import TimestreamConfig
@@ -462,6 +472,10 @@ def _build_service_config_models() -> dict:
         ServiceType.EBS: EbsConfig,
         ServiceType.EFS: EfsConfig,
         ServiceType.BACKUP: BackupConfig,
+        ServiceType.STEP_FUNCTIONS: StepFunctionsConfig,
+        ServiceType.APPSYNC: AppSyncConfig,
+        ServiceType.MQ: MqConfig,
+        ServiceType.MWAA: MwaaConfig,
         ServiceType.EC2: Ec2Config,
         ServiceType.ECS: EcsConfig,
         ServiceType.EKS: EksConfig,

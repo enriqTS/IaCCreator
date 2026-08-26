@@ -39,6 +39,11 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.TARGET_GROUP: "networking",
     ServiceType.ROUTE53: "networking",
     ServiceType.CLOUDFRONT: "networking",
+    # Application integration
+    ServiceType.STEP_FUNCTIONS: "app-integration",
+    ServiceType.APPSYNC: "app-integration",
+    ServiceType.MQ: "app-integration",
+    ServiceType.MWAA: "app-integration",
     # Log/Monitoring
     ServiceType.CLOUDWATCH: "log",
     # Messaging

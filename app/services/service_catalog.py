@@ -196,6 +196,10 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.EVENTBRIDGE,
         ServiceType.SNS,
         ServiceType.SQS,
+        ServiceType.STEP_FUNCTIONS,
+        ServiceType.APPSYNC,
+        ServiceType.MQ,
+        ServiceType.MWAA,
     },
     "networking": {
         ServiceType.VPC,

@@ -676,6 +676,63 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "appsync": [
+    {
+      "default": "API_KEY",
+      "description": "Default API authentication type",
+      "group": "General",
+      "label": "Authentication type",
+      "name": "authentication_type",
+      "options": [
+        {
+          "label": "API key",
+          "value": "API_KEY"
+        },
+        {
+          "label": "AWS IAM",
+          "value": "AWS_IAM"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "API_KEY",
+          "AWS_IAM"
+        ]
+      }
+    },
+    {
+      "default": true,
+      "description": "Create an API key",
+      "group": "General",
+      "label": "Create API key",
+      "name": "create_api_key",
+      "required": false,
+      "type": "bool",
+      "visible_when": {
+        "equals": "API_KEY",
+        "field": "authentication_type"
+      }
+    },
+    {
+      "description": "Optional GraphQL schema document",
+      "group": "General",
+      "label": "Schema definition",
+      "name": "schema_definition",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Enable AWS X-Ray tracing",
+      "group": "General",
+      "label": "Xray enabled",
+      "name": "xray_enabled",
+      "required": false,
+      "type": "bool"
+    }
+  ],
   "athena": [
     {
       "description": "Name of the Athena workgroup",
@@ -3399,6 +3456,103 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "mq": [
+    {
+      "default": "5.18",
+      "description": "ActiveMQ engine version",
+      "group": "General",
+      "label": "Engine version",
+      "name": "engine_version",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "mq.t3.micro",
+      "description": "Broker instance type",
+      "group": "General",
+      "label": "Host instance type",
+      "name": "host_instance_type",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "SINGLE_INSTANCE",
+      "description": "Broker deployment mode",
+      "group": "General",
+      "label": "Deployment mode",
+      "name": "deployment_mode",
+      "options": [
+        {
+          "label": "Single instance",
+          "value": "SINGLE_INSTANCE"
+        },
+        {
+          "label": "Active/standby multi-AZ",
+          "value": "ACTIVE_STANDBY_MULTI_AZ"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "SINGLE_INSTANCE",
+          "ACTIVE_STANDBY_MULTI_AZ"
+        ]
+      }
+    },
+    {
+      "description": "Broker subnet IDs",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "Broker security group IDs",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "default": false,
+      "description": "Allow public broker access",
+      "group": "General",
+      "label": "Publicly accessible",
+      "name": "publicly_accessible",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": "admin",
+      "description": "Initial broker username",
+      "group": "General",
+      "label": "Username",
+      "name": "username",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Initial broker password",
+      "group": "General",
+      "label": "Password",
+      "name": "password",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Automatically install minor engine upgrades",
+      "group": "General",
+      "label": "Auto minor version upgrade",
+      "name": "auto_minor_version_upgrade",
+      "required": false,
+      "type": "bool"
+    }
+  ],
   "msk": [
     {
       "description": "Name of the MSK cluster",
@@ -3423,6 +3577,117 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "number_of_broker_nodes",
       "required": false,
       "type": "number"
+    }
+  ],
+  "mwaa": [
+    {
+      "default": "",
+      "description": "MWAA execution role ARN",
+      "group": "General",
+      "label": "Execution role ARN",
+      "name": "execution_role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "S3 bucket ARN containing workflow files",
+      "group": "General",
+      "label": "Source bucket ARN",
+      "name": "source_bucket_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "dags",
+      "description": "DAG directory path in the source bucket",
+      "group": "General",
+      "label": "Dag S3 path",
+      "name": "dag_s3_path",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Two private subnet IDs",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "Environment security group IDs",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "default": "mw1.small",
+      "description": "MWAA environment class",
+      "group": "General",
+      "label": "Environment class",
+      "name": "environment_class",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 10,
+      "description": "Maximum worker count",
+      "group": "General",
+      "label": "Max workers",
+      "name": "max_workers",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 1
+      }
+    },
+    {
+      "default": 1,
+      "description": "Minimum worker count",
+      "group": "General",
+      "label": "Min workers",
+      "name": "min_workers",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 1
+      }
+    },
+    {
+      "default": "PRIVATE_ONLY",
+      "description": "Web server network access",
+      "group": "General",
+      "label": "Webserver access mode",
+      "name": "webserver_access_mode",
+      "options": [
+        {
+          "label": "Private only",
+          "value": "PRIVATE_ONLY"
+        },
+        {
+          "label": "Public",
+          "value": "PUBLIC_ONLY"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "PRIVATE_ONLY",
+          "PUBLIC_ONLY"
+        ]
+      }
+    },
+    {
+      "description": "Optional Apache Airflow version",
+      "group": "General",
+      "label": "Airflow version",
+      "name": "airflow_version",
+      "required": false,
+      "type": "string"
     }
   ],
   "nat-gateway": [
@@ -4430,6 +4695,60 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "tags",
       "required": false,
       "type": "map"
+    }
+  ],
+  "step-functions": [
+    {
+      "default": "",
+      "description": "IAM execution role ARN",
+      "group": "General",
+      "label": "Role ARN",
+      "name": "role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "{\"StartAt\":\"Pass\",\"States\":{\"Pass\":{\"Type\":\"Pass\",\"End\":true}}}",
+      "description": "Amazon States Language definition as JSON",
+      "group": "General",
+      "label": "Definition",
+      "name": "definition",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "STANDARD",
+      "description": "Workflow execution type",
+      "group": "General",
+      "label": "State machine type",
+      "name": "state_machine_type",
+      "options": [
+        {
+          "label": "Standard",
+          "value": "STANDARD"
+        },
+        {
+          "label": "Express",
+          "value": "EXPRESS"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "STANDARD",
+          "EXPRESS"
+        ]
+      }
+    },
+    {
+      "default": false,
+      "description": "Publish a version when the state machine changes",
+      "group": "General",
+      "label": "Publish",
+      "name": "publish",
+      "required": false,
+      "type": "bool"
     }
   ],
   "subnet": [

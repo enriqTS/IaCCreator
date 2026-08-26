@@ -37,6 +37,11 @@ export type ServiceType =
   | 'ebs'
   | 'efs'
   | 'backup'
+  // Application integration — full-generator services
+  | 'step-functions'
+  | 'appsync'
+  | 'mq'
+  | 'mwaa'
   // Compute — full-generator services
   | 'ec2'
   | 'elastic-beanstalk'

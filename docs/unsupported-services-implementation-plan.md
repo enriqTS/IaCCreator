@@ -485,10 +485,10 @@ Where appropriate, later extend the same model with VPC endpoints, network ACLs,
 
 ### Application integration
 
-- Step Functions
-- AppSync
-- Amazon MQ
-- Managed Workflows for Apache Airflow
+- Step Functions — implemented
+- AppSync — implemented
+- Amazon MQ — implemented
+- Managed Workflows for Apache Airflow — implemented
 
 Phase 2 should establish reusable networking identifiers and outputs needed by compute, database, storage, and security services.
 

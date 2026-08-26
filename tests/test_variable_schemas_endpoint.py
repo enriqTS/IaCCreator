@@ -69,6 +69,11 @@ EXPECTED_SERVICE_TYPES = {
     "ebs",
     "efs",
     "backup",
+    # Application integration
+    "step-functions",
+    "appsync",
+    "mq",
+    "mwaa",
     "ec2",
     "ecs",
     "eks",

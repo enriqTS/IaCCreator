@@ -48,6 +48,12 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - EFS file systems and mount targets
 - AWS Backup vaults and plans
 
+**Application integration:**
+- Step Functions state machines
+- AppSync GraphQL APIs
+- Amazon MQ brokers
+- Managed Workflows for Apache Airflow
+
 **Compute:**
 - EC2
 - ECS
