@@ -110,6 +110,8 @@ FULL_GENERATOR_SERVICES = [
     ServiceType.DATABASE_MIGRATION_SERVICE,
     ServiceType.KEYSPACES,
     ServiceType.MEMORYDB,
+    ServiceType.CODEARTIFACT,
+    ServiceType.X_RAY,
     ServiceType.CODEBUILD,
     ServiceType.CODECOMMIT,
     ServiceType.CODEDEPLOY,
@@ -173,13 +175,11 @@ ICON_ONLY_SERVICES = [
     ServiceType.CLOUD_DEVELOPMENT_KIT,
     ServiceType.CLOUD9,
     ServiceType.CLOUDSHELL,
-    ServiceType.CODEARTIFACT,
     ServiceType.CODECATALYST,
     ServiceType.CODESTAR,
     ServiceType.COMMAND_LINE_INTERFACE,
     ServiceType.CORRETTO,
     ServiceType.TOOLS_AND_SDKS,
-    ServiceType.X_RAY,
     # End User Computing icon-only (2)
     ServiceType.WORKLINK,
     ServiceType.WORKSPACES_FAMILY,
@@ -435,6 +435,19 @@ def test_property_2_conditional_config_field_inclusion(data, name):
 
 # Expected blocks per service: (resource_type_strings, variable_names, output_names)
 EXPECTED_BLOCKS: dict[ServiceType, tuple[list[str], list[str], list[str]]] = {
+    ServiceType.CODEARTIFACT: (
+        [
+            'resource "aws_codeartifact_domain"',
+            'resource "aws_codeartifact_repository"',
+        ],
+        ["domain_name", "repository_name"],
+        ["domain_arn", "repository_arn"],
+    ),
+    ServiceType.X_RAY: (
+        ['resource "aws_xray_group"'],
+        ["group_name", "filter_expression"],
+        ["group_arn", "group_name"],
+    ),
     ServiceType.DATABASE_MIGRATION_SERVICE: (
         ['resource "aws_dms_replication_instance"'],
         ["replication_instance_id", "replication_instance_class"],

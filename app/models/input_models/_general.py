@@ -395,6 +395,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.cloudfront_config import CloudFrontConfig
     from app.models.input_models.cloudsearch_config import CloudSearchConfig
     from app.models.input_models.cloudwatch_config import CloudWatchConfig
+    from app.models.input_models.codeartifact_config import CodeArtifactConfig
     from app.models.input_models.codebuild_config import CodeBuildConfig
     from app.models.input_models.codecommit_config import CodeCommitConfig
     from app.models.input_models.codedeploy_config import CodeDeployConfig
@@ -451,6 +452,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.timestream_config import TimestreamConfig
     from app.models.input_models.vpc_config import VpcConfig
     from app.models.input_models.waf_config import WafConfig
+    from app.models.input_models.xray_config import XRayConfig
 
     return {
         ServiceType.LAMBDA: LambdaConfig,
@@ -515,6 +517,8 @@ def _build_service_config_models() -> dict:
         ServiceType.DATABASE_MIGRATION_SERVICE: DmsConfig,
         ServiceType.KEYSPACES: KeyspacesConfig,
         ServiceType.MEMORYDB: MemoryDbConfig,
+        ServiceType.CODEARTIFACT: CodeArtifactConfig,
+        ServiceType.X_RAY: XRayConfig,
         ServiceType.CODEBUILD: CodeBuildConfig,
         ServiceType.CODECOMMIT: CodeCommitConfig,
         ServiceType.CODEDEPLOY: CodeDeployConfig,

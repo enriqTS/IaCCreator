@@ -90,6 +90,8 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - Timestream
 
 **Developer Tools:**
+- CodeArtifact
+- X-Ray trace groups
 - CodeBuild
 - CodeCommit
 - CodeDeploy

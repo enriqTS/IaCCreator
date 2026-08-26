@@ -35,6 +35,7 @@ from app.generators.bedrock_knowledge_base_generator import (
 from app.generators.cloudfront_generator import CloudFrontGenerator
 from app.generators.cloudsearch_generator import CloudSearchGenerator
 from app.generators.cloudwatch_generator import CloudWatchGenerator
+from app.generators.codeartifact_generator import CodeArtifactGenerator
 
 # Developer Tools generators
 from app.generators.codebuild_generator import CodeBuildGenerator
@@ -98,6 +99,7 @@ from app.generators.target_group_generator import TargetGroupGenerator
 from app.generators.timestream_generator import TimestreamGenerator
 from app.generators.vpc_generator import VpcGenerator
 from app.generators.waf_generator import WafGenerator
+from app.generators.xray_generator import XRayGenerator
 from app.models.input_models import ServiceType
 
 GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
@@ -168,6 +170,8 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.KEYSPACES: KeyspacesGenerator(),
     ServiceType.MEMORYDB: MemoryDbGenerator(),
     # Developer Tools
+    ServiceType.CODEARTIFACT: CodeArtifactGenerator(),
+    ServiceType.X_RAY: XRayGenerator(),
     ServiceType.CODEBUILD: CodeBuildGenerator(),
     ServiceType.CODECOMMIT: CodeCommitGenerator(),
     ServiceType.CODEDEPLOY: CodeDeployGenerator(),

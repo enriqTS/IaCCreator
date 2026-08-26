@@ -789,7 +789,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "required": false,
       "type": "number",
       "validation": {
-        "min": 0.1
+        "min": 1
       }
     },
     {
@@ -1791,6 +1791,50 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "tags",
       "required": false,
       "type": "map"
+    }
+  ],
+  "codeartifact": [
+    {
+      "description": "Repository description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "artifact-domain",
+      "description": "CodeArtifact domain name",
+      "group": "General",
+      "label": "Domain name",
+      "name": "domain_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "packages",
+      "description": "CodeArtifact repository name",
+      "group": "General",
+      "label": "Repository name",
+      "name": "repository_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "KMS key ARN for domain encryption",
+      "group": "General",
+      "label": "KMS key",
+      "name": "kms_key",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Repositories used as upstream sources",
+      "group": "General",
+      "label": "Upstream repository names",
+      "name": "upstream_repository_names",
+      "required": false,
+      "type": "list"
     }
   ],
   "codebuild": [
@@ -5516,6 +5560,44 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "group": "General",
       "label": "Sampled requests enabled",
       "name": "sampled_requests_enabled",
+      "required": false,
+      "type": "bool"
+    }
+  ],
+  "x-ray": [
+    {
+      "default": "application-traces",
+      "description": "X-Ray group name",
+      "group": "General",
+      "label": "Group name",
+      "name": "group_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "responsetime > 5",
+      "description": "Trace filter expression",
+      "group": "General",
+      "label": "Filter expression",
+      "name": "filter_expression",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": false,
+      "description": "Enable X-Ray Insights",
+      "group": "General",
+      "label": "Insights enabled",
+      "name": "insights_enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": false,
+      "description": "Enable Insights notifications",
+      "group": "General",
+      "label": "Notifications enabled",
+      "name": "notifications_enabled",
       "required": false,
       "type": "bool"
     }

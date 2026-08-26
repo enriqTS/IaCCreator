@@ -110,6 +110,8 @@ EXPECTED_SERVICE_TYPES = {
     "keyspaces",
     "memorydb",
     # Developer Tools
+    "codeartifact",
+    "x-ray",
     "codebuild",
     "codecommit",
     "codedeploy",

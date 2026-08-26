@@ -501,8 +501,8 @@ Promote the most useful existing typed services:
 - Database Migration Service — implemented
 - Keyspaces — implemented
 - MemoryDB for Redis — implemented
-- CodeArtifact
-- X-Ray
+- CodeArtifact — implemented
+- X-Ray — implemented
 - QuickSight
 - Lake Formation
 - DataZone

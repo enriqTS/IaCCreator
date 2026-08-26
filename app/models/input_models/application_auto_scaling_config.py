@@ -61,7 +61,7 @@ class ApplicationAutoScalingConfig(BaseServiceConfig):
         ],
     )
     target_value: float = TerraformField(
-        70.0, description="Metric target value", validation=ValidationRule(min=0.1)
+        70.0, description="Metric target value", validation=ValidationRule(min=1)
     )
     scale_in_cooldown: int = TerraformField(
         300,
