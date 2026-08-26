@@ -37,8 +37,6 @@ export interface SchemaField {
   linkedConfigPath?: string;
   /** Property name within each array entry to display as option label (e.g., "path") */
   displayKey?: string;
-  /** Template object for creating new entries (displayKey is overwritten with user input) */
-  createTemplate?: Record<string, unknown>;
   /** Template key that receives the connected resource's name */
   targetNameKey?: string;
   /** Template key that receives the connected resource's stable id */

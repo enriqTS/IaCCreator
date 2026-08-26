@@ -114,7 +114,7 @@ describe('DiagramStore - updateDiagramOnServer', () => {
   });
 
   it('calls apiClient.updateDiagram with id and serialized state', async () => {
-    vi.mocked(apiClient.updateDiagram).mockResolvedValue({ ok: true, data: undefined });
+    vi.mocked(apiClient.updateDiagram).mockResolvedValue({ ok: true, data: { id: 'diagram-456' } });
 
     await useDiagramStore.getState().updateDiagramOnServer('diagram-456');
 
@@ -123,7 +123,7 @@ describe('DiagramStore - updateDiagramOnServer', () => {
   });
 
   it('shows success toast on update', async () => {
-    vi.mocked(apiClient.updateDiagram).mockResolvedValue({ ok: true, data: undefined });
+    vi.mocked(apiClient.updateDiagram).mockResolvedValue({ ok: true, data: { id: 'diagram-456' } });
     const addToast = vi.spyOn(useToastStore.getState(), 'addToast');
 
     await useDiagramStore.getState().updateDiagramOnServer('diagram-456');
@@ -152,7 +152,7 @@ describe('DiagramStore - updateDiagramOnServer', () => {
     const promise = useDiagramStore.getState().updateDiagramOnServer('id');
     expect(useDiagramStore.getState().isSaving).toBe(true);
 
-    resolveFn!({ ok: true, data: undefined });
+    resolveFn!({ ok: true, data: { id: 'id' } });
     await promise;
     expect(useDiagramStore.getState().isSaving).toBe(false);
   });

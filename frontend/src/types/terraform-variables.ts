@@ -64,43 +64,10 @@ export interface GlobalTerraformConfig {
   }[];
 }
 
-export const DEFAULT_GLOBAL_CONFIG: GlobalTerraformConfig = {
-  backend: { type: 'local', config: {} },
-  provider: { region: 'us-east-1' },
+export const EMPTY_GLOBAL_CONFIG: GlobalTerraformConfig = {
+  backend: { type: '', config: {} },
+  provider: { region: '' },
   versionConstraints: {},
   environments: [],
   globalVariables: [],
 };
-
-import { getSchemas } from '@/store/schema-store';
-
-/**
- * Returns a Record of variable names to their default values for a given service type.
- * Variables with a default use that value; string variables default to '',
- * number variables default to 0, and bool variables default to false.
- */
-export function getDefaultVariables(serviceType: string): Record<string, string | number | boolean> {
-  const schemas = getSchemas()[serviceType];
-  if (!schemas) return {};
-
-  const defaults: Record<string, string | number | boolean> = {};
-  for (const schema of schemas) {
-    if (schema.default !== undefined && schema.default !== null) {
-      defaults[schema.name] = schema.default;
-    } else {
-      switch (schema.type) {
-        case 'string':
-          defaults[schema.name] = '';
-          break;
-        case 'number':
-          defaults[schema.name] = 0;
-          break;
-        case 'bool':
-          defaults[schema.name] = false;
-          break;
-        // map and list types don't get simple defaults here
-      }
-    }
-  }
-  return defaults;
-}

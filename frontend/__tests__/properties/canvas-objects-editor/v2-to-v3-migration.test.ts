@@ -8,7 +8,6 @@ import {
   geometricShapeArbitrary,
 } from '../arbitraries';
 import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
-import { getDefaultVariables } from '@/types/terraform-variables';
 
 describe('Property 13: v2 to v3 migration preserves existing objects', () => {
   beforeEach(() => {
@@ -75,7 +74,7 @@ describe('Property 13: v2 to v3 migration preserves existing objects', () => {
               y: b.y,
               serviceType: b.serviceType,
               config: {},
-              terraformVariables: getDefaultVariables(b.serviceType),
+              terraformVariables: {},
               visualConfig: { ...DEFAULT_BLOCK_VISUAL } as Record<string, unknown>,
               zIndex: zIdx++,
             });

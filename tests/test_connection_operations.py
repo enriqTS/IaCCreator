@@ -61,7 +61,7 @@ def test_create_update_remove_linked_entry() -> None:
             entry_values={"methods": ["GET"]},
         ),
     )
-    route = created.canvasObjects[0].model_extra["config"]["routes"][0]
+    route = created.canvasObjects[0].config["routes"][0]
     assert route["integration_id"] == "fn"
     assert route["integration_name"] == "handler"
     assert route["methods"] == ["GET"]
@@ -77,9 +77,7 @@ def test_create_update_remove_linked_entry() -> None:
             entry_field_value=["POST"],
         ),
     )
-    assert updated.canvasObjects[0].model_extra["config"]["routes"][0]["methods"] == [
-        "POST"
-    ]
+    assert updated.canvasObjects[0].config["routes"][0]["methods"] == ["POST"]
 
     removed = service.apply(
         updated,
@@ -90,4 +88,4 @@ def test_create_update_remove_linked_entry() -> None:
             display_value="/users",
         ),
     )
-    assert removed.canvasObjects[0].model_extra["config"]["routes"] == []
+    assert removed.canvasObjects[0].config["routes"] == []

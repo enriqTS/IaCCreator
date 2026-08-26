@@ -17,9 +17,9 @@ class DiagramConverter:
             {
                 "id": obj.id,
                 "name": obj.name,
-                "service_type": obj.model_extra.get("serviceType"),
-                "config": obj.model_extra.get("config") or {},
-                "terraform_variables": obj.model_extra.get("terraformVariables") or {},
+                "service_type": obj.serviceType,
+                "config": obj.config,
+                "terraform_variables": obj.terraformVariables,
             }
             for obj in blocks.values()
         ]
@@ -30,17 +30,15 @@ class DiagramConverter:
                 "source_id": connector.sourceId,
                 "target_id": connector.targetId,
                 "connection_type": connector.connectionType,
-                "connection_config": connector.model_extra.get("connection_config")
-                or connector.connectionConfig
-                or {},
+                "connection_config": connector.connection_config or {},
             }
             for connector in diagram.connectors
             if connector.sourceId in blocks and connector.targetId in blocks
         ]
-        global_config = diagram.globalTerraformConfig or {}
-        backend = global_config.get("backend", {})
-        provider = global_config.get("provider", {})
-        versions = global_config.get("versionConstraints", {})
+        global_config = diagram.globalTerraformConfig
+        backend = global_config.backend.model_dump()
+        provider = global_config.provider.model_dump()
+        versions = global_config.versionConstraints.model_dump()
         return ArchitectureDescription.model_validate(
             {
                 "project_name": diagram.projectName or "my-project",

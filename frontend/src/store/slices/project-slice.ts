@@ -5,7 +5,7 @@
 import type { StateCreator } from 'zustand';
 import type { ArchitectureBlock, EnvironmentConfig } from '@/types/diagram';
 import type { GlobalTerraformConfig } from '@/types/terraform-variables';
-import { DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
+import { EMPTY_GLOBAL_CONFIG } from '@/types/terraform-variables';
 import type { DiagramStore } from './store-types';
 
 export interface ProjectSlice {
@@ -36,7 +36,7 @@ export const createProjectSlice: StateCreator<DiagramStore, [], [], ProjectSlice
     },
 
     // --- Terraform variables ---
-    globalTerraformConfig: { ...DEFAULT_GLOBAL_CONFIG },
+    globalTerraformConfig: structuredClone(EMPTY_GLOBAL_CONFIG),
 
     setTerraformVariable: (objectId: string, varName: string, value: string | number | boolean): void => {
       const existing = get().canvasObjects.get(objectId);

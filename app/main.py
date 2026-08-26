@@ -4,8 +4,10 @@ import logging
 import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+from pydantic import ValidationError
 
 from app.exception_handlers import domain_error_handler
 from app.exceptions import DomainError
@@ -55,6 +57,7 @@ from app.services.openapi.models import (
 )
 from app.services.openapi.parser import parse_openapi
 from app.services.output_serializer import OutputSerializer
+from app.services.resource_initializer import ResourceInitializer
 from app.services.session_manager import SessionManager
 
 configure_logging()
@@ -103,6 +106,7 @@ _previewer = ConnectionPreviewer()
 _diagram_converter = DiagramConverter()
 _diagram_normalizer = DiagramNormalizer()
 _connection_operations = ConnectionOperationService()
+_resource_initializer = ResourceInitializer()
 
 
 def _build_summary(arch: ArchitectureDescription, file_tree: dict) -> GenerationSummary:
@@ -138,7 +142,7 @@ async def generate_zip(arch: ArchitectureDescription) -> Response:
                 "Content-Disposition": f'attachment; filename="{arch.project_name}.zip"'
             },
         )
-    except HTTPException:
+    except (HTTPException, DomainError):
         raise
     except Exception as exc:
         logger.error(
@@ -162,7 +166,7 @@ async def generate_json(arch: ArchitectureDescription) -> GenerationResponse:
         file_tree = _code_gen.generate(project_ir)
         summary = _build_summary(arch, file_tree)
         return GenerationResponse(files=file_tree, summary=summary)
-    except HTTPException:
+    except (HTTPException, DomainError):
         raise
     except Exception as exc:
         logger.error(
@@ -200,6 +204,8 @@ async def get_editor_bootstrap() -> EditorBootstrapResponse:
             "backend": {"type": "local", "config": {}},
             "provider": {"region": "us-east-1"},
             "versionConstraints": {},
+            "environments": [],
+            "globalVariables": [],
         },
         diagram_version=CURRENT_DIAGRAM_VERSION,
     )
@@ -210,33 +216,21 @@ async def initialize_resource(
     request: ResourceInitializationRequest,
 ) -> ResourceInitializationResponse:
     """Derive a unique resource name and typed defaults."""
-    service = ServiceType(request.service_type)
-    if service not in GENERATOR_REGISTRY:
-        raise HTTPException(status_code=422, detail="Service is not supported")
-    existing = set(request.existing_names)
-    index = 1
-    while f"{service.value}-{index}" in existing:
-        index += 1
-    model = _get_cached_service_config_models()[service]
-    config = {
-        name: field.get_default(call_default_factory=True)
-        for name, field in model.model_fields.items()
-        if not field.is_required()
-        and field.get_default(call_default_factory=True) is not None
-    }
-    variables = {}
-    if model.has_terraform_schema():
-        fallbacks = {"string": "", "number": 0, "bool": False}
-        variables = {
-            field.name: field.default
-            if field.default is not None
-            else fallbacks[field.type]
-            for field in model.get_variable_schema()
-            if field.default is not None or field.type in fallbacks
-        }
+    try:
+        name, config, variables = _resource_initializer.initialize(
+            request.service_type, request.existing_names
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     return ResourceInitializationResponse(
-        name=f"{service.value}-{index}", config=config, terraform_variables=variables
+        name=name, config=config, terraform_variables=variables
     )
+
+
+@app.post("/api/diagrams/normalize", response_model=DiagramStateInput)
+async def normalize_diagram(diagram: DiagramStateInput) -> DiagramStateInput:
+    """Return canonical state with backend-owned defaults and connection direction."""
+    return _diagram_normalizer.normalize(diagram.model_dump())
 
 
 @app.post("/api/diagrams/connections/apply", response_model=DiagramStateInput)
@@ -254,7 +248,10 @@ async def apply_connection_operation(
 async def diagram_architecture(diagram: DiagramStateInput) -> ArchitectureDescription:
     """Convert canonical editor state to generation input."""
     canonical = _diagram_normalizer.normalize(diagram.model_dump())
-    return _diagram_converter.convert(canonical)
+    try:
+        return _diagram_converter.convert(canonical)
+    except ValidationError as exc:
+        raise RequestValidationError(exc.errors()) from exc
 
 
 @app.post("/api/diagrams/generate/json", response_model=GenerationResponse)

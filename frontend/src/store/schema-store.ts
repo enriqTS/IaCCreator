@@ -33,6 +33,10 @@ export async function fetchSchemas(): Promise<ServiceVariableSchemas> {
 /**
  * Return the cached schemas synchronously, or the bundled fallback if not yet fetched.
  */
+export function hydrateSchemas(schemas: ServiceVariableSchemas): void {
+  cachedSchemas = schemas;
+}
+
 export function getSchemas(): ServiceVariableSchemas {
   return cachedSchemas ?? BUNDLED_SCHEMAS;
 }

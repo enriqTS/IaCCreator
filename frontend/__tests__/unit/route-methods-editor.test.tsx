@@ -15,7 +15,6 @@ const ROUTE_FIELD: SchemaField = {
   type: 'linkedSelect',
   linkedConfigPath: 'routes',
   displayKey: 'path',
-  createTemplate: { methods: ['ANY'], path: '', integration_name: '' },
   targetNameKey: 'integration_name',
   targetIdKey: 'integration_id',
   linkedEntryFields: [
@@ -90,6 +89,10 @@ function routesOf(sourceId: string): Record<string, unknown>[] {
 }
 
 function mockBackendOperations(): void {
+  vi.spyOn(apiClient, 'normalizeDiagram').mockImplementation(async (diagram) => ({
+    ok: true,
+    data: diagram,
+  }));
   vi.spyOn(apiClient, 'applyConnectionOperation').mockImplementation(async (diagram, operation) => {
     const next = structuredClone(diagram) as DiagramState;
     const connector = next.connectors.find((item) => item.id === operation.connector_id)!;

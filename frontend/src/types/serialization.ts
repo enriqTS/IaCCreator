@@ -16,7 +16,7 @@ import type { GlobalTerraformConfig } from './terraform-variables';
 /** Current serialization format version. */
 export const CURRENT_DIAGRAM_VERSION = 3;
 
-/** Full diagram state for save/load to localStorage. */
+/** Canonical diagram state exchanged with the backend. */
 export interface DiagramState {
   version: number;
   projectName: string;

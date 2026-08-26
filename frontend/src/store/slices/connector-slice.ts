@@ -6,7 +6,16 @@ import type { StateCreator } from 'zustand';
 import type { Connector } from '@/types/diagram';
 import { v4 as uuidv4 } from 'uuid';
 import { apiClient } from '@/utils/api-client';
+import { useToastStore } from '@/store/toast-store';
 import type { DiagramStore } from './store-types';
+
+let connectionOperationQueue: Promise<void> = Promise.resolve();
+
+function queueConnectionOperation<T>(operation: () => Promise<T>): Promise<T> {
+  const result = connectionOperationQueue.then(operation, operation);
+  connectionOperationQueue = result.then(() => undefined, () => undefined);
+  return result;
+}
 
 export interface ConnectorSlice {
   // Connector state
@@ -90,6 +99,35 @@ export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorS
         const next = new Map(state.connectors);
         next.set(id, connector);
         return { connectors: next };
+      });
+
+      void queueConnectionOperation(() =>
+        apiClient.normalizeDiagram(get().serializeDiagramState()),
+      ).then((result) => {
+        if (!result.ok) {
+          set((state) => {
+            const connectors = new Map(state.connectors);
+            connectors.delete(id);
+            return { connectors };
+          });
+          useToastStore.getState().addToast(result.error.message, 'error');
+          return;
+        }
+        const canonical = result.data.connectors.find((item) => item.id === id);
+        if (!canonical) return;
+        set((state) => {
+          const current = state.connectors.get(id);
+          if (!current) return state;
+          const connectors = new Map(state.connectors);
+          connectors.set(id, {
+            ...current,
+            sourceId: canonical.sourceId,
+            targetId: canonical.targetId,
+            connectionType: canonical.connectionType,
+            connectionConfig: canonical.connection_config,
+          });
+          return { connectors };
+        });
       });
 
       return id;
@@ -177,11 +215,16 @@ export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorS
       const block = get().canvasObjects.get(blockId);
       if (!block || block.objectType !== 'architecture-block') return;
       if (!get().connectors.has(connectorId)) return;
-      const result = await apiClient.applyConnectionOperation(get().serializeDiagramState(), {
-        operation: 'create', connector_id: connectorId, field_key: connectorConfigKey,
-        display_value: connectorConfigValue, entry_values: newEntry,
-      });
-      if (!result.ok) return;
+      const result = await queueConnectionOperation(() =>
+        apiClient.applyConnectionOperation(get().serializeDiagramState(), {
+          operation: 'create', connector_id: connectorId, field_key: connectorConfigKey,
+          display_value: connectorConfigValue, entry_values: newEntry,
+        }),
+      );
+      if (!result.ok) {
+        useToastStore.getState().addToast(result.error.message, 'error');
+        return;
+      }
       get().pushHistory();
       const canonicalBlock = result.data.canvasObjects?.find((item) => item.id === blockId);
       const canonicalConnector = result.data.connectors.find((item) => item.id === connectorId);
@@ -191,7 +234,13 @@ export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorS
         const currentBlock = canvasObjects.get(blockId);
         const currentConnector = connectors.get(connectorId);
         if (canonicalBlock?.config && currentBlock?.objectType === 'architecture-block') {
-          canvasObjects.set(blockId, { ...currentBlock, config: canonicalBlock.config });
+          canvasObjects.set(blockId, {
+            ...currentBlock,
+            config: {
+              ...currentBlock.config,
+              [configPath]: (canonicalBlock.config as Record<string, unknown>)[configPath],
+            },
+          });
         }
         if (canonicalConnector && currentConnector) {
           connectors.set(connectorId, {
@@ -215,11 +264,16 @@ export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorS
     ): Promise<void> => {
       const connector = get().connectors.get(connectorId);
       if (!connector || connector.sourceId !== blockId) return;
-      const result = await apiClient.applyConnectionOperation(get().serializeDiagramState(), {
-        operation: 'update', connector_id: connector.id, field_key: connectionFieldKey,
-        display_value: entryValue, entry_field_key: fieldKey, entry_field_value: fieldValue,
-      });
-      if (!result.ok) return;
+      const result = await queueConnectionOperation(() =>
+        apiClient.applyConnectionOperation(get().serializeDiagramState(), {
+          operation: 'update', connector_id: connector.id, field_key: connectionFieldKey,
+          display_value: entryValue, entry_field_key: fieldKey, entry_field_value: fieldValue,
+        }),
+      );
+      if (!result.ok) {
+        useToastStore.getState().addToast(result.error.message, 'error');
+        return;
+      }
       const canonicalBlock = result.data.canvasObjects?.find((item) => item.id === blockId);
       if (!canonicalBlock?.config) return;
       get().pushHistory();
@@ -227,7 +281,13 @@ export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorS
         const canvasObjects = new Map(state.canvasObjects);
         const current = canvasObjects.get(blockId);
         if (current?.objectType === 'architecture-block') {
-          canvasObjects.set(blockId, { ...current, config: canonicalBlock.config! });
+          canvasObjects.set(blockId, {
+            ...current,
+            config: {
+              ...current.config,
+              [configPath]: (canonicalBlock.config! as Record<string, unknown>)[configPath],
+            },
+          });
         }
         return { canvasObjects };
       });
@@ -242,11 +302,16 @@ export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorS
     ): Promise<void> => {
       const block = get().canvasObjects.get(blockId);
       if (!block || block.objectType !== 'architecture-block') return;
-      const result = await apiClient.applyConnectionOperation(get().serializeDiagramState(), {
-        operation: 'remove', source_block_id: blockId, field_key: connectorConfigKey,
-        display_value: removedValue,
-      });
-      if (!result.ok) return;
+      const result = await queueConnectionOperation(() =>
+        apiClient.applyConnectionOperation(get().serializeDiagramState(), {
+          operation: 'remove', source_block_id: blockId, field_key: connectorConfigKey,
+          display_value: removedValue,
+        }),
+      );
+      if (!result.ok) {
+        useToastStore.getState().addToast(result.error.message, 'error');
+        return;
+      }
       get().pushHistory();
       const canonicalBlock = result.data.canvasObjects?.find((item) => item.id === blockId);
       set((state) => {
@@ -254,7 +319,13 @@ export const createConnectorSlice: StateCreator<DiagramStore, [], [], ConnectorS
         const connectors = new Map(state.connectors);
         const currentBlock = canvasObjects.get(blockId);
         if (canonicalBlock?.config && currentBlock?.objectType === 'architecture-block') {
-          canvasObjects.set(blockId, { ...currentBlock, config: canonicalBlock.config });
+          canvasObjects.set(blockId, {
+            ...currentBlock,
+            config: {
+              ...currentBlock.config,
+              [configPath]: (canonicalBlock.config as Record<string, unknown>)[configPath],
+            },
+          });
         }
         for (const canonical of result.data.connectors) {
           const current = connectors.get(canonical.id);

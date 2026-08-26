@@ -24,7 +24,7 @@ export interface LinkedSelectFieldRendererProps {
   onChange: (key: string, value: string | number | boolean) => void;
   /** The source block to read linked config from */
   sourceBlock: ArchitectureBlock;
-  /** The target block (used for createTemplate interpolation) */
+  /** The target block used to identify entries returned by the backend. */
   targetBlock: ArchitectureBlock;
   /** Connector ID for atomic sync operations */
   connectorId: string;

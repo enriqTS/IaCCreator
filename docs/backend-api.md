@@ -21,6 +21,7 @@ The app configures CORS from `CORS_ORIGIN` (default `http://localhost:3000`), cr
 | GET | `/api/editor-bootstrap` | — | `EditorBootstrapResponse` |
 | POST | `/api/resources/initialize` | `ResourceInitializationRequest` | `ResourceInitializationResponse` |
 | POST | `/api/connections/preview` | `ArchitectureDescription` | `ConnectionPreviewResponse` |
+| POST | `/api/diagrams/normalize` | `DiagramStateInput` | `DiagramStateInput` |
 | POST | `/api/diagrams/architecture` | `DiagramStateInput` | `ArchitectureDescription` |
 | POST | `/api/diagrams/generate/json` | `DiagramStateInput` | `GenerationResponse` |
 | POST | `/api/diagrams/generate/zip` | `DiagramStateInput` | ZIP download |
@@ -61,4 +62,4 @@ Diagram CRUD is session scoped. Writes normalize and validate state before persi
 
 The editor bootstrap describes backend support and domain defaults. Resource initialization derives unique names, typed config defaults, and Terraform variable defaults. Diagram-based generation and preview convert canonical canvas state on the backend; the direct `/generate/*` endpoints remain available for API consumers.
 
-Linked connection entry creation, editing, and removal use `/api/diagrams/connections/apply`. The backend resolves the connection registry metadata, materializes templates and target bindings, and returns canonical diagram state; the frontend only submits user intent.
+Linked connection entry creation, editing, and removal use `/api/diagrams/connections/apply`. The backend resolves the connection registry metadata, materializes templates and target bindings, and returns canonical diagram state; the frontend only submits user intent. `/api/diagrams/normalize` also canonicalizes a newly drawn connector's direction and default connection type, so visual line direction has no domain meaning.

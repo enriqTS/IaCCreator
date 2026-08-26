@@ -2,11 +2,13 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, TypeAdapter, model_validator
 
 from app.models.diagram_state import VISUAL_MODELS, DiagramState
 from app.models.input_models import ServiceType
+from app.models.input_models._general import _get_cached_service_config_models
 from app.persistence.models import DiagramSummary
+from app.services.connection_handlers.registry import resolve_spec
 from app.services.diagram_migrations import migrate_diagram_state
 
 
@@ -44,18 +46,25 @@ class DiagramStateInput(DiagramState):
         group_ids = {group.id for group in self.objectGroups}
         if len(group_ids) != len(self.objectGroups):
             raise ValueError("Object group IDs must be unique")
+        config_models = _get_cached_service_config_models()
         for obj in self.canvasObjects:
             if obj.objectType not in VISUAL_MODELS:
                 raise ValueError(f"Unknown canvas object type: {obj.objectType}")
             if obj.objectType == "architecture-block":
-                service_type = obj.model_extra.get("serviceType")
-                try:
-                    ServiceType(service_type)
-                except ValueError as exc:
-                    raise ValueError(f"Unknown service type: {service_type}") from exc
+                model = config_models.get(obj.serviceType)
+                if model is not None:
+                    unknown = set(obj.config) - set(model.model_fields)
+                    if unknown:
+                        raise ValueError(
+                            f"Unknown {obj.serviceType.value} config fields: {sorted(unknown)}"
+                        )
+                    for name, value in obj.config.items():
+                        adapter = TypeAdapter(model.model_fields[name].annotation)
+                        validated = adapter.validate_python(value)
+                        obj.config[name] = adapter.dump_python(validated, mode="json")
             if obj.objectType == "line":
                 for key in ("sourceAnchorObjectId", "targetAnchorObjectId"):
-                    target = obj.model_extra.get(key)
+                    target = getattr(obj, key)
                     if target is not None and target not in object_ids:
                         raise ValueError(
                             f"Line {obj.id} references missing object {target}"
@@ -73,6 +82,50 @@ class DiagramStateInput(DiagramState):
             raise ValueError(
                 f"Connectors reference missing objects: {missing_connectors}"
             )
+        objects = {obj.id: obj for obj in self.canvasObjects}
+        for connector in self.connectors:
+            source = objects[connector.sourceId]
+            target = objects[connector.targetId]
+            if (
+                source.objectType != "architecture-block"
+                or target.objectType != "architecture-block"
+            ):
+                raise ValueError("Connectors must join architecture blocks")
+            config = connector.connection_config or {}
+            spec = resolve_spec(
+                source.serviceType,
+                target.serviceType,
+                connector.connectionType,
+                config,
+            )
+            if spec is None:
+                spec = resolve_spec(
+                    target.serviceType,
+                    source.serviceType,
+                    connector.connectionType,
+                    config,
+                )
+                if spec is not None:
+                    connector.sourceId, connector.targetId = (
+                        connector.targetId,
+                        connector.sourceId,
+                    )
+                    source, target = target, source
+            if spec is None:
+                raise ValueError(
+                    f"Unsupported connection: {source.serviceType.value} to {target.serviceType.value}"
+                )
+            connector.connectionType = spec.connection_type
+            editable = dict(config)
+            editable.pop("connection_role", None)
+            unknown = set(editable) - set(spec.config_model.model_fields)
+            if unknown:
+                raise ValueError(f"Unknown connection config fields: {sorted(unknown)}")
+            for name, value in editable.items():
+                adapter = TypeAdapter(spec.config_model.model_fields[name].annotation)
+                validated = adapter.validate_python(value)
+                config[name] = adapter.dump_python(validated, mode="json")
+            connector.connection_config = config or None
         missing_groups = [
             obj.id
             for obj in self.canvasObjects
@@ -106,7 +159,7 @@ class DiagramListResponse(BaseModel):
 class ResourceInitializationRequest(BaseModel):
     """Intent to place a service resource."""
 
-    service_type: str
+    service_type: ServiceType
     existing_names: list[str] = Field(default_factory=list)
 
 

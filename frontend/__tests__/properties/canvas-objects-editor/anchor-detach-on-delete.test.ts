@@ -3,7 +3,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { LineObject } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_LINE_VISUAL } from '@/types/diagram';
-import { getDefaultVariables } from '@/types/terraform-variables';
 
 describe('Property 6: Anchor detach on object deletion', () => {
   beforeEach(() => {
@@ -40,7 +39,7 @@ describe('Property 6: Anchor detach on object deletion', () => {
             name: 'Block',
             position: { x: blockX, y: blockY },
             config: {},
-            terraformVariables: getDefaultVariables('lambda'),
+            terraformVariables: {},
             visualConfig: { ...DEFAULT_BLOCK_VISUAL },
           });
 

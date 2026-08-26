@@ -17,9 +17,6 @@ import TerraformSettingsDialog from '@/components/menu/TerraformSettingsDialog';
 import ToastProvider from '@/components/toast/ToastProvider';
 import OnboardingTour from '@/components/tour/OnboardingTour';
 import KeyboardShortcutsOverlay from '@/components/shortcuts/KeyboardShortcutsOverlay';
-import { fetchSchemas } from '@/store/schema-store';
-import { fetchConnectionSchemas } from '@/connections/schema-store';
-import { fetchNamingRules } from '@/store/naming-store';
 import { useEditorDomainStore } from '@/store/editor-domain-store';
 import { exportToTerraform } from '@/utils/export';
 import { useConnectionPreviewSync } from '@/hooks/useConnectionPreviewSync';
@@ -34,9 +31,6 @@ export default function DiagramEditorPage() {
 
   // The backend owns service and connection schemas, so load them before anything is configured
   useEffect(() => {
-    void fetchSchemas();
-    void fetchConnectionSchemas();
-    void fetchNamingRules();
     void useEditorDomainStore.getState().load();
   }, []);
 

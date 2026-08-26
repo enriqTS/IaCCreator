@@ -3,7 +3,6 @@ import { useDiagramStore } from '@/store/diagram-store';
 import { serviceTypeArbitrary, pointArbitrary } from './arbitraries';
 import type { ServiceType } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL } from '@/types/diagram';
-import { getDefaultVariables } from '@/types/terraform-variables';
 
 function resetStore() {
   useDiagramStore.setState({
@@ -32,7 +31,7 @@ function addBlock(
     name,
     position,
     config: {},
-    terraformVariables: getDefaultVariables(serviceType),
+    terraformVariables: {},
     visualConfig: { ...DEFAULT_BLOCK_VISUAL },
   });
 }

@@ -11,7 +11,6 @@ import {
   DEFAULT_LINE_VISUAL,
   DEFAULT_GEO_VISUAL,
 } from '@/types/diagram';
-import { getDefaultVariables } from '@/types/terraform-variables';
 import { serviceTypeArbitrary } from '../arbitraries';
 
 function resetStore() {
@@ -55,7 +54,7 @@ function constrainedCanvasObjectArbitrary(): fc.Arbitrary<CanvasObjectCreationPa
         name: fc.string({ minLength: 1, maxLength: 10 }),
         position: constrainedPointArbitrary(),
         config: fc.constant({}),
-        terraformVariables: fc.constant(getDefaultVariables(st)),
+        terraformVariables: fc.constant({}),
         visualConfig: fc.constant({ ...DEFAULT_BLOCK_VISUAL }),
       })
     ),

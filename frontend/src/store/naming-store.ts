@@ -11,19 +11,28 @@ export interface NamingRules {
 
 let rules: NamingRules | null = null;
 
+export interface NamingRulesPayload {
+  pattern: string;
+  description: string;
+  max_length: number;
+}
+
+export function hydrateNamingRules(body: NamingRulesPayload): void {
+  rules = {
+    pattern: new RegExp(body.pattern),
+    description: body.description,
+    maxLength: body.max_length,
+  };
+}
+
 /** Fetch the naming rules once and cache them. */
 export async function fetchNamingRules(): Promise<boolean> {
   if (rules) return true;
   try {
     const res = await fetch('/api/naming-rules');
     if (!res.ok) throw new Error(`Naming rules fetch failed: ${res.status}`);
-    const body: { pattern: string; description: string; max_length: number } =
-      await res.json();
-    rules = {
-      pattern: new RegExp(body.pattern),
-      description: body.description,
-      maxLength: body.max_length,
-    };
+    const body: NamingRulesPayload = await res.json();
+    hydrateNamingRules(body);
     return true;
   } catch {
     console.warn('Could not load naming rules; names are checked by the server only.');

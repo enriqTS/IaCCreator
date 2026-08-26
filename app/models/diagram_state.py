@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+
+from app.models.input_models import ServiceType
 
 CURRENT_DIAGRAM_VERSION = 3
 
@@ -136,19 +138,18 @@ class SerializedObjectGroup(BaseModel):
 class SerializedConnector(BaseModel):
     """A connection between two architecture blocks."""
 
-    model_config = ConfigDict(extra="allow")
-
     id: str
     sourceId: str
     targetId: str
     connectionType: str = "triggers"
-    connectionConfig: dict[str, Any] | None = None
+    connection_config: dict[str, Any] | None = Field(
+        default=None,
+        validation_alias=AliasChoices("connection_config", "connectionConfig"),
+    )
 
 
-class SerializedCanvasObject(BaseModel):
-    """One object on the canvas, in the current storage format."""
-
-    model_config = ConfigDict(extra="allow")
+class CanvasObjectBase(BaseModel):
+    """Fields shared by every persisted canvas object."""
 
     id: str
     objectType: str
@@ -158,10 +159,153 @@ class SerializedCanvasObject(BaseModel):
     groupId: str | None = None
 
 
+class ArchitectureBlockObject(CanvasObjectBase):
+    """A generated AWS resource on the canvas."""
+
+    objectType: Literal["architecture-block"]
+    visualConfig: BlockVisual = Field(default_factory=BlockVisual)
+    serviceType: ServiceType
+    x: float = 0
+    y: float = 0
+    config: dict[str, Any] = Field(default_factory=dict)
+    terraformVariables: dict[str, str | int | float | bool] = Field(
+        default_factory=dict
+    )
+
+
+class Point(BaseModel):
+    """A serialized canvas point."""
+
+    x: float
+    y: float
+
+
+class LineObject(CanvasObjectBase):
+    """A visual line with optional anchors and waypoints."""
+
+    objectType: Literal["line"]
+    visualConfig: LineVisual = Field(default_factory=LineVisual)
+    startX: float = 0
+    startY: float = 0
+    endX: float = 0
+    endY: float = 0
+    sourceAnchorObjectId: str | None = None
+    targetAnchorObjectId: str | None = None
+    sourceAnchorPosition: str | None = None
+    targetAnchorPosition: str | None = None
+    waypoints: list[Point] = Field(default_factory=list)
+
+
+class PositionedObject(CanvasObjectBase):
+    """A non-resource object positioned by one point."""
+
+    x: float = 0
+    y: float = 0
+
+
+class GeometricObject(PositionedObject):
+    """A geometric canvas shape."""
+
+    objectType: Literal["geometric"]
+    visualConfig: GeometricVisual = Field(default_factory=GeometricVisual)
+
+
+class TextObject(PositionedObject):
+    """A text canvas object."""
+
+    objectType: Literal["text"]
+    visualConfig: TextVisual = Field(default_factory=TextVisual)
+    content: str = ""
+
+
+class UMLClassData(BaseModel):
+    """UML class compartment content."""
+
+    stereotype: str | None = None
+    attributes: list[str] = Field(default_factory=list)
+    methods: list[str] = Field(default_factory=list)
+
+
+class UMLObject(PositionedObject):
+    """A UML canvas object."""
+
+    objectType: Literal["uml"]
+    visualConfig: UMLVisual = Field(default_factory=UMLVisual)
+    umlKind: str = "class"
+    classData: UMLClassData | None = None
+
+
+SerializedCanvasObject = Annotated[
+    ArchitectureBlockObject | LineObject | GeometricObject | TextObject | UMLObject,
+    Field(discriminator="objectType"),
+]
+
+
+class GlobalBackendConfig(BaseModel):
+    """Terraform backend settings persisted by the editor."""
+
+    type: str = "local"
+    config: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def fill_type(cls, value: object) -> object:
+        """Replace uninitialized editor state with the canonical default."""
+        return value or "local"
+
+
+class GlobalProviderConfig(BaseModel):
+    """AWS provider settings persisted by the editor."""
+
+    region: str = "us-east-1"
+    profile: str | None = None
+
+    @field_validator("region", mode="before")
+    @classmethod
+    def fill_region(cls, value: object) -> object:
+        """Replace uninitialized editor state with the canonical default."""
+        return value or "us-east-1"
+
+
+class GlobalVersionConstraints(BaseModel):
+    """Terraform and provider version constraints."""
+
+    terraformVersion: str | None = None
+    awsProviderVersion: str | None = None
+
+
+class GlobalEnvironmentOverride(BaseModel):
+    """Environment-specific global variable overrides."""
+
+    name: str
+    variableOverrides: dict[str, str] = Field(default_factory=dict)
+
+
+class GlobalVariable(BaseModel):
+    """A user-defined global Terraform variable."""
+
+    name: str
+    type: str
+    description: str = ""
+    default: str | None = None
+
+
+class GlobalTerraformConfigState(BaseModel):
+    """Canonical persisted global Terraform configuration."""
+
+    backend: GlobalBackendConfig = Field(default_factory=GlobalBackendConfig)
+    provider: GlobalProviderConfig = Field(default_factory=GlobalProviderConfig)
+    versionConstraints: GlobalVersionConstraints = Field(
+        default_factory=GlobalVersionConstraints
+    )
+    environments: list[GlobalEnvironmentOverride] = Field(default_factory=list)
+    globalVariables: list[GlobalVariable] = Field(default_factory=list)
+
+
 class DiagramState(BaseModel):
     """A whole saved diagram, at the current format version."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     version: Literal[3] = CURRENT_DIAGRAM_VERSION
     projectName: str = ""
@@ -171,4 +315,6 @@ class DiagramState(BaseModel):
     objectGroups: list[SerializedObjectGroup] = Field(default_factory=list)
     viewport: Viewport = Field(default_factory=Viewport)
     globalRoutingMode: str = "orthogonal"
-    globalTerraformConfig: dict[str, Any] | None = None
+    globalTerraformConfig: GlobalTerraformConfigState = Field(
+        default_factory=GlobalTerraformConfigState
+    )

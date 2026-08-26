@@ -200,7 +200,7 @@ class TestVerifyOwnershipOverride:
             diagram_id="fake-id",
             session_id="fake-session",
             project_name="override-project",
-            diagram_state={"version": 3, "override": True},
+            diagram_state={"version": 3, "projectName": "override"},
             created_at="2024-01-01T00:00:00Z",
             updated_at="2024-01-01T00:00:00Z",
         )
@@ -212,7 +212,7 @@ class TestVerifyOwnershipOverride:
         # GET on any diagram_id should succeed and return the fake state
         resp = client.get("/api/diagrams/any-id-doesnt-matter")
         assert resp.status_code == 200
-        assert resp.json()["override"] is True
+        assert resp.json()["projectName"] == "override"
 
         # Clean up override
         del app.dependency_overrides[verify_ownership]
@@ -228,7 +228,7 @@ class TestVerifyOwnershipOverride:
             diagram_id="independent-id",
             session_id="independent-session",
             project_name="independent-project",
-            diagram_state={"version": 3, "independent": True},
+            diagram_state={"version": 3, "projectName": "independent"},
             created_at="2024-01-01T00:00:00Z",
             updated_at="2024-01-01T00:00:00Z",
         )
@@ -242,16 +242,16 @@ class TestVerifyOwnershipOverride:
         # GET should return fake record without touching the repo for ownership
         resp = client.get("/api/diagrams/does-not-exist-in-repo")
         assert resp.status_code == 200
-        assert resp.json()["independent"] is True
+        assert resp.json()["projectName"] == "independent"
 
         # PUT should also work — repo override still used for update_diagram
         updated_payload = {
             "version": 3,
             "projectName": "updated",
             "environments": [],
-            "elements": [],
+            "canvasObjects": [],
             "connectors": [],
-            "viewport": {"x": 0, "y": 0, "zoom": 1},
+            "viewport": {"offsetX": 0, "offsetY": 0, "scale": 1},
         }
         resp = client.put("/api/diagrams/independent-id", json=updated_payload)
         assert resp.status_code == 200

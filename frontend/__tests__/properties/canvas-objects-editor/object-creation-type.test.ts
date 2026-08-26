@@ -16,7 +16,6 @@ import {
   DEFAULT_TEXT_VISUAL,
   DEFAULT_UML_VISUAL,
 } from '@/types/diagram';
-import { getDefaultVariables } from '@/types/terraform-variables';
 import { pointArbitrary, serviceTypeArbitrary } from '../../properties/arbitraries';
 
 const UML_KINDS: UMLKind[] = ['class', 'interface', 'actor', 'use-case', 'component', 'package', 'node'];
@@ -35,7 +34,7 @@ function creationPayloadArbitrary(): fc.Arbitrary<CanvasObjectCreationPayload> {
         name: 'TestBlock',
         position: pos,
         config: {},
-        terraformVariables: getDefaultVariables(st),
+        terraformVariables: {},
         visualConfig: { ...DEFAULT_BLOCK_VISUAL },
       }))
     ),

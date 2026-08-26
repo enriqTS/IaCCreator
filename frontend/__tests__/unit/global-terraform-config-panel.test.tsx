@@ -2,12 +2,19 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import GlobalTerraformConfigPanel from '@/components/config/GlobalTerraformConfigPanel';
 import { useDiagramStore } from '@/store/diagram-store';
-import { DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
 import { TWO_COLUMN_THRESHOLD } from '@/components/config/panel-constants';
 
 describe('GlobalTerraformConfigPanel', () => {
   beforeEach(() => {
-    useDiagramStore.setState({ globalTerraformConfig: { ...DEFAULT_GLOBAL_CONFIG, environments: [], globalVariables: [] } });
+    useDiagramStore.setState({
+      globalTerraformConfig: {
+        backend: { type: 'local', config: {} },
+        provider: { region: 'us-east-1' },
+        versionConstraints: {},
+        environments: [],
+        globalVariables: [],
+      },
+    });
   });
 
   // --- Requirement 9.2: all config sections render ---

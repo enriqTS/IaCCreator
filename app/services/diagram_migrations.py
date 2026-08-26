@@ -11,26 +11,17 @@ from app.models.diagram_state import (
     VISUAL_MODELS,
 )
 from app.models.input_models import ServiceType
-from app.models.input_models._general import _get_cached_service_config_models
+from app.services.resource_initializer import ResourceInitializer
+
+_initializer = ResourceInitializer()
 
 
 def _default_terraform_variables(service_type: str) -> dict[str, Any]:
-    """Seed a block's variables the way the editor does when one is created."""
+    """Seed legacy blocks from backend-owned resource defaults."""
     try:
-        config_cls = _get_cached_service_config_models().get(ServiceType(service_type))
+        return _initializer.terraform_defaults(ServiceType(service_type))
     except ValueError:
         return {}
-    if config_cls is None or not config_cls.has_terraform_schema():
-        return {}
-
-    fallbacks: dict[str, Any] = {"string": "", "number": 0, "bool": False}
-    values: dict[str, Any] = {}
-    for entry in config_cls.get_variable_schema():
-        if entry.default is not None:
-            values[entry.name] = entry.default
-        elif entry.type in fallbacks:
-            values[entry.name] = fallbacks[entry.type]
-    return values
 
 
 def _upgrade_v1_to_v2(state: dict[str, Any]) -> dict[str, Any]:

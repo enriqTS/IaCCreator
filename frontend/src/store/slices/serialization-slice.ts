@@ -8,7 +8,7 @@ import { DEFAULT_BLOCK_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_LINE_VISUAL, DEFAULT_
 import type { DiagramState, SerializedCanvasObject } from '@/types/serialization';
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 import type { AnchorPosition } from '@/utils/anchor';
-import { DEFAULT_GLOBAL_CONFIG } from '@/types/terraform-variables';
+import { EMPTY_GLOBAL_CONFIG } from '@/types/terraform-variables';
 import type { DiagramStore } from './store-types';
 
 export interface SerializationSlice {
@@ -282,7 +282,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
         objectGroups: objectGroupsMap,
         globalTerraformConfig: state.globalTerraformConfig
           ? { ...state.globalTerraformConfig }
-          : { ...DEFAULT_GLOBAL_CONFIG },
+          : structuredClone(EMPTY_GLOBAL_CONFIG),
         globalRoutingMode: (state.globalRoutingMode as RoutingMode) ?? 'orthogonal',
         _undoStack: [],
         _redoStack: [],

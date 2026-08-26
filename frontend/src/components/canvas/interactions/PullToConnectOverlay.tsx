@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
-import { resolveConnectionForPair } from '@/connections/connector-utils';
 import { findSnapAnchorWithPosition } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
 import { getConnectionBounds } from '@/utils/bounds-utils';
@@ -95,25 +94,24 @@ export default function PullToConnectOverlay() {
         // Auto-create a Connector (logical connection) if both source and target are architecture blocks.
         // This is intentional: the Connector tool requires both endpoints to be Architecture_Blocks,
         // unlike Object Picker freeform line/arrow placement which has no such restriction.
-        const resolved = resolveConnectionForPair(
-          pullConnectState.sourceObjectId,
-          targetObjectId,
-          canvasObjects,
-        );
-        if (resolved) {
-          // A pair is one connection however it was drawn, so match either orientation
+        const sourceObject = canvasObjects.get(pullConnectState.sourceObjectId);
+        const targetObject = canvasObjects.get(targetObjectId);
+        if (
+          sourceObject?.objectType === 'architecture-block'
+          && targetObject?.objectType === 'architecture-block'
+        ) {
           let connectorExists = false;
           for (const conn of connectors.values()) {
             if (
-              (conn.sourceId === resolved.sourceId && conn.targetId === resolved.targetId) ||
-              (conn.sourceId === resolved.targetId && conn.targetId === resolved.sourceId)
+              (conn.sourceId === sourceObject.id && conn.targetId === targetObject.id) ||
+              (conn.sourceId === targetObject.id && conn.targetId === sourceObject.id)
             ) {
               connectorExists = true;
               break;
             }
           }
           if (!connectorExists) {
-            addConnector(resolved.sourceId, resolved.targetId, resolved.connectionType);
+            addConnector(sourceObject.id, targetObject.id);
           }
         }
 

@@ -33,6 +33,6 @@ Resource names are validated for Terraform-safe syntax and uniqueness. Stable ID
 
 ## Diagram and persistence models
 
-`DiagramStateInput` validates persisted diagram requests. Diagram storage is versioned and upgraded through `services/diagram_migrations.py` when read. The current frontend serialization is canvas-object based: architecture blocks, lines with anchors and waypoints, geometric/text/UML objects, connectors, groups, viewport, global configuration, and routing mode. See `frontend/src/types/serialization.ts` for the client serialization contract; keep it synchronized with the backend validator and migration logic.
+`DiagramStateInput` validates persisted diagram requests. Diagram storage is versioned and upgraded through `services/diagram_migrations.py` when read. The current format is a discriminated canvas-object union covering architecture blocks, lines with anchors and waypoints, geometric/text/UML objects, typed visuals, connectors, groups, viewport, global configuration, and routing mode. Partial resource and connection configurations are shape-validated against their registered backend models while drafts may omit required generation fields. See `frontend/src/types/serialization.ts` for the client serialization contract.
 
 Persistence records (`UserRecord`, `DiagramRecord`, and `DiagramSummary`) live in `app/persistence/models.py`.

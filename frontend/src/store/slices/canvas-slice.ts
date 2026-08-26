@@ -6,6 +6,7 @@ import type { StateCreator } from 'zustand';
 import type { ArchitectureBlockVisualConfig, CanvasObject, CanvasObjectCreationPayload, GeometricVisualConfig, LineObject, LineVisualConfig, Point, Rect, TextVisualConfig, UMLVisualConfig } from '@/types/diagram';
 import { MIN_OBJECT_HEIGHT, MIN_OBJECT_WIDTH, getObjectBounds } from '@/types/diagram';
 import { apiClient } from '@/utils/api-client';
+import { useToastStore } from '@/store/toast-store';
 import { v4 as uuidv4 } from 'uuid';
 import type { DiagramStore } from './store-types';
 
@@ -75,7 +76,10 @@ export const createCanvasSlice: StateCreator<DiagramStore, [], [], CanvasSlice> 
               .filter((item) => item.id !== id)
               .map((item) => item.name);
             const result = await apiClient.initializeResource(serviceType, existingNames);
-            if (!result.ok) return;
+            if (!result.ok) {
+              useToastStore.getState().addToast(result.error.message, 'error');
+              return;
+            }
             const current = get().canvasObjects.get(id);
             if (!current || current.objectType !== 'architecture-block') return;
             get().updateCanvasObject(id, {

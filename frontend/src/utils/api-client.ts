@@ -8,6 +8,9 @@
 import type { DiagramSummary, ApiResult } from '@/types/api';
 import type { ConnectionPreviewResponse } from '@/types/connection-preview';
 import type { DiagramState } from '@/types/serialization';
+import type { GlobalTerraformConfig, ServiceVariableSchemas } from '@/types/terraform-variables';
+import type { ApiConnection } from '@/connections/schema-store';
+import type { NamingRulesPayload } from '@/store/naming-store';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -95,9 +98,22 @@ export const apiClient = {
   /** GET /api/editor-bootstrap — load backend-owned editor metadata. */
   getEditorBootstrap(): Promise<ApiResult<{
     services: { service_type: string; display_name: string; category: string; supported: boolean }[];
+    variable_schemas: ServiceVariableSchemas;
+    connection_schemas: ApiConnection[];
+    naming_rules: NamingRulesPayload;
+    global_terraform_defaults: GlobalTerraformConfig;
     diagram_version: number;
   }>> {
     return request('/api/editor-bootstrap', { method: 'GET' }, (res) => res.json());
+  },
+
+  /** POST /api/diagrams/normalize — canonicalize editor domain state. */
+  normalizeDiagram(diagram: DiagramState): Promise<ApiResult<DiagramState>> {
+    return request('/api/diagrams/normalize', {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify(diagram),
+    }, (res) => res.json());
   },
 
   /** POST /api/diagrams/connections/apply — materialize linked connection intent. */
@@ -134,12 +150,12 @@ export const apiClient = {
   },
 
   /** PUT /api/diagrams/{id} — update an existing diagram. */
-  updateDiagram(id: string, state: DiagramState): Promise<ApiResult<void>> {
+  updateDiagram(id: string, state: DiagramState): Promise<ApiResult<{ id: string }>> {
     return request('/api/diagrams/' + encodeURIComponent(id), {
       method: 'PUT',
       headers: jsonHeaders(),
       body: JSON.stringify(state),
-    }, async () => undefined as void);
+    }, (res) => res.json() as Promise<{ id: string }>);
   },
 
   /** GET /api/diagrams — list diagram summaries for the current session. */
@@ -163,7 +179,7 @@ export const apiClient = {
     }, async () => undefined as void);
   },
 
-  /** POST /api/connections/preview — ask what every connection contributes. */
+  /** Preview diagram connections through backend conversion. */
   previewConnections(
     diagram: DiagramState,
   ): Promise<ApiResult<ConnectionPreviewResponse>> {
@@ -174,7 +190,7 @@ export const apiClient = {
     }, (res) => res.json() as Promise<ConnectionPreviewResponse>);
   },
 
-  /** POST /generate/zip — generate Terraform from an architecture description. */
+  /** Generate Terraform directly from canonical diagram state. */
   generateTerraform(
     diagram: DiagramState,
   ): Promise<ApiResult<Blob>> {

@@ -3,7 +3,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock, LineObject } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_LINE_VISUAL, getObjectBounds } from '@/types/diagram';
-import { getDefaultVariables } from '@/types/terraform-variables';
 import { getAnchorPoints, type AnchorPosition } from '@/utils/anchor';
 
 const anchorPositionArb = fc.constantFrom<AnchorPosition>('top', 'right', 'bottom', 'left');
@@ -47,7 +46,7 @@ describe('Property 5: Anchored endpoint follows connected object', () => {
             name: 'BlockA',
             position: { x: posAx, y: posAy },
             config: {},
-            terraformVariables: getDefaultVariables('lambda'),
+            terraformVariables: {},
             visualConfig: { ...DEFAULT_BLOCK_VISUAL },
           });
 
@@ -58,7 +57,7 @@ describe('Property 5: Anchored endpoint follows connected object', () => {
             name: 'BlockB',
             position: { x: posBx, y: posBy },
             config: {},
-            terraformVariables: getDefaultVariables('s3'),
+            terraformVariables: {},
             visualConfig: { ...DEFAULT_BLOCK_VISUAL },
           });
 

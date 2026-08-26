@@ -58,7 +58,7 @@ class ConnectionOperationService:
             raise ValueError(f"Connection field is not linked: {operation.field_key}")
         linked = field.linked
         source_config = source.setdefault("config", {})
-        entries = list(source_config.get(linked.config_path) or [])
+        entries = list(self._get_path(source_config, linked.config_path) or [])
 
         if operation.operation == "create":
             if any(
@@ -115,7 +115,7 @@ class ConnectionOperationService:
                 updated_config.pop(field.key)
             connector["connection_config"] = updated_config
 
-        source_config[linked.config_path] = entries
+        self._set_path(source_config, linked.config_path, entries)
         connector.pop("connectionConfig", None)
         return DiagramStateInput.model_validate(state)
 
@@ -156,7 +156,12 @@ class ConnectionOperationService:
             )
             if field is None or field.linked is None:
                 continue
-            entries = (source.get("config") or {}).get(field.linked.config_path) or []
+            entries = (
+                ConnectionOperationService._get_path(
+                    source.get("config") or {}, field.linked.config_path
+                )
+                or []
+            )
             for entry in entries:
                 if entry.get(field.linked.display_key) != display_value:
                     continue
@@ -169,3 +174,26 @@ class ConnectionOperationService:
                 ) == target.get("name"):
                     return connector["id"]
         return None
+
+    @staticmethod
+    def _get_path(config: dict, path: str):
+        """Read a dot-separated path from nested configuration."""
+        value = config
+        for part in path.split("."):
+            if not isinstance(value, dict):
+                return None
+            value = value.get(part)
+        return value
+
+    @staticmethod
+    def _set_path(config: dict, path: str, value) -> None:
+        """Write a dot-separated path into nested configuration."""
+        target = config
+        parts = path.split(".")
+        for part in parts[:-1]:
+            child = target.get(part)
+            if not isinstance(child, dict):
+                child = {}
+                target[part] = child
+            target = child
+        target[parts[-1]] = value

@@ -25,7 +25,6 @@ import {
   DEFAULT_TEXT_VISUAL,
   DEFAULT_UML_VISUAL,
 } from '@/types/diagram';
-import { getDefaultVariables } from '@/types/terraform-variables';
 
 const SERVICE_TYPES: ServiceType[] = [
   'lambda',
@@ -289,7 +288,7 @@ export function architectureBlockWithoutIdArbitrary(): fc.Arbitrary<Omit<Archite
       name: fc.string({ minLength: 1, maxLength: 30 }),
       position: pointArbitrary(),
       config: resourceConfigArbitrary(st),
-      terraformVariables: fc.constant(getDefaultVariables(st)),
+      terraformVariables: fc.constant({}),
       visualConfig: fc.constant({ ...DEFAULT_BLOCK_VISUAL }),
     })
   );

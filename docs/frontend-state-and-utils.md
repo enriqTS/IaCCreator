@@ -7,14 +7,15 @@
 - `canvas-slice`, `connector-slice`, and `anchoring-slice` own objects, connectors, anchors, and line geometry.
 - `clipboard-slice`, `grouping-slice`, and `zorder-slice` own editing operations.
 - `history-slice` and `history-support` own undo/redo snapshots.
-- `project-slice`, `serialization-slice`, and `persistence-slice` own project state, API/local persistence, and architecture export.
+- `project-slice`, `serialization-slice`, and `persistence-slice` own project state, canonical diagram serialization, and server persistence.
 - `ui-slice` and `viewport-slice` own tool, selection, overlay, and viewport state.
 
 Canvas objects are the active diagram model. Legacy element state is not the model to extend. The serialization contract is in `src/types/serialization.ts`; it includes canvas objects, connector configuration, groups, line anchors/waypoints, and global routing mode.
 
 ## Supporting stores
 
-- `schema-store.ts` fetches backend variable schemas and falls back to generated `data/bundled-schemas.ts`.
+- `editor-domain-store.ts` hydrates service support, schemas, naming rules, and global defaults from `/api/editor-bootstrap`.
+- `schema-store.ts` caches backend variable schemas and retains generated `data/bundled-schemas.ts` only as an offline rendering fallback.
 - `connection-preview-store.ts` caches backend connection contributions and issues.
 - `apigw-config-store.ts` owns API Gateway editing state.
 - `naming-store.ts` fetches the backend naming rule used by client validation.
@@ -30,7 +31,7 @@ Canvas objects are the active diagram model. Legacy element state is not the mod
 ## Utilities
 
 - `api-client.ts` centralizes cookie-authenticated requests and structured API errors.
-- `export.ts` submits serialized architecture to `/generate/zip`.
+- `export.ts` submits canonical diagram state to `/api/diagrams/generate/zip`.
 - `viewport.ts`, `bounds-utils.ts`, `anchor.ts`, and `snap.ts` provide canvas geometry and snapping.
 - `utils/routing/` contains the grid builder, pathfinder, obstacle collector, and orthogonal-router entry point; `parallel-offset.ts` separates parallel lines.
 - `keyboard-shortcuts.ts` centralizes shortcut behavior.

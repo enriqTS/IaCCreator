@@ -34,7 +34,6 @@ interface ApiLinkedEntryField {
 interface ApiLinked {
   config_path: string;
   display_key: string;
-  create_template: Record<string, unknown>;
   target_name_key?: string | null;
   target_id_key?: string | null;
   entry_fields?: ApiLinkedEntryField[] | null;
@@ -53,7 +52,7 @@ interface ApiField {
   linked?: ApiLinked | null;
 }
 
-interface ApiConnection {
+export interface ApiConnection {
   source: ServiceType;
   target: ServiceType;
   connection_type: string;
@@ -121,7 +120,6 @@ function toField(field: ApiField): SchemaField {
       ? {
           linkedConfigPath: field.linked.config_path,
           displayKey: field.linked.display_key,
-          createTemplate: field.linked.create_template,
           ...(field.linked.target_name_key
             ? { targetNameKey: field.linked.target_name_key }
             : {}),
@@ -146,6 +144,15 @@ function toSchema(connection: ApiConnection): ConnectionSchema {
   };
 }
 
+export function hydrateConnectionSchemas(connections: ApiConnection[]): void {
+  catalog = new Map(
+    connections.map((connection) => [
+      `${connection.source}::${connection.target}::${connection.connection_type}` as CatalogKey,
+      toSchema(connection),
+    ]),
+  );
+}
+
 /** Fetch the catalog once and cache it. Returns false when the backend is unreachable. */
 export async function fetchConnectionSchemas(): Promise<boolean> {
   if (catalog) return true;
@@ -153,12 +160,7 @@ export async function fetchConnectionSchemas(): Promise<boolean> {
     const res = await fetch('/api/connection-schemas');
     if (!res.ok) throw new Error(`Connection schema fetch failed: ${res.status}`);
     const body: { connections: ApiConnection[] } = await res.json();
-    catalog = new Map(
-      body.connections.map((c) => [
-        `${c.source}::${c.target}::${c.connection_type}` as CatalogKey,
-        toSchema(c),
-      ]),
-    );
+    hydrateConnectionSchemas(body.connections);
     return true;
   } catch {
     console.warn('Could not load connection schemas; connections stay unconfigured.');
@@ -194,24 +196,6 @@ export function getConnectionSchemasForPair(
   return [...catalog.values()].filter(
     (schema) => schema.sourcePair[0] === source && schema.sourcePair[1] === target,
   );
-}
-
-/** The connection type the backend marks as default for a pair, if the pair exists. */
-export function getDefaultConnectionType(
-  source: ServiceType,
-  target: ServiceType,
-): string | null {
-  if (!catalog) return null;
-  const forPair = [...catalog.values()].filter(
-    (schema) => schema.sourcePair[0] === source && schema.sourcePair[1] === target,
-  );
-  if (forPair.length === 0) return null;
-  return (forPair.find((schema) => schema.isDefault) ?? forPair[0]).connectionType;
-}
-
-/** Whether the backend can generate a connection in this direction. */
-export function hasConnectionPair(source: ServiceType, target: ServiceType): boolean {
-  return getDefaultConnectionType(source, target) !== null;
 }
 
 /** Clear the cached catalog (used by tests). */
