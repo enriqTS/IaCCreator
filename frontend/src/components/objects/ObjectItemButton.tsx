@@ -21,13 +21,14 @@ export default function ObjectItemButton({ item, iconOnly = false }: ObjectItemB
   const addRecentItem = useRecentlyUsedStore((s) => s.addRecentItem);
   const pinnedItems = usePinnedObjectsStore((s) => s.pinnedItems);
   const togglePin = usePinnedObjectsStore((s) => s.togglePin);
-  const supportedServices = useEditorDomainStore((s) => s.supportedServices);
+  const serviceCapabilities = useEditorDomainStore((s) => s.serviceCapabilities);
 
   const serviceType = typeof item.tool === 'object' && item.tool.type === 'place-service'
     ? item.tool.serviceType
     : null;
   const disabled = isUnsupportedAwsItem(item)
-    || (serviceType !== null && (supportedServices === null || !supportedServices.has(serviceType)));
+    || (serviceType !== null
+      && (serviceCapabilities === null || !serviceCapabilities.get(serviceType)?.diagram));
   const active = !disabled && toolsMatch(activeTool, item.tool);
   const pinned = pinnedItems.some((p) => pickerItemKey(p) === pickerItemKey(item));
 

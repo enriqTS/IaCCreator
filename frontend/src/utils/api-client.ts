@@ -97,7 +97,19 @@ function jsonHeaders(): HeadersInit {
 export const apiClient = {
   /** GET /api/editor-bootstrap — load backend-owned editor metadata. */
   getEditorBootstrap(): Promise<ApiResult<{
-    services: { service_type: string; display_name: string; category: string; supported: boolean }[];
+    services: {
+      service_type: string;
+      display_name: string;
+      category: string;
+      classification: 'resource' | 'capability' | 'composite' | 'decorative' | 'legacy';
+      lifecycle: 'active' | 'deprecated' | 'retired' | 'decorative';
+      capabilities: {
+        diagram: boolean;
+        terraform: boolean;
+        configurable: boolean;
+        connectable: boolean;
+      };
+    }[];
     variable_schemas: ServiceVariableSchemas;
     connection_schemas: ApiConnection[];
     naming_rules: NamingRulesPayload;

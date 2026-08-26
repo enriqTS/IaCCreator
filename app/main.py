@@ -11,7 +11,6 @@ from pydantic import ValidationError
 
 from app.exception_handlers import domain_error_handler
 from app.exceptions import DomainError
-from app.generators.registry import GENERATOR_REGISTRY
 from app.generators.schema_validator import validate_config_against_schema
 from app.logging_config import configure_logging
 from app.middleware.session_middleware import SessionMiddleware
@@ -28,7 +27,7 @@ from app.models.diagram_models import (
 )
 from app.models.diagram_state import CURRENT_DIAGRAM_VERSION
 from app.models.editor_models import EditorBootstrapResponse, ServiceCatalogEntry
-from app.models.input_models import ArchitectureDescription, ServiceType
+from app.models.input_models import ArchitectureDescription
 from app.models.input_models._general import _get_cached_service_config_models
 from app.models.input_models._naming import (
     RESOURCE_NAME_DESCRIPTION,
@@ -58,6 +57,7 @@ from app.services.openapi.models import (
 from app.services.openapi.parser import parse_openapi
 from app.services.output_serializer import OutputSerializer
 from app.services.resource_initializer import ResourceInitializer
+from app.services.service_catalog import SERVICE_CATALOG
 from app.services.session_manager import SessionManager
 
 configure_logging()
@@ -188,10 +188,13 @@ async def get_editor_bootstrap() -> EditorBootstrapResponse:
         services=[
             ServiceCatalogEntry(
                 service_type=service.value,
-                display_name=service.value.replace("-", " ").title(),
-                supported=service in GENERATOR_REGISTRY,
+                display_name=metadata.display_name,
+                category=metadata.category,
+                classification=metadata.classification,
+                lifecycle=metadata.lifecycle,
+                capabilities=metadata.capabilities,
             )
-            for service in ServiceType
+            for service, metadata in SERVICE_CATALOG.items()
         ],
         variable_schemas={
             service.value: model.get_variable_schema()

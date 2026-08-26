@@ -435,6 +435,20 @@ Every current null and icon-only entry must be assigned one of:
 
 Phase 1 is complete when no catalog entry has an unexplained support state.
 
+### Phase 1 implementation status
+
+Phase 1 was completed with the following contracts:
+
+- `app/services/service_catalog.py` is the backend capability and classification registry for every typed `ServiceType`.
+- `/api/editor-bootstrap` exposes `diagram`, `terraform`, `configurable`, and `connectable` capabilities plus lifecycle and classification.
+- Typed active icon-only services are placeable diagram objects without being represented as Terraform-capable.
+- `serviceType: null` explicitly means a decorative frontend icon with no backend resource semantics.
+- Retired and decorative typed entries are not placeable for new diagrams; deprecated entries remain placeable for compatibility.
+- `scripts/audit_service_catalog.py` compares frontend and backend types, reports decorative icons and aliases, and fails on catalog drift.
+- Cross-layer tests enforce complete backend classification, coherent registry capabilities, and the current explicit decorative inventory.
+
+The initial audit records 143 typed service types, 173 explicit decorative icon occurrences, and one duplicate typed mapping: Fargate under both Compute and Containers. Duplicate and null entries remain visible in audit output so later phases can resolve them deliberately.
+
 ## Phase 2 — Foundational services
 
 Prioritize services that unlock common production architectures and later connection work.

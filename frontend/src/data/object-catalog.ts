@@ -60,7 +60,7 @@ function buildAllPickerItems(): PickerCategory[] {
       name: svc.name,
       category: `AWS: ${cat.name}`,
       icon: svc.iconPath,
-      // Services without a generator are listed for completeness but cannot be placed
+      // Null service types are explicitly decorative and cannot be placed.
       tool: svc.serviceType
         ? ({ type: 'place-service', serviceType: svc.serviceType } as Tool)
         : ('pointer' as Tool),

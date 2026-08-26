@@ -7,13 +7,20 @@ import { hydrateSchemas } from '@/store/schema-store';
 import { hydrateConnectionSchemas } from '@/connections/schema-store';
 import { hydrateNamingRules } from '@/store/naming-store';
 
+export interface ServiceCapabilities {
+  diagram: boolean;
+  terraform: boolean;
+  configurable: boolean;
+  connectable: boolean;
+}
+
 interface EditorDomainState {
-  supportedServices: Set<string> | null;
+  serviceCapabilities: Map<string, ServiceCapabilities> | null;
   load: () => Promise<void>;
 }
 
 export const useEditorDomainStore = create<EditorDomainState>()((set) => ({
-  supportedServices: null,
+  serviceCapabilities: null,
   load: async () => {
     const result = await apiClient.getEditorBootstrap();
     if (!result.ok) return;
@@ -21,10 +28,8 @@ export const useEditorDomainStore = create<EditorDomainState>()((set) => ({
     hydrateConnectionSchemas(result.data.connection_schemas);
     hydrateNamingRules(result.data.naming_rules);
     set({
-      supportedServices: new Set(
-        result.data.services
-          .filter((service) => service.supported)
-          .map((service) => service.service_type),
+      serviceCapabilities: new Map(
+        result.data.services.map((service) => [service.service_type, service.capabilities]),
       ),
     });
     const diagram = useDiagramStore.getState();

@@ -28,7 +28,7 @@ describe('backend-owned editor domain', () => {
         globalVariables: [],
       },
     });
-    useEditorDomainStore.setState({ supportedServices: null });
+    useEditorDomainStore.setState({ serviceCapabilities: null });
   });
 
   it('hydrates support, schemas, naming, and global defaults from bootstrap', async () => {
@@ -36,8 +36,16 @@ describe('backend-owned editor domain', () => {
       ok: true,
       data: {
         services: [
-          { service_type: 'lambda', display_name: 'Lambda', category: 'AWS', supported: true },
-          { service_type: 'clean-rooms', display_name: 'Clean Rooms', category: 'AWS', supported: false },
+          {
+            service_type: 'lambda', display_name: 'Lambda', category: 'compute',
+            classification: 'resource', lifecycle: 'active',
+            capabilities: { diagram: true, terraform: true, configurable: true, connectable: true },
+          },
+          {
+            service_type: 'clean-rooms', display_name: 'Clean Rooms', category: 'analytics',
+            classification: 'resource', lifecycle: 'active',
+            capabilities: { diagram: true, terraform: false, configurable: false, connectable: false },
+          },
         ],
         variable_schemas: { lambda: [] },
         connection_schemas: [],
@@ -49,7 +57,10 @@ describe('backend-owned editor domain', () => {
 
     await useEditorDomainStore.getState().load();
 
-    expect(useEditorDomainStore.getState().supportedServices).toEqual(new Set(['lambda']));
+    expect(useEditorDomainStore.getState().serviceCapabilities).toEqual(new Map([
+      ['lambda', { diagram: true, terraform: true, configurable: true, connectable: true }],
+      ['clean-rooms', { diagram: true, terraform: false, configurable: false, connectable: false }],
+    ]));
     expect(getSchemas()).toEqual({ lambda: [] });
     expect(validateResourceName('INVALID')).toBe('lowercase only');
     expect(useDiagramStore.getState().globalTerraformConfig.provider.region).toBe('eu-west-1');

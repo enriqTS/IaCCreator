@@ -9,21 +9,11 @@ export interface AWSServiceCategory {
 export interface AWSService {
   name: string;
   iconPath: string;
+  // Null explicitly identifies a decorative icon without backend resource semantics.
   serviceType: ServiceType | null;
 }
 
-/**
- * Static registry of all AWS service icons, organized by category.
- * Built from the `public/aws-icons/` folder structure.
- *
- * The 6 supported service types map to specific icons:
- * - Lambda → Compute/Lambda.svg
- * - S3 → Storage/Simple-Storage-Service.svg
- * - API Gateway → App-Integration/API-Gateway.svg
- * - DynamoDB → Database/DynamoDB.svg
- * - IAM → Security-Identity-Compliance/Identity-and-Access-Management.svg
- * - CloudWatch → Management-Governance/CloudWatch.svg
- */
+/** Static AWS icon locations; capabilities for typed services come from the backend. */
 export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
   {
     name: 'Analytics',

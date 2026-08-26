@@ -10,19 +10,40 @@ from app.main import (
     initialize_resource,
 )
 from app.models.diagram_models import DiagramStateInput, ResourceInitializationRequest
-from app.models.input_models import ServiceType
+from app.models.editor_models import ServiceClassification
+from app.models.input_models import ServiceType, get_service_config_models
+from app.services.connection_handlers.registry import CONNECTION_SPECS
+from app.services.service_catalog import SERVICE_CATALOG
 
 
-def test_bootstrap_matches_generator_registry() -> None:
-    """Bootstrap support flags come exclusively from the generator registry."""
+def test_bootstrap_matches_backend_capability_registry() -> None:
+    """Bootstrap exposes the complete backend-owned capability catalog."""
     bootstrap = asyncio.run(get_editor_bootstrap())
-    supported = {
-        ServiceType(entry.service_type)
-        for entry in bootstrap.services
-        if entry.supported
-    }
-    assert supported == set(GENERATOR_REGISTRY)
+    entries = {ServiceType(entry.service_type): entry for entry in bootstrap.services}
+    assert set(entries) == set(ServiceType)
+    assert {
+        service for service, entry in entries.items() if entry.capabilities.terraform
+    } == set(GENERATOR_REGISTRY)
     assert bootstrap.global_terraform_defaults.provider.region == "us-east-1"
+
+
+def test_service_catalog_registries_are_consistent() -> None:
+    """Every service has an intentional classification and coherent capabilities."""
+    assert set(SERVICE_CATALOG) == set(ServiceType)
+    config_models = get_service_config_models()
+    connected = {spec.source for spec in CONNECTION_SPECS} | {
+        spec.target for spec in CONNECTION_SPECS
+    }
+    for service, metadata in SERVICE_CATALOG.items():
+        assert metadata.category
+        assert isinstance(metadata.classification, ServiceClassification)
+        assert metadata.capabilities.terraform == (service in GENERATOR_REGISTRY)
+        assert metadata.capabilities.configurable == (
+            service in config_models and service in GENERATOR_REGISTRY
+        )
+        assert metadata.capabilities.connectable == (service in connected)
+        if metadata.capabilities.terraform:
+            assert metadata.capabilities.diagram
 
 
 def test_resource_initialization_uses_backend_name_and_defaults() -> None:
