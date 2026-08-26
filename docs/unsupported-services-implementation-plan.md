@@ -496,8 +496,8 @@ Phase 2 should establish reusable networking identifiers and outputs needed by c
 
 Promote the most useful existing typed services:
 
-- EC2 Auto Scaling
-- Application Auto Scaling
+- EC2 Auto Scaling — implemented
+- Application Auto Scaling — implemented
 - Database Migration Service
 - Keyspaces
 - MemoryDB for Redis

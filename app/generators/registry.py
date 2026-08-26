@@ -7,6 +7,9 @@ from app.generators.amazon_q_generator import AmazonQGenerator
 from app.generators.amplify_generator import AmplifyGenerator
 from app.generators.api_gateway_generator import APIGatewayGenerator
 from app.generators.app_runner_generator import AppRunnerGenerator
+from app.generators.application_auto_scaling_generator import (
+    ApplicationAutoScalingGenerator,
+)
 
 # End User Computing generators
 from app.generators.appstream_generator import AppStreamGenerator
@@ -45,6 +48,7 @@ from app.generators.connect_generator import ConnectGenerator
 from app.generators.documentdb_generator import DocumentDBGenerator
 from app.generators.dynamodb_generator import DynamoDBGenerator
 from app.generators.ebs_generator import EbsGenerator
+from app.generators.ec2_auto_scaling_generator import Ec2AutoScalingGenerator
 from app.generators.ec2_generator import EC2Generator
 from app.generators.ec2_image_builder_generator import EC2ImageBuilderGenerator
 from app.generators.ecr_generator import ECRGenerator
@@ -125,6 +129,8 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.APPSYNC: AppSyncGenerator(),
     ServiceType.MQ: MqGenerator(),
     ServiceType.MWAA: MwaaGenerator(),
+    ServiceType.EC2_AUTO_SCALING: Ec2AutoScalingGenerator(),
+    ServiceType.APPLICATION_AUTO_SCALING: ApplicationAutoScalingGenerator(),
     ServiceType.EC2: EC2Generator(),
     ServiceType.ECS: ECSGenerator(),
     ServiceType.EKS: EKSGenerator(),

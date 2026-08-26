@@ -658,6 +658,165 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "application-auto-scaling": [
+    {
+      "default": "ecs",
+      "description": "AWS service namespace",
+      "group": "General",
+      "label": "Service namespace",
+      "name": "service_namespace",
+      "options": [
+        {
+          "label": "ECS",
+          "value": "ecs"
+        },
+        {
+          "label": "DYNAMODB",
+          "value": "dynamodb"
+        },
+        {
+          "label": "LAMBDA",
+          "value": "lambda"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "ecs",
+          "dynamodb",
+          "lambda"
+        ]
+      }
+    },
+    {
+      "default": "",
+      "description": "Scalable resource identifier",
+      "group": "General",
+      "label": "Resource ID",
+      "name": "resource_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "ecs:service:DesiredCount",
+      "description": "Scalable property dimension",
+      "group": "General",
+      "label": "Scalable dimension",
+      "name": "scalable_dimension",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 1,
+      "description": "Minimum capacity",
+      "group": "General",
+      "label": "Min capacity",
+      "name": "min_capacity",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 0
+      }
+    },
+    {
+      "default": 10,
+      "description": "Maximum capacity",
+      "group": "General",
+      "label": "Max capacity",
+      "name": "max_capacity",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 1
+      }
+    },
+    {
+      "default": true,
+      "description": "Create a target tracking scaling policy",
+      "group": "General",
+      "label": "Create target tracking policy",
+      "name": "create_target_tracking_policy",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": "ECSServiceAverageCPUUtilization",
+      "description": "Predefined target tracking metric",
+      "group": "General",
+      "label": "Predefined metric type",
+      "name": "predefined_metric_type",
+      "options": [
+        {
+          "label": "ECS average CPU",
+          "value": "ECSServiceAverageCPUUtilization"
+        },
+        {
+          "label": "ECS average memory",
+          "value": "ECSServiceAverageMemoryUtilization"
+        },
+        {
+          "label": "DynamoDB read capacity",
+          "value": "DynamoDBReadCapacityUtilization"
+        },
+        {
+          "label": "DynamoDB write capacity",
+          "value": "DynamoDBWriteCapacityUtilization"
+        },
+        {
+          "label": "Lambda provisioned concurrency",
+          "value": "LambdaProvisionedConcurrencyUtilization"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "ECSServiceAverageCPUUtilization",
+          "ECSServiceAverageMemoryUtilization",
+          "DynamoDBReadCapacityUtilization",
+          "DynamoDBWriteCapacityUtilization",
+          "LambdaProvisionedConcurrencyUtilization"
+        ]
+      }
+    },
+    {
+      "default": 70.0,
+      "description": "Metric target value",
+      "group": "General",
+      "label": "Target value",
+      "name": "target_value",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 0.1
+      }
+    },
+    {
+      "default": 300,
+      "description": "Scale-in cooldown in seconds",
+      "group": "General",
+      "label": "Scale in cooldown",
+      "name": "scale_in_cooldown",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 0
+      }
+    },
+    {
+      "default": 300,
+      "description": "Scale-out cooldown in seconds",
+      "group": "General",
+      "label": "Scale out cooldown",
+      "name": "scale_out_cooldown",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 0
+      }
+    }
+  ],
   "appstream": [
     {
       "description": "Name of the AppStream fleet",
@@ -2310,6 +2469,115 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "instance_type",
       "required": false,
       "type": "string"
+    }
+  ],
+  "ec2-auto-scaling": [
+    {
+      "default": "",
+      "description": "EC2 launch template ID",
+      "group": "General",
+      "label": "Launch template ID",
+      "name": "launch_template_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "$Latest",
+      "description": "Launch template version",
+      "group": "General",
+      "label": "Launch template version",
+      "name": "launch_template_version",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Subnets used by the Auto Scaling group",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "default": 1,
+      "description": "Minimum instance count",
+      "group": "General",
+      "label": "Min size",
+      "name": "min_size",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 0
+      }
+    },
+    {
+      "default": 3,
+      "description": "Maximum instance count",
+      "group": "General",
+      "label": "Max size",
+      "name": "max_size",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 0
+      }
+    },
+    {
+      "default": 1,
+      "description": "Desired instance count",
+      "group": "General",
+      "label": "Desired capacity",
+      "name": "desired_capacity",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 0
+      }
+    },
+    {
+      "default": "EC2",
+      "description": "Health check source",
+      "group": "General",
+      "label": "Health check type",
+      "name": "health_check_type",
+      "options": [
+        {
+          "label": "EC2",
+          "value": "EC2"
+        },
+        {
+          "label": "Elastic Load Balancing",
+          "value": "ELB"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "EC2",
+          "ELB"
+        ]
+      }
+    },
+    {
+      "default": 300,
+      "description": "Health check grace period in seconds",
+      "group": "General",
+      "label": "Health check grace period",
+      "name": "health_check_grace_period",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 0
+      }
+    },
+    {
+      "description": "Instance termination policies",
+      "group": "General",
+      "label": "Termination policies",
+      "name": "termination_policies",
+      "required": false,
+      "type": "list"
     }
   ],
   "ec2-image-builder": [

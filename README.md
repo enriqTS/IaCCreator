@@ -56,6 +56,8 @@ Full Terraform generation (with service-specific config panels and HCL output):
 
 **Compute:**
 - EC2
+- EC2 Auto Scaling
+- Application Auto Scaling
 - ECS
 - EKS
 - Elastic Beanstalk

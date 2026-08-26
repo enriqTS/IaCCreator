@@ -74,6 +74,8 @@ EXPECTED_SERVICE_TYPES = {
     "appsync",
     "mq",
     "mwaa",
+    "ec2-auto-scaling",
+    "application-auto-scaling",
     "ec2",
     "ecs",
     "eks",

@@ -376,6 +376,9 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.amplify_config import AmplifyConfig
     from app.models.input_models.api_gateway_config import ApiGatewayConfig
     from app.models.input_models.app_runner_config import AppRunnerConfig
+    from app.models.input_models.application_auto_scaling_config import (
+        ApplicationAutoScalingConfig,
+    )
     from app.models.input_models.appstream_config import AppStreamConfig
     from app.models.input_models.appsync_config import AppSyncConfig
     from app.models.input_models.athena_config import AthenaConfig
@@ -401,6 +404,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.documentdb_config import DocumentDbConfig
     from app.models.input_models.dynamodb_config import DynamoDBConfig
     from app.models.input_models.ebs_config import EbsConfig
+    from app.models.input_models.ec2_auto_scaling_config import Ec2AutoScalingConfig
     from app.models.input_models.ec2_config import Ec2Config
     from app.models.input_models.ec2_image_builder_config import Ec2ImageBuilderConfig
     from app.models.input_models.ecr_config import EcrConfig
@@ -476,6 +480,8 @@ def _build_service_config_models() -> dict:
         ServiceType.APPSYNC: AppSyncConfig,
         ServiceType.MQ: MqConfig,
         ServiceType.MWAA: MwaaConfig,
+        ServiceType.EC2_AUTO_SCALING: Ec2AutoScalingConfig,
+        ServiceType.APPLICATION_AUTO_SCALING: ApplicationAutoScalingConfig,
         ServiceType.EC2: Ec2Config,
         ServiceType.ECS: EcsConfig,
         ServiceType.EKS: EksConfig,

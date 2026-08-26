@@ -27,8 +27,10 @@ from app.services.file_tree_assembler import FileTreeAssembler
 
 _resource_name_st = st.from_regex(r"[a-z][a-z0-9\-]{0,14}", fullmatch=True)
 
-# The 9 full-generator compute/container service types
+# Full-generator compute/container service types
 FULL_GENERATOR_SERVICES = [
+    ServiceType.APPLICATION_AUTO_SCALING,
+    ServiceType.EC2_AUTO_SCALING,
     ServiceType.EC2,
     ServiceType.ECS,
     ServiceType.EKS,
@@ -40,12 +42,10 @@ FULL_GENERATOR_SERVICES = [
     ServiceType.ECR,
 ]
 
-# The 30 icon-only service types
+# Icon-only compute/container service types
 ICON_ONLY_SERVICES = [
-    ServiceType.APPLICATION_AUTO_SCALING,
     ServiceType.BOTTLEROCKET,
     ServiceType.COMPUTE_OPTIMIZER,
-    ServiceType.EC2_AUTO_SCALING,
     ServiceType.ELASTIC_FABRIC_ADAPTER,
     ServiceType.FARGATE,
     ServiceType.GENOMICS_CLI,
@@ -266,6 +266,16 @@ def test_property_2_conditional_config_field_inclusion(data, name):
 
 # Expected blocks per service: (resource_type_strings, variable_names, output_names)
 EXPECTED_BLOCKS: dict[ServiceType, tuple[list[str], list[str], list[str]]] = {
+    ServiceType.APPLICATION_AUTO_SCALING: (
+        ['resource "aws_appautoscaling_target"'],
+        ["service_namespace", "resource_id", "scalable_dimension"],
+        ["scalable_target_id"],
+    ),
+    ServiceType.EC2_AUTO_SCALING: (
+        ['resource "aws_autoscaling_group"'],
+        ["launch_template_id", "subnet_ids", "desired_capacity"],
+        ["autoscaling_group_id", "autoscaling_group_arn"],
+    ),
     ServiceType.EC2: (
         ['resource "aws_instance"'],
         ["instance_name", "ami", "instance_type"],
