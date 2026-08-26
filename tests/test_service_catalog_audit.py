@@ -9,5 +9,5 @@ def test_frontend_and_backend_service_catalogs_match() -> None:
 
 def test_null_frontend_entries_are_explicitly_decorative() -> None:
     _, decorative = read_frontend_catalog()
-    assert len(decorative) == 172
+    assert len(decorative) == 169
     assert all(category and name for category, name in decorative)

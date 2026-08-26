@@ -197,6 +197,10 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.ROUTE_TABLE,
         ServiceType.INTERNET_GATEWAY,
         ServiceType.NAT_GATEWAY,
+        ServiceType.LOAD_BALANCER,
+        ServiceType.TARGET_GROUP,
+        ServiceType.ROUTE53,
+        ServiceType.CLOUDFRONT,
     },
 }
 

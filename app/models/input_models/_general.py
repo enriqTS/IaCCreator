@@ -34,6 +34,10 @@ class ServiceType(StrEnum):
     ROUTE_TABLE = "route-table"
     INTERNET_GATEWAY = "internet-gateway"
     NAT_GATEWAY = "nat-gateway"
+    LOAD_BALANCER = "load-balancer"
+    TARGET_GROUP = "target-group"
+    ROUTE53 = "route53"
+    CLOUDFRONT = "cloudfront"
 
     # Compute – full-generator services
     EC2 = "ec2"
@@ -364,6 +368,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.bedrock_knowledge_base_config import (
         BedrockKnowledgeBaseConfig,
     )
+    from app.models.input_models.cloudfront_config import CloudFrontConfig
     from app.models.input_models.cloudsearch_config import CloudSearchConfig
     from app.models.input_models.cloudwatch_config import CloudWatchConfig
     from app.models.input_models.codebuild_config import CodeBuildConfig
@@ -389,6 +394,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
     from app.models.input_models.lambda_config import LambdaConfig
     from app.models.input_models.lightsail_config import LightsailConfig
+    from app.models.input_models.load_balancer_config import LoadBalancerConfig
     from app.models.input_models.msk_config import MskConfig
     from app.models.input_models.nat_gateway_config import NatGatewayConfig
     from app.models.input_models.neptune_config import NeptuneConfig
@@ -396,6 +402,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.pinpoint_config import PinpointConfig
     from app.models.input_models.rds_config import RdsConfig
     from app.models.input_models.redshift_config import RedshiftConfig
+    from app.models.input_models.route53_config import Route53Config
     from app.models.input_models.route_table_config import RouteTableConfig
     from app.models.input_models.s3_config import S3Config
     from app.models.input_models.sagemaker_config import SageMakerConfig
@@ -404,6 +411,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.sns_config import SnsConfig
     from app.models.input_models.sqs_config import SqsConfig
     from app.models.input_models.subnet_config import SubnetConfig
+    from app.models.input_models.target_group_config import TargetGroupConfig
     from app.models.input_models.timestream_config import TimestreamConfig
     from app.models.input_models.vpc_config import VpcConfig
 
@@ -422,6 +430,10 @@ def _build_service_config_models() -> dict:
         ServiceType.ROUTE_TABLE: RouteTableConfig,
         ServiceType.INTERNET_GATEWAY: InternetGatewayConfig,
         ServiceType.NAT_GATEWAY: NatGatewayConfig,
+        ServiceType.LOAD_BALANCER: LoadBalancerConfig,
+        ServiceType.TARGET_GROUP: TargetGroupConfig,
+        ServiceType.ROUTE53: Route53Config,
+        ServiceType.CLOUDFRONT: CloudFrontConfig,
         ServiceType.EC2: Ec2Config,
         ServiceType.ECS: EcsConfig,
         ServiceType.EKS: EksConfig,

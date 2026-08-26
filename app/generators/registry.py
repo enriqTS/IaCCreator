@@ -26,6 +26,7 @@ from app.generators.bedrock_guardrail_generator import BedrockGuardrailGenerator
 from app.generators.bedrock_knowledge_base_generator import (
     BedrockKnowledgeBaseGenerator,
 )
+from app.generators.cloudfront_generator import CloudFrontGenerator
 from app.generators.cloudsearch_generator import CloudSearchGenerator
 from app.generators.cloudwatch_generator import CloudWatchGenerator
 
@@ -58,6 +59,7 @@ from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
 from app.generators.kinesis_generator import KinesisGenerator
 from app.generators.lambda_generator import LambdaGenerator
 from app.generators.lightsail_generator import LightsailGenerator
+from app.generators.load_balancer_generator import LoadBalancerGenerator
 from app.generators.msk_generator import MSKGenerator
 from app.generators.nat_gateway_generator import NatGatewayGenerator
 from app.generators.neptune_generator import NeptuneGenerator
@@ -65,6 +67,7 @@ from app.generators.opensearch_generator import OpenSearchGenerator
 from app.generators.pinpoint_generator import PinpointGenerator
 from app.generators.rds_generator import RDSGenerator
 from app.generators.redshift_generator import RedshiftGenerator
+from app.generators.route53_generator import Route53Generator
 from app.generators.route_table_generator import RouteTableGenerator
 from app.generators.s3_generator import S3Generator
 from app.generators.sagemaker_generator import SageMakerGenerator
@@ -73,6 +76,7 @@ from app.generators.ses_generator import SESGenerator
 from app.generators.sns_generator import SNSGenerator
 from app.generators.sqs_generator import SQSGenerator
 from app.generators.subnet_generator import SubnetGenerator
+from app.generators.target_group_generator import TargetGroupGenerator
 from app.generators.timestream_generator import TimestreamGenerator
 from app.generators.vpc_generator import VpcGenerator
 from app.models.input_models import ServiceType
@@ -93,6 +97,10 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.ROUTE_TABLE: RouteTableGenerator(),
     ServiceType.INTERNET_GATEWAY: InternetGatewayGenerator(),
     ServiceType.NAT_GATEWAY: NatGatewayGenerator(),
+    ServiceType.LOAD_BALANCER: LoadBalancerGenerator(),
+    ServiceType.TARGET_GROUP: TargetGroupGenerator(),
+    ServiceType.ROUTE53: Route53Generator(),
+    ServiceType.CLOUDFRONT: CloudFrontGenerator(),
     ServiceType.EC2: EC2Generator(),
     ServiceType.ECS: ECSGenerator(),
     ServiceType.EKS: EKSGenerator(),

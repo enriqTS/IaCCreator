@@ -32,6 +32,9 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - Route Table
 - Internet Gateway
 - NAT Gateway
+- Elastic Load Balancing and target groups
+- Route 53 hosted zones
+- CloudFront distributions
 
 **Compute:**
 - EC2

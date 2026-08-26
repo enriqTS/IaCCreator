@@ -1171,6 +1171,104 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "map"
     }
   ],
+  "cloudfront": [
+    {
+      "default": "",
+      "description": "Origin DNS domain name",
+      "group": "General",
+      "label": "Origin domain name",
+      "name": "origin_domain_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "primary-origin",
+      "description": "Origin identifier",
+      "group": "General",
+      "label": "Origin ID",
+      "name": "origin_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Enable the distribution",
+      "group": "General",
+      "label": "Enabled",
+      "name": "enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": "index.html",
+      "description": "Default root object",
+      "group": "General",
+      "label": "Default root object",
+      "name": "default_root_object",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "redirect-to-https",
+      "description": "Viewer protocol policy",
+      "group": "General",
+      "label": "Viewer protocol policy",
+      "name": "viewer_protocol_policy",
+      "options": [
+        {
+          "label": "Allow all",
+          "value": "allow-all"
+        },
+        {
+          "label": "HTTPS only",
+          "value": "https-only"
+        },
+        {
+          "label": "Redirect to HTTPS",
+          "value": "redirect-to-https"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "allow-all",
+          "https-only",
+          "redirect-to-https"
+        ]
+      }
+    },
+    {
+      "default": "PriceClass_100",
+      "description": "Edge location price class",
+      "group": "General",
+      "label": "Price class",
+      "name": "price_class",
+      "options": [
+        {
+          "label": "PriceClass_100",
+          "value": "PriceClass_100"
+        },
+        {
+          "label": "PriceClass_200",
+          "value": "PriceClass_200"
+        },
+        {
+          "label": "PriceClass_All",
+          "value": "PriceClass_All"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "PriceClass_100",
+          "PriceClass_200",
+          "PriceClass_All"
+        ]
+      }
+    }
+  ],
   "cloudsearch": [
     {
       "description": "Name of the CloudSearch domain",
@@ -2744,6 +2842,87 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "load-balancer": [
+    {
+      "default": "load-balancer",
+      "description": "Load balancer name",
+      "group": "General",
+      "label": "Load balancer name",
+      "name": "load_balancer_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "application",
+      "description": "Load balancer type",
+      "group": "General",
+      "label": "Load balancer type",
+      "name": "load_balancer_type",
+      "options": [
+        {
+          "label": "Application",
+          "value": "application"
+        },
+        {
+          "label": "Network",
+          "value": "network"
+        },
+        {
+          "label": "Gateway",
+          "value": "gateway"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "application",
+          "network",
+          "gateway"
+        ]
+      }
+    },
+    {
+      "default": false,
+      "description": "Use an internal scheme",
+      "group": "General",
+      "label": "Internal",
+      "name": "internal",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": "",
+      "description": "Comma-separated subnet IDs",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Comma-separated security group IDs",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "string",
+      "visible_when": {
+        "equals": "application",
+        "field": "load_balancer_type"
+      }
+    },
+    {
+      "default": false,
+      "description": "Enable deletion protection",
+      "group": "General",
+      "label": "Enable deletion protection",
+      "name": "enable_deletion_protection",
+      "required": false,
+      "type": "bool"
+    }
+  ],
   "msk": [
     {
       "description": "Name of the MSK cluster",
@@ -2945,6 +3124,58 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "gateway_id",
       "required": false,
       "type": "string"
+    }
+  ],
+  "route53": [
+    {
+      "default": "example.com",
+      "description": "DNS zone name",
+      "group": "General",
+      "label": "Zone name",
+      "name": "zone_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Hosted zone comment",
+      "group": "General",
+      "label": "Comment",
+      "name": "comment",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": false,
+      "description": "Create a private hosted zone",
+      "group": "General",
+      "label": "Private zone",
+      "name": "private_zone",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "description": "VPC ID for a private hosted zone",
+      "group": "General",
+      "label": "VPC ID",
+      "name": "vpc_id",
+      "required": false,
+      "type": "string",
+      "visible_when": {
+        "equals": true,
+        "field": "private_zone"
+      }
+    },
+    {
+      "description": "VPC region for a private hosted zone",
+      "group": "General",
+      "label": "VPC region",
+      "name": "vpc_region",
+      "required": false,
+      "type": "string",
+      "visible_when": {
+        "equals": true,
+        "field": "private_zone"
+      }
     }
   ],
   "s3": [
@@ -3732,6 +3963,127 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "map_public_ip_on_launch",
       "required": false,
       "type": "bool"
+    }
+  ],
+  "target-group": [
+    {
+      "default": "target-group",
+      "description": "Target group name",
+      "group": "General",
+      "label": "Target group name",
+      "name": "target_group_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "VPC ID",
+      "group": "General",
+      "label": "VPC ID",
+      "name": "vpc_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 80,
+      "description": "Traffic port",
+      "group": "General",
+      "label": "Port",
+      "name": "port",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 65535,
+        "min": 1
+      }
+    },
+    {
+      "default": "HTTP",
+      "description": "Traffic protocol",
+      "group": "General",
+      "label": "Protocol",
+      "name": "protocol",
+      "options": [
+        {
+          "label": "HTTP",
+          "value": "HTTP"
+        },
+        {
+          "label": "HTTPS",
+          "value": "HTTPS"
+        },
+        {
+          "label": "TCP",
+          "value": "TCP"
+        },
+        {
+          "label": "TLS",
+          "value": "TLS"
+        },
+        {
+          "label": "UDP",
+          "value": "UDP"
+        },
+        {
+          "label": "TCP_UDP",
+          "value": "TCP_UDP"
+        },
+        {
+          "label": "GENEVE",
+          "value": "GENEVE"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "HTTP",
+          "HTTPS",
+          "TCP",
+          "TLS",
+          "UDP",
+          "TCP_UDP",
+          "GENEVE"
+        ]
+      }
+    },
+    {
+      "default": "instance",
+      "description": "Target type",
+      "group": "General",
+      "label": "Target type",
+      "name": "target_type",
+      "options": [
+        {
+          "label": "Instance",
+          "value": "instance"
+        },
+        {
+          "label": "Ip",
+          "value": "ip"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "instance",
+          "ip"
+        ]
+      }
+    },
+    {
+      "default": "/",
+      "description": "HTTP health check path",
+      "group": "Health check",
+      "label": "Health check path",
+      "name": "health_check_path",
+      "required": false,
+      "type": "string",
+      "visible_when": {
+        "equals": "HTTP",
+        "field": "protocol"
+      }
     }
   ],
   "timestream": [

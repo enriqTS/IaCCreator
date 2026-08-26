@@ -32,6 +32,10 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.ROUTE_TABLE: "networking",
     ServiceType.INTERNET_GATEWAY: "networking",
     ServiceType.NAT_GATEWAY: "networking",
+    ServiceType.LOAD_BALANCER: "networking",
+    ServiceType.TARGET_GROUP: "networking",
+    ServiceType.ROUTE53: "networking",
+    ServiceType.CLOUDFRONT: "networking",
     # Log/Monitoring
     ServiceType.CLOUDWATCH: "log",
     # Messaging

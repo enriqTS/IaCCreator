@@ -23,6 +23,10 @@ export type ServiceType =
   | 'route-table'
   | 'internet-gateway'
   | 'nat-gateway'
+  | 'load-balancer'
+  | 'target-group'
+  | 'route53'
+  | 'cloudfront'
   // Compute — full-generator services
   | 'ec2'
   | 'elastic-beanstalk'

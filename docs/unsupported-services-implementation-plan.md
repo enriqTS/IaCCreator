@@ -463,9 +463,9 @@ Implement explicit resource objects rather than one oversized VPC configuration:
 - Route Table — implemented
 - Internet Gateway — implemented
 - NAT Gateway — implemented
-- Elastic Load Balancing, split into appropriate load-balancer and target-group resources
-- Route 53
-- CloudFront
+- Elastic Load Balancing, split into load-balancer and target-group resources — implemented
+- Route 53 hosted zones — implemented
+- CloudFront distributions — implemented
 
 Where appropriate, later extend the same model with VPC endpoints, network ACLs, peering, and related routing resources. Cross-module references must travel through module inputs and outputs.
 
