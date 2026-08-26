@@ -1,9 +1,10 @@
 'use client';
 
-import { PanelLeftOpen, Search } from 'lucide-react';
+import { PanelLeftOpen, PanelRightOpen, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePinnedObjectsStore, pickerItemKey } from '@/store/pinned-objects-store';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import ObjectItemButton from './ObjectItemButton';
 
 const MAX_RAIL_ITEMS = 8;
@@ -17,6 +18,7 @@ interface ObjectSidebarRailProps {
 export default function ObjectSidebarRail({ header, onExpand }: ObjectSidebarRailProps) {
   const pinnedItems = usePinnedObjectsStore((s) => s.pinnedItems);
   const recentItems = useRecentlyUsedStore((s) => s.recentItems);
+  const position = useLayoutPreferencesStore((s) => s.objectSidebarPosition);
 
   const pinnedKeys = new Set(pinnedItems.map(pickerItemKey));
   const items = [
@@ -28,7 +30,8 @@ export default function ObjectSidebarRail({ header, onExpand }: ObjectSidebarRai
     <aside
       data-testid="object-sidebar"
       data-collapsed="true"
-      className="flex w-12 shrink-0 flex-col items-center gap-1 border-r border-sidebar-border bg-sidebar py-2 text-sidebar-foreground"
+      data-position={position}
+      className={`order-2 flex w-12 shrink-0 flex-col items-center gap-1 bg-sidebar py-2 text-sidebar-foreground ${position === 'left' ? 'order-first border-r border-sidebar-border' : 'border-l border-sidebar-border'}`}
     >
       {header}
       <Button
@@ -56,7 +59,7 @@ export default function ObjectSidebarRail({ header, onExpand }: ObjectSidebarRai
         aria-label="Show objects"
         onClick={onExpand}
       >
-        <PanelLeftOpen />
+        {position === 'left' ? <PanelLeftOpen /> : <PanelRightOpen />}
       </Button>
     </aside>
   );

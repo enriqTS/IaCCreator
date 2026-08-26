@@ -27,6 +27,8 @@ export default function PreferencesDialog({ open, onClose }: PreferencesDialogPr
   const setSnapToGridEnabled = useLayoutPreferencesStore((s) => s.setSnapToGridEnabled);
   const alignmentGuidesEnabled = useLayoutPreferencesStore((s) => s.alignmentGuidesEnabled);
   const setAlignmentGuidesEnabled = useLayoutPreferencesStore((s) => s.setAlignmentGuidesEnabled);
+  const objectSidebarPosition = useLayoutPreferencesStore((s) => s.objectSidebarPosition);
+  const setObjectSidebarPosition = useLayoutPreferencesStore((s) => s.setObjectSidebarPosition);
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
@@ -54,6 +56,24 @@ export default function PreferencesDialog({ open, onClose }: PreferencesDialogPr
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="bottom" id="toolbar-bottom" />
                 <Label htmlFor="toolbar-bottom">Bottom</Label>
+              </div>
+            </RadioGroup>
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-3">
+            <legend className="text-sm font-medium">Object Sidebar Position</legend>
+            <RadioGroup
+              value={objectSidebarPosition}
+              onValueChange={(value) => setObjectSidebarPosition(value as 'left' | 'right')}
+              data-testid="object-sidebar-position-radio"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="left" id="sidebar-left" />
+                <Label htmlFor="sidebar-left">Left</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="right" id="sidebar-right" />
+                <Label htmlFor="sidebar-right">Right</Label>
               </div>
             </RadioGroup>
           </fieldset>

@@ -45,9 +45,9 @@ export default function ObjectShortlist() {
       {recent.length > 0 && (
         <div className="px-2 pb-2">
           <Eyebrow>Recent</Eyebrow>
-          <div className="flex gap-1">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(70px,1fr))] gap-1">
             {recent.map((item) => (
-              <ObjectItemButton key={`${item.category}-${item.name}`} item={item} iconOnly />
+              <ObjectItemButton key={`${item.category}-${item.name}`} item={item} />
             ))}
           </div>
         </div>

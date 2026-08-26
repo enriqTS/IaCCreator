@@ -19,6 +19,8 @@ describe('ObjectSidebar', () => {
     useRecentlyUsedStore.getState().clearRecentItems();
     usePinnedObjectsStore.getState().clearPins();
     useLayoutPreferencesStore.getState().setObjectSidebarCollapsed(false);
+    useLayoutPreferencesStore.getState().setObjectSidebarPosition('left');
+    useLayoutPreferencesStore.getState().setObjectSidebarWidth(240);
     useDiagramStore.getState().setActiveTool('pointer');
   });
 
@@ -118,6 +120,34 @@ describe('ObjectSidebar', () => {
     expect(useDiagramStore.getState().activeTool).toBe('pointer');
     // Once pinned it appears in the shortlist as well as in its category
     expect(screen.getAllByTestId('picker-item-Rectangle').length).toBe(2);
+  });
+
+  test('recent objects use full-size tiles and can be pinned', () => {
+    useRecentlyUsedStore.getState().addRecentItem(makeItem('Rectangle'));
+    render(<ObjectSidebar />);
+
+    fireEvent.click(screen.getByTestId('picker-pin-Rectangle'));
+
+    expect(usePinnedObjectsStore.getState().pinnedItems.map((p) => p.name)).toEqual(['Rectangle']);
+  });
+
+  test('resizing persists the sidebar width', () => {
+    render(<ObjectSidebar />);
+
+    fireEvent.pointerDown(screen.getByTestId('object-sidebar-resize-handle'), { clientX: 240 });
+    fireEvent.pointerMove(window, { clientX: 300 });
+    fireEvent.pointerUp(window);
+
+    expect(useLayoutPreferencesStore.getState().objectSidebarWidth).toBe(300);
+    expect(screen.getByTestId('object-sidebar').style.width).toBe('300px');
+  });
+
+  test('can move the sidebar to the right', () => {
+    useLayoutPreferencesStore.getState().setObjectSidebarPosition('right');
+    render(<ObjectSidebar />);
+
+    expect(screen.getByTestId('object-sidebar').getAttribute('data-position')).toBe('right');
+    expect(screen.getByTestId('object-sidebar').className).toContain('order-2');
   });
 
   test('an AWS service without a generator cannot be placed or pinned', () => {

@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { PanelLeftClose, Search } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { PanelLeftClose, PanelRightClose, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ABBREVIATION_MAP } from '@/data/abbreviation-map';
@@ -25,6 +25,25 @@ export default function ObjectSidebar({ header }: ObjectSidebarProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const collapsed = useLayoutPreferencesStore((s) => s.objectSidebarCollapsed);
   const setCollapsed = useLayoutPreferencesStore((s) => s.setObjectSidebarCollapsed);
+  const position = useLayoutPreferencesStore((s) => s.objectSidebarPosition);
+  const width = useLayoutPreferencesStore((s) => s.objectSidebarWidth);
+  const setWidth = useLayoutPreferencesStore((s) => s.setObjectSidebarWidth);
+
+  const startResize = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = width;
+    const handleMove = (moveEvent: PointerEvent) => {
+      const delta = moveEvent.clientX - startX;
+      setWidth(startWidth + (position === 'left' ? delta : -delta));
+    };
+    const handleUp = () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+    };
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+  }, [position, setWidth, width]);
 
   const { categories, matchCount } = useMemo(() => {
     const term = search.trim();
@@ -79,8 +98,18 @@ export default function ObjectSidebar({ header }: ObjectSidebarProps) {
     <aside
       data-testid="object-sidebar"
       data-collapsed="false"
-      className="flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
+      data-position={position}
+      className={`relative order-2 flex shrink-0 flex-col bg-sidebar text-sidebar-foreground ${position === 'left' ? 'order-first border-r border-sidebar-border' : 'border-l border-sidebar-border'}`}
+      style={{ width }}
     >
+      <div
+        role="separator"
+        aria-label="Resize object sidebar"
+        aria-orientation="vertical"
+        data-testid="object-sidebar-resize-handle"
+        onPointerDown={startResize}
+        className={`absolute inset-y-0 z-10 w-1 cursor-col-resize ${position === 'left' ? '-right-0.5' : '-left-0.5'}`}
+      />
       <div className="flex items-center justify-between gap-2 p-2">
         {header}
         <Button
@@ -91,7 +120,7 @@ export default function ObjectSidebar({ header }: ObjectSidebarProps) {
           aria-label="Hide objects"
           onClick={() => setCollapsed(true)}
         >
-          <PanelLeftClose />
+          {position === 'left' ? <PanelLeftClose /> : <PanelRightClose />}
         </Button>
       </div>
 
