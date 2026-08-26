@@ -1,0 +1,319 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, ui-sans-serif, system-ui, sans-serif; background: #121212; }
+    a { color: #72a1ff; } a:hover { color: #a8c4ff; }
+    .aside { display: flex; flex-direction: column; height: 900px;
+             border-right: 1px solid rgba(255,255,255,0.1); background: #171717; color: #fafafa; }
+    .wide { width: 240px; }
+    .rail { width: 48px; align-items: center; gap: 4px; padding: 8px 0; }
+    .hdr { display: flex; align-items: center; gap: 8px; padding: 8px; }
+    .spacer { flex: 1; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+           border-radius: 10px; border: 1px solid transparent; background: transparent; color: #fafafa;
+           cursor: pointer; padding: 0; flex-shrink: 0; }
+    .btn-outline { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.045); }
+    .btn:hover { background: rgba(38,38,38,0.6); }
+    .srch { position: relative; padding: 0 8px 10px; }
+    .srch svg.lead { position: absolute; left: 18px; top: 10px; color: #a1a1a1; }
+    .input { box-sizing: border-box; width: 100%; height: 36px; border-radius: 8px;
+             border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.045);
+             padding: 4px 34px 4px 32px; font: 400 14px/1.4 Geist, system-ui, sans-serif;
+             color: #fafafa; outline: none; }
+    .input::placeholder { color: #a1a1a1; }
+    .kbd { position: absolute; right: 18px; top: 9px; min-width: 18px; height: 18px; border-radius: 5px;
+           border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.045);
+           color: #a1a1a1; font-size: 10px; line-height: 16px; text-align: center; }
+    .band { padding: 0 8px 10px; }
+    .eyebrow { display: flex; align-items: center; gap: 6px;
+               font: 600 10px/1.4 Geist, system-ui, sans-serif; letter-spacing: 0.06em;
+               text-transform: uppercase; color: #737373; padding: 0 2px 5px; }
+    .eyebrow svg { color: #737373; }
+    .hint { padding: 0 2px; font-size: 10px; line-height: 1.5; color: #737373; }
+    .reciconrow { display: flex; gap: 4px; }
+    .sep { height: 1px; background: rgba(255,255,255,0.1); margin: 0 10px 8px; }
+    .list { flex: 1; overflow-y: auto; padding: 0 4px 8px; }
+    .cathdr { display: flex; width: 100%; align-items: center; gap: 6px; border: 0; background: transparent;
+              border-radius: 8px; padding: 7px 8px; text-align: left; cursor: pointer;
+              font: 600 11px/1.25 Geist, system-ui, sans-serif; letter-spacing: 0.02em; color: #d4d4d4; }
+    .cathdr:hover { background: #262626; }
+    .chev { width: 12px; height: 12px; flex-shrink: 0; color: #737373; }
+    .catname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .count { color: #737373; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 4px; padding: 2px 4px 8px; }
+    .gridflush { padding: 0; }
+    .tile { position: relative; display: flex; min-width: 0; min-height: 74px; flex-direction: column;
+            align-items: center; justify-content: flex-start; gap: 5px; border: 1px solid transparent;
+            border-radius: 8px; background: transparent; padding: 6px 4px; cursor: pointer; color: #fafafa; }
+    .tile:hover { background: #262626; }
+    .ico { display: flex; width: 32px; height: 32px; align-items: center; justify-content: center; flex-shrink: 0; }
+    .ico img { width: 32px; height: 32px; display: block; }
+    .initials { display: flex; width: 32px; height: 32px; align-items: center; justify-content: center;
+                border-radius: 7px; background: #262626; font-size: 11px; font-weight: 600; color: #d4d4d4; }
+    .lbl { width: 100%; text-align: center; font-size: 11px; line-height: 1.2; overflow: hidden;
+           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-wrap: pretty; }
+    .pin { position: absolute; top: 3px; right: 3px; display: flex; align-items: center; justify-content: center;
+           width: 18px; height: 18px; border-radius: 5px; color: #a1a1a1; opacity: 0; }
+    .tile:hover .pin { opacity: 1; }
+    .pin:hover { background: rgba(255,255,255,0.12); color: #fafafa; }
+    .pin.on { opacity: 1; color: #72a1ff; }
+    .railtile { position: relative; display: flex; width: 36px; height: 36px; align-items: center;
+                justify-content: center; border: 1px solid transparent; border-radius: 8px;
+                background: transparent; cursor: pointer; padding: 0; }
+    .railtile:hover { background: #262626; }
+    .railtile img { width: 24px; height: 24px; display: block; }
+    .rule { width: 28px; height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+    .armbar { display: flex; align-items: center; gap: 8px; padding: 8px;
+              border-top: 1px solid rgba(255,255,255,0.1); background: #171717; }
+    .armico { display: flex; width: 24px; height: 24px; align-items: center; justify-content: center; flex-shrink: 0; }
+    .armico img { width: 24px; height: 24px; display: block; }
+    .armtxt { flex: 1; min-width: 0; }
+    .armname { display: block; font: 500 12px/1.3 Geist, system-ui, sans-serif; overflow: hidden;
+               text-overflow: ellipsis; white-space: nowrap; }
+    .armhint { display: block; font: 400 10px/1.4 Geist, system-ui, sans-serif; color: #a1a1a1; }
+    .armx { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;
+            border: 0; border-radius: 7px; background: transparent; color: #a1a1a1; cursor: pointer; flex-shrink: 0; }
+    .armx:hover { background: #262626; color: #fafafa; }
+    .empty { padding: 12px 10px; color: #a1a1a1; font-size: 12px; }
+    .resline { padding: 0 10px 6px; font-size: 10px; color: #737373; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+<sc-if value="{{isWide}}" hint-placeholder-val="{{true}}">
+<div class="aside wide">
+  <div class="hdr">
+    <button class="btn btn-outline" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="spacer"></span>
+    <button class="btn" aria-label="Hide objects" onClick="{{collapse}}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M16 15l-3-3 3-3"/></svg>
+    </button>
+  </div>
+
+  <div class="srch">
+    <svg class="lead" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+    <input class="input" type="text" placeholder="Search 317 objects" value="{{query}}" onInput="{{onQuery}}">
+    <span class="kbd">/</span>
+  </div>
+
+  <sc-if value="{{showBands}}" hint-placeholder-val="{{true}}">
+    <div class="band">
+      <div class="eyebrow">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 10.76V6a3 3 0 0 1 6 0v4.76a2 2 0 0 0 .59 1.42L17 13.6V17H7v-3.4l1.41-1.42A2 2 0 0 0 9 10.76Z"/></svg>
+        <span>Pinned</span>
+      </div>
+      <sc-if value="{{hasPinned}}" hint-placeholder-val="{{true}}">
+        <div class="grid gridflush">
+          <sc-for list="{{pinned}}" as="item" hint-placeholder-count="4">
+            <div class="tile" style="{{item.style}}" title="{{item.n}}" onClick="{{item.pick}}">
+              <span class="ico">
+                <sc-if value="{{item.hasIcon}}" hint-placeholder-val="{{true}}"><img src="{{item.i}}" alt=""></sc-if>
+                <sc-if value="{{item.noIcon}}" hint-placeholder-val="{{false}}"><span class="initials">{{item.ab}}</span></sc-if>
+              </span>
+              <span class="lbl">{{item.n}}</span>
+              <span class="pin on" title="Unpin" onClick="{{item.unpin}}">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 10.76V6a3 3 0 0 1 6 0v4.76a2 2 0 0 0 .59 1.42L17 13.6V17H7v-3.4l1.41-1.42A2 2 0 0 0 9 10.76Z"/></svg>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{noPinned}}" hint-placeholder-val="{{false}}">
+        <p class="hint">Hover any object and press the pin to keep it here. This is the shortlist you actually build with.</p>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{hasRecent}}" hint-placeholder-val="{{true}}">
+      <div class="band">
+        <div class="eyebrow"><span>Recent</span></div>
+        <div class="reciconrow">
+          <sc-for list="{{recent}}" as="r" hint-placeholder-count="5">
+            <button class="railtile" style="{{r.style}}" title="{{r.n}}" onClick="{{r.pick}}">
+              <sc-if value="{{r.hasIcon}}" hint-placeholder-val="{{true}}"><img src="{{r.i}}" alt=""></sc-if>
+              <sc-if value="{{r.noIcon}}" hint-placeholder-val="{{false}}"><span class="initials" style="width:24px;height:24px;font-size:9px">{{r.ab}}</span></sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <div class="sep"></div>
+  </sc-if>
+
+  <sc-if value="{{searching}}" hint-placeholder-val="{{false}}">
+    <p class="resline">{{resultCount}}</p>
+  </sc-if>
+
+  <div class="list">
+    <sc-if value="{{isEmpty}}" hint-placeholder-val="{{false}}">
+      <p class="empty">Nothing matches “{{query}}”.</p>
+    </sc-if>
+    <sc-for list="{{cats}}" as="cat" hint-placeholder-count="6">
+      <div>
+        <button class="cathdr" onClick="{{cat.toggle}}">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="{{cat.chevStyle}}"><path d="m9 6 6 6-6 6"/></svg>
+          <span class="catname">{{cat.label}}</span>
+          <span class="count">{{cat.n}}</span>
+        </button>
+        <sc-if value="{{cat.open}}" hint-placeholder-val="{{false}}">
+          <div class="grid">
+            <sc-for list="{{cat.items}}" as="item" hint-placeholder-count="6">
+              <div class="tile" style="{{item.style}}" title="{{item.n}}" onClick="{{item.pick}}">
+                <span class="ico">
+                  <sc-if value="{{item.hasIcon}}" hint-placeholder-val="{{true}}"><img src="{{item.i}}" alt=""></sc-if>
+                  <sc-if value="{{item.noIcon}}" hint-placeholder-val="{{false}}"><span class="initials">{{item.ab}}</span></sc-if>
+                </span>
+                <span class="lbl">{{item.n}}</span>
+                <span class="pin {{item.pinClass}}" title="{{item.pinTitle}}" onClick="{{item.togglePin}}">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="{{item.pinFill}}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 10.76V6a3 3 0 0 1 6 0v4.76a2 2 0 0 0 .59 1.42L17 13.6V17H7v-3.4l1.41-1.42A2 2 0 0 0 9 10.76Z"/></svg>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{armed}}" hint-placeholder-val="{{true}}">
+    <div class="armbar">
+      <span class="armico">
+        <sc-if value="{{arm.hasIcon}}" hint-placeholder-val="{{true}}"><img src="{{arm.i}}" alt=""></sc-if>
+        <sc-if value="{{arm.noIcon}}" hint-placeholder-val="{{false}}"><span class="initials" style="width:24px;height:24px;font-size:9px">{{arm.ab}}</span></sc-if>
+      </span>
+      <span class="armtxt">
+        <span class="armname">Placing {{arm.n}}</span>
+        <span class="armhint">Click the canvas · Esc to cancel</span>
+      </span>
+      <button class="armx" aria-label="Cancel placement" onClick="{{disarm}}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isRail}}" hint-placeholder-val="{{false}}">
+<div class="aside rail">
+  <button class="btn btn-outline" aria-label="Menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <button class="btn" aria-label="Search objects" onClick="{{expand}}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+  </button>
+  <span class="rule"></span>
+  <sc-for list="{{railItems}}" as="r" hint-placeholder-count="6">
+    <button class="railtile" style="{{r.style}}" title="{{r.n}}" onClick="{{r.pick}}">
+      <sc-if value="{{r.hasIcon}}" hint-placeholder-val="{{true}}"><img src="{{r.i}}" alt=""></sc-if>
+      <sc-if value="{{r.noIcon}}" hint-placeholder-val="{{false}}"><span class="initials" style="width:24px;height:24px;font-size:9px">{{r.ab}}</span></sc-if>
+    </button>
+  </sc-for>
+  <span class="spacer"></span>
+  <button class="btn" aria-label="Show objects" onClick="{{expand}}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M14 9l3 3-3 3"/></svg>
+  </button>
+</div>
+</sc-if>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":240,"height":900},"collapsed":{"editor":"boolean","default":false,"section":"State"}}'>
+__CATALOG__
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = {
+      open: {}, query: '', armed: null, collapsed: null,
+      recent: [],
+      pinned: ['AWS: Compute|Lambda', 'AWS: Storage|Simple Storage Service', 'AWS: Database|DynamoDB'],
+    };
+  }
+  collapsed() { return this.state.collapsed ?? this.props.collapsed ?? false; }
+  label(c) { return c.indexOf('AWS: ') === 0 ? c.slice(5) : c; }
+  find(key) {
+    for (const cat of CATALOG) for (const i of cat.items) if (cat.c + '|' + i.n === key) return i;
+    return null;
+  }
+  decorate(key) {
+    const i = this.find(key);
+    if (!i) return null;
+    return { n: i.n, i: i.i, hasIcon: !!i.i, noIcon: !i.i, ab: i.n.slice(0, 2) };
+  }
+  arm(key) {
+    this.setState({ armed: key, recent: [key].concat(this.state.recent.filter((r) => r !== key)).slice(0, 5) });
+  }
+  togglePin(key, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const on = this.state.pinned.indexOf(key) >= 0;
+    this.setState({ pinned: on ? this.state.pinned.filter((p) => p !== key) : this.state.pinned.concat([key]) });
+  }
+  renderVals() {
+    const q = this.state.query.trim().toLowerCase();
+    const searching = q.length > 0;
+    const cats = [];
+    let hits = 0;
+    for (const cat of CATALOG) {
+      const items = searching ? cat.items.filter((i) => i.n.toLowerCase().indexOf(q) >= 0) : cat.items;
+      if (items.length === 0) continue;
+      hits += items.length;
+      const open = searching ? true : !!this.state.open[cat.c];
+      cats.push({
+        label: this.label(cat.c),
+        n: items.length,
+        open: open,
+        chevStyle: open ? 'transform:rotate(90deg)' : '',
+        toggle: () => this.setState({ open: { ...this.state.open, [cat.c]: !this.state.open[cat.c] } }),
+        items: items.map((i) => {
+          const key = cat.c + '|' + i.n;
+          const isPinned = this.state.pinned.indexOf(key) >= 0;
+          return {
+            n: i.n, i: i.i, hasIcon: !!i.i, noIcon: !i.i, ab: i.n.slice(0, 2),
+            style: this.state.armed === key ? 'background:#1447e6;border-color:#1447e6;color:#fafafa' : '',
+            pinClass: isPinned ? 'on' : '',
+            pinFill: isPinned ? 'currentColor' : 'none',
+            pinTitle: isPinned ? 'Unpin' : 'Pin to the top',
+            togglePin: (e) => this.togglePin(key, e),
+            pick: () => this.arm(key),
+          };
+        }),
+      });
+    }
+    const deco = (key) => {
+      const d = this.decorate(key);
+      if (!d) return null;
+      d.style = this.state.armed === key ? 'background:#1447e6;border-color:#1447e6;color:#fafafa' : '';
+      d.pick = () => this.arm(key);
+      d.unpin = (e) => this.togglePin(key, e);
+      return d;
+    };
+    const pinned = this.state.pinned.map(deco).filter((d) => d);
+    const recent = this.state.recent.map(deco).filter((d) => d);
+    const collapsed = this.collapsed();
+    return {
+      isWide: !collapsed, isRail: collapsed,
+      cats: cats, isEmpty: cats.length === 0,
+      query: this.state.query,
+      searching: searching,
+      resultCount: hits === 1 ? '1 match' : hits + ' matches',
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      showBands: !searching,
+      pinned: pinned, hasPinned: pinned.length > 0, noPinned: pinned.length === 0,
+      recent: recent, hasRecent: recent.length > 0,
+      railItems: pinned.concat(recent.filter((r) => this.state.pinned.indexOf(r.n) < 0)).slice(0, 7),
+      armed: !!this.state.armed,
+      arm: this.state.armed ? this.decorate(this.state.armed) : { n: '', hasIcon: false, noIcon: false, ab: '' },
+      disarm: () => this.setState({ armed: null }),
+      collapse: () => this.setState({ collapsed: true }),
+      expand: () => this.setState({ collapsed: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

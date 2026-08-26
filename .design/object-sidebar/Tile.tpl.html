@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, ui-sans-serif, system-ui, sans-serif;
+           background: #121212; color: #fafafa; }
+    a { color: #72a1ff; } a:hover { color: #a8c4ff; }
+    .page { padding: 28px 32px 32px; }
+    h2 { margin: 0 0 4px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+    .sub { margin: 0 0 24px; font-size: 12px; line-height: 1.5; color: #a1a1a1; max-width: 62ch; }
+    .cols { display: flex; gap: 32px; align-items: flex-start; }
+    .col { width: 240px; }
+    .caption { display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+               font: 600 10px/1.4 Geist, system-ui, sans-serif; letter-spacing: 0.06em;
+               text-transform: uppercase; color: #737373; margin-bottom: 8px; }
+    .frame { border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; background: #171717; padding: 4px; }
+    .gridA { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 4px; padding: 4px; }
+    .gridB { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 4px; padding: 2px 4px 8px; }
+    .tileA { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center;
+             gap: 2px; border-radius: 8px; padding: 4px; }
+    .tileA img { width: 28px; height: 28px; display: block; }
+    .tileA .l { width: 100%; text-align: center; overflow: hidden; text-overflow: ellipsis;
+                white-space: nowrap; font-size: 9px; line-height: 1.25; }
+    .tileB { position: relative; display: flex; min-width: 0; min-height: 74px; flex-direction: column;
+             align-items: center; justify-content: flex-start; gap: 5px; border: 1px solid transparent;
+             border-radius: 8px; padding: 6px 4px; }
+    .tileB img { width: 32px; height: 32px; display: block; }
+    .tileB .l { width: 100%; text-align: center; font-size: 11px; line-height: 1.2; overflow: hidden;
+                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-wrap: pretty; }
+    .pinface { position: absolute; top: 3px; right: 3px; display: flex; align-items: center;
+               justify-content: center; width: 18px; height: 18px; border-radius: 5px; color: #a1a1a1; }
+    .pinface.on { color: #72a1ff; }
+    .states { display: flex; gap: 12px; margin-top: 30px; }
+    .state { width: 96px; }
+    .stateframe { display: flex; justify-content: center; border: 1px solid rgba(255,255,255,0.1);
+                  border-radius: 10px; background: #171717; padding: 8px 4px; }
+    .stlabel { margin-top: 7px; font-size: 10px; line-height: 1.35; color: #a1a1a1; text-align: center; }
+    .stlabel b { display: block; color: #fafafa; font-size: 11px; font-weight: 500; }
+    .note { margin-top: 22px; font-size: 11px; line-height: 1.6; color: #a1a1a1; max-width: 66ch; }
+    .note b { color: #fafafa; font-weight: 500; }
+  </style>
+</helmet>
+<div class="page">
+  <h2>Tile density</h2>
+  <p class="sub">Both columns are the real 240&nbsp;px sidebar width at 1:1. The 9&nbsp;px label shipping today
+    truncates almost every AWS service name, so the label does no work and the icon carries everything.</p>
+
+  <div class="cols">
+    <div class="col">
+      <div class="caption"><span>Today</span><span>64px column · 28px icon · 9px label</span></div>
+      <div class="frame">
+        <div class="gridA">
+          <sc-for list="{{tiles}}" as="t" hint-placeholder-count="8">
+            <div class="tileA"><img src="{{t.i}}" alt=""><span class="l">{{t.n}}</span></div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="caption"><span>Proposed</span><span>70px column · 32px icon · 11px label</span></div>
+      <div class="frame">
+        <div class="gridB">
+          <sc-for list="{{tiles}}" as="t" hint-placeholder-count="8">
+            <div class="tileB"><img src="{{t.i}}" alt=""><span class="l">{{t.n}}</span></div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="states">
+    <div class="state">
+      <div class="stateframe">
+        <div class="tileB" style="width:70px"><img src="{{a.i}}" alt=""><span class="l">{{a.n}}</span></div>
+      </div>
+      <p class="stlabel"><b>Default</b>transparent</p>
+    </div>
+    <div class="state">
+      <div class="stateframe">
+        <div class="tileB" style="width:70px;background:#262626"><img src="{{b.i}}" alt=""><span class="l">{{b.n}}</span><span class="pinface"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 10.76V6a3 3 0 0 1 6 0v4.76a2 2 0 0 0 .59 1.42L17 13.6V17H7v-3.4l1.41-1.42A2 2 0 0 0 9 10.76Z"/></svg></span></div>
+      </div>
+      <p class="stlabel"><b>Hover</b>pin appears</p>
+    </div>
+    <div class="state">
+      <div class="stateframe">
+        <div class="tileB" style="width:70px"><img src="{{d.i}}" alt=""><span class="l">{{d.n}}</span><span class="pinface on"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 10.76V6a3 3 0 0 1 6 0v4.76a2 2 0 0 0 .59 1.42L17 13.6V17H7v-3.4l1.41-1.42A2 2 0 0 0 9 10.76Z"/></svg></span></div>
+      </div>
+      <p class="stlabel"><b>Pinned</b>kept at the top</p>
+    </div>
+    <div class="state">
+      <div class="stateframe">
+        <div class="tileB" style="width:70px;background:#1447e6;border-color:#1447e6"><img src="{{c.i}}" alt=""><span class="l">{{c.n}}</span></div>
+      </div>
+      <p class="stlabel"><b>Armed</b>sidebar-primary</p>
+    </div>
+  </div>
+
+  <p class="note">There is no way to show 317 objects in a 240&nbsp;px panel, and that gets harder as more
+    services land, not easier. So the panel is built around the shortlist a person actually works with:
+    <b>pinned</b> first, <b>recent</b> under it, <b>search</b> above both, and the 26 categories left as
+    the place you go when you need something you haven't used before.</p>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":660,"height":520}}'>
+__TILES__
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      tiles: TILES.slice(0, 8),
+      a: TILES[0], b: TILES[1], c: TILES[2], d: TILES[3], e: TILES[8],
+    };
+  }
+}
+</script>
+</body>
+</html>

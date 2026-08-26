@@ -1,0 +1,54 @@
+{
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "title": "Today \u2014 as shipped",
+      "x": 0,
+      "y": 0,
+      "w": 240,
+      "h": 900
+    },
+    {
+      "file": "Main.dc.html",
+      "title": "Proposed",
+      "x": 360,
+      "y": 0,
+      "w": 240,
+      "h": 900
+    },
+    {
+      "file": "Tile.dc.html",
+      "title": "Tile density",
+      "x": 720,
+      "y": 0,
+      "w": 660,
+      "h": 520
+    }
+  ],
+  "annotations": [
+    {
+      "id": "note-today",
+      "x": 0,
+      "y": -196,
+      "w": 240,
+      "text": "Both sidebars are live \u2014 click into them.\n\nThis one is the real thing, reproduced from the component source: every category collapsed, 9px labels, 240px wide."
+    },
+    {
+      "id": "note-proposed",
+      "x": 360,
+      "y": -220,
+      "w": 240,
+      "text": "Same width, same tokens.\n\nBuilt for the finished catalog, where all 317 services are placeable. Pin a few, search for the rest. Hover a tile to pin it; collapse to see what the rail keeps."
+    },
+    {
+      "id": "note-changes",
+      "x": 720,
+      "y": 600,
+      "w": 660,
+      "text": "Five changes, in the order I'd do them:\n\n1. A pinned band at the top, persisted per user. This is the one that scales: however many services exist, a person builds with ten or fifteen of them.\n2. Recents below it, as plain icons \u2014 the band is a shortcut, not a category.\n3. Drop the repeated \"AWS: \" prefix. It costs about 34px of a 240px panel, 26 times over.\n4. 11px two-line labels and 32px icons, so the name is readable instead of ellipsised at 9px.\n5. An armed strip pinned to the bottom: what you're placing, and a way to cancel it that isn't Escape.\n\nCategories stay collapsed by default and that is deliberate \u2014 with everything implemented there is no honest way to show 317 tiles at once. The fix is not to open them, it is to make the common case never need them.\n\nStill open: whether a flat search-only mode would beat the category tree entirely, and whether pins should be per-diagram rather than global."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
