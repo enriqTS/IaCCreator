@@ -457,12 +457,12 @@ Prioritize services that unlock common production architectures and later connec
 
 Implement explicit resource objects rather than one oversized VPC configuration:
 
-- VPC
-- Subnet
-- Security Group
-- Route Table
-- Internet Gateway
-- NAT Gateway
+- VPC — implemented
+- Subnet — implemented
+- Security Group — implemented
+- Route Table — implemented
+- Internet Gateway — implemented
+- NAT Gateway — implemented
 - Elastic Load Balancing, split into appropriate load-balancer and target-group resources
 - Route 53
 - CloudFront

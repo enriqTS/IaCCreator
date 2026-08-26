@@ -48,6 +48,13 @@ EXPECTED_SERVICE_TYPES = {
     "sns",
     "sqs",
     "eventbridge",
+    # Networking
+    "vpc",
+    "subnet",
+    "security-group",
+    "route-table",
+    "internet-gateway",
+    "nat-gateway",
     "ec2",
     "ecs",
     "eks",
@@ -109,7 +116,7 @@ class TestVariableSchemasEndpoint:
         assert resp.status_code == 200
 
     def test_contains_all_service_types(self, client):
-        """Response JSON contains all 5 service types as top-level keys."""
+        """Response JSON contains every schema-backed service type."""
         data = client.get("/api/variable-schemas").json()
         assert set(data.keys()) == EXPECTED_SERVICE_TYPES
 

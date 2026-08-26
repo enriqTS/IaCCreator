@@ -2096,6 +2096,17 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "internet-gateway": [
+    {
+      "default": "",
+      "description": "VPC ID",
+      "group": "General",
+      "label": "VPC ID",
+      "name": "vpc_id",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "kinesis": [
     {
       "description": "Name of the Kinesis stream",
@@ -2759,6 +2770,54 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "number"
     }
   ],
+  "nat-gateway": [
+    {
+      "default": "",
+      "description": "Subnet ID",
+      "group": "General",
+      "label": "Subnet ID",
+      "name": "subnet_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "public",
+      "description": "Connectivity type",
+      "group": "General",
+      "label": "Connectivity type",
+      "name": "connectivity_type",
+      "options": [
+        {
+          "label": "Public",
+          "value": "public"
+        },
+        {
+          "label": "Private",
+          "value": "private"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "public",
+          "private"
+        ]
+      }
+    },
+    {
+      "description": "Elastic IP allocation ID for a public gateway",
+      "group": "General",
+      "label": "Allocation ID",
+      "name": "allocation_id",
+      "required": false,
+      "type": "string",
+      "visible_when": {
+        "equals": "public",
+        "field": "connectivity_type"
+      }
+    }
+  ],
   "neptune": [
     {
       "description": "Identifier for the Neptune cluster",
@@ -2855,6 +2914,35 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "group": "General",
       "label": "Master username",
       "name": "master_username",
+      "required": false,
+      "type": "string"
+    }
+  ],
+  "route-table": [
+    {
+      "default": "",
+      "description": "VPC ID",
+      "group": "General",
+      "label": "VPC ID",
+      "name": "vpc_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "0.0.0.0/0",
+      "description": "Route destination",
+      "group": "Route",
+      "label": "Destination CIDR block",
+      "name": "destination_cidr_block",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Internet or virtual private gateway ID",
+      "group": "Route",
+      "label": "Gateway ID",
+      "name": "gateway_id",
       "required": false,
       "type": "string"
     }
@@ -3370,6 +3458,100 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "map"
     }
   ],
+  "security-group": [
+    {
+      "default": "Managed by Terraform",
+      "description": "Security group description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "VPC ID",
+      "group": "General",
+      "label": "VPC ID",
+      "name": "vpc_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "tcp",
+      "description": "Ingress protocol",
+      "group": "Ingress",
+      "label": "Ingress protocol",
+      "name": "ingress_protocol",
+      "options": [
+        {
+          "label": "TCP",
+          "value": "tcp"
+        },
+        {
+          "label": "UDP",
+          "value": "udp"
+        },
+        {
+          "label": "All",
+          "value": "-1"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "tcp",
+          "udp",
+          "-1"
+        ]
+      }
+    },
+    {
+      "default": 443,
+      "description": "First ingress port",
+      "group": "Ingress",
+      "label": "Ingress from port",
+      "name": "ingress_from_port",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 65535,
+        "min": 0
+      }
+    },
+    {
+      "default": 443,
+      "description": "Last ingress port",
+      "group": "Ingress",
+      "label": "Ingress to port",
+      "name": "ingress_to_port",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 65535,
+        "min": 0
+      }
+    },
+    {
+      "default": "0.0.0.0/0",
+      "description": "Allowed IPv4 CIDR",
+      "group": "Ingress",
+      "label": "Ingress CIDR",
+      "name": "ingress_cidr",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Allow all outbound traffic",
+      "group": "Egress",
+      "label": "Allow all egress",
+      "name": "allow_all_egress",
+      "required": false,
+      "type": "bool"
+    }
+  ],
   "ses": [
     {
       "description": "Domain name for SES identity",
@@ -3512,6 +3694,46 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "map"
     }
   ],
+  "subnet": [
+    {
+      "default": "",
+      "description": "VPC ID",
+      "group": "General",
+      "label": "VPC ID",
+      "name": "vpc_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "10.0.1.0/24",
+      "description": "IPv4 CIDR block",
+      "group": "General",
+      "label": "CIDR block",
+      "name": "cidr_block",
+      "required": false,
+      "type": "string",
+      "validation": {
+        "pattern": "^\\d{1,3}(\\.\\d{1,3}){3}/\\d{1,2}$"
+      }
+    },
+    {
+      "description": "Availability Zone",
+      "group": "General",
+      "label": "Availability zone",
+      "name": "availability_zone",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": false,
+      "description": "Assign public IPv4 addresses",
+      "group": "General",
+      "label": "Map public IP on launch",
+      "name": "map_public_ip_on_launch",
+      "required": false,
+      "type": "bool"
+    }
+  ],
   "timestream": [
     {
       "description": "Name of the Timestream database",
@@ -3520,6 +3742,63 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "database_name",
       "required": false,
       "type": "string"
+    }
+  ],
+  "vpc": [
+    {
+      "default": "10.0.0.0/16",
+      "description": "IPv4 CIDR block",
+      "group": "General",
+      "label": "CIDR block",
+      "name": "cidr_block",
+      "required": false,
+      "type": "string",
+      "validation": {
+        "pattern": "^\\d{1,3}(\\.\\d{1,3}){3}/\\d{1,2}$"
+      }
+    },
+    {
+      "default": "default",
+      "description": "Instance tenancy",
+      "group": "General",
+      "label": "Instance tenancy",
+      "name": "instance_tenancy",
+      "options": [
+        {
+          "label": "Default",
+          "value": "default"
+        },
+        {
+          "label": "Dedicated",
+          "value": "dedicated"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "default",
+          "dedicated"
+        ]
+      }
+    },
+    {
+      "default": true,
+      "description": "Enable DNS resolution",
+      "group": "General",
+      "label": "Enable DNS support",
+      "name": "enable_dns_support",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": true,
+      "description": "Enable DNS hostnames",
+      "group": "General",
+      "label": "Enable DNS hostnames",
+      "name": "enable_dns_hostnames",
+      "required": false,
+      "type": "bool"
     }
   ]
 };

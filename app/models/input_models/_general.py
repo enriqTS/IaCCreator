@@ -27,6 +27,14 @@ class ServiceType(StrEnum):
     SQS = "sqs"
     EVENTBRIDGE = "eventbridge"
 
+    # Networking – full-generator services
+    VPC = "vpc"
+    SUBNET = "subnet"
+    SECURITY_GROUP = "security-group"
+    ROUTE_TABLE = "route-table"
+    INTERNET_GATEWAY = "internet-gateway"
+    NAT_GATEWAY = "nat-gateway"
+
     # Compute – full-generator services
     EC2 = "ec2"
     ECS = "ecs"
@@ -376,22 +384,28 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.eventbridge_config import EventBridgeConfig
     from app.models.input_models.gamelift_config import GameLiftConfig
     from app.models.input_models.glue_config import GlueConfig
+    from app.models.input_models.internet_gateway_config import InternetGatewayConfig
     from app.models.input_models.kinesis_config import KinesisConfig
     from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
     from app.models.input_models.lambda_config import LambdaConfig
     from app.models.input_models.lightsail_config import LightsailConfig
     from app.models.input_models.msk_config import MskConfig
+    from app.models.input_models.nat_gateway_config import NatGatewayConfig
     from app.models.input_models.neptune_config import NeptuneConfig
     from app.models.input_models.opensearch_config import OpenSearchConfig
     from app.models.input_models.pinpoint_config import PinpointConfig
     from app.models.input_models.rds_config import RdsConfig
     from app.models.input_models.redshift_config import RedshiftConfig
+    from app.models.input_models.route_table_config import RouteTableConfig
     from app.models.input_models.s3_config import S3Config
     from app.models.input_models.sagemaker_config import SageMakerConfig
+    from app.models.input_models.security_group_config import SecurityGroupConfig
     from app.models.input_models.ses_config import SesConfig
     from app.models.input_models.sns_config import SnsConfig
     from app.models.input_models.sqs_config import SqsConfig
+    from app.models.input_models.subnet_config import SubnetConfig
     from app.models.input_models.timestream_config import TimestreamConfig
+    from app.models.input_models.vpc_config import VpcConfig
 
     return {
         ServiceType.LAMBDA: LambdaConfig,
@@ -402,6 +416,12 @@ def _build_service_config_models() -> dict:
         ServiceType.SNS: SnsConfig,
         ServiceType.SQS: SqsConfig,
         ServiceType.EVENTBRIDGE: EventBridgeConfig,
+        ServiceType.VPC: VpcConfig,
+        ServiceType.SUBNET: SubnetConfig,
+        ServiceType.SECURITY_GROUP: SecurityGroupConfig,
+        ServiceType.ROUTE_TABLE: RouteTableConfig,
+        ServiceType.INTERNET_GATEWAY: InternetGatewayConfig,
+        ServiceType.NAT_GATEWAY: NatGatewayConfig,
         ServiceType.EC2: Ec2Config,
         ServiceType.ECS: EcsConfig,
         ServiceType.EKS: EksConfig,

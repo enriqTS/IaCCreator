@@ -25,6 +25,14 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - SQS
 - EventBridge
 
+**Networking:**
+- VPC
+- Subnet
+- Security Group
+- Route Table
+- Internet Gateway
+- NAT Gateway
+
 **Compute:**
 - EC2
 - ECS

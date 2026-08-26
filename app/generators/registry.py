@@ -53,22 +53,28 @@ from app.generators.eventbridge_generator import EventBridgeGenerator
 from app.generators.gamelift_generator import GameLiftGenerator
 from app.generators.glue_generator import GlueGenerator
 from app.generators.iam_generator import IAMGenerator
+from app.generators.internet_gateway_generator import InternetGatewayGenerator
 from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
 from app.generators.kinesis_generator import KinesisGenerator
 from app.generators.lambda_generator import LambdaGenerator
 from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.msk_generator import MSKGenerator
+from app.generators.nat_gateway_generator import NatGatewayGenerator
 from app.generators.neptune_generator import NeptuneGenerator
 from app.generators.opensearch_generator import OpenSearchGenerator
 from app.generators.pinpoint_generator import PinpointGenerator
 from app.generators.rds_generator import RDSGenerator
 from app.generators.redshift_generator import RedshiftGenerator
+from app.generators.route_table_generator import RouteTableGenerator
 from app.generators.s3_generator import S3Generator
 from app.generators.sagemaker_generator import SageMakerGenerator
+from app.generators.security_group_generator import SecurityGroupGenerator
 from app.generators.ses_generator import SESGenerator
 from app.generators.sns_generator import SNSGenerator
 from app.generators.sqs_generator import SQSGenerator
+from app.generators.subnet_generator import SubnetGenerator
 from app.generators.timestream_generator import TimestreamGenerator
+from app.generators.vpc_generator import VpcGenerator
 from app.models.input_models import ServiceType
 
 GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
@@ -81,6 +87,12 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.EVENTBRIDGE: EventBridgeGenerator(),
     ServiceType.SNS: SNSGenerator(),
     ServiceType.SQS: SQSGenerator(),
+    ServiceType.VPC: VpcGenerator(),
+    ServiceType.SUBNET: SubnetGenerator(),
+    ServiceType.SECURITY_GROUP: SecurityGroupGenerator(),
+    ServiceType.ROUTE_TABLE: RouteTableGenerator(),
+    ServiceType.INTERNET_GATEWAY: InternetGatewayGenerator(),
+    ServiceType.NAT_GATEWAY: NatGatewayGenerator(),
     ServiceType.EC2: EC2Generator(),
     ServiceType.ECS: ECSGenerator(),
     ServiceType.EKS: EKSGenerator(),

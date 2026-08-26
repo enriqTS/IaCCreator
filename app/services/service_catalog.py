@@ -190,6 +190,14 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.SNS,
         ServiceType.SQS,
     },
+    "networking": {
+        ServiceType.VPC,
+        ServiceType.SUBNET,
+        ServiceType.SECURITY_GROUP,
+        ServiceType.ROUTE_TABLE,
+        ServiceType.INTERNET_GATEWAY,
+        ServiceType.NAT_GATEWAY,
+    },
 }
 
 _CAPABILITIES = {

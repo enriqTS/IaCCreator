@@ -26,6 +26,12 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.S3: "storage",
     # Networking
     ServiceType.API_GATEWAY: "networking",
+    ServiceType.VPC: "networking",
+    ServiceType.SUBNET: "networking",
+    ServiceType.SECURITY_GROUP: "networking",
+    ServiceType.ROUTE_TABLE: "networking",
+    ServiceType.INTERNET_GATEWAY: "networking",
+    ServiceType.NAT_GATEWAY: "networking",
     # Log/Monitoring
     ServiceType.CLOUDWATCH: "log",
     # Messaging

@@ -16,6 +16,13 @@ export type ServiceType =
   | 'sns'
   | 'sqs'
   | 'eventbridge'
+  // Networking — full-generator services
+  | 'vpc'
+  | 'subnet'
+  | 'security-group'
+  | 'route-table'
+  | 'internet-gateway'
+  | 'nat-gateway'
   // Compute — full-generator services
   | 'ec2'
   | 'elastic-beanstalk'
