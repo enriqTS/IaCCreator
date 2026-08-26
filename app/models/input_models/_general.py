@@ -39,6 +39,13 @@ class ServiceType(StrEnum):
     ROUTE53 = "route53"
     CLOUDFRONT = "cloudfront"
 
+    # Security – full-generator services
+    KMS = "kms"
+    SECRETS_MANAGER = "secrets-manager"
+    COGNITO = "cognito"
+    CERTIFICATE_MANAGER = "certificate-manager"
+    WAF = "waf"
+
     # Compute – full-generator services
     EC2 = "ec2"
     ECS = "ecs"
@@ -353,6 +360,7 @@ def _build_service_config_models() -> dict:
     Only services with generator implementations (i.e., dedicated config models)
     are registered. Icon-only services use BaseServiceConfig directly.
     """
+    from app.models.input_models.acm_config import AcmConfig
     from app.models.input_models.amazon_q_config import AmazonQConfig
     from app.models.input_models.amplify_config import AmplifyConfig
     from app.models.input_models.api_gateway_config import ApiGatewayConfig
@@ -375,6 +383,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.codecommit_config import CodeCommitConfig
     from app.models.input_models.codedeploy_config import CodeDeployConfig
     from app.models.input_models.codepipeline_config import CodePipelineConfig
+    from app.models.input_models.cognito_config import CognitoConfig
     from app.models.input_models.connect_config import ConnectConfig
     from app.models.input_models.documentdb_config import DocumentDbConfig
     from app.models.input_models.dynamodb_config import DynamoDBConfig
@@ -392,6 +401,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.internet_gateway_config import InternetGatewayConfig
     from app.models.input_models.kinesis_config import KinesisConfig
     from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
+    from app.models.input_models.kms_config import KmsConfig
     from app.models.input_models.lambda_config import LambdaConfig
     from app.models.input_models.lightsail_config import LightsailConfig
     from app.models.input_models.load_balancer_config import LoadBalancerConfig
@@ -406,6 +416,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.route_table_config import RouteTableConfig
     from app.models.input_models.s3_config import S3Config
     from app.models.input_models.sagemaker_config import SageMakerConfig
+    from app.models.input_models.secrets_manager_config import SecretsManagerConfig
     from app.models.input_models.security_group_config import SecurityGroupConfig
     from app.models.input_models.ses_config import SesConfig
     from app.models.input_models.sns_config import SnsConfig
@@ -414,6 +425,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.target_group_config import TargetGroupConfig
     from app.models.input_models.timestream_config import TimestreamConfig
     from app.models.input_models.vpc_config import VpcConfig
+    from app.models.input_models.waf_config import WafConfig
 
     return {
         ServiceType.LAMBDA: LambdaConfig,
@@ -434,6 +446,11 @@ def _build_service_config_models() -> dict:
         ServiceType.TARGET_GROUP: TargetGroupConfig,
         ServiceType.ROUTE53: Route53Config,
         ServiceType.CLOUDFRONT: CloudFrontConfig,
+        ServiceType.KMS: KmsConfig,
+        ServiceType.SECRETS_MANAGER: SecretsManagerConfig,
+        ServiceType.COGNITO: CognitoConfig,
+        ServiceType.CERTIFICATE_MANAGER: AcmConfig,
+        ServiceType.WAF: WafConfig,
         ServiceType.EC2: Ec2Config,
         ServiceType.ECS: EcsConfig,
         ServiceType.EKS: EksConfig,

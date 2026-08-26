@@ -471,11 +471,11 @@ Where appropriate, later extend the same model with VPC endpoints, network ACLs,
 
 ### Security
 
-- Key Management Service
-- Secrets Manager
-- Cognito
-- Certificate Manager
-- WAF
+- Key Management Service — implemented
+- Secrets Manager — implemented
+- Cognito — implemented
+- Certificate Manager — implemented
+- WAF — implemented
 
 ### Storage
 

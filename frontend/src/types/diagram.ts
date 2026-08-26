@@ -27,6 +27,12 @@ export type ServiceType =
   | 'target-group'
   | 'route53'
   | 'cloudfront'
+  // Security — full-generator services
+  | 'kms'
+  | 'secrets-manager'
+  | 'cognito'
+  | 'certificate-manager'
+  | 'waf'
   // Compute — full-generator services
   | 'ec2'
   | 'elastic-beanstalk'

@@ -91,8 +91,8 @@ def test_all_schema_entries_have_a_label() -> None:
         for entry in schemas[service_type]
         if not isinstance(entry.label, str) or not entry.label.strip()
     ]
-    assert not unlabelled, "Schema entries with a missing or empty label:\n" + "\n".join(
-        unlabelled
+    assert not unlabelled, (
+        "Schema entries with a missing or empty label:\n" + "\n".join(unlabelled)
     )
 
 

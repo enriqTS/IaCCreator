@@ -1171,6 +1171,50 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "map"
     }
   ],
+  "certificate-manager": [
+    {
+      "default": "example.com",
+      "description": "Primary certificate domain",
+      "group": "General",
+      "label": "Domain name",
+      "name": "domain_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Additional certificate domains",
+      "group": "General",
+      "label": "Subject alternative names",
+      "name": "subject_alternative_names",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "default": "DNS",
+      "description": "Certificate validation method",
+      "group": "General",
+      "label": "Validation method",
+      "name": "validation_method",
+      "options": [
+        {
+          "label": "DNS",
+          "value": "DNS"
+        },
+        {
+          "label": "Email",
+          "value": "EMAIL"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "DNS",
+          "EMAIL"
+        ]
+      }
+    }
+  ],
   "cloudfront": [
     {
       "default": "",
@@ -1530,6 +1574,81 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "role_arn",
       "required": false,
       "type": "string"
+    }
+  ],
+  "cognito": [
+    {
+      "default": "email",
+      "description": "Attribute used as the username",
+      "group": "General",
+      "label": "Username attributes",
+      "name": "username_attributes",
+      "options": [
+        {
+          "label": "Email",
+          "value": "email"
+        },
+        {
+          "label": "Phone number",
+          "value": "phone_number"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "email",
+          "phone_number"
+        ]
+      }
+    },
+    {
+      "default": true,
+      "description": "Automatically verify the username attribute",
+      "group": "General",
+      "label": "Auto verified attributes",
+      "name": "auto_verified_attributes",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": "OFF",
+      "description": "Multi-factor authentication mode",
+      "group": "General",
+      "label": "MFA configuration",
+      "name": "mfa_configuration",
+      "options": [
+        {
+          "label": "Off",
+          "value": "OFF"
+        },
+        {
+          "label": "On",
+          "value": "ON"
+        },
+        {
+          "label": "Optional",
+          "value": "OPTIONAL"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "OFF",
+          "ON",
+          "OPTIONAL"
+        ]
+      }
+    },
+    {
+      "default": true,
+      "description": "Create an application client",
+      "group": "General",
+      "label": "Create client",
+      "name": "create_client",
+      "required": false,
+      "type": "bool"
     }
   ],
   "connect": [
@@ -2239,6 +2358,56 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "destination",
       "required": false,
       "type": "string"
+    }
+  ],
+  "kms": [
+    {
+      "default": "Managed by IaCCreator",
+      "description": "Key description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 30,
+      "description": "Waiting period before key deletion",
+      "group": "General",
+      "label": "Deletion window in days",
+      "name": "deletion_window_in_days",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 30,
+        "min": 7
+      }
+    },
+    {
+      "default": true,
+      "description": "Enable annual key rotation",
+      "group": "General",
+      "label": "Enable key rotation",
+      "name": "enable_key_rotation",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "description": "Optional alias without the alias/ prefix",
+      "group": "General",
+      "label": "Alias",
+      "name": "alias",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": false,
+      "description": "Create a multi-Region primary key",
+      "group": "General",
+      "label": "Multi region",
+      "name": "multi_region",
+      "required": false,
+      "type": "bool"
     }
   ],
   "lambda": [
@@ -3689,6 +3858,37 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "map"
     }
   ],
+  "secrets-manager": [
+    {
+      "description": "Secret description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "KMS key ARN or ID",
+      "group": "General",
+      "label": "KMS key ID",
+      "name": "kms_key_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 30,
+      "description": "Days before permanent deletion",
+      "group": "General",
+      "label": "Recovery window in days",
+      "name": "recovery_window_in_days",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 30,
+        "min": 0
+      }
+    }
+  ],
   "security-group": [
     {
       "default": "Managed by Terraform",
@@ -4149,6 +4349,84 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "group": "General",
       "label": "Enable DNS hostnames",
       "name": "enable_dns_hostnames",
+      "required": false,
+      "type": "bool"
+    }
+  ],
+  "waf": [
+    {
+      "description": "Web ACL description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "REGIONAL",
+      "description": "Deployment scope",
+      "group": "General",
+      "label": "Scope",
+      "name": "scope",
+      "options": [
+        {
+          "label": "Regional",
+          "value": "REGIONAL"
+        },
+        {
+          "label": "CloudFront",
+          "value": "CLOUDFRONT"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "REGIONAL",
+          "CLOUDFRONT"
+        ]
+      }
+    },
+    {
+      "default": "allow",
+      "description": "Action for unmatched requests",
+      "group": "General",
+      "label": "Default action",
+      "name": "default_action",
+      "options": [
+        {
+          "label": "Allow",
+          "value": "allow"
+        },
+        {
+          "label": "Block",
+          "value": "block"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "allow",
+          "block"
+        ]
+      }
+    },
+    {
+      "default": true,
+      "description": "Publish metrics to CloudWatch",
+      "group": "General",
+      "label": "Cloudwatch metrics enabled",
+      "name": "cloudwatch_metrics_enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": true,
+      "description": "Store sampled requests",
+      "group": "General",
+      "label": "Sampled requests enabled",
+      "name": "sampled_requests_enabled",
       "required": false,
       "type": "bool"
     }

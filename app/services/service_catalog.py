@@ -182,7 +182,14 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.BEDROCK_AGENTCORE,
     },
     "management-governance": {ServiceType.CLOUDWATCH},
-    "security": {ServiceType.IAM},
+    "security": {
+        ServiceType.IAM,
+        ServiceType.KMS,
+        ServiceType.SECRETS_MANAGER,
+        ServiceType.COGNITO,
+        ServiceType.CERTIFICATE_MANAGER,
+        ServiceType.WAF,
+    },
     "storage": {ServiceType.S3},
     "app-integration": {
         ServiceType.API_GATEWAY,

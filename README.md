@@ -36,6 +36,13 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - Route 53 hosted zones
 - CloudFront distributions
 
+**Security:**
+- Key Management Service
+- Secrets Manager
+- Cognito user pools
+- Certificate Manager
+- WAF web ACLs
+
 **Compute:**
 - EC2
 - ECS

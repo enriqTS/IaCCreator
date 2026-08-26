@@ -59,6 +59,12 @@ EXPECTED_SERVICE_TYPES = {
     "target-group",
     "route53",
     "cloudfront",
+    # Security
+    "kms",
+    "secrets-manager",
+    "cognito",
+    "certificate-manager",
+    "waf",
     "ec2",
     "ecs",
     "eks",

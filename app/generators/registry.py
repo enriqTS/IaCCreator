@@ -1,5 +1,6 @@
 """Service generator registry — maps ServiceType to generator instances."""
 
+from app.generators.acm_generator import AcmGenerator
 from app.generators.amazon_q_generator import AmazonQGenerator
 
 # Front End Web Mobile generators
@@ -35,6 +36,7 @@ from app.generators.codebuild_generator import CodeBuildGenerator
 from app.generators.codecommit_generator import CodeCommitGenerator
 from app.generators.codedeploy_generator import CodeDeployGenerator
 from app.generators.codepipeline_generator import CodePipelineGenerator
+from app.generators.cognito_generator import CognitoGenerator
 
 # Business Applications generators
 from app.generators.connect_generator import ConnectGenerator
@@ -57,6 +59,7 @@ from app.generators.iam_generator import IAMGenerator
 from app.generators.internet_gateway_generator import InternetGatewayGenerator
 from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
 from app.generators.kinesis_generator import KinesisGenerator
+from app.generators.kms_generator import KmsGenerator
 from app.generators.lambda_generator import LambdaGenerator
 from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.load_balancer_generator import LoadBalancerGenerator
@@ -71,6 +74,7 @@ from app.generators.route53_generator import Route53Generator
 from app.generators.route_table_generator import RouteTableGenerator
 from app.generators.s3_generator import S3Generator
 from app.generators.sagemaker_generator import SageMakerGenerator
+from app.generators.secrets_manager_generator import SecretsManagerGenerator
 from app.generators.security_group_generator import SecurityGroupGenerator
 from app.generators.ses_generator import SESGenerator
 from app.generators.sns_generator import SNSGenerator
@@ -79,6 +83,7 @@ from app.generators.subnet_generator import SubnetGenerator
 from app.generators.target_group_generator import TargetGroupGenerator
 from app.generators.timestream_generator import TimestreamGenerator
 from app.generators.vpc_generator import VpcGenerator
+from app.generators.waf_generator import WafGenerator
 from app.models.input_models import ServiceType
 
 GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
@@ -101,6 +106,11 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.TARGET_GROUP: TargetGroupGenerator(),
     ServiceType.ROUTE53: Route53Generator(),
     ServiceType.CLOUDFRONT: CloudFrontGenerator(),
+    ServiceType.KMS: KmsGenerator(),
+    ServiceType.SECRETS_MANAGER: SecretsManagerGenerator(),
+    ServiceType.COGNITO: CognitoGenerator(),
+    ServiceType.CERTIFICATE_MANAGER: AcmGenerator(),
+    ServiceType.WAF: WafGenerator(),
     ServiceType.EC2: EC2Generator(),
     ServiceType.ECS: ECSGenerator(),
     ServiceType.EKS: EKSGenerator(),
