@@ -1966,6 +1966,89 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "database-migration-service": [
+    {
+      "default": "replication-instance",
+      "description": "Replication instance identifier",
+      "group": "General",
+      "label": "Replication instance ID",
+      "name": "replication_instance_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "dms.t3.medium",
+      "description": "Replication instance class",
+      "group": "General",
+      "label": "Replication instance class",
+      "name": "replication_instance_class",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 50,
+      "description": "Allocated storage in GiB",
+      "group": "General",
+      "label": "Allocated storage",
+      "name": "allocated_storage",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 5
+      }
+    },
+    {
+      "description": "Optional DMS engine version",
+      "group": "General",
+      "label": "Engine version",
+      "name": "engine_version",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": false,
+      "description": "Deploy a standby replica in another Availability Zone",
+      "group": "General",
+      "label": "Multi AZ",
+      "name": "multi_az",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": false,
+      "description": "Assign a public IP address",
+      "group": "General",
+      "label": "Publicly accessible",
+      "name": "publicly_accessible",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "description": "Subnets for the replication subnet group",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "VPC security groups for the replication instance",
+      "group": "General",
+      "label": "VPC security group IDs",
+      "name": "vpc_security_group_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "default": true,
+      "description": "Automatically install minor engine upgrades",
+      "group": "General",
+      "label": "Auto minor version upgrade",
+      "name": "auto_minor_version_upgrade",
+      "required": false,
+      "type": "bool"
+    }
+  ],
   "documentdb": [
     {
       "description": "Identifier for the DocumentDB cluster",
@@ -2956,6 +3039,17 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "keyspaces": [
+    {
+      "default": "application",
+      "description": "Keyspace name",
+      "group": "General",
+      "label": "Keyspace name",
+      "name": "keyspace_name",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "kinesis": [
     {
       "description": "Name of the Kinesis stream",
@@ -3722,6 +3816,107 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "enable_deletion_protection",
       "required": false,
       "type": "bool"
+    }
+  ],
+  "memorydb": [
+    {
+      "default": "memorydb-cluster",
+      "description": "MemoryDB cluster name",
+      "group": "General",
+      "label": "Cluster name",
+      "name": "cluster_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "db.t4g.small",
+      "description": "MemoryDB node type",
+      "group": "General",
+      "label": "Node type",
+      "name": "node_type",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 1,
+      "description": "Number of shards",
+      "group": "General",
+      "label": "Num shards",
+      "name": "num_shards",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 500,
+        "min": 1
+      }
+    },
+    {
+      "default": 1,
+      "description": "Replicas per shard",
+      "group": "General",
+      "label": "Num replicas per shard",
+      "name": "num_replicas_per_shard",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 5,
+        "min": 0
+      }
+    },
+    {
+      "default": "open-access",
+      "description": "MemoryDB ACL name",
+      "group": "General",
+      "label": "ACL name",
+      "name": "acl_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Subnets for the MemoryDB subnet group",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "VPC security groups for the cluster",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "default": true,
+      "description": "Encrypt traffic in transit",
+      "group": "General",
+      "label": "TLS enabled",
+      "name": "tls_enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": 0,
+      "description": "Daily snapshot retention in days",
+      "group": "General",
+      "label": "Snapshot retention limit",
+      "name": "snapshot_retention_limit",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 35,
+        "min": 0
+      }
+    },
+    {
+      "description": "Weekly maintenance window",
+      "group": "General",
+      "label": "Maintenance window",
+      "name": "maintenance_window",
+      "required": false,
+      "type": "string"
     }
   ],
   "mq": [

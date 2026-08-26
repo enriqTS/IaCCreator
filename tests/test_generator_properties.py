@@ -253,13 +253,15 @@ def resource_instance_with_populated_fields(draw):
 
     # We need at least one populated field to make the test meaningful
     if optional_entries:
-        populate_flags = draw(
-            st.lists(
-                st.booleans(),
-                min_size=len(optional_entries),
-                max_size=len(optional_entries),
-            ).filter(lambda flags: any(flags))
+        populated_indexes = draw(
+            st.sets(
+                st.integers(min_value=0, max_value=len(optional_entries) - 1),
+                min_size=1,
+            )
         )
+        populate_flags = [
+            index in populated_indexes for index in range(len(optional_entries))
+        ]
     else:
         populate_flags = []
 

@@ -106,6 +106,9 @@ EXPECTED_SERVICE_TYPES = {
     "neptune",
     "rds",
     "timestream",
+    "database-migration-service",
+    "keyspaces",
+    "memorydb",
     # Developer Tools
     "codebuild",
     "codecommit",

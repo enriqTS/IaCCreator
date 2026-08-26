@@ -498,9 +498,9 @@ Promote the most useful existing typed services:
 
 - EC2 Auto Scaling — implemented
 - Application Auto Scaling — implemented
-- Database Migration Service
-- Keyspaces
-- MemoryDB for Redis
+- Database Migration Service — implemented
+- Keyspaces — implemented
+- MemoryDB for Redis — implemented
 - CodeArtifact
 - X-Ray
 - QuickSight

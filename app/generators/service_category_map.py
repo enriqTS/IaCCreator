@@ -24,6 +24,9 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.NEPTUNE: "database",
     ServiceType.RDS: "database",
     ServiceType.TIMESTREAM: "database",
+    ServiceType.DATABASE_MIGRATION_SERVICE: "database",
+    ServiceType.KEYSPACES: "database",
+    ServiceType.MEMORYDB: "database",
     # Storage
     ServiceType.S3: "storage",
     ServiceType.EBS: "storage",

@@ -79,6 +79,9 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - Redshift
 
 **Database:**
+- Database Migration Service replication instances
+- Keyspaces
+- MemoryDB
 - Aurora
 - DocumentDB
 - ElastiCache

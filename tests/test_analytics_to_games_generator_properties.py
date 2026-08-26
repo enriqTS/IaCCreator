@@ -107,6 +107,9 @@ FULL_GENERATOR_SERVICES = [
     ServiceType.NEPTUNE,
     ServiceType.RDS,
     ServiceType.TIMESTREAM,
+    ServiceType.DATABASE_MIGRATION_SERVICE,
+    ServiceType.KEYSPACES,
+    ServiceType.MEMORYDB,
     ServiceType.CODEBUILD,
     ServiceType.CODECOMMIT,
     ServiceType.CODEDEPLOY,
@@ -162,10 +165,7 @@ ICON_ONLY_SERVICES = [
     ServiceType.REPOST,
     ServiceType.SUPPORT,
     ServiceType.TRAINING_CERTIFICATION,
-    # Database icon-only (4)
-    ServiceType.DATABASE_MIGRATION_SERVICE,
-    ServiceType.KEYSPACES,
-    ServiceType.MEMORYDB,
+    # Database icon-only
     ServiceType.RDS_ON_VMWARE,
     # Developer Tools icon-only (12)
     ServiceType.APPLICATION_COMPOSER,
@@ -435,6 +435,21 @@ def test_property_2_conditional_config_field_inclusion(data, name):
 
 # Expected blocks per service: (resource_type_strings, variable_names, output_names)
 EXPECTED_BLOCKS: dict[ServiceType, tuple[list[str], list[str], list[str]]] = {
+    ServiceType.DATABASE_MIGRATION_SERVICE: (
+        ['resource "aws_dms_replication_instance"'],
+        ["replication_instance_id", "replication_instance_class"],
+        ["replication_instance_arn", "replication_instance_id"],
+    ),
+    ServiceType.KEYSPACES: (
+        ['resource "aws_keyspaces_keyspace"'],
+        ["keyspace_name"],
+        ["keyspace_id", "keyspace_arn"],
+    ),
+    ServiceType.MEMORYDB: (
+        ['resource "aws_memorydb_cluster"'],
+        ["cluster_name", "node_type", "acl_name"],
+        ["cluster_arn", "cluster_endpoint"],
+    ),
     ServiceType.ATHENA: (
         ['resource "aws_athena_workgroup"'],
         ["workgroup_name"],

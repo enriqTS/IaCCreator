@@ -45,6 +45,7 @@ from app.generators.cognito_generator import CognitoGenerator
 
 # Business Applications generators
 from app.generators.connect_generator import ConnectGenerator
+from app.generators.dms_generator import DmsGenerator
 from app.generators.documentdb_generator import DocumentDBGenerator
 from app.generators.dynamodb_generator import DynamoDBGenerator
 from app.generators.ebs_generator import EbsGenerator
@@ -65,12 +66,14 @@ from app.generators.gamelift_generator import GameLiftGenerator
 from app.generators.glue_generator import GlueGenerator
 from app.generators.iam_generator import IAMGenerator
 from app.generators.internet_gateway_generator import InternetGatewayGenerator
+from app.generators.keyspaces_generator import KeyspacesGenerator
 from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
 from app.generators.kinesis_generator import KinesisGenerator
 from app.generators.kms_generator import KmsGenerator
 from app.generators.lambda_generator import LambdaGenerator
 from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.load_balancer_generator import LoadBalancerGenerator
+from app.generators.memorydb_generator import MemoryDbGenerator
 from app.generators.mq_generator import MqGenerator
 from app.generators.msk_generator import MSKGenerator
 from app.generators.mwaa_generator import MwaaGenerator
@@ -161,6 +164,9 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.NEPTUNE: NeptuneGenerator(),
     ServiceType.RDS: RDSGenerator(),
     ServiceType.TIMESTREAM: TimestreamGenerator(),
+    ServiceType.DATABASE_MIGRATION_SERVICE: DmsGenerator(),
+    ServiceType.KEYSPACES: KeyspacesGenerator(),
+    ServiceType.MEMORYDB: MemoryDbGenerator(),
     # Developer Tools
     ServiceType.CODEBUILD: CodeBuildGenerator(),
     ServiceType.CODECOMMIT: CodeCommitGenerator(),

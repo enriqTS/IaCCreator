@@ -401,6 +401,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.codepipeline_config import CodePipelineConfig
     from app.models.input_models.cognito_config import CognitoConfig
     from app.models.input_models.connect_config import ConnectConfig
+    from app.models.input_models.dms_config import DmsConfig
     from app.models.input_models.documentdb_config import DocumentDbConfig
     from app.models.input_models.dynamodb_config import DynamoDBConfig
     from app.models.input_models.ebs_config import EbsConfig
@@ -418,12 +419,14 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.gamelift_config import GameLiftConfig
     from app.models.input_models.glue_config import GlueConfig
     from app.models.input_models.internet_gateway_config import InternetGatewayConfig
+    from app.models.input_models.keyspaces_config import KeyspacesConfig
     from app.models.input_models.kinesis_config import KinesisConfig
     from app.models.input_models.kinesis_firehose_config import KinesisFirehoseConfig
     from app.models.input_models.kms_config import KmsConfig
     from app.models.input_models.lambda_config import LambdaConfig
     from app.models.input_models.lightsail_config import LightsailConfig
     from app.models.input_models.load_balancer_config import LoadBalancerConfig
+    from app.models.input_models.memorydb_config import MemoryDbConfig
     from app.models.input_models.mq_config import MqConfig
     from app.models.input_models.msk_config import MskConfig
     from app.models.input_models.mwaa_config import MwaaConfig
@@ -509,6 +512,9 @@ def _build_service_config_models() -> dict:
         ServiceType.NEPTUNE: NeptuneConfig,
         ServiceType.RDS: RdsConfig,
         ServiceType.TIMESTREAM: TimestreamConfig,
+        ServiceType.DATABASE_MIGRATION_SERVICE: DmsConfig,
+        ServiceType.KEYSPACES: KeyspacesConfig,
+        ServiceType.MEMORYDB: MemoryDbConfig,
         ServiceType.CODEBUILD: CodeBuildConfig,
         ServiceType.CODECOMMIT: CodeCommitConfig,
         ServiceType.CODEDEPLOY: CodeDeployConfig,
