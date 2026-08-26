@@ -46,6 +46,11 @@ class ServiceType(StrEnum):
     CERTIFICATE_MANAGER = "certificate-manager"
     WAF = "waf"
 
+    # Storage – full-generator services
+    EBS = "ebs"
+    EFS = "efs"
+    BACKUP = "backup"
+
     # Compute – full-generator services
     EC2 = "ec2"
     ECS = "ecs"
@@ -368,6 +373,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.appstream_config import AppStreamConfig
     from app.models.input_models.athena_config import AthenaConfig
     from app.models.input_models.aurora_config import AuroraConfig
+    from app.models.input_models.backup_config import BackupConfig
     from app.models.input_models.batch_config import BatchConfig
     from app.models.input_models.bedrock_agent_config import BedrockAgentConfig
     from app.models.input_models.bedrock_agentcore_config import BedrockAgentcoreConfig
@@ -387,10 +393,12 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.connect_config import ConnectConfig
     from app.models.input_models.documentdb_config import DocumentDbConfig
     from app.models.input_models.dynamodb_config import DynamoDBConfig
+    from app.models.input_models.ebs_config import EbsConfig
     from app.models.input_models.ec2_config import Ec2Config
     from app.models.input_models.ec2_image_builder_config import Ec2ImageBuilderConfig
     from app.models.input_models.ecr_config import EcrConfig
     from app.models.input_models.ecs_config import EcsConfig
+    from app.models.input_models.efs_config import EfsConfig
     from app.models.input_models.eks_config import EksConfig
     from app.models.input_models.elastic_beanstalk_config import ElasticBeanstalkConfig
     from app.models.input_models.elasticache_config import ElastiCacheConfig
@@ -451,6 +459,9 @@ def _build_service_config_models() -> dict:
         ServiceType.COGNITO: CognitoConfig,
         ServiceType.CERTIFICATE_MANAGER: AcmConfig,
         ServiceType.WAF: WafConfig,
+        ServiceType.EBS: EbsConfig,
+        ServiceType.EFS: EfsConfig,
+        ServiceType.BACKUP: BackupConfig,
         ServiceType.EC2: Ec2Config,
         ServiceType.ECS: EcsConfig,
         ServiceType.EKS: EksConfig,

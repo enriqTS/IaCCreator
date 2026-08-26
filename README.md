@@ -43,6 +43,11 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - Certificate Manager
 - WAF web ACLs
 
+**Storage:**
+- Elastic Block Store volumes
+- EFS file systems and mount targets
+- AWS Backup vaults and plans
+
 **Compute:**
 - EC2
 - ECS

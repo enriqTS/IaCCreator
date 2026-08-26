@@ -190,7 +190,7 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.CERTIFICATE_MANAGER,
         ServiceType.WAF,
     },
-    "storage": {ServiceType.S3},
+    "storage": {ServiceType.S3, ServiceType.EBS, ServiceType.EFS, ServiceType.BACKUP},
     "app-integration": {
         ServiceType.API_GATEWAY,
         ServiceType.EVENTBRIDGE,

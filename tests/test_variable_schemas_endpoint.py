@@ -65,6 +65,10 @@ EXPECTED_SERVICE_TYPES = {
     "cognito",
     "certificate-manager",
     "waf",
+    # Storage
+    "ebs",
+    "efs",
+    "backup",
     "ec2",
     "ecs",
     "eks",

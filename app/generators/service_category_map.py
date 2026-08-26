@@ -24,6 +24,9 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.TIMESTREAM: "database",
     # Storage
     ServiceType.S3: "storage",
+    ServiceType.EBS: "storage",
+    ServiceType.EFS: "storage",
+    ServiceType.BACKUP: "storage",
     # Networking
     ServiceType.API_GATEWAY: "networking",
     ServiceType.VPC: "networking",

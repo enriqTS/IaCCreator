@@ -33,6 +33,10 @@ export type ServiceType =
   | 'cognito'
   | 'certificate-manager'
   | 'waf'
+  // Storage — full-generator services
+  | 'ebs'
+  | 'efs'
+  | 'backup'
   // Compute — full-generator services
   | 'ec2'
   | 'elastic-beanstalk'

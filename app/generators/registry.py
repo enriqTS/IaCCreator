@@ -16,6 +16,7 @@ from app.generators.athena_generator import AthenaGenerator
 
 # Database generators
 from app.generators.aurora_generator import AuroraGenerator
+from app.generators.backup_generator import BackupGenerator
 from app.generators.base import ServiceGenerator
 from app.generators.batch_generator import BatchGenerator
 from app.generators.bedrock_agent_generator import BedrockAgentGenerator
@@ -42,10 +43,12 @@ from app.generators.cognito_generator import CognitoGenerator
 from app.generators.connect_generator import ConnectGenerator
 from app.generators.documentdb_generator import DocumentDBGenerator
 from app.generators.dynamodb_generator import DynamoDBGenerator
+from app.generators.ebs_generator import EbsGenerator
 from app.generators.ec2_generator import EC2Generator
 from app.generators.ec2_image_builder_generator import EC2ImageBuilderGenerator
 from app.generators.ecr_generator import ECRGenerator
 from app.generators.ecs_generator import ECSGenerator
+from app.generators.efs_generator import EfsGenerator
 from app.generators.eks_generator import EKSGenerator
 from app.generators.elastic_beanstalk_generator import ElasticBeanstalkGenerator
 from app.generators.elasticache_generator import ElastiCacheGenerator
@@ -111,6 +114,9 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.COGNITO: CognitoGenerator(),
     ServiceType.CERTIFICATE_MANAGER: AcmGenerator(),
     ServiceType.WAF: WafGenerator(),
+    ServiceType.EBS: EbsGenerator(),
+    ServiceType.EFS: EfsGenerator(),
+    ServiceType.BACKUP: BackupGenerator(),
     ServiceType.EC2: EC2Generator(),
     ServiceType.ECS: ECSGenerator(),
     ServiceType.EKS: EKSGenerator(),

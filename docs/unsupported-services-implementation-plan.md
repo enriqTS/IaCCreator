@@ -479,9 +479,9 @@ Where appropriate, later extend the same model with VPC endpoints, network ACLs,
 
 ### Storage
 
-- Elastic Block Store
-- EFS
-- Backup
+- Elastic Block Store — implemented
+- EFS — implemented
+- Backup — implemented
 
 ### Application integration
 

@@ -712,6 +712,79 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "backup": [
+    {
+      "default": "backup-vault",
+      "description": "Backup vault name",
+      "group": "General",
+      "label": "Vault name",
+      "name": "vault_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "KMS key ARN for vault encryption",
+      "group": "General",
+      "label": "KMS key ARN",
+      "name": "kms_key_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "backup-plan",
+      "description": "Backup plan name",
+      "group": "General",
+      "label": "Plan name",
+      "name": "plan_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "cron(0 5 ? * * *)",
+      "description": "EventBridge cron schedule",
+      "group": "General",
+      "label": "Schedule",
+      "name": "schedule",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 60,
+      "description": "Start window in minutes",
+      "group": "General",
+      "label": "Start window",
+      "name": "start_window",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 60
+      }
+    },
+    {
+      "default": 180,
+      "description": "Completion window in minutes",
+      "group": "General",
+      "label": "Completion window",
+      "name": "completion_window",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 60
+      }
+    },
+    {
+      "default": 35,
+      "description": "Days before recovery point deletion",
+      "group": "General",
+      "label": "Delete after days",
+      "name": "delete_after_days",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 1
+      }
+    }
+  ],
   "batch": [
     {
       "description": "Name of the Batch compute environment",
@@ -2024,6 +2097,137 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "ebs": [
+    {
+      "default": "us-east-1a",
+      "description": "Availability Zone for the volume",
+      "group": "General",
+      "label": "Availability zone",
+      "name": "availability_zone",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 20,
+      "description": "Volume size in GiB",
+      "group": "General",
+      "label": "Size",
+      "name": "size",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 1
+      }
+    },
+    {
+      "default": "gp3",
+      "description": "EBS volume type",
+      "group": "General",
+      "label": "Volume type",
+      "name": "volume_type",
+      "options": [
+        {
+          "label": "gp3",
+          "value": "gp3"
+        },
+        {
+          "label": "gp2",
+          "value": "gp2"
+        },
+        {
+          "label": "io1",
+          "value": "io1"
+        },
+        {
+          "label": "io2",
+          "value": "io2"
+        },
+        {
+          "label": "st1",
+          "value": "st1"
+        },
+        {
+          "label": "sc1",
+          "value": "sc1"
+        },
+        {
+          "label": "standard",
+          "value": "standard"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "gp3",
+          "gp2",
+          "io1",
+          "io2",
+          "st1",
+          "sc1",
+          "standard"
+        ]
+      }
+    },
+    {
+      "default": 3000,
+      "description": "Provisioned IOPS",
+      "group": "General",
+      "label": "IOPS",
+      "name": "iops",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 100
+      },
+      "visible_when": {
+        "equals": "gp3",
+        "field": "volume_type"
+      }
+    },
+    {
+      "default": 125,
+      "description": "Throughput in MiB/s",
+      "group": "General",
+      "label": "Throughput",
+      "name": "throughput",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 1000,
+        "min": 125
+      },
+      "visible_when": {
+        "equals": "gp3",
+        "field": "volume_type"
+      }
+    },
+    {
+      "default": true,
+      "description": "Encrypt the volume",
+      "group": "General",
+      "label": "Encrypted",
+      "name": "encrypted",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "description": "KMS key ARN or ID",
+      "group": "General",
+      "label": "KMS key ID",
+      "name": "kms_key_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Source snapshot ID",
+      "group": "General",
+      "label": "Snapshot ID",
+      "name": "snapshot_id",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "ec2": [
     {
       "description": "Name tag for the EC2 instance",
@@ -2121,6 +2325,109 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "ecs_memory",
       "required": false,
       "type": "string"
+    }
+  ],
+  "efs": [
+    {
+      "default": true,
+      "description": "Encrypt data at rest",
+      "group": "General",
+      "label": "Encrypted",
+      "name": "encrypted",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "description": "KMS key ARN or ID",
+      "group": "General",
+      "label": "KMS key ID",
+      "name": "kms_key_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "generalPurpose",
+      "description": "File system performance mode",
+      "group": "General",
+      "label": "Performance mode",
+      "name": "performance_mode",
+      "options": [
+        {
+          "label": "General purpose",
+          "value": "generalPurpose"
+        },
+        {
+          "label": "Max I/O",
+          "value": "maxIO"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "generalPurpose",
+          "maxIO"
+        ]
+      }
+    },
+    {
+      "default": "bursting",
+      "description": "Throughput mode",
+      "group": "General",
+      "label": "Throughput mode",
+      "name": "throughput_mode",
+      "options": [
+        {
+          "label": "Bursting",
+          "value": "bursting"
+        },
+        {
+          "label": "Elastic",
+          "value": "elastic"
+        },
+        {
+          "label": "Provisioned",
+          "value": "provisioned"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "bursting",
+          "elastic",
+          "provisioned"
+        ]
+      }
+    },
+    {
+      "default": 1.0,
+      "description": "Provisioned throughput in MiB/s",
+      "group": "General",
+      "label": "Provisioned throughput in mibps",
+      "name": "provisioned_throughput_in_mibps",
+      "required": false,
+      "type": "number",
+      "visible_when": {
+        "equals": "provisioned",
+        "field": "throughput_mode"
+      }
+    },
+    {
+      "description": "Subnets where mount targets are created",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "Security groups for mount targets",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
     }
   ],
   "eks": [

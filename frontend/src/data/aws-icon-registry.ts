@@ -467,9 +467,9 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
     name: 'Storage',
     folderName: 'Storage',
     services: [
-      { name: 'Backup', iconPath: '/aws-icons/Storage/Backup.svg', serviceType: null },
-      { name: 'EFS', iconPath: '/aws-icons/Storage/EFS.svg', serviceType: null },
-      { name: 'Elastic Block Store', iconPath: '/aws-icons/Storage/Elastic-Block-Store.svg', serviceType: null },
+      { name: 'Backup', iconPath: '/aws-icons/Storage/Backup.svg', serviceType: 'backup' },
+      { name: 'EFS', iconPath: '/aws-icons/Storage/EFS.svg', serviceType: 'efs' },
+      { name: 'Elastic Block Store', iconPath: '/aws-icons/Storage/Elastic-Block-Store.svg', serviceType: 'ebs' },
       { name: 'Elastic Disaster Recovery', iconPath: '/aws-icons/Storage/Elastic-Disaster-Recovery.svg', serviceType: null },
       { name: 'File Cache', iconPath: '/aws-icons/Storage/File-Cache.svg', serviceType: null },
       { name: 'FSx for Lustre', iconPath: '/aws-icons/Storage/FSx-for-Lustre.svg', serviceType: null },
