@@ -27,6 +27,16 @@ class ServiceType(StrEnum):
     SQS = "sqs"
     EVENTBRIDGE = "eventbridge"
 
+    # Management and governance
+    CLOUDTRAIL = "cloudtrail"
+    AWS_CONFIG = "aws-config"
+    SYSTEMS_MANAGER = "systems-manager"
+    ORGANIZATIONS = "organizations"
+    CONTROL_TOWER = "control-tower"
+    MANAGED_GRAFANA = "managed-grafana"
+    MANAGED_PROMETHEUS = "managed-prometheus"
+    FAULT_INJECTION_SIMULATOR = "fault-injection-simulator"
+
     # Networking – full-generator services
     VPC = "vpc"
     SUBNET = "subnet"
@@ -384,6 +394,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.appsync_config import AppSyncConfig
     from app.models.input_models.athena_config import AthenaConfig
     from app.models.input_models.aurora_config import AuroraConfig
+    from app.models.input_models.aws_config_config import AwsConfigConfig
     from app.models.input_models.backup_config import BackupConfig
     from app.models.input_models.batch_config import BatchConfig
     from app.models.input_models.bedrock_agent_config import BedrockAgentConfig
@@ -395,6 +406,7 @@ def _build_service_config_models() -> dict:
     )
     from app.models.input_models.cloudfront_config import CloudFrontConfig
     from app.models.input_models.cloudsearch_config import CloudSearchConfig
+    from app.models.input_models.cloudtrail_config import CloudTrailConfig
     from app.models.input_models.cloudwatch_config import CloudWatchConfig
     from app.models.input_models.codeartifact_config import CodeArtifactConfig
     from app.models.input_models.codebuild_config import CodeBuildConfig
@@ -419,6 +431,9 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.elasticache_config import ElastiCacheConfig
     from app.models.input_models.emr_config import EmrConfig
     from app.models.input_models.eventbridge_config import EventBridgeConfig
+    from app.models.input_models.fault_injection_simulator_config import (
+        FaultInjectionSimulatorConfig,
+    )
     from app.models.input_models.gamelift_config import GameLiftConfig
     from app.models.input_models.glue_config import GlueConfig
     from app.models.input_models.internet_gateway_config import InternetGatewayConfig
@@ -430,6 +445,10 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.lambda_config import LambdaConfig
     from app.models.input_models.lightsail_config import LightsailConfig
     from app.models.input_models.load_balancer_config import LoadBalancerConfig
+    from app.models.input_models.managed_grafana_config import ManagedGrafanaConfig
+    from app.models.input_models.managed_prometheus_config import (
+        ManagedPrometheusConfig,
+    )
     from app.models.input_models.memorydb_config import MemoryDbConfig
     from app.models.input_models.mq_config import MqConfig
     from app.models.input_models.msk_config import MskConfig
@@ -437,6 +456,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.nat_gateway_config import NatGatewayConfig
     from app.models.input_models.neptune_config import NeptuneConfig
     from app.models.input_models.opensearch_config import OpenSearchConfig
+    from app.models.input_models.organizations_config import OrganizationsConfig
     from app.models.input_models.pinpoint_config import PinpointConfig
     from app.models.input_models.quicksight_config import QuickSightConfig
     from app.models.input_models.rds_config import RdsConfig
@@ -452,6 +472,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.sqs_config import SqsConfig
     from app.models.input_models.step_functions_config import StepFunctionsConfig
     from app.models.input_models.subnet_config import SubnetConfig
+    from app.models.input_models.systems_manager_config import SystemsManagerConfig
     from app.models.input_models.target_group_config import TargetGroupConfig
     from app.models.input_models.timestream_config import TimestreamConfig
     from app.models.input_models.vpc_config import VpcConfig
@@ -468,6 +489,13 @@ def _build_service_config_models() -> dict:
         ServiceType.SNS: SnsConfig,
         ServiceType.SQS: SqsConfig,
         ServiceType.EVENTBRIDGE: EventBridgeConfig,
+        ServiceType.CLOUDTRAIL: CloudTrailConfig,
+        ServiceType.AWS_CONFIG: AwsConfigConfig,
+        ServiceType.SYSTEMS_MANAGER: SystemsManagerConfig,
+        ServiceType.ORGANIZATIONS: OrganizationsConfig,
+        ServiceType.MANAGED_GRAFANA: ManagedGrafanaConfig,
+        ServiceType.MANAGED_PROMETHEUS: ManagedPrometheusConfig,
+        ServiceType.FAULT_INJECTION_SIMULATOR: FaultInjectionSimulatorConfig,
         ServiceType.VPC: VpcConfig,
         ServiceType.SUBNET: SubnetConfig,
         ServiceType.SECURITY_GROUP: SecurityGroupConfig,

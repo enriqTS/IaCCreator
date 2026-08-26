@@ -928,6 +928,53 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "aws-config": [
+    {
+      "default": "default",
+      "description": "Configuration recorder name",
+      "group": "General",
+      "label": "Recorder name",
+      "name": "recorder_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "IAM role ARN used by AWS Config",
+      "group": "General",
+      "label": "Role ARN",
+      "name": "role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "S3 delivery bucket name",
+      "group": "General",
+      "label": "S3 bucket name",
+      "name": "s3_bucket_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Record every supported resource type",
+      "group": "General",
+      "label": "All supported",
+      "name": "all_supported",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": true,
+      "description": "Include global resource types",
+      "group": "General",
+      "label": "Include global resource types",
+      "name": "include_global_resource_types",
+      "required": false,
+      "type": "bool"
+    }
+  ],
   "backup": [
     {
       "default": "backup-vault",
@@ -1610,6 +1657,53 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "domain_name",
       "required": false,
       "type": "string"
+    }
+  ],
+  "cloudtrail": [
+    {
+      "default": "audit-trail",
+      "description": "CloudTrail trail name",
+      "group": "General",
+      "label": "Trail name",
+      "name": "trail_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "S3 bucket receiving trail logs",
+      "group": "General",
+      "label": "S3 bucket name",
+      "name": "s3_bucket_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Include global service events",
+      "group": "General",
+      "label": "Include global service events",
+      "name": "include_global_service_events",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": true,
+      "description": "Record events in every region",
+      "group": "General",
+      "label": "Is multi region trail",
+      "name": "is_multi_region_trail",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": true,
+      "description": "Enable log file integrity validation",
+      "group": "General",
+      "label": "Enable log file validation",
+      "name": "enable_log_file_validation",
+      "required": false,
+      "type": "bool"
     }
   ],
   "cloudwatch": [
@@ -3080,6 +3174,44 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       }
     }
   ],
+  "fault-injection-simulator": [
+    {
+      "default": "Managed fault injection experiment",
+      "description": "Experiment description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "IAM role ARN used by the experiment",
+      "group": "General",
+      "label": "Role ARN",
+      "name": "role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "fault_action",
+      "description": "Terraform action identifier",
+      "group": "General",
+      "label": "Action name",
+      "name": "action_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "aws:ec2:stop-instances",
+      "description": "AWS FIS action ID",
+      "group": "General",
+      "label": "Action ID",
+      "name": "action_id",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "gamelift": [
     {
       "description": "Name of the GameLift fleet",
@@ -3948,6 +4080,94 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "managed-grafana": [
+    {
+      "default": "observability",
+      "description": "Grafana workspace name",
+      "group": "General",
+      "label": "Workspace name",
+      "name": "workspace_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "CURRENT_ACCOUNT",
+      "description": "Account access type",
+      "group": "General",
+      "label": "Account access type",
+      "name": "account_access_type",
+      "options": [
+        {
+          "label": "Current account",
+          "value": "CURRENT_ACCOUNT"
+        },
+        {
+          "label": "Organization",
+          "value": "ORGANIZATION"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "CURRENT_ACCOUNT",
+          "ORGANIZATION"
+        ]
+      }
+    },
+    {
+      "description": "Authentication providers",
+      "group": "General",
+      "label": "Authentication providers",
+      "name": "authentication_providers",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "default": "SERVICE_MANAGED",
+      "description": "Workspace permission type",
+      "group": "General",
+      "label": "Permission type",
+      "name": "permission_type",
+      "options": [
+        {
+          "label": "Service managed",
+          "value": "SERVICE_MANAGED"
+        },
+        {
+          "label": "Customer managed",
+          "value": "CUSTOMER_MANAGED"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "SERVICE_MANAGED",
+          "CUSTOMER_MANAGED"
+        ]
+      }
+    },
+    {
+      "description": "Enabled AWS data sources",
+      "group": "General",
+      "label": "Data sources",
+      "name": "data_sources",
+      "required": false,
+      "type": "list"
+    }
+  ],
+  "managed-prometheus": [
+    {
+      "default": "metrics",
+      "description": "Prometheus workspace alias",
+      "group": "General",
+      "label": "Alias",
+      "name": "alias",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "memorydb": [
     {
       "default": "memorydb-cluster",
@@ -4349,6 +4569,41 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "domain_name",
       "required": false,
       "type": "string"
+    }
+  ],
+  "organizations": [
+    {
+      "default": "ALL",
+      "description": "Organization feature set",
+      "group": "General",
+      "label": "Feature set",
+      "name": "feature_set",
+      "options": [
+        {
+          "label": "All features",
+          "value": "ALL"
+        },
+        {
+          "label": "Consolidated billing",
+          "value": "CONSOLIDATED_BILLING"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "ALL",
+          "CONSOLIDATED_BILLING"
+        ]
+      }
+    },
+    {
+      "description": "Organization policy types",
+      "group": "General",
+      "label": "Enabled policy types",
+      "name": "enabled_policy_types",
+      "required": false,
+      "type": "list"
     }
   ],
   "pinpoint": [
@@ -5422,6 +5677,81 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "map_public_ip_on_launch",
       "required": false,
       "type": "bool"
+    }
+  ],
+  "systems-manager": [
+    {
+      "default": "managed-document",
+      "description": "Systems Manager document name",
+      "group": "General",
+      "label": "Document name",
+      "name": "document_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "Command",
+      "description": "Document type",
+      "group": "General",
+      "label": "Document type",
+      "name": "document_type",
+      "options": [
+        {
+          "label": "Command",
+          "value": "Command"
+        },
+        {
+          "label": "Automation",
+          "value": "Automation"
+        },
+        {
+          "label": "Policy",
+          "value": "Policy"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "Command",
+          "Automation",
+          "Policy"
+        ]
+      }
+    },
+    {
+      "default": "JSON",
+      "description": "Document format",
+      "group": "General",
+      "label": "Document format",
+      "name": "document_format",
+      "options": [
+        {
+          "label": "JSON",
+          "value": "JSON"
+        },
+        {
+          "label": "YAML",
+          "value": "YAML"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "JSON",
+          "YAML"
+        ]
+      }
+    },
+    {
+      "default": "{\"schemaVersion\":\"2.2\",\"description\":\"Managed by IaCCreator\",\"mainSteps\":[]}",
+      "description": "Document body",
+      "group": "General",
+      "label": "Content",
+      "name": "content",
+      "required": false,
+      "type": "string"
     }
   ],
   "target-group": [

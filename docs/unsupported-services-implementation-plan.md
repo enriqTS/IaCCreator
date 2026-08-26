@@ -523,14 +523,14 @@ Phase 3 is complete with all selected resources implemented or explicitly resolv
 
 Implement active, provisionable governance services:
 
-- CloudTrail
-- AWS Config
-- Systems Manager
-- Organizations
-- Control Tower where Terraform support is sufficiently complete
-- Managed Grafana
-- Managed Service for Prometheus
-- Fault Injection Simulator
+- CloudTrail — implemented
+- AWS Config — implemented
+- Systems Manager — implemented as provisionable documents
+- Organizations — implemented
+- Control Tower — retained as a composite; provider resources manage controls rather than provisioning a tower
+- Managed Grafana — implemented
+- Managed Service for Prometheus — implemented
+- Fault Injection Simulator — implemented
 
 Add useful connections to CloudWatch, S3, SNS, EventBridge, Lambda, and IAM. Resource ownership must follow the connection-contribution rules and must not create cross-module dependency cycles.
 

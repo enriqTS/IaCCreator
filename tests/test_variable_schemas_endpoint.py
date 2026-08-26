@@ -48,6 +48,14 @@ EXPECTED_SERVICE_TYPES = {
     "sns",
     "sqs",
     "eventbridge",
+    # Management and governance
+    "cloudtrail",
+    "aws-config",
+    "systems-manager",
+    "organizations",
+    "managed-grafana",
+    "managed-prometheus",
+    "fault-injection-simulator",
     # Networking
     "vpc",
     "subnet",

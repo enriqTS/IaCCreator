@@ -25,6 +25,15 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - SQS
 - EventBridge
 
+**Management and governance:**
+- CloudTrail trails
+- AWS Config recorders and delivery channels
+- Systems Manager documents
+- Organizations
+- Managed Grafana workspaces
+- Managed Service for Prometheus workspaces
+- Fault Injection Simulator experiment templates
+
 **Networking:**
 - VPC
 - Subnet

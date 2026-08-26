@@ -49,8 +49,15 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.APPSYNC: "app-integration",
     ServiceType.MQ: "app-integration",
     ServiceType.MWAA: "app-integration",
-    # Log/Monitoring
+    # Management and governance
     ServiceType.CLOUDWATCH: "log",
+    ServiceType.CLOUDTRAIL: "management-governance",
+    ServiceType.AWS_CONFIG: "management-governance",
+    ServiceType.SYSTEMS_MANAGER: "management-governance",
+    ServiceType.ORGANIZATIONS: "management-governance",
+    ServiceType.MANAGED_GRAFANA: "management-governance",
+    ServiceType.MANAGED_PROMETHEUS: "management-governance",
+    ServiceType.FAULT_INJECTION_SIMULATOR: "management-governance",
     # Messaging
     ServiceType.SNS: "messaging",
     ServiceType.SQS: "messaging",

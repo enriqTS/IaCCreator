@@ -173,6 +173,15 @@ export type ServiceType =
   | 'corretto'
   | 'tools-and-sdks'
   | 'x-ray'
+  // Management and governance
+  | 'cloudtrail'
+  | 'aws-config'
+  | 'systems-manager'
+  | 'organizations'
+  | 'control-tower'
+  | 'managed-grafana'
+  | 'managed-prometheus'
+  | 'fault-injection-simulator'
   // End User Computing – full-generator services
   | 'appstream'
   | 'workspaces'

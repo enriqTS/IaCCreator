@@ -182,7 +182,17 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.BEDROCK_KNOWLEDGE_BASE,
         ServiceType.BEDROCK_AGENTCORE,
     },
-    "management-governance": {ServiceType.CLOUDWATCH},
+    "management-governance": {
+        ServiceType.CLOUDWATCH,
+        ServiceType.CLOUDTRAIL,
+        ServiceType.AWS_CONFIG,
+        ServiceType.SYSTEMS_MANAGER,
+        ServiceType.ORGANIZATIONS,
+        ServiceType.CONTROL_TOWER,
+        ServiceType.MANAGED_GRAFANA,
+        ServiceType.MANAGED_PROMETHEUS,
+        ServiceType.FAULT_INJECTION_SIMULATOR,
+    },
     "security": {
         ServiceType.IAM,
         ServiceType.KMS,
@@ -238,6 +248,7 @@ _CAPABILITIES = {
 }
 _COMPOSITES = {
     ServiceType.OUTPOSTS_RACK,
+    ServiceType.CONTROL_TOWER,
     ServiceType.OUTPOSTS_SERVERS,
     ServiceType.WORKSPACES_FAMILY,
     ServiceType.VMWARE_CLOUD_ON_AWS,

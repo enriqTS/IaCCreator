@@ -20,6 +20,7 @@ from app.generators.athena_generator import AthenaGenerator
 
 # Database generators
 from app.generators.aurora_generator import AuroraGenerator
+from app.generators.aws_config_generator import AwsConfigGenerator
 from app.generators.backup_generator import BackupGenerator
 from app.generators.base import ServiceGenerator
 from app.generators.batch_generator import BatchGenerator
@@ -34,6 +35,7 @@ from app.generators.bedrock_knowledge_base_generator import (
 )
 from app.generators.cloudfront_generator import CloudFrontGenerator
 from app.generators.cloudsearch_generator import CloudSearchGenerator
+from app.generators.cloudtrail_generator import CloudtrailGenerator
 from app.generators.cloudwatch_generator import CloudWatchGenerator
 from app.generators.codeartifact_generator import CodeArtifactGenerator
 
@@ -64,6 +66,9 @@ from app.generators.emr_generator import EMRGenerator
 from app.generators.eventbridge_generator import EventBridgeGenerator
 
 # Games generators
+from app.generators.fault_injection_simulator_generator import (
+    FaultInjectionSimulatorGenerator,
+)
 from app.generators.gamelift_generator import GameLiftGenerator
 from app.generators.glue_generator import GlueGenerator
 from app.generators.iam_generator import IAMGenerator
@@ -76,6 +81,8 @@ from app.generators.lake_formation_generator import LakeFormationGenerator
 from app.generators.lambda_generator import LambdaGenerator
 from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.load_balancer_generator import LoadBalancerGenerator
+from app.generators.managed_grafana_generator import ManagedGrafanaGenerator
+from app.generators.managed_prometheus_generator import ManagedPrometheusGenerator
 from app.generators.memorydb_generator import MemoryDbGenerator
 from app.generators.mq_generator import MqGenerator
 from app.generators.msk_generator import MSKGenerator
@@ -83,6 +90,7 @@ from app.generators.mwaa_generator import MwaaGenerator
 from app.generators.nat_gateway_generator import NatGatewayGenerator
 from app.generators.neptune_generator import NeptuneGenerator
 from app.generators.opensearch_generator import OpenSearchGenerator
+from app.generators.organizations_generator import OrganizationsGenerator
 from app.generators.pinpoint_generator import PinpointGenerator
 from app.generators.quicksight_generator import QuickSightGenerator
 from app.generators.rds_generator import RDSGenerator
@@ -98,6 +106,7 @@ from app.generators.sns_generator import SNSGenerator
 from app.generators.sqs_generator import SQSGenerator
 from app.generators.step_functions_generator import StepFunctionsGenerator
 from app.generators.subnet_generator import SubnetGenerator
+from app.generators.systems_manager_generator import SystemsManagerGenerator
 from app.generators.target_group_generator import TargetGroupGenerator
 from app.generators.timestream_generator import TimestreamGenerator
 from app.generators.vpc_generator import VpcGenerator
@@ -114,6 +123,13 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.CLOUDWATCH: CloudWatchGenerator(),
     ServiceType.IAM: IAMGenerator(),
     ServiceType.EVENTBRIDGE: EventBridgeGenerator(),
+    ServiceType.CLOUDTRAIL: CloudtrailGenerator(),
+    ServiceType.AWS_CONFIG: AwsConfigGenerator(),
+    ServiceType.SYSTEMS_MANAGER: SystemsManagerGenerator(),
+    ServiceType.ORGANIZATIONS: OrganizationsGenerator(),
+    ServiceType.MANAGED_GRAFANA: ManagedGrafanaGenerator(),
+    ServiceType.MANAGED_PROMETHEUS: ManagedPrometheusGenerator(),
+    ServiceType.FAULT_INJECTION_SIMULATOR: FaultInjectionSimulatorGenerator(),
     ServiceType.SNS: SNSGenerator(),
     ServiceType.SQS: SQSGenerator(),
     ServiceType.VPC: VpcGenerator(),
