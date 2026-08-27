@@ -23,7 +23,7 @@ ArchitectureDescription
 
 Handlers return `ConnectionContribution`, not generated files alone. A contribution can add module inputs, outputs, module-owned HCL resources, and IAM grants. `ConnectionProcessor` merges all contributions, then attaches grants to the instance owning the execution role.
 
-The current registry includes API Gateway route-handler and authorizer connections; Lambda, ECS, S3, DynamoDB, SNS, and SQS wiring; DynamoDB streams; and EventBridge targets. Handler implementations include parameterized IAM grants, API Gateway/Lambda, S3/Lambda notifications, DynamoDB/Lambda streams, EventBridge targets, SNS subscriptions, and SQS event sources.
+The current registry includes API Gateway route-handler and authorizer connections; Lambda, ECS, S3, DynamoDB, SNS, and SQS wiring; DynamoDB streams; EventBridge targets; foundational VPC membership and routing; and workload network placement. Reusable placement handlers aggregate Subnet and Security Group module references by sorted source name, so multiple connections produce one deterministic list input without merge collisions. Supported list-valued targets include Lambda, EKS, EC2 Auto Scaling, Load Balancer, EFS, MemoryDB, DMS, MQ, MWAA, Network Firewall, and Client VPN.
 
 `ConnectionPreviewer` invokes the same handler behavior to return generated resources, IAM grants, and handler-reported issues for the editor.
 

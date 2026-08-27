@@ -19,6 +19,12 @@ class ClientVpnConfig(BaseServiceConfig):
     root_certificate_chain_arn: str = TerraformField(
         "", description="ACM client root certificate chain ARN"
     )
+    subnet_ids: list[str] = TerraformField(
+        [], description="Subnets associated with the Client VPN endpoint"
+    )
+    security_group_ids: list[str] = TerraformField(
+        [], description="Security groups applied to Client VPN associations"
+    )
     split_tunnel: bool = TerraformField(True, description="Enable split-tunnel routing")
     transport_protocol: str = TerraformField(
         "udp", description="VPN transport protocol"

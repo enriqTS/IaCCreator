@@ -28,6 +28,10 @@ from app.services.connection_handlers.eventbridge_targets import (
 )
 from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
+from app.services.connection_handlers.network_placement import (
+    SecurityGroupListAssociationHandler,
+    SubnetListPlacementHandler,
+)
 from app.services.connection_handlers.route_table_association import (
     RouteTableAssociationHandler,
 )
@@ -121,6 +125,56 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         config_model=EmptyConnectionConfig,
         handler=SecurityGroupEC2AssociationHandler(),
     ),
+    *[
+        ConnectionSpec(
+            source=ServiceType.SUBNET,
+            target=target,
+            connection_type="places",
+            label=f"Subnet → {target.value}",
+            config_model=EmptyConnectionConfig,
+            handler=SubnetListPlacementHandler(
+                "vpc_subnet_ids" if target is ServiceType.LAMBDA else "subnet_ids"
+            ),
+        )
+        for target in (
+            ServiceType.LAMBDA,
+            ServiceType.EKS,
+            ServiceType.EC2_AUTO_SCALING,
+            ServiceType.LOAD_BALANCER,
+            ServiceType.EFS,
+            ServiceType.MEMORYDB,
+            ServiceType.DATABASE_MIGRATION_SERVICE,
+            ServiceType.MQ,
+            ServiceType.MWAA,
+            ServiceType.NETWORK_FIREWALL,
+            ServiceType.CLIENT_VPN,
+        )
+    ],
+    *[
+        ConnectionSpec(
+            source=ServiceType.SECURITY_GROUP,
+            target=target,
+            connection_type="associates",
+            label=f"Security Group → {target.value}",
+            config_model=EmptyConnectionConfig,
+            handler=SecurityGroupListAssociationHandler(
+                "vpc_security_group_ids"
+                if target
+                in {ServiceType.LAMBDA, ServiceType.DATABASE_MIGRATION_SERVICE}
+                else "security_group_ids"
+            ),
+        )
+        for target in (
+            ServiceType.LAMBDA,
+            ServiceType.LOAD_BALANCER,
+            ServiceType.EFS,
+            ServiceType.MEMORYDB,
+            ServiceType.DATABASE_MIGRATION_SERVICE,
+            ServiceType.MQ,
+            ServiceType.MWAA,
+            ServiceType.CLIENT_VPN,
+        )
+    ],
     ConnectionSpec(
         source=ServiceType.API_GATEWAY,
         target=ServiceType.LAMBDA,

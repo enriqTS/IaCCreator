@@ -9,7 +9,9 @@ class NetworkFirewallConfig(BaseServiceConfig):
     service_type: Literal[ServiceType.NETWORK_FIREWALL] = ServiceType.NETWORK_FIREWALL
     firewall_name: str = TerraformField("network-firewall", description="Firewall name")
     vpc_id: str = TerraformField("", description="VPC ID containing the firewall")
-    subnet_id: str = TerraformField("", description="Firewall endpoint subnet ID")
+    subnet_ids: list[str] = TerraformField(
+        [], description="Firewall endpoint subnet IDs"
+    )
     firewall_policy_arn: str = TerraformField(
         "", description="Network Firewall policy ARN"
     )

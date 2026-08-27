@@ -9,8 +9,8 @@ class ClientVpnGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, ClientVpnConfig)
-        return self._r.render_resource(
+        config = get_typed_config(instance, ClientVpnConfig)
+        endpoint = self._r.render_resource(
             "aws_ec2_client_vpn_endpoint",
             instance.name,
             {
@@ -26,9 +26,24 @@ class ClientVpnGenerator:
                 "connection_log_options": {"enabled": Expr("false")},
                 "split_tunnel": Expr("var.split_tunnel"),
                 "transport_protocol": Expr("var.transport_protocol"),
+                "security_group_ids": Expr("var.security_group_ids"),
                 "tags": Expr("var.tags"),
             },
         )
+        if not config.subnet_ids:
+            return endpoint
+        association = self._r.render_resource(
+            "aws_ec2_client_vpn_network_association",
+            instance.name,
+            {
+                "for_each": Expr("toset(var.subnet_ids)"),
+                "client_vpn_endpoint_id": Expr(
+                    f"aws_ec2_client_vpn_endpoint.{instance.name}.id"
+                ),
+                "subnet_id": Expr("each.value"),
+            },
+        )
+        return f"{endpoint}\n{association}"
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         get_typed_config(instance, ClientVpnConfig)
@@ -37,6 +52,8 @@ class ClientVpnGenerator:
             ("client_cidr_block", "string", "Client CIDR block"),
             ("server_certificate_arn", "string", "Server certificate ARN"),
             ("root_certificate_chain_arn", "string", "Client root certificate ARN"),
+            ("subnet_ids", "list(string)", "Associated subnet IDs"),
+            ("security_group_ids", "list(string)", "Endpoint security group IDs"),
             ("split_tunnel", "bool", "Split tunnel"),
             ("transport_protocol", "string", "Transport protocol"),
             ("tags", "map(string)", "Endpoint tags"),

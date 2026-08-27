@@ -29,6 +29,15 @@ _PARENT_TYPES: dict[str, set[str]] = {
     "ecs": {"subnet"},
     "eks": {"subnet"},
     "lambda": {"subnet"},
+    "ec2-auto-scaling": {"subnet"},
+    "load-balancer": {"subnet"},
+    "efs": {"subnet"},
+    "memorydb": {"subnet"},
+    "database-migration-service": {"subnet"},
+    "mq": {"subnet"},
+    "mwaa": {"subnet"},
+    "network-firewall": {"subnet"},
+    "client-vpn": {"subnet"},
 }
 
 
@@ -104,7 +113,13 @@ def build_containment_catalog() -> ContainmentCatalogResponse:
             resolved_parent = "vpc" if child == "security-group" else parent
             try:
                 spec = resolve_spec(
-                    ServiceType(resolved_parent), ServiceType(child), "contains", {}
+                    ServiceType(resolved_parent),
+                    ServiceType(child),
+                    "places"
+                    if resolved_parent == "subnet"
+                    and child not in {"nat-gateway", "route-table"}
+                    else "contains",
+                    {},
                 )
             except ValueError:
                 spec = None

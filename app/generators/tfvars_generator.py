@@ -1,5 +1,7 @@
 """TfvarsGenerator — produces terraform.tfvars and variables.tf from resource variable values."""
 
+import json
+
 from app.generators.hcl_renderer import HCLRenderer
 from app.models.input_models._general import _get_cached_service_config_models
 from app.models.ir_models import ResourceInstanceIR
@@ -69,13 +71,17 @@ class TfvarsGenerator:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _format_tfvar_value(value: str | int | float | bool) -> str:
+    def _format_tfvar_value(
+        value: str | int | float | bool | list | dict,
+    ) -> str:
         """Format a Python value as an HCL tfvars literal."""
         if isinstance(value, bool):
             return "true" if value else "false"
         if isinstance(value, (int, float)):
             return str(value)
-        return f'"{value}"'
+        if isinstance(value, (list, dict)):
+            return json.dumps(value)
+        return json.dumps(value)
 
     @staticmethod
     def _tf_type(schema_type: str) -> str:

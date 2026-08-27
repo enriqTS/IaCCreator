@@ -22,10 +22,10 @@ class LoadBalancerConfig(BaseServiceConfig):
         ],
     )
     internal: bool = TerraformField(False, description="Use an internal scheme")
-    subnet_ids: str = TerraformField("", description="Comma-separated subnet IDs")
-    security_group_ids: str = TerraformField(
-        "",
-        description="Comma-separated security group IDs",
+    subnet_ids: list[str] = TerraformField([], description="Load balancer subnet IDs")
+    security_group_ids: list[str] = TerraformField(
+        [],
+        description="Load balancer security group IDs",
         visible_when=VisibleWhen(field="load_balancer_type", equals="application"),
     )
     enable_deletion_protection: bool = TerraformField(

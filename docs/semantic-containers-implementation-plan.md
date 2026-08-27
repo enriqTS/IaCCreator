@@ -8,7 +8,7 @@ Current status after the Phase 1–5 checkup:
 
 - [x] Phase 1 domain contracts, diagram v4 migration, persistence, and bootstrap catalog.
 - [x] Phase 2 structural validation, scope resolution, conflict detection, typed operation issues, and normalization integration.
-- [-] Phase 3 foundational networking covers the initial VPC, routing, gateway, and EC2 placement slice; broader multi-subnet and workload coverage remains.
+- [x] Phase 3 foundational networking, deterministic multi-subnet placement, and multi-security-group workload associations.
 - [x] Phase 4 deterministic managed connector derivation for every currently registered containment relationship.
 - [x] Phase 5 scope/resource rendering, placement, presentation switching, hierarchy z-order, routing exclusion, and minimap support.
 - [ ] Phase 6 drag/drop reparenting and subtree movement.
@@ -494,7 +494,7 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 3 — Foundational connections
 
-- [-] Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-placement connection specifications required by the initial containment rules. The registry covers VPC membership for Subnet, Security Group, Route Table, Internet Gateway, and Target Group; Subnet placement for NAT Gateway and EC2; Subnet → Route Table association; and Security Group → EC2 association. All registered connections are Terraform-validated, but broader workload and multi-subnet aggregation coverage remains.
+- [x] Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-placement connection specifications required by the initial containment rules. Reusable handlers deterministically aggregate list-valued Subnet and Security Group references for Lambda, EKS, EC2 Auto Scaling, Load Balancer, EFS, MemoryDB, DMS, MQ, MWAA, Network Firewall, and Client VPN. Existing literal identifiers remain configuration fallbacks when no managed connection supplies the module input.
 
 ### Completion criteria
 
@@ -567,12 +567,12 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 8 — Extended service coverage
 
-- [ ] Expand containment rules as connection support grows:
+- [-] Expand containment rules as connection support grows:
 
-- EFS mount targets in Subnets;
-- Load Balancers in Subnets and VPCs;
-- EKS, Lambda, Auto Scaling, MQ, MWAA, DMS, MemoryDB, and Network Firewall placement;
-- Client VPN Subnet associations;
+- [x] EFS mount targets in Subnets;
+- [-] Load Balancers in Subnets; direct VPC containment remains future work;
+- [x] EKS, Lambda, Auto Scaling, MQ, MWAA, DMS, MemoryDB, and Network Firewall placement;
+- [x] Client VPN Subnet associations;
 - Route 53 private-zone VPC associations;
 - Backup and governance scopes where containment has concrete Terraform semantics.
 

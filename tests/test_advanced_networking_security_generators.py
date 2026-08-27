@@ -62,7 +62,8 @@ def test_network_firewall_uses_cross_module_inputs() -> None:
         instance
     )
     assert "vpc_id = var.vpc_id" in hcl
-    assert "subnet_id = var.subnet_id" in hcl
+    assert "for_each = toset(var.subnet_ids)" in hcl
+    assert "subnet_id = subnet_mapping.value" in hcl
     assert "firewall_policy_arn = var.firewall_policy_arn" in hcl
 
 

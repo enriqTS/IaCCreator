@@ -48,7 +48,10 @@ class EKSGenerator:
                 "cluster_name", "string", "Name of the EKS cluster"
             ),
             self._r.render_variable(
-                "cluster_role_arn", "string", "ARN of the IAM role for the EKS cluster"
+                "cluster_role_arn",
+                "string",
+                "ARN of the IAM role for the EKS cluster",
+                default=config.cluster_role_arn or "",
             ),
             self._r.render_variable(
                 "subnet_ids",

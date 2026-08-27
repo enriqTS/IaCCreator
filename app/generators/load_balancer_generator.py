@@ -16,13 +16,11 @@ class LoadBalancerGenerator:
             "name": Expr("var.load_balancer_name"),
             "load_balancer_type": Expr("var.load_balancer_type"),
             "internal": Expr("var.internal"),
-            "subnets": Expr('compact(split(",", var.subnet_ids))'),
+            "subnets": Expr("var.subnet_ids"),
             "enable_deletion_protection": Expr("var.enable_deletion_protection"),
         }
         if config.load_balancer_type == "application":
-            attrs["security_groups"] = Expr(
-                'compact(split(",", var.security_group_ids))'
-            )
+            attrs["security_groups"] = Expr("var.security_group_ids")
         return self._r.render_resource("aws_lb", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
@@ -35,9 +33,7 @@ class LoadBalancerGenerator:
                 "load_balancer_type", "string", "Load balancer type"
             ),
             self._r.render_variable("internal", "bool", "Use an internal scheme"),
-            self._r.render_variable(
-                "subnet_ids", "string", "Comma-separated subnet IDs"
-            ),
+            self._r.render_variable("subnet_ids", "list(string)", "Subnet IDs"),
             self._r.render_variable(
                 "enable_deletion_protection", "bool", "Enable deletion protection"
             ),
@@ -45,7 +41,7 @@ class LoadBalancerGenerator:
         if config.load_balancer_type == "application":
             parts.append(
                 self._r.render_variable(
-                    "security_group_ids", "string", "Comma-separated security group IDs"
+                    "security_group_ids", "list(string)", "Security group IDs"
                 )
             )
         return "\n".join(parts)

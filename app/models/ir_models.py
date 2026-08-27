@@ -97,9 +97,7 @@ class ResourceInstanceIR(BaseModel):
     config: SerializeAsAny[BaseServiceConfig]
     iam_statements: list[IAMStatement] = Field(default_factory=list)
     connections: list[ConnectionIR] = Field(default_factory=list)
-    terraform_variables: dict[str, str | int | float | bool] = Field(
-        default_factory=dict
-    )
+    terraform_variables: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     @classmethod

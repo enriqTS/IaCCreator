@@ -228,7 +228,7 @@ class FileTreeAssembler:
             return {}
         variables_tf = generator.generate_variables_tf(instance)
         arguments = {
-            name: HCLRenderer._format_value(value)
+            name: self._renderer._format_expression(value, depth=1)
             for name, value in module_arguments(instance, variables_tf).items()
         }
         for module_input in contribution.inputs:

@@ -17,7 +17,10 @@ class NetworkFirewallGenerator:
                 "name": Expr("var.firewall_name"),
                 "vpc_id": Expr("var.vpc_id"),
                 "firewall_policy_arn": Expr("var.firewall_policy_arn"),
-                "subnet_mapping": {"subnet_id": Expr("var.subnet_id")},
+                'dynamic "subnet_mapping"': {
+                    "for_each": Expr("toset(var.subnet_ids)"),
+                    "content": {"subnet_id": Expr("subnet_mapping.value")},
+                },
                 "delete_protection": Expr("var.delete_protection"),
                 "tags": Expr("var.tags"),
             },
@@ -28,7 +31,7 @@ class NetworkFirewallGenerator:
         fields = [
             ("firewall_name", "string", "Firewall name"),
             ("vpc_id", "string", "VPC ID"),
-            ("subnet_id", "string", "Firewall subnet ID"),
+            ("subnet_ids", "list(string)", "Firewall subnet IDs"),
             ("firewall_policy_arn", "string", "Firewall policy ARN"),
             ("delete_protection", "bool", "Delete protection"),
             ("tags", "map(string)", "Firewall tags"),
