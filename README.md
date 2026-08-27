@@ -138,7 +138,7 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - CodeArtifact
 - X-Ray trace groups
 - CodeBuild
-- CodeCommit
+- CodeCommit (legacy diagrams only; unavailable for new placement)
 - CodeDeploy
 - CodePipeline
 
