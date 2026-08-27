@@ -26,7 +26,9 @@ class EC2Generator:
         attrs: dict = {
             "ami": Expr("var.ami"),
             "instance_type": Expr("var.instance_type"),
-            "tags": {"Name": Expr("var.instance_name")},
+            "subnet_id": Expr("var.subnet_id"),
+            "vpc_security_group_ids": Expr("var.security_group_ids"),
+            "tags": Expr("{ Name = var.instance_name }"),
         }
         if config.key_name is not None:
             attrs["key_name"] = Expr("var.key_name")
@@ -43,6 +45,10 @@ class EC2Generator:
             ),
             self._r.render_variable("ami", "string", "AMI ID for the instance"),
             self._r.render_variable("instance_type", "string", "EC2 instance type"),
+            self._r.render_variable("subnet_id", "string", "Subnet ID"),
+            self._r.render_variable(
+                "security_group_ids", "list(string)", "Security group IDs"
+            ),
         ]
         if config.key_name is not None:
             parts.append(

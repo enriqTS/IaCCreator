@@ -16,6 +16,8 @@ class Ec2Config(BaseServiceConfig):
         "instance_name",
         "ami",
         "instance_type",
+        "subnet_id",
+        "security_group_ids",
     )
 
     # ── General ───────────────────────────────────────────────────────────
@@ -33,6 +35,10 @@ class Ec2Config(BaseServiceConfig):
         "t3.micro",
         group="General",
         description="EC2 instance type",
+    )
+    subnet_id: str = TerraformField("", group="Network", description="Subnet ID")
+    security_group_ids: list[str] = TerraformField(
+        [], group="Network", description="Security group IDs"
     )
 
     # ── Internal (not Terraform variables) ────────────────────────────────

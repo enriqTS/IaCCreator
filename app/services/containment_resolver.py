@@ -11,7 +11,6 @@ from app.models.containment import (
 )
 from app.models.diagram_models import DiagramStateInput
 from app.models.diagram_state import SerializedConnector
-from app.models.input_models import ServiceType
 from app.services.connection_handlers.registry import resolve_spec
 from app.services.containment_catalog import semantic_type
 
@@ -131,21 +130,23 @@ class ContainmentResolver:
                     subnet_id=subnet_id,
                 )
             )
-            if (
-                obj.objectType == "architecture-block"
-                and obj.serviceType.value in {"subnet", "security-group"}
-                and vpc_id
-            ):
-                spec = resolve_spec(ServiceType.VPC, obj.serviceType, "contains", {})
-                if spec is not None:
-                    identity = f"{vpc_id}:{obj.id}:{spec.connection_type}"
+            if obj.objectType == "architecture-block":
+                for ancestor in ancestors:
+                    if ancestor.objectType != "architecture-block":
+                        continue
+                    spec = resolve_spec(
+                        ancestor.serviceType, obj.serviceType, "contains", {}
+                    )
+                    if spec is None:
+                        continue
+                    identity = f"{ancestor.id}:{obj.id}:{spec.connection_type}"
                     derived.append(
                         DerivedConnection(
                             connector_id=f"containment-{sha256(identity.encode()).hexdigest()[:20]}",
-                            source_id=vpc_id,
+                            source_id=ancestor.id,
                             target_id=obj.id,
                             connection_type=spec.connection_type,
-                            container_id=vpc_id,
+                            container_id=ancestor.id,
                         )
                     )
             if (

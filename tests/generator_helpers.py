@@ -85,6 +85,8 @@ DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
     ServiceType.API_GATEWAY: {"protocol_type": "HTTP"},
     ServiceType.DYNAMODB: {"hash_key": "id", "hash_key_type": "S"},
     ServiceType.EVENTBRIDGE: {"event_pattern": '{"source": ["aws.s3"]}'},
+    ServiceType.EC2: {"ami": "ami-12345678"},
+    ServiceType.NAT_GATEWAY: {"allocation_id": "eipalloc-12345678"},
 }
 
 

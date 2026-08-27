@@ -18,16 +18,24 @@ from app.models.input_models import ServiceType
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
 from app.services.connection_handlers.base import ConnectionHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
+from app.services.connection_handlers.ec2_placement import (
+    SecurityGroupEC2AssociationHandler,
+    SubnetEC2PlacementHandler,
+)
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
     EventBridgeSQSHandler,
 )
 from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
+from app.services.connection_handlers.route_table_association import (
+    RouteTableAssociationHandler,
+)
 from app.services.connection_handlers.s3_lambda import S3LambdaHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
+from app.services.connection_handlers.subnet_membership import SubnetMembershipHandler
 from app.services.connection_handlers.vpc_membership import VpcMembershipHandler
 
 
@@ -65,6 +73,53 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="VPC → Security Group",
         config_model=EmptyConnectionConfig,
         handler=VpcMembershipHandler(),
+    ),
+    *[
+        ConnectionSpec(
+            source=ServiceType.VPC,
+            target=target,
+            connection_type="contains",
+            label=f"VPC → {target.value}",
+            config_model=EmptyConnectionConfig,
+            handler=VpcMembershipHandler(),
+        )
+        for target in (
+            ServiceType.ROUTE_TABLE,
+            ServiceType.INTERNET_GATEWAY,
+            ServiceType.TARGET_GROUP,
+        )
+    ],
+    ConnectionSpec(
+        source=ServiceType.SUBNET,
+        target=ServiceType.NAT_GATEWAY,
+        connection_type="contains",
+        label="Subnet → NAT Gateway",
+        config_model=EmptyConnectionConfig,
+        handler=SubnetMembershipHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.SUBNET,
+        target=ServiceType.ROUTE_TABLE,
+        connection_type="associates",
+        label="Subnet → Route Table",
+        config_model=EmptyConnectionConfig,
+        handler=RouteTableAssociationHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.SUBNET,
+        target=ServiceType.EC2,
+        connection_type="places",
+        label="Subnet → EC2",
+        config_model=EmptyConnectionConfig,
+        handler=SubnetEC2PlacementHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.SECURITY_GROUP,
+        target=ServiceType.EC2,
+        connection_type="associates",
+        label="Security Group → EC2",
+        config_model=EmptyConnectionConfig,
+        handler=SecurityGroupEC2AssociationHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.API_GATEWAY,
