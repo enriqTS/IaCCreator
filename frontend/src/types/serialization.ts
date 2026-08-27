@@ -14,7 +14,7 @@ import type {
 import type { GlobalTerraformConfig } from './terraform-variables';
 
 /** Current serialization format version. */
-export const CURRENT_DIAGRAM_VERSION = 3;
+export const CURRENT_DIAGRAM_VERSION = 4;
 
 /** Canonical diagram state exchanged with the backend. */
 export interface DiagramState {
@@ -60,6 +60,9 @@ export interface SerializedCanvasObject {
   visualConfig: Record<string, unknown>;
   zIndex?: number;
   groupId?: string;
+  parentContainerId?: string;
+  presentation?: 'node' | 'container';
+  containerType?: 'region' | 'availability-zone' | 'generic';
 }
 
 export interface SerializedObjectGroup {
@@ -74,4 +77,6 @@ export interface SerializedConnector {
   targetId: string;
   connectionType: string;
   connection_config?: Record<string, string | number | boolean>;
+  origin?: 'explicit' | 'containment';
+  container_id?: string;
 }

@@ -279,6 +279,8 @@ export interface Connector {
   targetId: string;
   connectionType: string;
   connectionConfig?: Record<string, string | number | boolean>;
+  origin?: 'explicit' | 'containment';
+  containerId?: string;
 }
 
 export interface Viewport {
@@ -300,6 +302,8 @@ export type Tool =
 
 /** Service-specific configuration for a resource instance. Mirrors the backend ResourceConfig Pydantic schema. */
 export interface ResourceConfig {
+  region?: string;
+  availability_zone?: string;
   // Lambda
   handler?: string;
   runtime?: string;
@@ -448,7 +452,7 @@ export interface EnvironmentConfig {
 
 // --- Canvas Object Type System ---
 
-export type CanvasObjectType = 'architecture-block' | 'line' | 'geometric' | 'text' | 'uml';
+export type CanvasObjectType = 'architecture-block' | 'line' | 'geometric' | 'text' | 'uml' | 'semantic-container';
 
 export type GeometricShape =
   | 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'circle'
@@ -504,6 +508,14 @@ export interface ArchitectureBlockVisualConfig {
   height: number;
 }
 
+export interface ContainerVisualConfig {
+  width: number;
+  height: number;
+  fillColor: string;
+  borderColor: string;
+  borderWidth: number;
+}
+
 export interface LineVisualConfig {
   color: string;
   borderWidth: number;
@@ -537,6 +549,8 @@ export interface ArchitectureBlock {
   visualConfig: ArchitectureBlockVisualConfig;
   zIndex: number;
   groupId?: string;
+  parentContainerId?: string;
+  presentation?: 'node' | 'container';
   locked?: boolean;
 }
 
@@ -582,6 +596,20 @@ export interface TextObject {
   locked?: boolean;
 }
 
+export interface SemanticContainerObject {
+  id: string;
+  objectType: 'semantic-container';
+  containerType: 'region' | 'availability-zone' | 'generic';
+  name: string;
+  position: Point;
+  config: ResourceConfig;
+  visualConfig: ContainerVisualConfig;
+  parentContainerId?: string;
+  zIndex: number;
+  groupId?: string;
+  locked?: boolean;
+}
+
 export interface UMLObject {
   id: string;
   objectType: 'uml';
@@ -610,7 +638,7 @@ export interface Rect {
   height: number;
 }
 
-export type CanvasObject = ArchitectureBlock | LineObject | GeometricObject | TextObject | UMLObject;
+export type CanvasObject = ArchitectureBlock | LineObject | GeometricObject | TextObject | UMLObject | SemanticContainerObject;
 
 /** Distributive Omit that works correctly with discriminated unions */
 export type CanvasObjectCreationPayload =
@@ -618,7 +646,8 @@ export type CanvasObjectCreationPayload =
   | Omit<LineObject, 'id' | 'zIndex'>
   | Omit<GeometricObject, 'id' | 'zIndex'>
   | Omit<TextObject, 'id' | 'zIndex'>
-  | Omit<UMLObject, 'id' | 'zIndex'>;
+  | Omit<UMLObject, 'id' | 'zIndex'>
+  | Omit<SemanticContainerObject, 'id' | 'zIndex'>;
 
 // Dimension constraints
 export const MIN_OBJECT_WIDTH = 40;

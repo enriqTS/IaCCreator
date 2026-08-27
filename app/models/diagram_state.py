@@ -8,7 +8,7 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 from app.models.input_models import ServiceType
 
-CURRENT_DIAGRAM_VERSION = 3
+CURRENT_DIAGRAM_VERSION = 4
 
 VALID_GEOMETRIC_SHAPES = {
     "rectangle",
@@ -55,6 +55,16 @@ class BlockVisual(BaseModel):
 
     width: float = 80
     height: float = 80
+
+
+class ContainerVisual(BaseModel):
+    """Visual configuration for a semantic boundary."""
+
+    width: float = 480
+    height: float = 320
+    fillColor: str = "#172033"
+    borderColor: str = "#64748b"
+    borderWidth: float = 2
 
 
 class LineVisual(BaseModel):
@@ -109,6 +119,7 @@ VISUAL_MODELS: dict[str, type[BaseModel]] = {
     "geometric": GeometricVisual,
     "text": TextVisual,
     "uml": UMLVisual,
+    "semantic-container": ContainerVisual,
 }
 
 
@@ -142,6 +153,8 @@ class SerializedConnector(BaseModel):
     sourceId: str
     targetId: str
     connectionType: str = "triggers"
+    origin: Literal["explicit", "containment"] = "explicit"
+    container_id: str | None = None
     connection_config: dict[str, Any] | None = Field(
         default=None,
         validation_alias=AliasChoices("connection_config", "connectionConfig"),
@@ -157,6 +170,8 @@ class CanvasObjectBase(BaseModel):
     visualConfig: dict[str, Any] = Field(default_factory=dict)
     zIndex: int = 0
     groupId: str | None = None
+    parentContainerId: str | None = None
+    locked: bool = False
 
 
 class ArchitectureBlockObject(CanvasObjectBase):
@@ -171,6 +186,7 @@ class ArchitectureBlockObject(CanvasObjectBase):
     terraformVariables: dict[str, str | int | float | bool] = Field(
         default_factory=dict
     )
+    presentation: Literal["node", "container"] = "node"
 
 
 class Point(BaseModel):
@@ -235,8 +251,22 @@ class UMLObject(PositionedObject):
     classData: UMLClassData | None = None
 
 
+class SemanticContainerObject(PositionedObject):
+    """A deployment scope or visual semantic boundary."""
+
+    objectType: Literal["semantic-container"]
+    containerType: Literal["region", "availability-zone", "generic"]
+    config: dict[str, Any] = Field(default_factory=dict)
+    visualConfig: ContainerVisual = Field(default_factory=ContainerVisual)
+
+
 SerializedCanvasObject = Annotated[
-    ArchitectureBlockObject | LineObject | GeometricObject | TextObject | UMLObject,
+    ArchitectureBlockObject
+    | LineObject
+    | GeometricObject
+    | TextObject
+    | UMLObject
+    | SemanticContainerObject,
     Field(discriminator="objectType"),
 ]
 
@@ -307,7 +337,7 @@ class DiagramState(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    version: Literal[3] = CURRENT_DIAGRAM_VERSION
+    version: Literal[4] = CURRENT_DIAGRAM_VERSION
     projectName: str = ""
     environments: list[EnvironmentEntry] = Field(default_factory=list)
     canvasObjects: list[SerializedCanvasObject] = Field(default_factory=list)

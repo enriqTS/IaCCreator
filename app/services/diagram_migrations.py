@@ -71,6 +71,19 @@ def _upgrade_v2_to_v3(state: dict[str, Any]) -> dict[str, Any]:
     return state
 
 
+def _upgrade_v3_to_v4(state: dict[str, Any]) -> dict[str, Any]:
+    """Add semantic hierarchy and connector provenance defaults."""
+    for obj in state.get("canvasObjects") or []:
+        obj.setdefault("parentContainerId", None)
+        if obj.get("objectType") == "architecture-block":
+            obj.setdefault("presentation", "node")
+    for connector in state.get("connectors") or []:
+        connector.setdefault("origin", "explicit")
+        connector.setdefault("container_id", None)
+    state["version"] = 4
+    return state
+
+
 def _normalise(state: dict[str, Any]) -> dict[str, Any]:
     """Fill in visual defaults and replace values the editor would reject."""
     for index, obj in enumerate(state.get("canvasObjects") or []):
@@ -91,7 +104,7 @@ def _normalise(state: dict[str, Any]) -> dict[str, Any]:
     return state
 
 
-_UPGRADES = {1: _upgrade_v1_to_v2, 2: _upgrade_v2_to_v3}
+_UPGRADES = {1: _upgrade_v1_to_v2, 2: _upgrade_v2_to_v3, 3: _upgrade_v3_to_v4}
 
 
 def migrate_diagram_state(state: dict[str, Any]) -> dict[str, Any]:

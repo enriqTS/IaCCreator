@@ -3,7 +3,7 @@
  */
 
 import type { StateCreator } from 'zustand';
-import type { AnchorRef, ArchitectureBlock, CanvasObject, Connector, GeometricObject, GeometricShape, LineObject, ObjectGroup, Point, RoutingMode, TextObject, UMLKind, UMLObject } from '@/types/diagram';
+import type { AnchorRef, ArchitectureBlock, CanvasObject, Connector, GeometricObject, GeometricShape, LineObject, ObjectGroup, Point, RoutingMode, SemanticContainerObject, TextObject, UMLKind, UMLObject } from '@/types/diagram';
 import { DEFAULT_BLOCK_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_LINE_VISUAL, DEFAULT_TEXT_VISUAL, DEFAULT_UML_VISUAL } from '@/types/diagram';
 import type { DiagramState, SerializedCanvasObject } from '@/types/serialization';
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
@@ -31,6 +31,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
           visualConfig: { ...obj.visualConfig } as Record<string, unknown>,
           zIndex: obj.zIndex,
           ...(obj.groupId !== undefined && { groupId: obj.groupId }),
+          ...('parentContainerId' in obj && obj.parentContainerId !== undefined && { parentContainerId: obj.parentContainerId }),
         };
 
         if (obj.objectType === 'architecture-block') {
@@ -39,6 +40,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
           base.serviceType = obj.serviceType;
           base.config = { ...obj.config };
           base.terraformVariables = { ...obj.terraformVariables };
+          base.presentation = obj.presentation ?? 'node';
         } else if (obj.objectType === 'line') {
           base.startX = obj.start.x;
           base.startY = obj.start.y;
@@ -58,6 +60,11 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
           base.x = obj.position.x;
           base.y = obj.position.y;
           base.content = obj.content;
+        } else if (obj.objectType === 'semantic-container') {
+          base.x = obj.position.x;
+          base.y = obj.position.y;
+          base.containerType = obj.containerType;
+          base.config = { ...obj.config };
         } else if (obj.objectType === 'uml') {
           base.x = obj.position.x;
           base.y = obj.position.y;
@@ -87,6 +94,8 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
           targetId: c.targetId,
           connectionType: c.connectionType,
           ...(c.connectionConfig !== undefined && { connection_config: { ...c.connectionConfig } }),
+          ...(c.origin !== undefined && { origin: c.origin }),
+          ...(c.containerId !== undefined && { container_id: c.containerId }),
         })),
         viewport: { ...viewport },
         ...(serializedGroups.length > 0 && { objectGroups: serializedGroups }),
@@ -104,6 +113,8 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
           targetId: c.targetId,
           connectionType: c.connectionType,
           ...(c.connection_config !== undefined && { connectionConfig: { ...c.connection_config } }),
+          ...(c.origin !== undefined && { origin: c.origin }),
+          ...(c.container_id !== undefined && { containerId: c.container_id }),
         });
       }
 
@@ -146,6 +157,8 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
               },
               zIndex,
               ...(groupId !== undefined && { groupId }),
+              ...(sObj.parentContainerId !== undefined && { parentContainerId: sObj.parentContainerId }),
+              presentation: sObj.presentation ?? 'node',
             };
             canvasObjectsMap.set(obj.id, obj);
           } else if (sObj.objectType === 'line') {
@@ -228,6 +241,26 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
               },
               zIndex,
               ...(groupId !== undefined && { groupId }),
+            };
+            canvasObjectsMap.set(obj.id, obj);
+          } else if (sObj.objectType === 'semantic-container') {
+            const obj: SemanticContainerObject = {
+              id: sObj.id,
+              objectType: 'semantic-container',
+              containerType: sObj.containerType ?? 'generic',
+              name: sObj.name,
+              position: { x: sObj.x ?? 0, y: sObj.y ?? 0 },
+              config: { ...(sObj.config ?? {}) },
+              visualConfig: {
+                width: (sObj.visualConfig.width as number) ?? 480,
+                height: (sObj.visualConfig.height as number) ?? 320,
+                fillColor: (sObj.visualConfig.fillColor as string) ?? '#172033',
+                borderColor: (sObj.visualConfig.borderColor as string) ?? '#64748b',
+                borderWidth: (sObj.visualConfig.borderWidth as number) ?? 2,
+              },
+              zIndex,
+              ...(groupId !== undefined && { groupId }),
+              ...(sObj.parentContainerId !== undefined && { parentContainerId: sObj.parentContainerId }),
             };
             canvasObjectsMap.set(obj.id, obj);
           } else if (sObj.objectType === 'uml') {

@@ -5,6 +5,7 @@ from enum import StrEnum
 from pydantic import BaseModel
 
 from app.models.connection_configs.schema_models import ConnectionSchemaEntry
+from app.models.containment import ContainmentCatalogResponse
 from app.models.diagram_state import GlobalTerraformConfigState
 from app.models.input_models._metadata import VariableSchemaEntry
 from app.models.response_models import NamingRulesResponse
@@ -54,3 +55,4 @@ class EditorBootstrapResponse(BaseModel):
     naming_rules: NamingRulesResponse
     global_terraform_defaults: GlobalTerraformConfigState
     diagram_version: int
+    containment: ContainmentCatalogResponse

@@ -9,6 +9,11 @@ from app.models.input_models import ServiceType
 from app.models.input_models._general import _get_cached_service_config_models
 from app.persistence.models import DiagramSummary
 from app.services.connection_handlers.registry import resolve_spec
+from app.services.containment_catalog import (
+    allowed_parent,
+    is_container_capable,
+    semantic_type,
+)
 from app.services.diagram_migrations import migrate_diagram_state
 
 
@@ -126,6 +131,39 @@ class DiagramStateInput(DiagramState):
                 validated = adapter.validate_python(value)
                 config[name] = adapter.dump_python(validated, mode="json")
             connector.connection_config = config or None
+        for obj in self.canvasObjects:
+            parent_id = obj.parentContainerId
+            if parent_id is None:
+                continue
+            if parent_id == obj.id:
+                raise ValueError(f"Object {obj.id} cannot contain itself")
+            parent = objects.get(parent_id)
+            if parent is None:
+                raise ValueError(
+                    f"Object {obj.id} references missing semantic parent {parent_id}"
+                )
+            if not is_container_capable(parent):
+                raise ValueError(f"Object {parent_id} is not container-capable")
+            if not allowed_parent(semantic_type(obj), semantic_type(parent)):
+                raise ValueError(
+                    f"Invalid containment: {semantic_type(obj)} in {semantic_type(parent)}"
+                )
+        for obj in self.canvasObjects:
+            visited = {obj.id}
+            current = obj
+            while current.parentContainerId is not None:
+                if current.parentContainerId in visited:
+                    raise ValueError(f"Containment cycle involving {obj.id}")
+                visited.add(current.parentContainerId)
+                current = objects[current.parentContainerId]
+        for connector in self.connectors:
+            if (
+                connector.origin == "containment"
+                and connector.container_id not in object_ids
+            ):
+                raise ValueError(
+                    f"Managed connector {connector.id} has no valid container"
+                )
         missing_groups = [
             obj.id
             for obj in self.canvasObjects

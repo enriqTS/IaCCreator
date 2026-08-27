@@ -7,6 +7,7 @@ import LineObjectComponent from './objects/LineObjectComponent';
 import GeometricObjectComponent from './objects/GeometricObjectComponent';
 import TextObjectComponent from './objects/TextObjectComponent';
 import UMLObjectComponent from './objects/UMLObjectComponent';
+import SemanticContainerComponent from './objects/SemanticContainerComponent';
 import ResizeHandles from './interactions/ResizeHandles';
 import GroupBoundingBox from './interactions/GroupBoundingBox';
 import AnchorIndicators from './interactions/AnchorIndicators';
@@ -125,6 +126,11 @@ export default function ElementLayer() {
               block={obj}
               isSelected={isSelected}
             />
+          );
+        }
+        if (obj.objectType === 'semantic-container') {
+          return (
+            <SemanticContainerComponent key={obj.id} object={obj} isSelected={isSelected} />
           );
         }
         if (obj.objectType === 'geometric') {

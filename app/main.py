@@ -20,6 +20,10 @@ from app.models.connection_configs.schema_models import (
 )
 from app.models.connection_operations import ApplyConnectionOperationRequest
 from app.models.connection_previews import ConnectionPreviewResponse
+from app.models.containment_operations import (
+    ApplyContainmentOperationRequest,
+    ApplyContainmentOperationResponse,
+)
 from app.models.diagram_models import (
     DiagramStateInput,
     ResourceInitializationRequest,
@@ -46,6 +50,8 @@ from app.services.code_generator import CodeGenerator
 from app.services.connection_handlers.registry import CONNECTION_SPECS
 from app.services.connection_operation_service import ConnectionOperationService
 from app.services.connection_previewer import ConnectionPreviewer
+from app.services.containment_catalog import build_containment_catalog
+from app.services.containment_operation_service import ContainmentOperationService
 from app.services.diagram_converter import DiagramConverter
 from app.services.diagram_normalizer import DiagramNormalizer
 from app.services.ir_builder import IRBuilder
@@ -107,6 +113,7 @@ _diagram_converter = DiagramConverter()
 _diagram_normalizer = DiagramNormalizer()
 _connection_operations = ConnectionOperationService()
 _resource_initializer = ResourceInitializer()
+_containment_operations = ContainmentOperationService()
 
 
 def _build_summary(arch: ArchitectureDescription, file_tree: dict) -> GenerationSummary:
@@ -211,7 +218,22 @@ async def get_editor_bootstrap() -> EditorBootstrapResponse:
             "globalVariables": [],
         },
         diagram_version=CURRENT_DIAGRAM_VERSION,
+        containment=build_containment_catalog(),
     )
+
+
+@app.post(
+    "/api/diagrams/containment/apply",
+    response_model=ApplyContainmentOperationResponse,
+)
+async def apply_containment_operation(
+    request: ApplyContainmentOperationRequest,
+) -> ApplyContainmentOperationResponse:
+    """Validate and apply one semantic containment operation."""
+    try:
+        return _containment_operations.apply(request.diagram, request.operation)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/api/resources/initialize", response_model=ResourceInitializationResponse)

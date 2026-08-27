@@ -115,6 +115,11 @@ export const apiClient = {
     naming_rules: NamingRulesPayload;
     global_terraform_defaults: GlobalTerraformConfig;
     diagram_version: number;
+    containment?: {
+      container_types: { container_type: string; display_name: string; allowed_parent_types: string[]; config_fields: string[] }[];
+      service_capabilities: { service_type: string; container_presentation: boolean; allowed_parent_types: string[] }[];
+      rules: { child_type: string; parent_type: string; resolved_ancestor_type?: string | null; connection_type?: string | null; inherited_fields: string[]; outcome: 'terraform-connection' | 'inherited-scope' | 'visual-only' }[];
+    };
   }>> {
     return request('/api/editor-bootstrap', { method: 'GET' }, (res) => res.json());
   },
@@ -134,6 +139,18 @@ export const apiClient = {
     operation: Record<string, unknown>,
   ): Promise<ApiResult<DiagramState>> {
     return request('/api/diagrams/connections/apply', {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ diagram, operation }),
+    }, (res) => res.json());
+  },
+
+  /** POST /api/diagrams/containment/apply — validate semantic hierarchy intent. */
+  applyContainmentOperation(
+    diagram: DiagramState,
+    operation: Record<string, unknown>,
+  ): Promise<ApiResult<{ diagram: DiagramState; resolution: Record<string, unknown> }>> {
+    return request('/api/diagrams/containment/apply', {
       method: 'POST',
       headers: jsonHeaders(),
       body: JSON.stringify({ diagram, operation }),
