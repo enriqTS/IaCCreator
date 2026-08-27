@@ -147,6 +147,8 @@ EXPECTED_SERVICE_TYPES = {
     "transcribe",
     "kendra",
     "lex",
+    "iot-core",
+    "iot-device-management",
 }
 
 

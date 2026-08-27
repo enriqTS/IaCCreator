@@ -256,6 +256,17 @@ class ServiceType(StrEnum):
     FRAUD_DETECTOR = "fraud-detector"
     HEALTHLAKE = "healthlake"
 
+    # Internet of Things
+    IOT_CORE = "iot-core"
+    IOT_GREENGRASS = "iot-greengrass"
+    IOT_DEVICE_MANAGEMENT = "iot-device-management"
+    IOT_DEVICE_DEFENDER = "iot-device-defender"
+    IOT_EVENTS = "iot-events"
+    IOT_SITEWISE = "iot-sitewise"
+    IOT_TWINMAKER = "iot-twinmaker"
+    IOT_ANALYTICS = "iot-analytics"
+    IOT_FLEETWISE = "iot-fleetwise"
+
 
 class ResourceInstance(BaseModel):
     """A specific named resource within a service module."""
@@ -450,6 +461,10 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.gamelift_config import GameLiftConfig
     from app.models.input_models.glue_config import GlueConfig
     from app.models.input_models.internet_gateway_config import InternetGatewayConfig
+    from app.models.input_models.iot_core_config import IotCoreConfig
+    from app.models.input_models.iot_device_management_config import (
+        IotDeviceManagementConfig,
+    )
     from app.models.input_models.kendra_config import KendraConfig
     from app.models.input_models.keyspaces_config import KeyspacesConfig
     from app.models.input_models.kinesis_config import KinesisConfig
@@ -592,6 +607,8 @@ def _build_service_config_models() -> dict:
         ServiceType.TRANSCRIBE: TranscribeConfig,
         ServiceType.KENDRA: KendraConfig,
         ServiceType.LEX: LexConfig,
+        ServiceType.IOT_CORE: IotCoreConfig,
+        ServiceType.IOT_DEVICE_MANAGEMENT: IotDeviceManagementConfig,
     }
 
 

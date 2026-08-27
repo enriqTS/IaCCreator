@@ -106,6 +106,9 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.TRANSCRIBE: "machine-learning",
     ServiceType.KENDRA: "machine-learning",
     ServiceType.LEX: "machine-learning",
+    # Internet of Things
+    ServiceType.IOT_CORE: "internet-of-things",
+    ServiceType.IOT_DEVICE_MANAGEMENT: "internet-of-things",
     # End user computing
     ServiceType.WORKSPACES: "end-user-computing",
     # Other

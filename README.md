@@ -90,6 +90,10 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - OpenSearch
 - Redshift
 
+**Internet of Things:**
+- IoT Core registry things
+- IoT Device Management thing groups
+
 **Machine-learning APIs:**
 - Comprehend document classifiers
 - Rekognition face collections

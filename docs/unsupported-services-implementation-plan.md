@@ -563,15 +563,21 @@ Training frameworks, client environments, and broad branding icons should remain
 
 ### Internet of Things
 
-- IoT Core
-- IoT Greengrass
-- IoT Device Management
-- IoT Device Defender
-- IoT Events
-- IoT SiteWise
-- IoT TwinMaker
-- IoT Analytics where still supported
-- IoT FleetWise
+- IoT Core — implemented as registry things
+- IoT Greengrass — classified as a capability; current standard AWS provider support is insufficient
+- IoT Device Management — implemented as thing groups
+- IoT Device Defender — classified as a capability; current standard AWS provider support is insufficient
+- IoT Events — classified as a capability; current standard AWS provider support is insufficient
+- IoT SiteWise — classified as a capability; current standard AWS provider support is insufficient
+- IoT TwinMaker — classified as a capability; current standard AWS provider support is insufficient
+- IoT Analytics — retained as deprecated for compatibility and unavailable for new deployments
+- IoT FleetWise — classified as a capability; current standard AWS provider support is insufficient
+
+Internet of Things batch identity decisions:
+
+- IoT Core owns a device-registry thing rather than representing the entire messaging platform as one oversized resource.
+- IoT Device Management owns a thing group, which can organize independently managed IoT Core things.
+- Services requiring AWS Cloud Control or API-only provisioning remain typed capabilities until standard provider ownership is available.
 
 Classify retired products before implementation and do not offer them for new deployment.
 

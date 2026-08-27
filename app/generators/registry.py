@@ -74,6 +74,8 @@ from app.generators.gamelift_generator import GameLiftGenerator
 from app.generators.glue_generator import GlueGenerator
 from app.generators.iam_generator import IAMGenerator
 from app.generators.internet_gateway_generator import InternetGatewayGenerator
+from app.generators.iot_core_generator import IotCoreGenerator
+from app.generators.iot_device_management_generator import IotDeviceManagementGenerator
 from app.generators.kendra_generator import KendraGenerator
 from app.generators.keyspaces_generator import KeyspacesGenerator
 from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
@@ -224,4 +226,6 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.TRANSCRIBE: TranscribeGenerator(),
     ServiceType.KENDRA: KendraGenerator(),
     ServiceType.LEX: LexGenerator(),
+    ServiceType.IOT_CORE: IotCoreGenerator(),
+    ServiceType.IOT_DEVICE_MANAGEMENT: IotDeviceManagementGenerator(),
 }

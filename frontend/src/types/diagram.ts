@@ -219,7 +219,17 @@ export type ServiceType =
   | 'lex'
   | 'forecast'
   | 'fraud-detector'
-  | 'healthlake';
+  | 'healthlake'
+  // Internet of Things
+  | 'iot-core'
+  | 'iot-greengrass'
+  | 'iot-device-management'
+  | 'iot-device-defender'
+  | 'iot-events'
+  | 'iot-sitewise'
+  | 'iot-twinmaker'
+  | 'iot-analytics'
+  | 'iot-fleetwise';
 
 export interface Point {
   x: number;

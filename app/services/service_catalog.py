@@ -173,6 +173,17 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.LUMBERYARD,
         ServiceType.OPEN_3D_ENGINE,
     },
+    "internet-of-things": {
+        ServiceType.IOT_CORE,
+        ServiceType.IOT_GREENGRASS,
+        ServiceType.IOT_DEVICE_MANAGEMENT,
+        ServiceType.IOT_DEVICE_DEFENDER,
+        ServiceType.IOT_EVENTS,
+        ServiceType.IOT_SITEWISE,
+        ServiceType.IOT_TWINMAKER,
+        ServiceType.IOT_ANALYTICS,
+        ServiceType.IOT_FLEETWISE,
+    },
     "machine-learning": {
         ServiceType.BEDROCK,
         ServiceType.SAGEMAKER,
@@ -246,6 +257,12 @@ _CAPABILITIES = {
     ServiceType.FORECAST,
     ServiceType.FRAUD_DETECTOR,
     ServiceType.HEALTHLAKE,
+    ServiceType.IOT_GREENGRASS,
+    ServiceType.IOT_DEVICE_DEFENDER,
+    ServiceType.IOT_EVENTS,
+    ServiceType.IOT_SITEWISE,
+    ServiceType.IOT_TWINMAKER,
+    ServiceType.IOT_FLEETWISE,
     ServiceType.BOTTLEROCKET,
     ServiceType.ELASTIC_FABRIC_ADAPTER,
     ServiceType.FARGATE,
@@ -300,7 +317,11 @@ _RETIRED = {
     ServiceType.THINKBOX_STOKE,
     ServiceType.THINKBOX_XMESH,
 }
-_DEPRECATED = {ServiceType.CLOUD9, ServiceType.RDS_ON_VMWARE}
+_DEPRECATED = {
+    ServiceType.CLOUD9,
+    ServiceType.RDS_ON_VMWARE,
+    ServiceType.IOT_ANALYTICS,
+}
 
 
 def _category_for(service_type: ServiceType) -> str:

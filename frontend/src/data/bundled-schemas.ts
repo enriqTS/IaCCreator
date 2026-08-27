@@ -3298,6 +3298,62 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "iot-core": [
+    {
+      "default": "connected-device",
+      "description": "IoT thing name",
+      "group": "General",
+      "label": "Thing name",
+      "name": "thing_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Optional IoT thing type",
+      "group": "General",
+      "label": "Thing type name",
+      "name": "thing_type_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Thing registry attributes",
+      "group": "General",
+      "label": "Attributes",
+      "name": "attributes",
+      "required": false,
+      "type": "map"
+    }
+  ],
+  "iot-device-management": [
+    {
+      "description": "Thing group tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "default": "managed-devices",
+      "description": "IoT thing group name",
+      "group": "General",
+      "label": "Thing group name",
+      "name": "thing_group_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Optional parent thing group name",
+      "group": "General",
+      "label": "Parent group name",
+      "name": "parent_group_name",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "kendra": [
     {
       "default": "search-index",
