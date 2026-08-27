@@ -19,7 +19,7 @@ class Route53Generator:
             "for_each": Expr("var.private_zone ? [1] : []"),
             "content": {
                 "vpc_id": Expr("var.vpc_id"),
-                "vpc_region": Expr("var.vpc_region"),
+                "vpc_region": Expr('var.vpc_region == "" ? null : var.vpc_region'),
             },
         }
         return self._r.render_resource("aws_route53_zone", instance.name, attrs)

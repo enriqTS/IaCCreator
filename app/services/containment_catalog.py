@@ -25,6 +25,7 @@ _PARENT_TYPES: dict[str, set[str]] = {
     "internet-gateway": {"vpc"},
     "nat-gateway": {"subnet"},
     "target-group": {"vpc"},
+    "route53": {"vpc"},
     "ec2": {"subnet"},
     "ecs": {"subnet"},
     "eks": {"subnet"},

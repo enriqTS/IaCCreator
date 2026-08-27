@@ -32,6 +32,9 @@ from app.services.connection_handlers.network_placement import (
     SecurityGroupListAssociationHandler,
     SubnetListPlacementHandler,
 )
+from app.services.connection_handlers.route53_vpc_association import (
+    Route53VpcAssociationHandler,
+)
 from app.services.connection_handlers.route_table_association import (
     RouteTableAssociationHandler,
 )
@@ -93,6 +96,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.TARGET_GROUP,
         )
     ],
+    ConnectionSpec(
+        source=ServiceType.VPC,
+        target=ServiceType.ROUTE53,
+        connection_type="contains",
+        label="VPC → private Route 53 hosted zone",
+        config_model=EmptyConnectionConfig,
+        handler=Route53VpcAssociationHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.SUBNET,
         target=ServiceType.NAT_GATEWAY,
