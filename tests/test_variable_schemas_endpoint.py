@@ -153,6 +153,20 @@ EXPECTED_SERVICE_TYPES = {
     "interactive-video-service",
     "datasync",
     "transfer-family",
+    "transit-gateway",
+    "direct-connect",
+    "network-firewall",
+    "guardduty",
+    "security-hub",
+    "macie",
+    "inspector",
+    "firewall-manager",
+    "private-certificate-authority",
+    "verified-permissions",
+    "vpc-lattice",
+    "global-accelerator",
+    "site-to-site-vpn",
+    "client-vpn",
 }
 
 

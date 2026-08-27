@@ -44,8 +44,22 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - Elastic Load Balancing and target groups
 - Route 53 hosted zones
 - CloudFront distributions
+- Transit Gateway
+- Direct Connect gateways
+- VPC Lattice service networks
+- Global Accelerator
+- Site-to-Site VPN
+- Client VPN
 
 **Security:**
+- Network Firewall
+- GuardDuty
+- Security Hub
+- Macie
+- Inspector
+- Firewall Manager
+- Private Certificate Authority
+- Verified Permissions
 - Key Management Service
 - Secrets Manager
 - Cognito user pools

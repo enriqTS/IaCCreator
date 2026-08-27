@@ -617,19 +617,26 @@ Migration and transfer batch identity decisions:
 
 ### Advanced networking and security
 
-- Transit Gateway
-- Direct Connect
-- Network Firewall
-- GuardDuty
-- Security Hub
-- Macie
-- Inspector
-- Firewall Manager
-- Private Certificate Authority
-- Verified Permissions
-- VPC Lattice
-- Global Accelerator
-- Site-to-Site VPN and Client VPN
+- Transit Gateway — implemented
+- Direct Connect — implemented as Direct Connect gateways
+- Network Firewall — implemented as firewalls referencing independently managed policies and subnets
+- GuardDuty — implemented as detectors
+- Security Hub — implemented as account enablement
+- Macie — implemented as account enablement
+- Inspector — implemented as Inspector2 account and resource enablement
+- Firewall Manager — implemented as administrator account registration
+- Private Certificate Authority — implemented as root certificate authorities
+- Verified Permissions — implemented as Cedar policy stores
+- VPC Lattice — implemented as service networks
+- Global Accelerator — implemented as accelerators
+- Site-to-Site VPN — implemented as transit-gateway VPN connections
+- Client VPN — implemented as certificate-authenticated endpoints
+
+Advanced networking and security batch identity decisions:
+
+- Cross-resource identifiers such as VPCs, subnets, firewall policies, transit gateways, customer gateways, and certificates are module inputs.
+- Product-level security services own their account-enablement or detector resource rather than hidden organization-wide configuration.
+- Follow-up connection work can wire the exposed identifiers without moving resources between owning modules.
 
 ## Phase 6 — Decorative and lifecycle cleanup
 

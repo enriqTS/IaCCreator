@@ -243,7 +243,22 @@ export type ServiceType =
   | 'transfer-family'
   | 'application-migration-service'
   | 'mainframe-modernization'
-  | 'migration-hub';
+  | 'migration-hub'
+  // Advanced networking and security
+  | 'transit-gateway'
+  | 'direct-connect'
+  | 'network-firewall'
+  | 'guardduty'
+  | 'security-hub'
+  | 'macie'
+  | 'inspector'
+  | 'firewall-manager'
+  | 'private-certificate-authority'
+  | 'verified-permissions'
+  | 'vpc-lattice'
+  | 'global-accelerator'
+  | 'site-to-site-vpn'
+  | 'client-vpn';
 
 export interface Point {
   x: number;

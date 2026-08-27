@@ -232,6 +232,14 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.COGNITO,
         ServiceType.CERTIFICATE_MANAGER,
         ServiceType.WAF,
+        ServiceType.NETWORK_FIREWALL,
+        ServiceType.GUARDDUTY,
+        ServiceType.SECURITY_HUB,
+        ServiceType.MACIE,
+        ServiceType.INSPECTOR,
+        ServiceType.FIREWALL_MANAGER,
+        ServiceType.PRIVATE_CERTIFICATE_AUTHORITY,
+        ServiceType.VERIFIED_PERMISSIONS,
     },
     "storage": {ServiceType.S3, ServiceType.EBS, ServiceType.EFS, ServiceType.BACKUP},
     "app-integration": {
@@ -262,6 +270,12 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.TARGET_GROUP,
         ServiceType.ROUTE53,
         ServiceType.CLOUDFRONT,
+        ServiceType.TRANSIT_GATEWAY,
+        ServiceType.DIRECT_CONNECT,
+        ServiceType.VPC_LATTICE,
+        ServiceType.GLOBAL_ACCELERATOR,
+        ServiceType.SITE_TO_SITE_VPN,
+        ServiceType.CLIENT_VPN,
     },
 }
 

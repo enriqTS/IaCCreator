@@ -1551,6 +1551,70 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       }
     }
   ],
+  "client-vpn": [
+    {
+      "description": "Client VPN tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "default": "Managed client VPN",
+      "description": "Client VPN endpoint description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "10.100.0.0/22",
+      "description": "Client IPv4 address pool",
+      "group": "General",
+      "label": "Client CIDR block",
+      "name": "client_cidr_block",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "ACM server certificate ARN",
+      "group": "General",
+      "label": "Server certificate ARN",
+      "name": "server_certificate_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "ACM client root certificate chain ARN",
+      "group": "General",
+      "label": "Root certificate chain ARN",
+      "name": "root_certificate_chain_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Enable split-tunnel routing",
+      "group": "General",
+      "label": "Split tunnel",
+      "name": "split_tunnel",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": "udp",
+      "description": "VPN transport protocol",
+      "group": "General",
+      "label": "Transport protocol",
+      "name": "transport_protocol",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "cloudfront": [
     {
       "default": "",
@@ -2360,6 +2424,26 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "kms_key_identifier",
       "required": false,
       "type": "string"
+    }
+  ],
+  "direct-connect": [
+    {
+      "default": "direct-connect",
+      "description": "Direct Connect gateway name",
+      "group": "General",
+      "label": "Gateway name",
+      "name": "gateway_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 64512,
+      "description": "Private ASN for the Amazon side",
+      "group": "General",
+      "label": "Amazon side asn",
+      "name": "amazon_side_asn",
+      "required": false,
+      "type": "number"
     }
   ],
   "documentdb": [
@@ -3351,6 +3435,17 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "firewall-manager": [
+    {
+      "default": "",
+      "description": "Firewall Manager administrator account ID",
+      "group": "General",
+      "label": "Account ID",
+      "name": "account_id",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "gamelift": [
     {
       "description": "Name of the GameLift fleet",
@@ -3369,6 +3464,43 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "global-accelerator": [
+    {
+      "description": "Accelerator tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "default": "global-entrypoint",
+      "description": "Accelerator name",
+      "group": "General",
+      "label": "Accelerator name",
+      "name": "accelerator_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Enable the accelerator",
+      "group": "General",
+      "label": "Enabled",
+      "name": "enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": "IPV4",
+      "description": "Accelerator IP address type",
+      "group": "General",
+      "label": "IP address type",
+      "name": "ip_address_type",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "glue": [
     {
       "description": "Name of the Glue catalog database",
@@ -3377,6 +3509,44 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "database_name",
       "required": false,
       "type": "string"
+    }
+  ],
+  "guardduty": [
+    {
+      "default": true,
+      "description": "Enable GuardDuty monitoring",
+      "group": "General",
+      "label": "Enabled",
+      "name": "enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": "SIX_HOURS",
+      "description": "Finding publishing frequency",
+      "group": "General",
+      "label": "Finding publishing frequency",
+      "name": "finding_publishing_frequency",
+      "required": false,
+      "type": "string"
+    }
+  ],
+  "inspector": [
+    {
+      "description": "AWS account IDs to enable",
+      "group": "General",
+      "label": "Account IDs",
+      "name": "account_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "Inspector scan resource types",
+      "group": "General",
+      "label": "Resource types",
+      "name": "resource_types",
+      "required": false,
+      "type": "list"
     }
   ],
   "interactive-video-service": [
@@ -4430,6 +4600,26 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "macie": [
+    {
+      "default": "ENABLED",
+      "description": "Macie account status",
+      "group": "General",
+      "label": "Status",
+      "name": "status",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "FIFTEEN_MINUTES",
+      "description": "Finding publishing frequency",
+      "group": "General",
+      "label": "Finding publishing frequency",
+      "name": "finding_publishing_frequency",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "managed-grafana": [
     {
       "default": "observability",
@@ -4929,6 +5119,61 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "network-firewall": [
+    {
+      "description": "Firewall tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "default": "network-firewall",
+      "description": "Firewall name",
+      "group": "General",
+      "label": "Firewall name",
+      "name": "firewall_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "VPC ID containing the firewall",
+      "group": "General",
+      "label": "VPC ID",
+      "name": "vpc_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Firewall endpoint subnet ID",
+      "group": "General",
+      "label": "Subnet ID",
+      "name": "subnet_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Network Firewall policy ARN",
+      "group": "General",
+      "label": "Firewall policy ARN",
+      "name": "firewall_policy_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": false,
+      "description": "Protect the firewall from deletion",
+      "group": "General",
+      "label": "Delete protection",
+      "name": "delete_protection",
+      "required": false,
+      "type": "bool"
+    }
+  ],
   "opensearch": [
     {
       "description": "Name of the OpenSearch domain",
@@ -4982,6 +5227,62 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "app_name",
       "required": false,
       "type": "string"
+    }
+  ],
+  "private-certificate-authority": [
+    {
+      "default": "Example Root CA",
+      "description": "Certificate authority common name",
+      "group": "General",
+      "label": "Common name",
+      "name": "common_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "Example Organization",
+      "description": "Certificate authority organization",
+      "group": "General",
+      "label": "Organization",
+      "name": "organization",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "RSA_2048",
+      "description": "Certificate authority key algorithm",
+      "group": "General",
+      "label": "Key algorithm",
+      "name": "key_algorithm",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "SHA256WITHRSA",
+      "description": "Certificate signing algorithm",
+      "group": "General",
+      "label": "Signing algorithm",
+      "name": "signing_algorithm",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "GENERAL_PURPOSE",
+      "description": "Certificate authority usage mode",
+      "group": "General",
+      "label": "Usage mode",
+      "name": "usage_mode",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 30,
+      "description": "CA restoration period after deletion",
+      "group": "General",
+      "label": "Permanent deletion time in days",
+      "name": "permanent_deletion_time_in_days",
+      "required": false,
+      "type": "number"
     }
   ],
   "quicksight": [
@@ -5822,6 +6123,26 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "security-hub": [
+    {
+      "default": true,
+      "description": "Enable default security standards",
+      "group": "General",
+      "label": "Enable default standards",
+      "name": "enable_default_standards",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "default": "SECURITY_CONTROL",
+      "description": "Finding generator mode",
+      "group": "General",
+      "label": "Control finding generator",
+      "name": "control_finding_generator",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "ses": [
     {
       "description": "Domain name for SES identity",
@@ -5830,6 +6151,43 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "domain",
       "required": false,
       "type": "string"
+    }
+  ],
+  "site-to-site-vpn": [
+    {
+      "description": "VPN connection tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "default": "",
+      "description": "Customer gateway ID",
+      "group": "General",
+      "label": "Customer gateway ID",
+      "name": "customer_gateway_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Transit gateway ID",
+      "group": "General",
+      "label": "Transit gateway ID",
+      "name": "transit_gateway_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": false,
+      "description": "Use static routes instead of BGP",
+      "group": "General",
+      "label": "Static routes only",
+      "name": "static_routes_only",
+      "required": false,
+      "type": "bool"
     }
   ],
   "sns": [
@@ -6379,6 +6737,63 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "transit-gateway": [
+    {
+      "description": "Transit gateway tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "default": "Managed transit gateway",
+      "description": "Transit gateway description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": 64512,
+      "description": "Private ASN for the Amazon side",
+      "group": "General",
+      "label": "Amazon side asn",
+      "name": "amazon_side_asn",
+      "required": false,
+      "type": "number"
+    },
+    {
+      "default": true,
+      "description": "Enable DNS support",
+      "group": "General",
+      "label": "DNS support",
+      "name": "dns_support",
+      "required": false,
+      "type": "bool"
+    }
+  ],
+  "verified-permissions": [
+    {
+      "default": "Application authorization policies",
+      "description": "Policy store description",
+      "group": "General",
+      "label": "Description",
+      "name": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "STRICT",
+      "description": "Cedar policy validation mode",
+      "group": "General",
+      "label": "Validation mode",
+      "name": "validation_mode",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "vpc": [
     {
       "default": "10.0.0.0/16",
@@ -6434,6 +6849,34 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "enable_dns_hostnames",
       "required": false,
       "type": "bool"
+    }
+  ],
+  "vpc-lattice": [
+    {
+      "description": "Service network tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "default": "service-network",
+      "description": "VPC Lattice service network name",
+      "group": "General",
+      "label": "Service network name",
+      "name": "service_network_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "AWS_IAM",
+      "description": "Service network authentication type",
+      "group": "General",
+      "label": "Auth type",
+      "name": "auth_type",
+      "required": false,
+      "type": "string"
     }
   ],
   "waf": [

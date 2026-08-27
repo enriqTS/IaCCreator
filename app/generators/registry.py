@@ -33,6 +33,7 @@ from app.generators.bedrock_guardrail_generator import BedrockGuardrailGenerator
 from app.generators.bedrock_knowledge_base_generator import (
     BedrockKnowledgeBaseGenerator,
 )
+from app.generators.client_vpn_generator import ClientVpnGenerator
 from app.generators.cloudfront_generator import CloudFrontGenerator
 from app.generators.cloudsearch_generator import CloudSearchGenerator
 from app.generators.cloudtrail_generator import CloudtrailGenerator
@@ -51,6 +52,7 @@ from app.generators.comprehend_generator import ComprehendGenerator
 from app.generators.connect_generator import ConnectGenerator
 from app.generators.datasync_generator import DataSyncGenerator
 from app.generators.datazone_generator import DataZoneGenerator
+from app.generators.direct_connect_generator import DirectConnectGenerator
 from app.generators.dms_generator import DmsGenerator
 from app.generators.documentdb_generator import DocumentDBGenerator
 from app.generators.dynamodb_generator import DynamoDBGenerator
@@ -71,9 +73,13 @@ from app.generators.eventbridge_generator import EventBridgeGenerator
 from app.generators.fault_injection_simulator_generator import (
     FaultInjectionSimulatorGenerator,
 )
+from app.generators.firewall_manager_generator import FirewallManagerGenerator
 from app.generators.gamelift_generator import GameLiftGenerator
+from app.generators.global_accelerator_generator import GlobalAcceleratorGenerator
 from app.generators.glue_generator import GlueGenerator
+from app.generators.guardduty_generator import GuardDutyGenerator
 from app.generators.iam_generator import IAMGenerator
+from app.generators.inspector_generator import InspectorGenerator
 from app.generators.internet_gateway_generator import InternetGatewayGenerator
 from app.generators.iot_core_generator import IotCoreGenerator
 from app.generators.iot_device_management_generator import IotDeviceManagementGenerator
@@ -88,6 +94,7 @@ from app.generators.lambda_generator import LambdaGenerator
 from app.generators.lex_generator import LexGenerator
 from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.load_balancer_generator import LoadBalancerGenerator
+from app.generators.macie_generator import MacieGenerator
 from app.generators.managed_grafana_generator import ManagedGrafanaGenerator
 from app.generators.managed_prometheus_generator import ManagedPrometheusGenerator
 from app.generators.media_live_generator import MediaLiveGenerator
@@ -97,9 +104,13 @@ from app.generators.msk_generator import MSKGenerator
 from app.generators.mwaa_generator import MwaaGenerator
 from app.generators.nat_gateway_generator import NatGatewayGenerator
 from app.generators.neptune_generator import NeptuneGenerator
+from app.generators.network_firewall_generator import NetworkFirewallGenerator
 from app.generators.opensearch_generator import OpenSearchGenerator
 from app.generators.organizations_generator import OrganizationsGenerator
 from app.generators.pinpoint_generator import PinpointGenerator
+from app.generators.private_certificate_authority_generator import (
+    PrivateCertificateAuthorityGenerator,
+)
 from app.generators.quicksight_generator import QuickSightGenerator
 from app.generators.rds_generator import RDSGenerator
 from app.generators.redshift_generator import RedshiftGenerator
@@ -110,7 +121,9 @@ from app.generators.s3_generator import S3Generator
 from app.generators.sagemaker_generator import SageMakerGenerator
 from app.generators.secrets_manager_generator import SecretsManagerGenerator
 from app.generators.security_group_generator import SecurityGroupGenerator
+from app.generators.security_hub_generator import SecurityHubGenerator
 from app.generators.ses_generator import SESGenerator
+from app.generators.site_to_site_vpn_generator import SiteToSiteVpnGenerator
 from app.generators.sns_generator import SNSGenerator
 from app.generators.sqs_generator import SQSGenerator
 from app.generators.step_functions_generator import StepFunctionsGenerator
@@ -120,7 +133,10 @@ from app.generators.target_group_generator import TargetGroupGenerator
 from app.generators.timestream_generator import TimestreamGenerator
 from app.generators.transcribe_generator import TranscribeGenerator
 from app.generators.transfer_family_generator import TransferFamilyGenerator
+from app.generators.transit_gateway_generator import TransitGatewayGenerator
+from app.generators.verified_permissions_generator import VerifiedPermissionsGenerator
 from app.generators.vpc_generator import VpcGenerator
+from app.generators.vpc_lattice_generator import VpcLatticeGenerator
 from app.generators.waf_generator import WafGenerator
 from app.generators.workspaces_generator import WorkSpacesGenerator
 from app.generators.xray_generator import XRayGenerator
@@ -236,4 +252,18 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.INTERACTIVE_VIDEO_SERVICE: IvsGenerator(),
     ServiceType.DATASYNC: DataSyncGenerator(),
     ServiceType.TRANSFER_FAMILY: TransferFamilyGenerator(),
+    ServiceType.TRANSIT_GATEWAY: TransitGatewayGenerator(),
+    ServiceType.DIRECT_CONNECT: DirectConnectGenerator(),
+    ServiceType.NETWORK_FIREWALL: NetworkFirewallGenerator(),
+    ServiceType.GUARDDUTY: GuardDutyGenerator(),
+    ServiceType.SECURITY_HUB: SecurityHubGenerator(),
+    ServiceType.MACIE: MacieGenerator(),
+    ServiceType.INSPECTOR: InspectorGenerator(),
+    ServiceType.FIREWALL_MANAGER: FirewallManagerGenerator(),
+    ServiceType.PRIVATE_CERTIFICATE_AUTHORITY: PrivateCertificateAuthorityGenerator(),
+    ServiceType.VERIFIED_PERMISSIONS: VerifiedPermissionsGenerator(),
+    ServiceType.VPC_LATTICE: VpcLatticeGenerator(),
+    ServiceType.GLOBAL_ACCELERATOR: GlobalAcceleratorGenerator(),
+    ServiceType.SITE_TO_SITE_VPN: SiteToSiteVpnGenerator(),
+    ServiceType.CLIENT_VPN: ClientVpnGenerator(),
 }

@@ -283,6 +283,22 @@ class ServiceType(StrEnum):
     MAINFRAME_MODERNIZATION = "mainframe-modernization"
     MIGRATION_HUB = "migration-hub"
 
+    # Advanced networking and security
+    TRANSIT_GATEWAY = "transit-gateway"
+    DIRECT_CONNECT = "direct-connect"
+    NETWORK_FIREWALL = "network-firewall"
+    GUARDDUTY = "guardduty"
+    SECURITY_HUB = "security-hub"
+    MACIE = "macie"
+    INSPECTOR = "inspector"
+    FIREWALL_MANAGER = "firewall-manager"
+    PRIVATE_CERTIFICATE_AUTHORITY = "private-certificate-authority"
+    VERIFIED_PERMISSIONS = "verified-permissions"
+    VPC_LATTICE = "vpc-lattice"
+    GLOBAL_ACCELERATOR = "global-accelerator"
+    SITE_TO_SITE_VPN = "site-to-site-vpn"
+    CLIENT_VPN = "client-vpn"
+
 
 class ResourceInstance(BaseModel):
     """A specific named resource within a service module."""
@@ -443,6 +459,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.bedrock_knowledge_base_config import (
         BedrockKnowledgeBaseConfig,
     )
+    from app.models.input_models.client_vpn_config import ClientVpnConfig
     from app.models.input_models.cloudfront_config import CloudFrontConfig
     from app.models.input_models.cloudsearch_config import CloudSearchConfig
     from app.models.input_models.cloudtrail_config import CloudTrailConfig
@@ -457,6 +474,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.connect_config import ConnectConfig
     from app.models.input_models.datasync_config import DataSyncConfig
     from app.models.input_models.datazone_config import DataZoneConfig
+    from app.models.input_models.direct_connect_config import DirectConnectConfig
     from app.models.input_models.dms_config import DmsConfig
     from app.models.input_models.documentdb_config import DocumentDbConfig
     from app.models.input_models.dynamodb_config import DynamoDBConfig
@@ -475,8 +493,14 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.fault_injection_simulator_config import (
         FaultInjectionSimulatorConfig,
     )
+    from app.models.input_models.firewall_manager_config import FirewallManagerConfig
     from app.models.input_models.gamelift_config import GameLiftConfig
+    from app.models.input_models.global_accelerator_config import (
+        GlobalAcceleratorConfig,
+    )
     from app.models.input_models.glue_config import GlueConfig
+    from app.models.input_models.guardduty_config import GuardDutyConfig
+    from app.models.input_models.inspector_config import InspectorConfig
     from app.models.input_models.internet_gateway_config import InternetGatewayConfig
     from app.models.input_models.iot_core_config import IotCoreConfig
     from app.models.input_models.iot_device_management_config import (
@@ -493,6 +517,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.lex_config import LexConfig
     from app.models.input_models.lightsail_config import LightsailConfig
     from app.models.input_models.load_balancer_config import LoadBalancerConfig
+    from app.models.input_models.macie_config import MacieConfig
     from app.models.input_models.managed_grafana_config import ManagedGrafanaConfig
     from app.models.input_models.managed_prometheus_config import (
         ManagedPrometheusConfig,
@@ -504,9 +529,13 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.mwaa_config import MwaaConfig
     from app.models.input_models.nat_gateway_config import NatGatewayConfig
     from app.models.input_models.neptune_config import NeptuneConfig
+    from app.models.input_models.network_firewall_config import NetworkFirewallConfig
     from app.models.input_models.opensearch_config import OpenSearchConfig
     from app.models.input_models.organizations_config import OrganizationsConfig
     from app.models.input_models.pinpoint_config import PinpointConfig
+    from app.models.input_models.private_certificate_authority_config import (
+        PrivateCertificateAuthorityConfig,
+    )
     from app.models.input_models.quicksight_config import QuickSightConfig
     from app.models.input_models.rds_config import RdsConfig
     from app.models.input_models.redshift_config import RedshiftConfig
@@ -517,7 +546,9 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.sagemaker_config import SageMakerConfig
     from app.models.input_models.secrets_manager_config import SecretsManagerConfig
     from app.models.input_models.security_group_config import SecurityGroupConfig
+    from app.models.input_models.security_hub_config import SecurityHubConfig
     from app.models.input_models.ses_config import SesConfig
+    from app.models.input_models.site_to_site_vpn_config import SiteToSiteVpnConfig
     from app.models.input_models.sns_config import SnsConfig
     from app.models.input_models.sqs_config import SqsConfig
     from app.models.input_models.step_functions_config import StepFunctionsConfig
@@ -527,7 +558,12 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.timestream_config import TimestreamConfig
     from app.models.input_models.transcribe_config import TranscribeConfig
     from app.models.input_models.transfer_family_config import TransferFamilyConfig
+    from app.models.input_models.transit_gateway_config import TransitGatewayConfig
+    from app.models.input_models.verified_permissions_config import (
+        VerifiedPermissionsConfig,
+    )
     from app.models.input_models.vpc_config import VpcConfig
+    from app.models.input_models.vpc_lattice_config import VpcLatticeConfig
     from app.models.input_models.waf_config import WafConfig
     from app.models.input_models.workspaces_config import WorkSpacesConfig
     from app.models.input_models.xray_config import XRayConfig
@@ -633,6 +669,20 @@ def _build_service_config_models() -> dict:
         ServiceType.INTERACTIVE_VIDEO_SERVICE: IvsConfig,
         ServiceType.DATASYNC: DataSyncConfig,
         ServiceType.TRANSFER_FAMILY: TransferFamilyConfig,
+        ServiceType.TRANSIT_GATEWAY: TransitGatewayConfig,
+        ServiceType.DIRECT_CONNECT: DirectConnectConfig,
+        ServiceType.NETWORK_FIREWALL: NetworkFirewallConfig,
+        ServiceType.GUARDDUTY: GuardDutyConfig,
+        ServiceType.SECURITY_HUB: SecurityHubConfig,
+        ServiceType.MACIE: MacieConfig,
+        ServiceType.INSPECTOR: InspectorConfig,
+        ServiceType.FIREWALL_MANAGER: FirewallManagerConfig,
+        ServiceType.PRIVATE_CERTIFICATE_AUTHORITY: PrivateCertificateAuthorityConfig,
+        ServiceType.VERIFIED_PERMISSIONS: VerifiedPermissionsConfig,
+        ServiceType.VPC_LATTICE: VpcLatticeConfig,
+        ServiceType.GLOBAL_ACCELERATOR: GlobalAcceleratorConfig,
+        ServiceType.SITE_TO_SITE_VPN: SiteToSiteVpnConfig,
+        ServiceType.CLIENT_VPN: ClientVpnConfig,
     }
 
 
