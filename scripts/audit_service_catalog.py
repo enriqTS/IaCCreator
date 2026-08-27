@@ -7,6 +7,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from app.generators.registry import GENERATOR_REGISTRY  # noqa: E402
+from app.models.editor_models import ServiceClassification  # noqa: E402
 from app.models.input_models import ServiceType  # noqa: E402
 from app.services.service_catalog import SERVICE_CATALOG  # noqa: E402
 
@@ -49,6 +51,19 @@ def audit() -> list[str]:
         errors.append(f"backend service type is absent from frontend: {service_type}")
     if set(SERVICE_CATALOG) != set(ServiceType):
         errors.append("backend capability catalog does not classify every service type")
+    for service_type, metadata in SERVICE_CATALOG.items():
+        if (
+            metadata.classification == ServiceClassification.RESOURCE
+            and service_type not in GENERATOR_REGISTRY
+        ):
+            errors.append(
+                f"resource-classified service has no generator: {service_type.value}"
+            )
+        if (
+            metadata.lifecycle.value in {"retired", "decorative"}
+            and metadata.capabilities.diagram
+        ):
+            errors.append(f"non-deployable service is placeable: {service_type.value}")
 
     duplicates = {key: values for key, values in typed.items() if len(values) > 1}
     print(f"Typed service types: {len(typed)}")

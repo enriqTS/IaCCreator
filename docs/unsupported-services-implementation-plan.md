@@ -652,6 +652,10 @@ Review discontinued or restricted services against current AWS and Terraform pro
 
 At the end of this phase, every catalog entry must be intentionally Terraform-supported, intentionally decorative, or intentionally retained for backward compatibility.
 
+### Phase 6 implementation status
+
+Phase 6 is complete. Active typed services without a generator are explicitly classified as capabilities, composites, or decorative concepts; none are implicitly classified as Terraform resources. CLI, SDK, framework, client, and support concepts are decorative and unavailable for new diagram placement. Retired services, including CodeCommit, CodeCatalyst, CodeStar, QLDB, WorkDocs, Thinkbox Deadline, and previously retired catalog entries, remain available to render existing diagrams but are unavailable for new placement. The catalog audit rejects resource classifications without generators and placeable retired or decorative services.
+
 ## Per-service implementation checklist
 
 Each service is a self-contained unit of work and must leave the repository working.

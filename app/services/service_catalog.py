@@ -313,20 +313,34 @@ _CAPABILITIES = {
     ServiceType.EKS_CLOUD,
     ServiceType.EKS_DISTRO,
     ServiceType.PINPOINT_APIS,
-    ServiceType.APPLICATION_COMPOSER,
     ServiceType.CLOUD_CONTROL_API,
-    ServiceType.CLOUD_DEVELOPMENT_KIT,
-    ServiceType.COMMAND_LINE_INTERFACE,
-    ServiceType.CORRETTO,
-    ServiceType.TOOLS_AND_SDKS,
-}
-_COMPOSITES = {
-    ServiceType.OUTPOSTS_RACK,
-    ServiceType.CONTROL_TOWER,
-    ServiceType.OUTPOSTS_SERVERS,
-    ServiceType.WORKSPACES_FAMILY,
-    ServiceType.VMWARE_CLOUD_ON_AWS,
-    ServiceType.RED_HAT_OPENSHIFT,
+    ServiceType.KINESIS_DATA_STREAMS,
+    ServiceType.COMPUTE_OPTIMIZER,
+    ServiceType.NICE_DCV,
+    ServiceType.NICE_ENGINFRAME,
+    ServiceType.PARALLELCLUSTER,
+    ServiceType.SERVERLESS_APPLICATION_REPOSITORY,
+    ServiceType.SIMSPACE_WEAVER,
+    ServiceType.CLEAN_ROOMS,
+    ServiceType.DATA_EXCHANGE,
+    ServiceType.FINSPACE,
+    ServiceType.GLUE_DATABREW,
+    ServiceType.MANAGED_BLOCKCHAIN,
+    ServiceType.CHIME_SDK,
+    ServiceType.CHIME_VOICE_CONNECTOR,
+    ServiceType.CHIME,
+    ServiceType.SUPPLY_CHAIN,
+    ServiceType.WICKR,
+    ServiceType.WORKMAIL,
+    ServiceType.APPLICATION_COST_PROFILER,
+    ServiceType.BILLING_CONDUCTOR,
+    ServiceType.BUDGETS,
+    ServiceType.COST_AND_USAGE_REPORT,
+    ServiceType.COST_EXPLORER,
+    ServiceType.RESERVED_INSTANCE_REPORTING,
+    ServiceType.SAVINGS_PLANS,
+    ServiceType.DEVICE_FARM,
+    ServiceType.LOCATION_SERVICE,
 }
 _DECORATIVE = {
     ServiceType.ACTIVATE,
@@ -336,14 +350,36 @@ _DECORATIVE = {
     ServiceType.REPOST,
     ServiceType.SUPPORT,
     ServiceType.TRAINING_CERTIFICATION,
+    ServiceType.APPLICATION_COMPOSER,
+    ServiceType.CLOUD_DEVELOPMENT_KIT,
     ServiceType.CLOUDSHELL,
+    ServiceType.COMMAND_LINE_INTERFACE,
+    ServiceType.CORRETTO,
+    ServiceType.GENOMICS_CLI,
+    ServiceType.TOOLS_AND_SDKS,
+    ServiceType.WORKDOCS_SDK,
 }
+_COMPOSITES = {
+    ServiceType.OUTPOSTS_RACK,
+    ServiceType.CONTROL_TOWER,
+    ServiceType.OUTPOSTS_SERVERS,
+    ServiceType.WORKSPACES_FAMILY,
+    ServiceType.VMWARE_CLOUD_ON_AWS,
+    ServiceType.RED_HAT_OPENSHIFT,
+}
+# These services remain visible for existing diagrams but cannot start new deployments.
 _RETIRED = {
     ServiceType.ALEXA_FOR_BUSINESS,
+    ServiceType.CODECATALYST,
+    ServiceType.CODECOMMIT,
+    ServiceType.CODESTAR,
     ServiceType.DATA_PIPELINE,
     ServiceType.GLUE_ELASTIC_VIEWS,
     ServiceType.KINESIS_DATA_ANALYTICS,
     ServiceType.HONEYCODE,
+    ServiceType.QUANTUM_LEDGER_DATABASE,
+    ServiceType.THINKBOX_DEADLINE,
+    ServiceType.WORKDOCS,
     ServiceType.WORKLINK,
     ServiceType.GAMEKIT,
     ServiceType.GAMESPARKS,
@@ -383,7 +419,9 @@ def _classification_for(service_type: ServiceType) -> ServiceClassification:
         return ServiceClassification.COMPOSITE
     if service_type in _CAPABILITIES:
         return ServiceClassification.CAPABILITY
-    return ServiceClassification.RESOURCE
+    if service_type in GENERATOR_REGISTRY:
+        return ServiceClassification.RESOURCE
+    raise ValueError(f"Service {service_type.value} has no classification")
 
 
 def _lifecycle_for(service_type: ServiceType) -> ServiceLifecycle:

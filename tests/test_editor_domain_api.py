@@ -42,8 +42,10 @@ def test_service_catalog_registries_are_consistent() -> None:
             service in config_models and service in GENERATOR_REGISTRY
         )
         assert metadata.capabilities.connectable == (service in connected)
-        if metadata.capabilities.terraform:
-            assert metadata.capabilities.diagram
+        if metadata.classification == ServiceClassification.RESOURCE:
+            assert service in GENERATOR_REGISTRY
+        if metadata.lifecycle.value in {"retired", "decorative"}:
+            assert not metadata.capabilities.diagram
 
 
 def test_resource_initialization_uses_backend_name_and_defaults() -> None:
