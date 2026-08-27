@@ -11,7 +11,7 @@ Current status after the Phase 1–5 checkup:
 - [x] Phase 3 foundational networking, deterministic multi-subnet placement, and multi-security-group workload associations.
 - [x] Phase 4 deterministic managed connector derivation for every currently registered containment relationship.
 - [x] Phase 5 scope/resource rendering, placement, presentation switching, hierarchy z-order, routing exclusion, and minimap support.
-- [ ] Phase 6 drag/drop reparenting and subtree movement.
+- [x] Phase 6 backend-applied drag/drop reparenting, drag-out removal, target feedback, and subtree movement.
 - [ ] Phase 7 inherited-field and semantic-outcome configuration experience, except node/container switching.
 
 ## Purpose
@@ -536,13 +536,13 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 6 — Drag, drop, and subtree movement
 
-1. [ ] Add candidate-container hit testing.
-2. [ ] Highlight valid and invalid targets.
-3. [ ] Prefer the deepest eligible container.
-4. [ ] Apply reparenting through the backend endpoint on drop.
-5. [ ] Move descendants with parent containers.
-6. [ ] Implement drag-out behavior.
-7. [ ] Integrate with snapping, anchoring, routing, selection, and history.
+1. [x] Add candidate-container hit testing with a 50% dragged-object overlap threshold.
+2. [x] Highlight valid and invalid targets using backend catalog rules.
+3. [x] Prefer the deepest intersecting container deterministically.
+4. [x] Apply reparenting through the backend endpoint on drop.
+5. [x] Move descendants with parent containers without changing selection.
+6. [x] Implement drag-out behavior through the containment remove operation.
+7. [x] Integrate with snapping, anchoring, routing, selection, and history.
 
 ### Completion criteria
 
@@ -679,7 +679,7 @@ Deliver one vertical slice:
 6. [x] VPC → Subnet managed connection.
 7. [x] VPC → Security Group ancestor-derived connection.
 8. [x] Subnet Availability Zone inheritance resolution.
-9. [ ] Drag/drop reparenting and subtree movement.
+9. [x] Drag/drop reparenting and subtree movement.
 10. [ ] Inherited-field display and connection preview.
 11. [x] Generated-project Terraform validation for implemented containment connections.
 

@@ -14,15 +14,24 @@ export interface ServiceCapabilities {
   connectable: boolean;
 }
 
+export interface ContainmentRule {
+  child_type: string;
+  parent_type: string;
+  connection_type?: string | null;
+  outcome: 'terraform-connection' | 'inherited-scope' | 'visual-only';
+}
+
 interface EditorDomainState {
   serviceCapabilities: Map<string, ServiceCapabilities> | null;
   semanticContainerTypes: Set<string> | null;
+  containmentRules: ContainmentRule[];
   load: () => Promise<void>;
 }
 
 export const useEditorDomainStore = create<EditorDomainState>()((set) => ({
   serviceCapabilities: null,
   semanticContainerTypes: null,
+  containmentRules: [],
   load: async () => {
     const result = await apiClient.getEditorBootstrap();
     if (!result.ok) return;
@@ -36,6 +45,12 @@ export const useEditorDomainStore = create<EditorDomainState>()((set) => ({
       semanticContainerTypes: new Set(
         result.data.containment?.container_types.map((container) => container.container_type) ?? [],
       ),
+      containmentRules: result.data.containment?.rules.map((rule) => ({
+        child_type: rule.child_type,
+        parent_type: rule.parent_type,
+        connection_type: rule.connection_type,
+        outcome: rule.outcome,
+      })) ?? [],
     });
     const diagram = useDiagramStore.getState();
     if (

@@ -438,8 +438,18 @@ export const createCanvasSlice: StateCreator<DiagramStore, [], [], CanvasSlice> 
       const { selectedObjectIds, canvasObjects, objectGroups } = get();
       if (selectedObjectIds.size === 0) return;
 
-      // Expand selection to include all group members for any selected grouped object
+      // Expand movement to visual groups and semantic-container subtrees.
       const idsToMove = new Set<string>(selectedObjectIds);
+      const pendingDescendants = [...selectedObjectIds];
+      while (pendingDescendants.length > 0) {
+        const parentId = pendingDescendants.pop()!;
+        for (const child of canvasObjects.values()) {
+          if ('parentContainerId' in child && child.parentContainerId === parentId && !idsToMove.has(child.id)) {
+            idsToMove.add(child.id);
+            pendingDescendants.push(child.id);
+          }
+        }
+      }
       for (const id of selectedObjectIds) {
         const obj = canvasObjects.get(id);
         if (obj?.groupId) {

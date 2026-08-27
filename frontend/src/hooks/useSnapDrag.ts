@@ -13,6 +13,8 @@ import {
 } from '@/utils/snap';
 import type { AlignmentGuide, DistributionGuide } from '@/utils/snap';
 import { getObjectBounds } from '@/types/diagram';
+import { useEditorDomainStore } from '@/store/editor-domain-store';
+import { findContainmentDropCandidate } from '@/utils/semantic-containment';
 import type { Point, Rect, CanvasObject } from '@/types/diagram';
 
 const ALIGNMENT_THRESHOLD = 10;
@@ -136,6 +138,7 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
       altHeld.current = e.altKey;
       shiftHeld.current = e.shiftKey;
 
+      store.beginContainmentDrag(objectId);
       onDragStart?.();
 
       const viewport = useDiagramStore.getState().viewport;
@@ -271,7 +274,14 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
         lastSnappedPosition.current = { ...candidatePos };
 
         if (effectiveDx !== 0 || effectiveDy !== 0) {
-          useDiagramStore.getState().moveSelectedObjects(effectiveDx, effectiveDy);
+          const currentStore = useDiagramStore.getState();
+          currentStore.moveSelectedObjects(effectiveDx, effectiveDy);
+          const candidate = findContainmentDropCandidate(
+            objectId,
+            useDiagramStore.getState().canvasObjects,
+            useEditorDomainStore.getState().containmentRules,
+          );
+          currentStore.updateContainmentTarget(candidate?.id ?? null, candidate?.valid ?? null);
         }
       };
 
@@ -313,6 +323,7 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
           }
         }
 
+        if (didDrag.current) void useDiagramStore.getState().finishContainmentDrag(objectId);
         onDragEnd?.();
       };
 

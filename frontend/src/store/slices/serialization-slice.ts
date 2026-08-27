@@ -158,7 +158,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
               },
               zIndex,
               ...(groupId !== undefined && { groupId }),
-              ...(sObj.parentContainerId !== undefined && { parentContainerId: sObj.parentContainerId }),
+              ...(sObj.parentContainerId != null && { parentContainerId: sObj.parentContainerId }),
               presentation: sObj.presentation ?? 'node',
             };
             canvasObjectsMap.set(obj.id, obj);
@@ -261,7 +261,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
               },
               zIndex,
               ...(groupId !== undefined && { groupId }),
-              ...(sObj.parentContainerId !== undefined && { parentContainerId: sObj.parentContainerId }),
+              ...(sObj.parentContainerId != null && { parentContainerId: sObj.parentContainerId }),
             };
             canvasObjectsMap.set(obj.id, obj);
           } else if (sObj.objectType === 'uml') {

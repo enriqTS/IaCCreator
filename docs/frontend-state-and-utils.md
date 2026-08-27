@@ -9,6 +9,7 @@
 - `history-slice` and `history-support` own undo/redo snapshots.
 - `project-slice`, `serialization-slice`, and `persistence-slice` own project state, canonical diagram serialization, and server persistence.
 - `ui-slice` and `viewport-slice` own tool, selection, overlay, and viewport state.
+- `semantic-containment-slice` owns drag target feedback and submits assign, remove, and subtree-move intent to the backend before applying canonical hierarchy and connectors.
 
 Canvas objects are the active diagram model. Legacy element state is not the model to extend. The serialization contract is in `src/types/serialization.ts`; it includes canvas objects, connector configuration, groups, line anchors/waypoints, and global routing mode.
 
@@ -33,6 +34,7 @@ Canvas objects are the active diagram model. Legacy element state is not the mod
 - `api-client.ts` centralizes cookie-authenticated requests and structured API errors.
 - `export.ts` submits canonical diagram state to `/api/diagrams/generate/zip`.
 - `viewport.ts`, `bounds-utils.ts`, `anchor.ts`, and `snap.ts` provide canvas geometry and snapping.
+- `semantic-containment.ts` provides overlap-threshold hit testing, deepest-container selection, descendant traversal, and hierarchy z-order normalization using the backend bootstrap rules.
 - `utils/routing/` contains the grid builder, pathfinder, obstacle collector, and orthogonal-router entry point; `parallel-offset.ts` separates parallel lines.
 - `keyboard-shortcuts.ts` centralizes shortcut behavior.
 - `name-utils.ts` and `object-search.ts` provide naming and catalog search helpers.

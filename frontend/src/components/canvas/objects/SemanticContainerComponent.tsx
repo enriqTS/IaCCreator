@@ -2,6 +2,7 @@
 
 import AlignmentGuides from '@/components/canvas/interactions/AlignmentGuides';
 import { useSnapDrag } from '@/hooks/useSnapDrag';
+import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock, SemanticContainerObject } from '@/types/diagram';
 
 interface Props {
@@ -11,6 +12,9 @@ interface Props {
 
 export default function SemanticContainerComponent({ object, isSelected }: Props) {
   const { width, height } = object.visualConfig;
+  const activeTargetId = useDiagramStore((state) => state.activeContainmentTargetId);
+  const activeTargetValid = useDiagramStore((state) => state.activeContainmentTargetValid);
+  const isDropTarget = activeTargetId === object.id;
   const scope = object.objectType === 'semantic-container' ? object.containerType : object.serviceType;
   const fillColor = object.objectType === 'semantic-container' ? object.visualConfig.fillColor : '#0f2740';
   const borderColor = object.objectType === 'semantic-container' ? object.visualConfig.borderColor : '#4f8fbf';
@@ -27,6 +31,7 @@ export default function SemanticContainerComponent({ object, isSelected }: Props
         data-testid={`semantic-container-${object.id}`}
         data-object-id={object.id}
         data-container-type={scope}
+        data-drop-target={isDropTarget ? (activeTargetValid ? 'valid' : 'invalid') : undefined}
         onMouseDown={handleMouseDown}
         style={{
           position: 'absolute',
@@ -35,8 +40,8 @@ export default function SemanticContainerComponent({ object, isSelected }: Props
           width,
           height,
           pointerEvents: 'auto',
-          border: `${borderWidth}px ${scope === 'availability-zone' ? 'dashed' : 'solid'} ${isSelected ? '#60a5fa' : borderColor}`,
-          background: fillColor,
+          border: `${isDropTarget ? Math.max(3, borderWidth) : borderWidth}px ${scope === 'availability-zone' ? 'dashed' : 'solid'} ${isDropTarget ? (activeTargetValid ? '#22c55e' : '#ef4444') : isSelected ? '#60a5fa' : borderColor}`,
+          background: isDropTarget ? (activeTargetValid ? '#14532d' : '#7f1d1d') : fillColor,
           borderRadius: 8,
           boxSizing: 'border-box',
           userSelect: 'none',

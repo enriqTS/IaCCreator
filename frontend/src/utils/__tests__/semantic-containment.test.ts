@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ArchitectureBlock, CanvasObject, SemanticContainerObject } from '@/types/diagram';
-import { normalizeSemanticZOrder } from '@/utils/semantic-containment';
+import { findContainmentDropCandidate, normalizeSemanticZOrder, overlapRatio } from '@/utils/semantic-containment';
 
 function container(id: string, zIndex: number, parentContainerId?: string): SemanticContainerObject {
   return {
@@ -30,6 +30,37 @@ function resource(id: string, zIndex: number, parentContainerId: string): Archit
     parentContainerId,
   };
 }
+
+describe('semantic containment geometry', () => {
+  it('selects the deepest overlapping target and reports catalog validity', () => {
+    const region = { ...container('region', 0), containerType: 'region' as const, visualConfig: { ...container('region', 0).visualConfig, width: 500, height: 500 } };
+    const subnet = {
+      ...resource('subnet', 1, 'region'),
+      serviceType: 'subnet' as const,
+      presentation: 'container' as const,
+      visualConfig: { width: 300, height: 300 },
+    };
+    const workload = { ...resource('workload', 2, ''), serviceType: 'lambda' as const };
+    const objects = new Map<string, CanvasObject>([
+      [region.id, region],
+      [subnet.id, subnet],
+      [workload.id, workload],
+    ]);
+
+    const candidate = findContainmentDropCandidate('workload', objects, [
+      { child_type: 'lambda', parent_type: 'subnet' },
+    ]);
+
+    expect(candidate).toEqual({ id: 'subnet', valid: true, depth: 1 });
+  });
+
+  it('uses the dragged object area as the overlap denominator', () => {
+    expect(overlapRatio(
+      { x: 0, y: 0, width: 100, height: 100 },
+      { x: 50, y: 0, width: 100, height: 100 },
+    )).toBe(0.5);
+  });
+});
 
 describe('normalizeSemanticZOrder', () => {
   it('places every semantic parent below all descendants', () => {

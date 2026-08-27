@@ -60,7 +60,7 @@ export interface SerializedCanvasObject {
   visualConfig: Record<string, unknown>;
   zIndex?: number;
   groupId?: string;
-  parentContainerId?: string;
+  parentContainerId?: string | null;
   presentation?: 'node' | 'container';
   containerType?: 'region' | 'availability-zone' | 'generic';
 }

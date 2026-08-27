@@ -6,7 +6,7 @@ Components under `frontend/src/components/` render the canvas editor and its sup
 
 `canvas/Canvas.tsx` owns viewport and top-level interactions. `CanvasBackground.tsx` draws the grid, `ElementLayer.tsx` renders the DOM object layer, and `Minimap.tsx` provides diagram overview navigation.
 
-Object renderers in `canvas/objects/` cover architecture blocks, lines, geometric shapes, text, UML, and connection issue badges. Interaction components in `canvas/interactions/` cover selection, anchors, resize, line segment handles, placement, pull-to-connect, context menus, grouping, rename, alignment guides, and marquee selection.
+Object renderers in `canvas/objects/` cover architecture blocks, semantic containers, lines, geometric shapes, text, UML, and connection issue badges. Semantic containers highlight valid and invalid drop targets during object movement. Dropping submits containment intent to the backend, while moving a container translates its full descendant subtree. Interaction components in `canvas/interactions/` cover selection, anchors, resize, line segment handles, placement, pull-to-connect, context menus, grouping, rename, alignment guides, and marquee selection.
 
 Line routing uses `src/utils/routing/`; manual segment editing and routed previews are rendered through the line and interaction layers.
 
