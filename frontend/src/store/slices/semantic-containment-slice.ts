@@ -6,7 +6,26 @@ import { useToastStore } from '@/store/toast-store';
 import type { DiagramState } from '@/types/serialization';
 import type { DiagramStore } from './store-types';
 
+export interface EffectiveContainmentScope {
+  object_id: string;
+  region?: string | null;
+  availability_zone?: string | null;
+  vpc_id?: string | null;
+  subnet_id?: string | null;
+}
+
+export interface ContainmentInheritedValue {
+  object_id: string;
+  field: string;
+  value: unknown;
+  source_id: string;
+  policy: 'managed' | 'overridable' | 'external-fallback';
+}
+
 export interface SemanticContainmentSlice {
+  effectiveContainmentScopes: Map<string, EffectiveContainmentScope>;
+  containmentInheritedValues: ContainmentInheritedValue[];
+  refreshContainmentResolution: () => Promise<void>;
   pendingContainmentObjectId: string | null;
   activeContainmentTargetId: string | null;
   activeContainmentTargetValid: boolean | null;
@@ -14,6 +33,7 @@ export interface SemanticContainmentSlice {
   beginContainmentDrag: (objectId: string) => void;
   updateContainmentTarget: (targetId: string | null, valid: boolean | null) => void;
   finishContainmentDrag: (objectId: string) => Promise<void>;
+  assignSemanticParent: (objectId: string, parentId: string | null) => Promise<void>;
   setResourcePresentation: (objectId: string, presentation: 'node' | 'container') => Promise<void>;
 }
 
@@ -61,6 +81,18 @@ function canonicalState(
 }
 
 export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], SemanticContainmentSlice> = (set, get) => ({
+  effectiveContainmentScopes: new Map(),
+  containmentInheritedValues: [],
+  refreshContainmentResolution: async () => {
+    const result = await apiClient.resolveContainment(get().serializeDiagramState());
+    if (!result.ok) return;
+    set({
+      effectiveContainmentScopes: new Map(
+        result.data.effective_scopes.map((scope) => [scope.object_id, scope]),
+      ),
+      containmentInheritedValues: result.data.inherited_values,
+    });
+  },
   pendingContainmentObjectId: null,
   activeContainmentTargetId: null,
   activeContainmentTargetValid: null,
@@ -79,6 +111,12 @@ export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], 
 
   updateContainmentTarget: (targetId, valid) => {
     set({ activeContainmentTargetId: targetId, activeContainmentTargetValid: valid });
+  },
+
+  assignSemanticParent: async (objectId, parentId) => {
+    get().beginContainmentDrag(objectId);
+    get().updateContainmentTarget(parentId, parentId ? true : null);
+    await get().finishContainmentDrag(objectId);
   },
 
   finishContainmentDrag: async (objectId) => {
@@ -121,6 +159,10 @@ export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], 
     }
     set((current) => ({
       ...canonicalState(current.canvasObjects, result.data.diagram),
+      effectiveContainmentScopes: new Map(
+        (result.data.resolution.effective_scopes as EffectiveContainmentScope[]).map((scope) => [scope.object_id, scope]),
+      ),
+      containmentInheritedValues: result.data.resolution.inherited_values as ContainmentInheritedValue[],
       pendingContainmentObjectId: null,
     }));
   },
@@ -148,6 +190,10 @@ export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], 
     get().pushHistory();
     set((current) => ({
       ...canonicalState(current.canvasObjects, result.data.diagram),
+      effectiveContainmentScopes: new Map(
+        (result.data.resolution.effective_scopes as EffectiveContainmentScope[]).map((scope) => [scope.object_id, scope]),
+      ),
+      containmentInheritedValues: result.data.resolution.inherited_values as ContainmentInheritedValue[],
       pendingContainmentObjectId: null,
     }));
   },

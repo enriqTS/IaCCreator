@@ -9,7 +9,7 @@
 - `history-slice` and `history-support` own undo/redo snapshots.
 - `project-slice`, `serialization-slice`, and `persistence-slice` own project state, canonical diagram serialization, and server persistence.
 - `ui-slice` and `viewport-slice` own tool, selection, overlay, and viewport state.
-- `semantic-containment-slice` owns drag target feedback and submits assign, remove, and subtree-move intent to the backend before applying canonical hierarchy and connectors.
+- `semantic-containment-slice` owns drag target feedback, submits assign/remove/subtree-move intent, and caches backend-resolved effective scopes and inherited values for configuration rendering.
 
 Canvas objects are the active diagram model. Legacy element state is not the model to extend. The serialization contract is in `src/types/serialization.ts`; it includes canvas objects, connector configuration, groups, line anchors/waypoints, and global routing mode.
 

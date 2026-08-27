@@ -8,6 +8,7 @@ from app.main import (
     diagram_architecture,
     get_editor_bootstrap,
     initialize_resource,
+    resolve_containment,
 )
 from app.models.diagram_models import DiagramStateInput, ResourceInitializationRequest
 from app.models.editor_models import ServiceClassification, ServiceLifecycle
@@ -83,6 +84,44 @@ def test_resource_initialization_uses_backend_name_and_defaults() -> None:
     assert result.terraform_variables["memory_size"] == 128
 
 
+def test_containment_resolution_endpoint_reports_effective_scope() -> None:
+    diagram = DiagramStateInput.model_validate(
+        {
+            "version": 4,
+            "projectName": "project",
+            "environments": [],
+            "canvasObjects": [
+                {
+                    "id": "region",
+                    "objectType": "semantic-container",
+                    "containerType": "region",
+                    "name": "us-east-1",
+                    "config": {"region": "us-east-1"},
+                    "visualConfig": {},
+                },
+                {
+                    "id": "vpc",
+                    "objectType": "architecture-block",
+                    "serviceType": "vpc",
+                    "name": "network",
+                    "config": {},
+                    "terraformVariables": {},
+                    "visualConfig": {},
+                    "parentContainerId": "region",
+                },
+            ],
+            "connectors": [],
+            "viewport": {},
+            "globalTerraformConfig": {"provider": {"region": "us-east-1"}},
+        }
+    )
+
+    result = asyncio.run(resolve_containment(diagram))
+
+    scope = next(item for item in result.effective_scopes if item.object_id == "vpc")
+    assert scope.region == "us-east-1"
+
+
 def test_diagram_conversion_resolves_ids_and_backend_defaults() -> None:
     """Canonical editor state converts to direct generation input on the server."""
     diagram = DiagramStateInput.model_validate(
@@ -138,6 +177,7 @@ def test_editor_endpoints_are_typed_in_openapi() -> None:
         "/api/diagrams/generate/json": "post",
         "/api/diagrams/connections/preview": "post",
         "/api/diagrams/connections/apply": "post",
+        "/api/diagrams/containment/resolve": "post",
     }.items():
         operation = document["paths"][path][method]
         assert operation["responses"]["200"]["content"]["application/json"]["schema"]

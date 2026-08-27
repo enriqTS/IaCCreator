@@ -86,6 +86,7 @@ function validateValue(
 export default function SchemaConfigForm({ elementId, serviceType, onValidationChange, extraTabs = [], leadingFields }: SchemaConfigFormProps) {
   const canvasObject = useDiagramStore((s) => s.canvasObjects.get(elementId));
   const updateCanvasObject = useDiagramStore((s) => s.updateCanvasObject);
+  const inheritedValues = useDiagramStore((s) => s.containmentInheritedValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openTab, setOpenTab] = useState('');
   const pendingFocusRef = useRef<string | null>(null);
@@ -222,6 +223,7 @@ export default function SchemaConfigForm({ elementId, serviceType, onValidationC
                     entry={entry}
                     config={config}
                     error={errors[entry.name]}
+                    managedValue={inheritedValues.find((value) => value.object_id === elementId && value.field === entry.name)}
                     onChange={handleChange}
                   />
                 ))}
@@ -249,14 +251,31 @@ function FieldRenderer({
   entry,
   config,
   error,
+  managedValue,
   onChange,
 }: {
   entry: TerraformVariableSchema;
   config: ResourceConfig;
   error?: string;
+  managedValue?: { value: unknown; source_id: string };
   onChange: (entry: TerraformVariableSchema, value: unknown) => void;
 }) {
-  const currentValue = (config as Record<string, unknown>)[entry.name];
+  const currentValue = managedValue?.value ?? (config as Record<string, unknown>)[entry.name];
+  const source = useDiagramStore((state) => managedValue ? state.canvasObjects.get(managedValue.source_id)?.name ?? managedValue.source_id : null);
+
+  if (managedValue) {
+    return (
+      <div className="flex flex-col gap-1.5" data-testid={`managed-field-${entry.name}`}>
+        <FieldLabel
+          label={entry.label || entry.name}
+          description={`${entry.description ?? ''} Managed by containment from ${source}.`}
+          required={entry.required}
+          htmlFor={fieldId(entry.name)}
+        />
+        <Input id={fieldId(entry.name)} value={String(currentValue ?? '')} readOnly disabled />
+      </div>
+    );
+  }
 
   // Select dropdown when options are defined
   if (entry.options && entry.options.length > 0) {

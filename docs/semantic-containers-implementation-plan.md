@@ -12,7 +12,7 @@ Current status after the Phase 1–5 checkup:
 - [x] Phase 4 deterministic managed connector derivation for every currently registered containment relationship.
 - [x] Phase 5 scope/resource rendering, placement, presentation switching, hierarchy z-order, routing exclusion, and minimap support.
 - [x] Phase 6 backend-applied drag/drop reparenting, drag-out removal, target feedback, and subtree movement.
-- [ ] Phase 7 inherited-field and semantic-outcome configuration experience, except node/container switching.
+- [x] Phase 7 inherited-field, semantic-outcome, derived-preview, containment-action, and single-Region configuration experience.
 
 ## Purpose
 
@@ -552,13 +552,13 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 7 — Configuration experience
 
-1. [ ] Display inherited fields and their source.
-2. [ ] Make containment-managed fields read-only.
-3. [ ] Show whether containment produces a connection, inherited scope, or visual-only membership.
-4. [ ] Show derived connection previews.
-5. [ ] Add “Move into,” “Remove from container,” and “Select container” actions.
-6. [ ] Add node/container presentation switching for eligible resources.
-7. [ ] Explain single-Region limitations.
+1. [x] Display inherited fields, effective scope, and their source.
+2. [x] Make containment-managed fields read-only.
+3. [x] Show whether containment produces a connection, inherited scope, or visual-only membership.
+4. [x] Show derived connection previews from the standard backend preview pipeline.
+5. [x] Add “Move into,” “Remove from container,” and “Select container” actions.
+6. [x] Add node/container presentation switching for eligible resources.
+7. [x] Explain single-Region limitations.
 
 ### Completion criteria
 
@@ -680,7 +680,7 @@ Deliver one vertical slice:
 7. [x] VPC → Security Group ancestor-derived connection.
 8. [x] Subnet Availability Zone inheritance resolution.
 9. [x] Drag/drop reparenting and subtree movement.
-10. [ ] Inherited-field display and connection preview.
+10. [x] Inherited-field display and connection preview.
 11. [x] Generated-project Terraform validation for implemented containment connections.
 
 This milestone proves the complete architecture without requiring all service-placement relationships at once.

@@ -28,6 +28,7 @@ The app configures CORS from `CORS_ORIGIN` (default `http://localhost:3000`), cr
 | POST | `/api/diagrams/connections/preview` | `DiagramStateInput` | `ConnectionPreviewResponse` |
 | POST | `/api/diagrams/connections/apply` | `ApplyConnectionOperationRequest` | `DiagramStateInput` |
 | POST | `/api/diagrams/containment/apply` | `ApplyContainmentOperationRequest` | `ApplyContainmentOperationResponse` |
+| POST | `/api/diagrams/containment/resolve` | `DiagramStateInput` | `ContainmentResolution` |
 | POST | `/api/diagrams` | `DiagramStateInput` | diagram ID |
 | GET | `/api/diagrams` | — | session-scoped diagram summaries |
 | GET | `/api/diagrams/{diagram_id}` | — | saved diagram state |
@@ -63,4 +64,4 @@ Diagram CRUD is session scoped. Writes normalize and validate state before persi
 
 The editor bootstrap describes backend support and domain defaults. Resource initialization derives unique names, typed config defaults, and Terraform variable defaults. Diagram-based generation and preview convert canonical canvas state on the backend; the direct `/generate/*` endpoints remain available for API consumers.
 
-Linked connection entry creation, editing, and removal use `/api/diagrams/connections/apply`. The backend resolves the connection registry metadata, materializes templates and target bindings, and returns canonical diagram state; the frontend only submits user intent. `/api/diagrams/containment/apply` handles assignment, removal, subtree movement, scope changes, and resource presentation changes, returning canonical state, derived connectors, inherited values, and typed issues. `/api/diagrams/normalize` also canonicalizes a newly drawn connector's direction and default connection type, so visual line direction has no domain meaning.
+Linked connection entry creation, editing, and removal use `/api/diagrams/connections/apply`. The backend resolves the connection registry metadata, materializes templates and target bindings, and returns canonical diagram state; the frontend only submits user intent. `/api/diagrams/containment/apply` handles assignment, removal, subtree movement, scope changes, and resource presentation changes, returning canonical state, derived connectors, inherited values, and typed issues. `/api/diagrams/containment/resolve` returns effective Region, Availability Zone, VPC, and Subnet scope plus inherited values and derived relationships without mutating state. `/api/diagrams/normalize` also canonicalizes a newly drawn connector's direction and default connection type, so visual line direction has no domain meaning.

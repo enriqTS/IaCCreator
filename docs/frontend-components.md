@@ -14,7 +14,7 @@ Line routing uses `src/utils/routing/`; manual segment editing and routed previe
 
 Configuration is centered in `config/overlay/`. `ConfigOverlay` is a modal container and `overlay-registry.tsx` selects the panel for the target object. It opens only through explicit placement, double-click, or context-menu actions.
 
-`ConfigTabs` is the shared tab surface. Schema-backed service configuration is rendered by `schema/SchemaConfigForm.tsx` and field renderers; it consumes schemas served by the backend. Connection configuration uses `ConnectionOverlayPanel` and `ConnectionContributionPreview`, so generated resources, IAM grants, and issues come from the backend.
+`ConfigTabs` is the shared tab surface. Schema-backed service configuration is rendered by `schema/SchemaConfigForm.tsx` and field renderers; it consumes schemas served by the backend. Its Containment tab displays backend-resolved effective scope, inherited sources, semantic outcome, derived connection previews, and the single-Region limitation; managed fields are read-only. Connection configuration uses `ConnectionOverlayPanel` and `ConnectionContributionPreview`, so generated resources, IAM grants, and issues come from the backend.
 
 `config/apigw/` contains API Gateway-specific editing: routes (including WebSocket details), stages, authorizers, API keys, domains, expressions, detail panels, and OpenAPI import. `config/visual/` contains the Visual tab for every canvas-object type. Project-wide Terraform settings remain in `GlobalTerraformConfigPanel` and the menu dialog, rather than an object overlay.
 

@@ -20,6 +20,7 @@ from app.models.connection_configs.schema_models import (
 )
 from app.models.connection_operations import ApplyConnectionOperationRequest
 from app.models.connection_previews import ConnectionPreviewResponse
+from app.models.containment import ContainmentResolution
 from app.models.containment_operations import (
     ApplyContainmentOperationRequest,
     ApplyContainmentOperationResponse,
@@ -52,6 +53,7 @@ from app.services.connection_operation_service import ConnectionOperationService
 from app.services.connection_previewer import ConnectionPreviewer
 from app.services.containment_catalog import build_containment_catalog
 from app.services.containment_operation_service import ContainmentOperationService
+from app.services.containment_resolver import ContainmentResolver
 from app.services.diagram_converter import DiagramConverter
 from app.services.diagram_normalizer import DiagramNormalizer
 from app.services.ir_builder import IRBuilder
@@ -114,6 +116,7 @@ _diagram_normalizer = DiagramNormalizer()
 _connection_operations = ConnectionOperationService()
 _resource_initializer = ResourceInitializer()
 _containment_operations = ContainmentOperationService()
+_containment_resolver = ContainmentResolver()
 
 
 def _build_summary(arch: ArchitectureDescription, file_tree: dict) -> GenerationSummary:
@@ -232,6 +235,18 @@ async def apply_containment_operation(
     """Validate and apply one semantic containment operation."""
     try:
         return _containment_operations.apply(request.diagram, request.operation)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post(
+    "/api/diagrams/containment/resolve",
+    response_model=ContainmentResolution,
+)
+async def resolve_containment(diagram: DiagramStateInput) -> ContainmentResolution:
+    """Return effective containment semantics without mutating diagram state."""
+    try:
+        return _containment_resolver.resolve(diagram)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 

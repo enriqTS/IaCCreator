@@ -55,8 +55,8 @@ describe('Every configuration panel is laid out as tabs', () => {
     );
     const rendered = screen.getByTestId('schema-tab-bar').querySelectorAll('[role="tab"]');
     expect(rendered.length).toBeGreaterThan(1);
-    // Every panel ends with Visual, so the strip is the visible groups plus one
-    expect(rendered.length).toBeLessThanOrEqual(groups.size + 1);
+    // Every service panel adds Containment and Visual to its schema groups.
+    expect(rendered.length).toBeLessThanOrEqual(groups.size + 2);
     expect(screen.getByTestId('schema-tab-visual')).toBeDefined();
   });
 

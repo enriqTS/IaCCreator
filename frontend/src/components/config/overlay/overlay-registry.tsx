@@ -16,6 +16,7 @@ import VisualTab from '../visual/VisualTab';
 import ObjectNameField from '../ObjectNameField';
 import ConfigTabs, { type ConfigTab } from './ConfigTabs';
 import ConnectionOverlayPanel from './ConnectionOverlayPanel';
+import SemanticOutcomePanel from './SemanticOutcomePanel';
 
 /** What the overlay container needs in order to render one kind of thing. */
 export interface ConfigOverlayPanel {
@@ -41,6 +42,14 @@ type PanelResolver = (
 const BLOCK_NAME_HINT = 'Names the Terraform resource this block generates.';
 
 /** Every object is configurable visually, so every panel ends with this tab. */
+function semanticTab(object: CanvasObject): ConfigTab {
+  return {
+    id: 'Containment',
+    label: 'Containment',
+    content: <SemanticOutcomePanel objectId={object.id} />,
+  };
+}
+
 function visualTab(object: CanvasObject): ConfigTab {
   return {
     id: 'Visual',
@@ -64,7 +73,7 @@ function resolveArchitectureBlock(selected: CanvasObject): ConfigOverlayPanel {
       content: (
         <ApigwDynamicConfigUI
           elementId={block.id}
-          extraTabs={[visualTab(block)]}
+          extraTabs={[semanticTab(block), visualTab(block)]}
           leadingFields={<ObjectNameField objectId={block.id} description={BLOCK_NAME_HINT} />}
         />
       ),
@@ -77,7 +86,7 @@ function resolveArchitectureBlock(selected: CanvasObject): ConfigOverlayPanel {
       <SchemaConfigForm
         elementId={block.id}
         serviceType={block.serviceType}
-        extraTabs={[visualTab(block)]}
+        extraTabs={[semanticTab(block), visualTab(block)]}
         leadingFields={<ObjectNameField objectId={block.id} description={BLOCK_NAME_HINT} />}
       />
     ),
@@ -121,7 +130,7 @@ function resolveLine(
 }
 
 /** Objects with nothing but appearance to configure still open the same surface. */
-function visualOnlyPanel(object: CanvasObject, subtitle: string): ConfigOverlayPanel {
+function visualOnlyPanel(object: CanvasObject, subtitle: string, semantic = false): ConfigOverlayPanel {
   return {
     key: object.id,
     title: object.name,
@@ -130,6 +139,7 @@ function visualOnlyPanel(object: CanvasObject, subtitle: string): ConfigOverlayP
       <ConfigTabs
         testIdPrefix="visual"
         tabs={[
+          ...(semantic ? [semanticTab(object)] : []),
           {
             id: 'Visual',
             label: 'Visual',
@@ -152,6 +162,7 @@ const RESOLVERS: Partial<Record<CanvasObjectType, PanelResolver>> = {
   geometric: (selected) => visualOnlyPanel(selected, 'Shape'),
   text: (selected) => visualOnlyPanel(selected, 'Text'),
   uml: (selected) => visualOnlyPanel(selected, 'UML'),
+  'semantic-container': (selected) => visualOnlyPanel(selected, 'Semantic container', true),
 };
 
 /** The panel for a selected object, or null when its type has none. */

@@ -18,7 +18,12 @@ import {
   Settings,
   Trash2,
   PanelsTopLeft,
+  Box,
+  BoxSelect,
+  LogOut,
 } from 'lucide-react';
+import { useEditorDomainStore } from '@/store/editor-domain-store';
+import { isSemanticContainer, semanticType } from '@/utils/semantic-containment';
 
 interface CanvasObjectContextMenuProps {
   menu: { objectId: string; x: number; y: number };
@@ -57,6 +62,7 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
   const ungroupObjects = useDiagramStore((s) => s.ungroupObjects);
   const selectedObjectIds = useDiagramStore((s) => s.selectedObjectIds);
   const canvasObjects = useDiagramStore((s) => s.canvasObjects);
+  const containmentRules = useEditorDomainStore((s) => s.containmentRules);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -77,6 +83,31 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
   const showConfigureService = isSingleSelection && objectType === 'architecture-block';
   const showPresentation = singleObject?.objectType === 'architecture-block'
     && (singleObject.serviceType === 'vpc' || singleObject.serviceType === 'subnet');
+  const parentId = singleObject && 'parentContainerId' in singleObject
+    ? singleObject.parentContainerId
+    : undefined;
+  const descendantIds = new Set<string>();
+  if (singleObject) {
+    const queue = [singleObject.id];
+    while (queue.length > 0) {
+      const current = queue.pop()!;
+      for (const candidate of canvasObjects.values()) {
+        if ('parentContainerId' in candidate && candidate.parentContainerId === current && !descendantIds.has(candidate.id)) {
+          descendantIds.add(candidate.id);
+          queue.push(candidate.id);
+        }
+      }
+    }
+  }
+  const eligibleContainers = singleObject
+    ? [...canvasObjects.values()].filter((candidate) =>
+        candidate.id !== singleObject.id
+        && candidate.id !== parentId
+        && !descendantIds.has(candidate.id)
+        && isSemanticContainer(candidate)
+        && containmentRules.some((rule) => rule.child_type === semanticType(singleObject)
+          && rule.parent_type === semanticType(candidate)))
+    : [];
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -164,6 +195,27 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
         <Item onClick={() => { useDiagramStore.getState().openConfigOverlay(menu.objectId); onClose(); }}>
           <Settings className="size-4" /> Configure Service
         </Item>
+      )}
+      {isSingleSelection && eligibleContainers.map((container) => (
+        <Item key={container.id} onClick={() => {
+          void useDiagramStore.getState().assignSemanticParent(menu.objectId, container.id);
+          onClose();
+        }}>
+          <Box className="size-4" /> Move into {container.name}
+        </Item>
+      ))}
+      {isSingleSelection && parentId && (
+        <>
+          <Item onClick={() => {
+            void useDiagramStore.getState().assignSemanticParent(menu.objectId, null);
+            onClose();
+          }}>
+            <LogOut className="size-4" /> Remove from Container
+          </Item>
+          <Item onClick={() => { useDiagramStore.getState().selectObject(parentId); onClose(); }}>
+            <BoxSelect className="size-4" /> Select Container
+          </Item>
+        </>
       )}
       {showPresentation && singleObject && singleObject.objectType === 'architecture-block' && (
         <Item onClick={() => {
