@@ -43,7 +43,7 @@ describe('backend-owned editor domain', () => {
           },
           {
             service_type: 'clean-rooms', display_name: 'Clean Rooms', category: 'analytics',
-            classification: 'resource', lifecycle: 'active',
+            classification: 'capability', lifecycle: 'active',
             capabilities: { diagram: true, terraform: false, configurable: false, connectable: false },
           },
         ],

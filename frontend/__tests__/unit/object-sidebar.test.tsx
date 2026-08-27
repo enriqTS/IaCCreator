@@ -4,6 +4,7 @@ import { smartSearch } from '@/utils/object-search';
 import type { PickerItem } from '@/data/object-catalog';
 import ObjectSidebar from '@/components/objects/ObjectSidebar';
 import { useDiagramStore } from '@/store/diagram-store';
+import { useEditorDomainStore } from '@/store/editor-domain-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { usePinnedObjectsStore } from '@/store/pinned-objects-store';
 import { useRecentlyUsedStore } from '@/store/recently-used-store';
@@ -22,6 +23,7 @@ describe('ObjectSidebar', () => {
     useLayoutPreferencesStore.getState().setObjectSidebarPosition('left');
     useLayoutPreferencesStore.getState().setObjectSidebarWidth(240);
     useDiagramStore.getState().setActiveTool('pointer');
+    useEditorDomainStore.setState({ serviceCapabilities: null });
   });
 
   test('abbreviation map contains all required keys', () => {
@@ -150,12 +152,28 @@ describe('ObjectSidebar', () => {
     expect(screen.getByTestId('object-sidebar').className).toContain('order-2');
   });
 
-  test('an AWS service without a generator cannot be placed or pinned', () => {
+  test('a decorative AWS icon cannot be placed or pinned', () => {
     render(<ObjectSidebar />);
     fireEvent.change(screen.getByTestId('object-sidebar-search'), { target: { value: 'AppFlow' } });
 
     expect((screen.getByTestId('picker-item-AppFlow') as HTMLButtonElement).disabled).toBe(true);
     expect(screen.queryByTestId('picker-pin-AppFlow')).toBeNull();
+  });
+
+  test('uses backend capabilities to place active icon-only services', () => {
+    useEditorDomainStore.setState({
+      serviceCapabilities: new Map([
+        ['clean-rooms', { diagram: true, terraform: false, configurable: false, connectable: false }],
+        ['command-line-interface', { diagram: false, terraform: false, configurable: false, connectable: false }],
+      ]),
+    });
+    render(<ObjectSidebar />);
+
+    fireEvent.change(screen.getByTestId('object-sidebar-search'), { target: { value: 'Clean Rooms' } });
+    expect((screen.getByTestId('picker-item-Clean Rooms') as HTMLButtonElement).disabled).toBe(false);
+
+    fireEvent.change(screen.getByTestId('object-sidebar-search'), { target: { value: 'Command Line Interface' } });
+    expect((screen.getByTestId('picker-item-Command Line Interface') as HTMLButtonElement).disabled).toBe(true);
   });
 
   test('collapsing hides the catalog and persists the preference', () => {

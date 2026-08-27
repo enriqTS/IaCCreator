@@ -10,7 +10,7 @@ from app.main import (
     initialize_resource,
 )
 from app.models.diagram_models import DiagramStateInput, ResourceInitializationRequest
-from app.models.editor_models import ServiceClassification
+from app.models.editor_models import ServiceClassification, ServiceLifecycle
 from app.models.input_models import ServiceType, get_service_config_models
 from app.services.connection_handlers.registry import CONNECTION_SPECS
 from app.services.service_catalog import SERVICE_CATALOG
@@ -25,6 +25,15 @@ def test_bootstrap_matches_backend_capability_registry() -> None:
         service for service, entry in entries.items() if entry.capabilities.terraform
     } == set(GENERATOR_REGISTRY)
     assert bootstrap.global_terraform_defaults.provider.region == "us-east-1"
+    assert (
+        entries[ServiceType.CODECOMMIT].classification == ServiceClassification.LEGACY
+    )
+    assert not entries[ServiceType.CODECOMMIT].capabilities.diagram
+    assert (
+        entries[ServiceType.CLEAN_ROOMS].classification
+        == ServiceClassification.CAPABILITY
+    )
+    assert entries[ServiceType.CLEAN_ROOMS].capabilities.diagram
 
 
 def test_service_catalog_registries_are_consistent() -> None:
@@ -44,7 +53,19 @@ def test_service_catalog_registries_are_consistent() -> None:
         assert metadata.capabilities.connectable == (service in connected)
         if metadata.classification == ServiceClassification.RESOURCE:
             assert service in GENERATOR_REGISTRY
-        if metadata.lifecycle.value in {"retired", "decorative"}:
+        if (
+            service not in GENERATOR_REGISTRY
+            and metadata.lifecycle == ServiceLifecycle.ACTIVE
+        ):
+            assert metadata.classification in {
+                ServiceClassification.CAPABILITY,
+                ServiceClassification.COMPOSITE,
+            }
+            assert metadata.capabilities.diagram
+        if metadata.lifecycle in {
+            ServiceLifecycle.RETIRED,
+            ServiceLifecycle.DECORATIVE,
+        }:
             assert not metadata.capabilities.diagram
 
 
