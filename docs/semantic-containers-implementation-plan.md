@@ -524,9 +524,9 @@ Implement these connection specifications with semantic containers rather than h
 ## Phase 5 — Container rendering
 
 1. [x] Add the semantic container renderer with scope-specific boundaries, headers, selection, locking, and drag behavior.
-2. [-] Add Region and Availability Zone objects to the catalog. Backend definitions exist; object-sidebar placement entries are pending.
-3. [-] Add VPC and Subnet container presentation. Rendering, contracts, and persistence are implemented; presentation controls are pending.
-4. [-] Implement nested z-order and padding. Header padding and normal canvas z-order are implemented; automatic parent-below-descendant ordering remains.
+2. [x] Add backend-gated Region, Availability Zone, and generic boundary entries to the object sidebar.
+3. [x] Add VPC and Subnet container presentation with backend-applied context-menu switching.
+4. [x] Implement nested z-order and padding, including canonical parent-below-descendant ordering.
 5. [x] Add selection, resize, rename, lock, and context-menu behavior through the shared canvas interactions.
 6. [x] Exclude container backgrounds from routing obstacles.
 7. [x] Add minimap rendering.

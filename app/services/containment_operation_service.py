@@ -33,12 +33,14 @@ class ContainmentOperationService:
         elif operation.operation == "remove":
             target["parentContainerId"] = None
         elif operation.operation == "set-presentation":
-            if target.get("objectType") != "architecture-block":
+            if target.get("objectType") != "architecture-block" or target.get(
+                "serviceType"
+            ) not in {"vpc", "subnet"}:
                 return self._rejected(
                     diagram,
                     ContainmentIssue(
                         code="unsupported-presentation",
-                        message="Only resources support presentation changes",
+                        message="Only VPC and Subnet resources support container presentation",
                         object_id=operation.object_id,
                     ),
                 )

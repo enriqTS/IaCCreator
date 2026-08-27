@@ -297,6 +297,7 @@ export type Tool =
   | { type: 'place-service'; serviceType: ServiceType }
   | { type: 'place-shape'; shape: GeometricShape }
   | { type: 'place-uml'; umlKind: UMLKind }
+  | { type: 'place-semantic-container'; containerType: 'region' | 'availability-zone' | 'generic' }
   | { type: 'place-line' }
   | { type: 'place-arrow' };
 
@@ -657,6 +658,14 @@ export const MIN_OBJECT_HEIGHT = 40;
 export const DEFAULT_BLOCK_VISUAL: ArchitectureBlockVisualConfig = {
   width: 80,
   height: 80,
+};
+
+export const DEFAULT_CONTAINER_VISUAL: ContainerVisualConfig = {
+  width: 480,
+  height: 320,
+  fillColor: '#172033',
+  borderColor: '#64748b',
+  borderWidth: 2,
 };
 
 /**

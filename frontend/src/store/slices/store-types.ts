@@ -6,6 +6,7 @@ import type { AnchoringSlice } from './anchoring-slice';
 import type { CanvasSlice } from './canvas-slice';
 import type { ClipboardSlice } from './clipboard-slice';
 import type { ConnectorSlice } from './connector-slice';
+import type { SemanticContainmentSlice } from './semantic-containment-slice';
 import type { GroupingSlice } from './grouping-slice';
 import type { HistorySlice } from './history-slice';
 import type { PersistenceSlice } from './persistence-slice';
@@ -20,6 +21,7 @@ export type DiagramStore =
   & CanvasSlice
   & ClipboardSlice
   & ConnectorSlice
+  & SemanticContainmentSlice
   & GroupingSlice
   & HistorySlice
   & PersistenceSlice

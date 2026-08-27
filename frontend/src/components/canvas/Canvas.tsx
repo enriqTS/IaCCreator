@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useDiagramStore } from '@/store/diagram-store';
 import { screenToCanvas, canvasToScreen } from '@/utils/viewport';
-import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL, DEFAULT_TEXT_VISUAL, DEFAULT_UML_VISUAL, DEFAULT_UML_CLASS_DATA } from '@/types/diagram';
+import { DEFAULT_LINE_VISUAL, DEFAULT_GEO_VISUAL, DEFAULT_BLOCK_VISUAL, DEFAULT_CONTAINER_VISUAL, DEFAULT_TEXT_VISUAL, DEFAULT_UML_VISUAL, DEFAULT_UML_CLASS_DATA } from '@/types/diagram';
 import type { Point } from '@/types/diagram';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
 import { snapPointToGrid } from '@/utils/snap';
@@ -113,6 +113,22 @@ export default function Canvas() {
         setActiveTool('pointer');
         // A freshly placed block leads straight into its configuration
         openConfigOverlay(blockId);
+        return;
+      }
+
+      if (typeof tool === 'object' && tool.type === 'place-semantic-container') {
+        const sized = payload.width > 0 && payload.height > 0;
+        addCanvasObject({
+          objectType: 'semantic-container',
+          containerType: tool.containerType,
+          name: tool.containerType === 'availability-zone' ? 'Availability Zone' : tool.containerType === 'region' ? 'AWS Region' : 'Boundary',
+          position: payload.canvasPosition,
+          config: {},
+          visualConfig: sized
+            ? { ...DEFAULT_CONTAINER_VISUAL, width: payload.width, height: payload.height }
+            : { ...DEFAULT_CONTAINER_VISUAL },
+        });
+        setActiveTool('pointer');
         return;
       }
 
@@ -276,7 +292,7 @@ export default function Canvas() {
         }
 
         // Place-service and place-shape modes are now handled by DragSizingOverlay
-        if (typeof activeTool === 'object' && (activeTool.type === 'place-service' || activeTool.type === 'place-shape' || activeTool.type === 'place-uml')) {
+        if (typeof activeTool === 'object' && (activeTool.type === 'place-service' || activeTool.type === 'place-shape' || activeTool.type === 'place-uml' || activeTool.type === 'place-semantic-container')) {
           return;
         }
 

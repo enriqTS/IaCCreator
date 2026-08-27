@@ -53,7 +53,16 @@ export interface PickerCategory {
 }
 
 function buildAllPickerItems(): PickerCategory[] {
-  const categories: PickerCategory[] = [];
+  const categories: PickerCategory[] = [
+    {
+      category: 'Architecture Scopes',
+      items: [
+        { name: 'AWS Region', category: 'Architecture Scopes', tool: { type: 'place-semantic-container', containerType: 'region' } },
+        { name: 'Availability Zone', category: 'Architecture Scopes', tool: { type: 'place-semantic-container', containerType: 'availability-zone' } },
+        { name: 'Generic Boundary', category: 'Architecture Scopes', tool: { type: 'place-semantic-container', containerType: 'generic' } },
+      ],
+    },
+  ];
 
   for (const cat of AWS_ICON_REGISTRY) {
     const items: PickerItem[] = cat.services.map((svc) => ({

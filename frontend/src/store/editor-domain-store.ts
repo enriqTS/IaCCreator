@@ -16,11 +16,13 @@ export interface ServiceCapabilities {
 
 interface EditorDomainState {
   serviceCapabilities: Map<string, ServiceCapabilities> | null;
+  semanticContainerTypes: Set<string> | null;
   load: () => Promise<void>;
 }
 
 export const useEditorDomainStore = create<EditorDomainState>()((set) => ({
   serviceCapabilities: null,
+  semanticContainerTypes: null,
   load: async () => {
     const result = await apiClient.getEditorBootstrap();
     if (!result.ok) return;
@@ -30,6 +32,9 @@ export const useEditorDomainStore = create<EditorDomainState>()((set) => ({
     set({
       serviceCapabilities: new Map(
         result.data.services.map((service) => [service.service_type, service.capabilities]),
+      ),
+      semanticContainerTypes: new Set(
+        result.data.containment?.container_types.map((container) => container.container_type) ?? [],
       ),
     });
     const diagram = useDiagramStore.getState();

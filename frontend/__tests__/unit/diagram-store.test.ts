@@ -372,9 +372,9 @@ describe('DiagramStore - Project State', () => {
 describe('DiagramStore - serializeDiagramState', () => {
   beforeEach(resetStore);
 
-  it('returns DiagramState with version 3', () => {
+  it('returns DiagramState with the current version', () => {
     const state = useDiagramStore.getState().serializeDiagramState();
-    expect(state.version).toBe(3);
+    expect(state.version).toBe(4);
   });
 
   it('serializes empty diagram correctly', () => {

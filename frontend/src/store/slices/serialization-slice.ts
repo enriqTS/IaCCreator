@@ -9,6 +9,7 @@ import type { DiagramState, SerializedCanvasObject } from '@/types/serialization
 import { CURRENT_DIAGRAM_VERSION } from '@/types/serialization';
 import type { AnchorPosition } from '@/utils/anchor';
 import { EMPTY_GLOBAL_CONFIG } from '@/types/terraform-variables';
+import { normalizeSemanticZOrder } from '@/utils/semantic-containment';
 import type { DiagramStore } from './store-types';
 
 export interface SerializationSlice {
@@ -307,7 +308,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
 
       set({
         connectors: connectorsMap,
-        canvasObjects: canvasObjectsMap,
+        canvasObjects: normalizeSemanticZOrder(canvasObjectsMap),
         viewport: { ...state.viewport },
         projectName: state.projectName,
         environments: state.environments.map((e) => ({ ...e, variables: { ...e.variables } })),

@@ -19,6 +19,7 @@ import { createZOrderSlice } from './slices/zorder-slice';
 import { createGroupingSlice } from './slices/grouping-slice';
 import { createClipboardSlice } from './slices/clipboard-slice';
 import { createAnchoringSlice } from './slices/anchoring-slice';
+import { createSemanticContainmentSlice } from './slices/semantic-containment-slice';
 import type { DiagramStore } from './slices/store-types';
 
 export type { DiagramStore };
@@ -30,6 +31,7 @@ export const useDiagramStore = create<DiagramStore>()((...args) => ({
   ...createGroupingSlice(...args),
   ...createZOrderSlice(...args),
   ...createConnectorSlice(...args),
+  ...createSemanticContainmentSlice(...args),
   ...createHistorySlice(...args),
   ...createPersistenceSlice(...args),
   ...createProjectSlice(...args),

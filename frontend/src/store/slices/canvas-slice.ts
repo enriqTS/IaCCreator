@@ -3,7 +3,7 @@
  */
 
 import type { StateCreator } from 'zustand';
-import type { ArchitectureBlockVisualConfig, CanvasObject, CanvasObjectCreationPayload, GeometricVisualConfig, LineObject, LineVisualConfig, Point, Rect, TextVisualConfig, UMLVisualConfig } from '@/types/diagram';
+import type { ArchitectureBlockVisualConfig, CanvasObject, CanvasObjectCreationPayload, ContainerVisualConfig, GeometricVisualConfig, LineObject, LineVisualConfig, Point, Rect, TextVisualConfig, UMLVisualConfig } from '@/types/diagram';
 import { MIN_OBJECT_HEIGHT, MIN_OBJECT_WIDTH, getObjectBounds } from '@/types/diagram';
 import { apiClient } from '@/utils/api-client';
 import { useToastStore } from '@/store/toast-store';
@@ -24,7 +24,7 @@ export interface CanvasSlice {
   toggleObjectSelection: (id: string) => void;
   selectObjectsByRect: (rect: Rect) => void;
   clearSelection: () => void;
-  updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | LineVisualConfig | GeometricVisualConfig | TextVisualConfig | UMLVisualConfig>) => void;
+  updateVisualConfig: (id: string, config: Partial<ArchitectureBlockVisualConfig | ContainerVisualConfig | LineVisualConfig | GeometricVisualConfig | TextVisualConfig | UMLVisualConfig>) => void;
   updateObjectBounds: (id: string, bounds: { width?: number; height?: number }) => void;
   updateLineEndpoint: (id: string, endpoint: 'start' | 'end', position: Point) => void;
 
@@ -112,6 +112,12 @@ export const createCanvasSlice: StateCreator<DiagramStore, [], [], CanvasSlice> 
 
       // Enforce minimum dimension clamping for objects with width/height
       if (merged.objectType === 'architecture-block') {
+        merged.visualConfig = {
+          ...merged.visualConfig,
+          width: Math.max(merged.visualConfig.width, MIN_OBJECT_WIDTH),
+          height: Math.max(merged.visualConfig.height, MIN_OBJECT_HEIGHT),
+        };
+      } else if (merged.objectType === 'semantic-container') {
         merged.visualConfig = {
           ...merged.visualConfig,
           width: Math.max(merged.visualConfig.width, MIN_OBJECT_WIDTH),

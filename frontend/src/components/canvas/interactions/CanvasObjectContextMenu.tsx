@@ -17,6 +17,7 @@ import {
   Cable,
   Settings,
   Trash2,
+  PanelsTopLeft,
 } from 'lucide-react';
 
 interface CanvasObjectContextMenuProps {
@@ -74,6 +75,8 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
   const objectType = singleObject?.objectType;
   const showEditConnection = isSingleSelection && objectType === 'line';
   const showConfigureService = isSingleSelection && objectType === 'architecture-block';
+  const showPresentation = singleObject?.objectType === 'architecture-block'
+    && (singleObject.serviceType === 'vpc' || singleObject.serviceType === 'subnet');
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -151,7 +154,7 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
       )}
 
       {/* Type-specific */}
-      {(showEditConnection || showConfigureService) && <div className={separatorClass} />}
+      {(showEditConnection || showConfigureService || showPresentation) && <div className={separatorClass} />}
       {showEditConnection && (
         <Item onClick={() => { useDiagramStore.getState().openConfigOverlay(menu.objectId); onClose(); }}>
           <Cable className="size-4" /> Edit Connection
@@ -160,6 +163,18 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
       {showConfigureService && (
         <Item onClick={() => { useDiagramStore.getState().openConfigOverlay(menu.objectId); onClose(); }}>
           <Settings className="size-4" /> Configure Service
+        </Item>
+      )}
+      {showPresentation && singleObject && singleObject.objectType === 'architecture-block' && (
+        <Item onClick={() => {
+          void useDiagramStore.getState().setResourcePresentation(
+            menu.objectId,
+            singleObject.presentation === 'container' ? 'node' : 'container',
+          );
+          onClose();
+        }}>
+          <PanelsTopLeft className="size-4" />
+          {singleObject.presentation === 'container' ? 'Show as Node' : 'Show as Container'}
         </Item>
       )}
 

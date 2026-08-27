@@ -22,13 +22,19 @@ export default function ObjectItemButton({ item, iconOnly = false }: ObjectItemB
   const pinnedItems = usePinnedObjectsStore((s) => s.pinnedItems);
   const togglePin = usePinnedObjectsStore((s) => s.togglePin);
   const serviceCapabilities = useEditorDomainStore((s) => s.serviceCapabilities);
+  const semanticContainerTypes = useEditorDomainStore((s) => s.semanticContainerTypes);
 
   const serviceType = typeof item.tool === 'object' && item.tool.type === 'place-service'
     ? item.tool.serviceType
     : null;
+  const containerType = typeof item.tool === 'object' && item.tool.type === 'place-semantic-container'
+    ? item.tool.containerType
+    : null;
   const disabled = isUnsupportedAwsItem(item)
     || (serviceType !== null
-      && (serviceCapabilities === null || !serviceCapabilities.get(serviceType)?.diagram));
+      && (serviceCapabilities === null || !serviceCapabilities.get(serviceType)?.diagram))
+    || (containerType !== null
+      && (semanticContainerTypes === null || !semanticContainerTypes.has(containerType)));
   const active = !disabled && toolsMatch(activeTool, item.tool);
   const pinned = pinnedItems.some((p) => pickerItemKey(p) === pickerItemKey(item));
 
