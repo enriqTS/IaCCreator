@@ -8,6 +8,7 @@ from app.models.containment import (
     ServiceContainmentCapability,
 )
 from app.models.input_models import ServiceType
+from app.services.connection_handlers.registry import resolve_spec
 
 SCOPE_TYPES = {"region", "availability-zone", "generic"}
 RESOURCE_CONTAINER_TYPES = {"vpc", "subnet"}
@@ -82,23 +83,36 @@ def build_containment_catalog() -> ContainmentCatalogResponse:
         if service.value in _PARENT_TYPES
         or service in {ServiceType.VPC, ServiceType.SUBNET}
     ]
-    rules = [
-        ContainmentRule(
-            child_type=child,
-            parent_type=parent,
-            resolved_ancestor_type=("vpc" if child == "security-group" else None),
-            inherited_fields=(
-                ["availability_zone"] if child == "subnet" else ["region"]
-            ),
-            outcome=(
-                ContainmentOutcome.INHERITED_SCOPE
-                if child in {"availability-zone", "vpc", "subnet"}
-                else ContainmentOutcome.VISUAL_ONLY
-            ),
-        )
-        for child, parents in _PARENT_TYPES.items()
-        for parent in sorted(parents)
-    ]
+    rules = []
+    for child, parents in _PARENT_TYPES.items():
+        for parent in sorted(parents):
+            resolved_parent = "vpc" if child == "security-group" else parent
+            try:
+                spec = resolve_spec(
+                    ServiceType(resolved_parent), ServiceType(child), "contains", {}
+                )
+            except ValueError:
+                spec = None
+            rules.append(
+                ContainmentRule(
+                    child_type=child,
+                    parent_type=parent,
+                    resolved_ancestor_type=(
+                        "vpc" if child == "security-group" else None
+                    ),
+                    connection_type=(spec.connection_type if spec else None),
+                    inherited_fields=(
+                        ["availability_zone"] if child == "subnet" else ["region"]
+                    ),
+                    outcome=(
+                        ContainmentOutcome.CONNECTION
+                        if spec
+                        else ContainmentOutcome.INHERITED_SCOPE
+                        if child in {"availability-zone", "vpc", "subnet"}
+                        else ContainmentOutcome.VISUAL_ONLY
+                    ),
+                )
+            )
     return ContainmentCatalogResponse(
         container_types=definitions,
         service_capabilities=capabilities,

@@ -40,6 +40,7 @@ class DiagramStateInput(DiagramState):
                 key in viewport for key in ("x", "y", "zoom")
             ):
                 raise ValueError("Legacy viewport requires x, y and zoom")
+        if isinstance(value, dict) and value["version"] < 4:
             return migrate_diagram_state(value)
         return value
 

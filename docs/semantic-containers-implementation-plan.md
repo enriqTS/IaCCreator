@@ -14,7 +14,7 @@ Current foundation implemented in commit `7e53eb2`:
 - [x] Typed containment operation request/response at `POST /api/diagrams/containment/apply`.
 - [x] Canonical frontend serialization and loading for semantic containers.
 - [-] Basic Region, Availability Zone, and generic boundary rendering; full interactions are pending.
-- [ ] Managed connection derivation and foundational networking connection handlers.
+- [-] Managed connection derivation and foundational networking handlers. VPC → Subnet and VPC → Security Group are implemented.
 - [ ] Drag/drop reparenting, subtree movement, inherited-field UI, minimap support, and Terraform validation.
 
 ## Purpose
@@ -485,9 +485,9 @@ Implement these connection specifications with semantic containers rather than h
 2. [x] Reject missing parents, invalid parents, self-parenting, and cycles.
 3. [x] Implement nearest-ancestor resolution.
 4. [-] Implement Region, AZ, VPC, and Subnet scope resolution. Effective ancestor scopes and Subnet AZ inheritance are implemented; consistency and precedence validation remain.
-5. [ ] Detect explicit-value and connector conflicts.
+5. [-] Detect explicit-value and connector conflicts. Inherited AZ conflicts are rejected and equivalent explicit connectors suppress managed duplicates; broader conflict policies remain.
 6. [-] Add typed containment issues. Typed issue contracts exist, but operation validation errors are not yet returned as populated typed issues.
-7. [ ] Integrate normalization into diagram normalize, save, load, preview, and generation flows.
+7. [x] Integrate normalization into diagram normalize, save, load, preview, and generation flows.
 
 ### Completion criteria
 
@@ -497,7 +497,7 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 3 — Foundational connections
 
-- [ ] Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-placement connection specifications required by the initial containment rules.
+- [-] Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-placement connection specifications required by the initial containment rules. VPC → Subnet and VPC → Security Group are registered and Terraform-validated; the remaining relationships are pending.
 
 ### Completion criteria
 
@@ -507,12 +507,12 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 4 — Managed connection derivation
 
-1. [-] Implement `ContainmentResolver`. Tree traversal, effective scopes, and inherited Subnet AZ values are implemented.
-2. [ ] Derive managed connections only through registered specifications.
-3. [-] Add connector provenance and deterministic IDs. Provenance is implemented; deterministic managed connector creation is pending.
-4. [ ] Deduplicate explicit and derived relationships.
-5. [ ] Remove obsolete connectors during reparenting.
-6. [ ] Integrate derived connectors with preview and architecture conversion.
+1. [x] Implement `ContainmentResolver` for the currently registered containment relationships.
+2. [x] Derive managed connections only through registered specifications.
+3. [x] Add connector provenance and deterministic IDs.
+4. [x] Deduplicate explicit and derived relationships.
+5. [x] Remove obsolete connectors during normalization after reparenting.
+6. [x] Integrate derived connectors with preview and architecture conversion.
 7. [x] Add the containment operations endpoint.
 
 ### Completion criteria
@@ -679,12 +679,12 @@ Deliver one vertical slice:
 3. [-] Region and Availability Zone scope containers. Contracts, catalog entries, persistence, and basic rendering are implemented; placement UX remains.
 4. [x] `parentContainerId` persistence and migration.
 5. [-] Backend containment validation and normalization. Structural validation and scope resolution are implemented; conflict normalization remains.
-6. [ ] VPC → Subnet managed connection.
-7. [ ] VPC → Security Group ancestor-derived connection.
+6. [x] VPC → Subnet managed connection.
+7. [x] VPC → Security Group ancestor-derived connection.
 8. [x] Subnet Availability Zone inheritance resolution.
 9. [ ] Drag/drop reparenting and subtree movement.
 10. [ ] Inherited-field display and connection preview.
-11. [ ] Generated-project Terraform validation.
+11. [x] Generated-project Terraform validation for implemented containment connections.
 
 This milestone proves the complete architecture without requiring all service-placement relationships at once.
 

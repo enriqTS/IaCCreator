@@ -28,6 +28,7 @@ from app.services.connection_handlers.s3_lambda import S3LambdaHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
+from app.services.connection_handlers.vpc_membership import VpcMembershipHandler
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,22 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.VPC,
+        target=ServiceType.SUBNET,
+        connection_type="contains",
+        label="VPC → Subnet",
+        config_model=EmptyConnectionConfig,
+        handler=VpcMembershipHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.VPC,
+        target=ServiceType.SECURITY_GROUP,
+        connection_type="contains",
+        label="VPC → Security Group",
+        config_model=EmptyConnectionConfig,
+        handler=VpcMembershipHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.API_GATEWAY,
         target=ServiceType.LAMBDA,

@@ -30,8 +30,9 @@ class ContainmentOperationService:
         elif operation.operation == "set-scope":
             target["config"] = {**target.get("config", {}), **operation.config}
 
-        normalized = DiagramStateInput.model_validate(state)
+        validated = DiagramStateInput.model_validate(state)
+        normalized, resolution = self._resolver.normalize(validated)
         return ApplyContainmentOperationResponse(
             diagram=normalized,
-            resolution=self._resolver.resolve(normalized),
+            resolution=resolution,
         )
