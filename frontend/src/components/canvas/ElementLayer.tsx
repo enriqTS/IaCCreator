@@ -120,6 +120,9 @@ export default function ElementLayer() {
       {nonLineObjects.map((obj) => {
         const isSelected = selectedObjectIds.has(obj.id);
         if (obj.objectType === 'architecture-block') {
+          if (obj.presentation === 'container' && (obj.serviceType === 'vpc' || obj.serviceType === 'subnet')) {
+            return <SemanticContainerComponent key={obj.id} object={obj} isSelected={isSelected} />;
+          }
           return (
             <ArchitectureBlockComponent
               key={obj.id}

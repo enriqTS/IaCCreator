@@ -38,8 +38,9 @@ export function collectObstacles(
     // Skip excluded objects (source, target, the line itself)
     if (excludeIds.has(id)) continue;
 
-    // Lines are not obstacles — only blocks, geometric, text, uml objects
-    if (obj.objectType === 'line') continue;
+    // Semantic boundaries are not routing obstacles for their descendants.
+    if (obj.objectType === 'line' || obj.objectType === 'semantic-container') continue;
+    if (obj.objectType === 'architecture-block' && obj.presentation === 'container') continue;
 
     const bounds = getObjectBounds(obj);
     obstacles.push(boundsToRoutingRect(bounds));

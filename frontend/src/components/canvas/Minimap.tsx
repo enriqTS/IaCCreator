@@ -78,7 +78,8 @@ export default function Minimap() {
 
     const rects: Array<{ x: number; y: number; w: number; h: number; color: string }> = [];
 
-    for (const obj of canvasObjects.values()) {
+    const orderedObjects = Array.from(canvasObjects.values()).sort((a, b) => a.zIndex - b.zIndex);
+    for (const obj of orderedObjects) {
       if (obj.objectType === 'line') continue; // Skip lines for clarity
 
       const bounds = getObjectBounds(obj);
@@ -88,7 +89,9 @@ export default function Minimap() {
       const h = Math.max(2, bounds.height * minimapTransform.scale);
 
       let color = '#6b7280'; // neutral gray default
-      if (obj.objectType === 'architecture-block') color = '#f59e0b';
+      if (obj.objectType === 'semantic-container') color = '#334155';
+      else if (obj.objectType === 'architecture-block' && obj.presentation === 'container') color = '#1d4f73';
+      else if (obj.objectType === 'architecture-block') color = '#f59e0b';
       else if (obj.objectType === 'geometric') color = '#8b5cf6';
       else if (obj.objectType === 'text') color = '#6b7280';
       else if (obj.objectType === 'uml') color = '#3b82f6';

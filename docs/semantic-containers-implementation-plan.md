@@ -15,7 +15,7 @@ Current foundation implemented in commit `7e53eb2`:
 - [x] Canonical frontend serialization and loading for semantic containers.
 - [-] Basic Region, Availability Zone, and generic boundary rendering; full interactions are pending.
 - [-] Managed connection derivation and foundational networking handlers. VPC → Subnet and VPC → Security Group are implemented.
-- [ ] Drag/drop reparenting, subtree movement, inherited-field UI, minimap support, and Terraform validation.
+- [-] Drag/drop reparenting, subtree movement, and inherited-field UI remain; minimap rendering and Terraform validation are implemented.
 
 ## Purpose
 
@@ -497,7 +497,7 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 3 — Foundational connections
 
-- [-] Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-placement connection specifications required by the initial containment rules. VPC → Subnet and VPC → Security Group are registered and Terraform-validated; the remaining relationships are pending.
+- [x] Implement the VPC, Subnet, Security Group, Route Table, gateway, and initial workload-placement connection specifications required by the initial containment rules. The registry now covers VPC membership for Subnet, Security Group, Route Table, Internet Gateway, and Target Group; Subnet placement for NAT Gateway and EC2; Subnet → Route Table association; and Security Group → EC2 association. All registered connections are Terraform-validated.
 
 ### Completion criteria
 
@@ -523,13 +523,13 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 5 — Container rendering
 
-1. [-] Add the semantic container renderer. A basic selectable boundary renderer exists.
+1. [x] Add the semantic container renderer with scope-specific boundaries, headers, selection, locking, and drag behavior.
 2. [-] Add Region and Availability Zone objects to the catalog. Backend definitions exist; object-sidebar placement entries are pending.
-3. [-] Add VPC and Subnet container presentation. Contracts and persistence exist; resource-container rendering and controls are pending.
-4. [ ] Implement nested z-order and padding.
-5. [ ] Add selection, resize, rename, lock, and context-menu behavior. Basic selection only is implemented.
-6. [ ] Exclude container backgrounds from routing obstacles.
-7. [ ] Add minimap rendering.
+3. [-] Add VPC and Subnet container presentation. Rendering, contracts, and persistence are implemented; presentation controls are pending.
+4. [-] Implement nested z-order and padding. Header padding and normal canvas z-order are implemented; automatic parent-below-descendant ordering remains.
+5. [x] Add selection, resize, rename, lock, and context-menu behavior through the shared canvas interactions.
+6. [x] Exclude container backgrounds from routing obstacles.
+7. [x] Add minimap rendering.
 
 ### Completion criteria
 
