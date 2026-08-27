@@ -157,6 +157,24 @@ def test_containment_connection_generates_vpc_module_reference():
     assert canonical.connectors[0].origin == "containment"
 
 
+def test_private_zone_containment_generates_vpc_association():
+    state = diagram(
+        [
+            resource("vpc", "vpc", presentation="container"),
+            resource("zone", "route53", "vpc"),
+        ]
+    )
+
+    canonical = DiagramNormalizer().normalize(state.model_dump(mode="json"))
+    architecture = DiagramConverter().convert(canonical)
+    tree = CodeGenerator().generate(IRBuilder().build(architecture))
+
+    main = tree["scopes/environments/dev/main.tf"]
+    assert "vpc_id = module.vpc.vpc_id" in main
+    assert "private_zone = true" in main
+    assert canonical.connectors[0].connectionType == "contains"
+
+
 def test_rejected_operation_returns_typed_issue_and_original_state():
     state = diagram([resource("vpc", "vpc"), resource("subnet", "subnet")])
 

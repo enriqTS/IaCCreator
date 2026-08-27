@@ -4,7 +4,7 @@
 
 Legend: `[x]` implemented, `[-]` partially implemented, `[ ]` not implemented.
 
-Current status after the Phase 1–5 checkup:
+Current status after Phase 8:
 
 - [x] Phase 1 domain contracts, diagram v4 migration, persistence, and bootstrap catalog.
 - [x] Phase 2 structural validation, scope resolution, conflict detection, typed operation issues, and normalization integration.
@@ -13,6 +13,7 @@ Current status after the Phase 1–5 checkup:
 - [x] Phase 5 scope/resource rendering, placement, presentation switching, hierarchy z-order, routing exclusion, and minimap support.
 - [x] Phase 6 backend-applied drag/drop reparenting, drag-out removal, target feedback, and subtree movement.
 - [x] Phase 7 inherited-field, semantic-outcome, derived-preview, containment-action, and single-Region configuration experience.
+- [x] Phase 8 extended service coverage for every relationship that has containment semantics.
 
 ## Purpose
 
@@ -567,16 +568,15 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 8 — Extended service coverage
 
-- [-] Expand containment rules as connection support grows:
+- [x] Expand containment rules for relationships with concrete containment semantics:
 
 - [x] EFS mount targets in Subnets;
-- [-] Load Balancers in Subnets; direct VPC containment remains future work;
+- [x] Load Balancers in Subnets;
 - [x] EKS, Lambda, Auto Scaling, MQ, MWAA, DMS, MemoryDB, and Network Firewall placement;
 - [x] Client VPN Subnet associations;
-- Route 53 private-zone VPC associations;
-- Backup and governance scopes where containment has concrete Terraform semantics.
+- [x] Route 53 private-zone VPC associations.
 
-Do not register visual-only product relationships as Terraform connections.
+Direct Load Balancer → VPC membership has no independent Terraform relationship beyond Subnet and Security Group placement. Backup selections and governance administration are cross-cutting associations that compete with deployment containment's single canonical parent, so they remain explicit connectors rather than containment rules. No visual-only product relationships are registered as Terraform connections.
 
 ## Phase 9 — Advanced scope
 
