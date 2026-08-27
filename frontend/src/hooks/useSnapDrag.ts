@@ -89,7 +89,7 @@ export function useSnapDrag(options: UseSnapDragOptions): UseSnapDragResult {
       const tool = store.activeTool;
       if (
         typeof tool === 'object' &&
-        (tool.type === 'place-service' || tool.type === 'place-shape' || tool.type === 'place-uml')
+        (tool.type === 'place-service' || tool.type === 'place-shape' || tool.type === 'place-uml' || tool.type === 'place-semantic-container')
       ) {
         return;
       }

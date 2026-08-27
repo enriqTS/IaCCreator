@@ -73,20 +73,33 @@ def _upgrade_v2_to_v3(state: dict[str, Any]) -> dict[str, Any]:
 
 def _upgrade_v3_to_v4(state: dict[str, Any]) -> dict[str, Any]:
     """Add semantic hierarchy and connector provenance defaults."""
-    for obj in state.get("canvasObjects") or []:
-        obj.setdefault("parentContainerId", None)
-        if obj.get("objectType") == "architecture-block":
-            obj.setdefault("presentation", "node")
-    for connector in state.get("connectors") or []:
-        connector.setdefault("origin", "explicit")
-        connector.setdefault("container_id", None)
+    objects = state.get("canvasObjects")
+    if isinstance(objects, list):
+        for obj in objects:
+            if not isinstance(obj, dict):
+                continue
+            obj.setdefault("parentContainerId", None)
+            if obj.get("objectType") == "architecture-block":
+                obj.setdefault("presentation", "node")
+    connectors = state.get("connectors")
+    if isinstance(connectors, list):
+        for connector in connectors:
+            if not isinstance(connector, dict):
+                continue
+            connector.setdefault("origin", "explicit")
+            connector.setdefault("container_id", None)
     state["version"] = 4
     return state
 
 
 def _normalise(state: dict[str, Any]) -> dict[str, Any]:
     """Fill in visual defaults and replace values the editor would reject."""
-    for index, obj in enumerate(state.get("canvasObjects") or []):
+    objects = state.get("canvasObjects")
+    if not isinstance(objects, list):
+        return state
+    for index, obj in enumerate(objects):
+        if not isinstance(obj, dict):
+            continue
         object_type = obj.get("objectType")
         visual_model = VISUAL_MODELS.get(object_type)
         if visual_model is not None:

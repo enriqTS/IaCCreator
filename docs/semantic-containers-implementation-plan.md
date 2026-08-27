@@ -4,18 +4,15 @@
 
 Legend: `[x]` implemented, `[-]` partially implemented, `[ ]` not implemented.
 
-Current foundation implemented in commit `7e53eb2`:
+Current status after the Phase 1–5 checkup:
 
-- [x] Diagram format v4 with migration defaults for semantic parents, presentation, and connector provenance.
-- [x] Backend and frontend contracts for scope containers, resource presentation, parent pointers, and managed connector metadata.
-- [x] Backend-owned containment catalog exposed by `/api/editor-bootstrap`.
-- [x] Parent existence, container capability, parent-child compatibility, self-parenting, and cycle validation.
-- [x] Basic ancestor traversal and effective Region, Availability Zone, VPC, and Subnet scope resolution.
-- [x] Typed containment operation request/response at `POST /api/diagrams/containment/apply`.
-- [x] Canonical frontend serialization and loading for semantic containers.
-- [-] Basic Region, Availability Zone, and generic boundary rendering; full interactions are pending.
-- [-] Managed connection derivation and foundational networking handlers. VPC → Subnet and VPC → Security Group are implemented.
-- [-] Drag/drop reparenting, subtree movement, and inherited-field UI remain; minimap rendering and Terraform validation are implemented.
+- [x] Phase 1 domain contracts, diagram v4 migration, persistence, and bootstrap catalog.
+- [x] Phase 2 structural validation, scope resolution, conflict detection, typed operation issues, and normalization integration.
+- [-] Phase 3 foundational networking covers the initial VPC, routing, gateway, and EC2 placement slice; broader multi-subnet and workload coverage remains.
+- [x] Phase 4 deterministic managed connector derivation for every currently registered containment relationship.
+- [x] Phase 5 scope/resource rendering, placement, presentation switching, hierarchy z-order, routing exclusion, and minimap support.
+- [ ] Phase 6 drag/drop reparenting and subtree movement.
+- [ ] Phase 7 inherited-field and semantic-outcome configuration experience, except node/container switching.
 
 ## Purpose
 
@@ -497,7 +494,7 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 3 — Foundational connections
 
-- [x] Implement the VPC, Subnet, Security Group, Route Table, gateway, and initial workload-placement connection specifications required by the initial containment rules. The registry now covers VPC membership for Subnet, Security Group, Route Table, Internet Gateway, and Target Group; Subnet placement for NAT Gateway and EC2; Subnet → Route Table association; and Security Group → EC2 association. All registered connections are Terraform-validated.
+- [-] Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-placement connection specifications required by the initial containment rules. The registry covers VPC membership for Subnet, Security Group, Route Table, Internet Gateway, and Target Group; Subnet placement for NAT Gateway and EC2; Subnet → Route Table association; and Security Group → EC2 association. All registered connections are Terraform-validated, but broader workload and multi-subnet aggregation coverage remains.
 
 ### Completion criteria
 
@@ -674,9 +671,9 @@ Render VPC and Subnet resources as containers rather than creating wrapper resou
 
 Deliver one vertical slice:
 
-1. [-] VPC resource container presentation. Contracts and persistence are implemented; rendering and controls remain.
-2. [-] Subnet resource container presentation. Contracts and persistence are implemented; rendering and controls remain.
-3. [-] Region and Availability Zone scope containers. Contracts, catalog entries, persistence, and basic rendering are implemented; placement UX remains.
+1. [x] VPC resource container presentation.
+2. [x] Subnet resource container presentation.
+3. [x] Region and Availability Zone scope containers with backend-gated placement.
 4. [x] `parentContainerId` persistence and migration.
 5. [x] Backend containment validation and normalization for the initial milestone.
 6. [x] VPC → Subnet managed connection.

@@ -34,7 +34,7 @@ export default function SemanticContainerComponent({ object, isSelected }: Props
           top: object.position.y - height / 2,
           width,
           height,
-          pointerEvents: object.locked ? 'none' : 'auto',
+          pointerEvents: 'auto',
           border: `${borderWidth}px ${scope === 'availability-zone' ? 'dashed' : 'solid'} ${isSelected ? '#60a5fa' : borderColor}`,
           background: fillColor,
           borderRadius: 8,

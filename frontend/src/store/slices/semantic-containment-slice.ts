@@ -41,10 +41,17 @@ export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], 
         if (!current) continue;
         const updates: Partial<CanvasObject> = {};
         if (serialized.parentContainerId !== undefined) Object.assign(updates, { parentContainerId: serialized.parentContainerId });
-        if (serialized.objectType === 'architecture-block') {
+        if (serialized.objectType === 'architecture-block' && current.objectType === 'architecture-block') {
+          const nextPresentation = serialized.presentation ?? 'node';
           Object.assign(updates, {
-            presentation: serialized.presentation ?? 'node',
+            presentation: nextPresentation,
             config: { ...(serialized.config ?? {}) },
+            visualConfig: nextPresentation === 'container'
+              ? {
+                  width: Math.max(current.visualConfig.width, 480),
+                  height: Math.max(current.visualConfig.height, 320),
+                }
+              : { width: 80, height: 80 },
           });
         }
         objects.set(current.id, { ...current, ...updates } as CanvasObject);

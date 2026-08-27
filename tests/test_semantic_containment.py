@@ -1,4 +1,6 @@
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 from pydantic import ValidationError
 
 from app.models.containment import ContainmentOperation
@@ -237,6 +239,51 @@ def test_semantic_state_round_trips_without_redundant_child_collections():
     assert restored.canvasObjects[2].parentContainerId == "vpc"
     assert restored.connectors[0].origin == "containment"
     assert "children" not in restored.model_dump(mode="json")["canvasObjects"][1]
+
+
+@given(depth=st.integers(min_value=1, max_value=40))
+def test_arbitrary_nested_trees_round_trip_deterministically(depth):
+    objects = [
+        container(
+            f"container-{index}",
+            "generic",
+            f"container-{index - 1}" if index else None,
+        )
+        for index in range(depth)
+    ]
+    state = diagram(objects)
+
+    first = DiagramNormalizer().normalize(state.model_dump(mode="json"))
+    second = DiagramNormalizer().normalize(first.model_dump(mode="json"))
+
+    assert first == second
+    assert len(first.canvasObjects) == depth
+
+
+@given(depth=st.integers(min_value=2, max_value=20))
+def test_cycle_assignments_are_rejected_without_mutating_arbitrary_trees(depth):
+    state = diagram(
+        [
+            container(
+                f"container-{index}",
+                "generic",
+                f"container-{index - 1}" if index else None,
+            )
+            for index in range(depth)
+        ]
+    )
+
+    result = ContainmentOperationService().apply(
+        state,
+        ContainmentOperation(
+            operation="assign",
+            object_id="container-0",
+            parent_id=f"container-{depth - 1}",
+        ),
+    )
+
+    assert result.diagram == state
+    assert result.resolution.issues[-1].code == "containment-cycle"
 
 
 def test_rejects_cycle_and_non_container_parent():

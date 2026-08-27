@@ -1,33 +1,26 @@
 import type { CanvasObject } from '@/types/diagram';
 
-function isContainer(object: CanvasObject): boolean {
-  return object.objectType === 'semantic-container'
-    || (object.objectType === 'architecture-block' && object.presentation === 'container');
-}
-
 export function normalizeSemanticZOrder(objects: Map<string, CanvasObject>): Map<string, CanvasObject> {
-  const ordered = Array.from(objects.values()).sort((a, b) => a.zIndex - b.zIndex);
-  const children = new Map<string, CanvasObject[]>();
-  for (const object of ordered) {
-    if (!('parentContainerId' in object) || !object.parentContainerId) continue;
-    const siblings = children.get(object.parentContainerId) ?? [];
-    siblings.push(object);
-    children.set(object.parentContainerId, siblings);
-  }
+  const result = new Map(objects);
+  const resolving = new Set<string>();
 
-  const result: CanvasObject[] = [];
-  const visited = new Set<string>();
-  const visit = (object: CanvasObject) => {
-    if (visited.has(object.id)) return;
-    visited.add(object.id);
-    result.push(object);
-    for (const child of children.get(object.id) ?? []) visit(child);
-  };
-  for (const object of ordered.filter(isContainer)) {
+  const ensureParentBelow = (object: CanvasObject): number => {
     const parentId = 'parentContainerId' in object ? object.parentContainerId : undefined;
-    if (!parentId || !objects.has(parentId)) visit(object);
-  }
-  for (const object of ordered) visit(object);
+    if (!parentId) return object.zIndex;
+    const parent = result.get(parentId);
+    if (!parent || resolving.has(object.id)) return object.zIndex;
 
-  return new Map(result.map((object, zIndex) => [object.id, { ...object, zIndex } as CanvasObject]));
+    resolving.add(object.id);
+    const parentZ = ensureParentBelow(parent);
+    resolving.delete(object.id);
+    if (parentZ < object.zIndex) return object.zIndex;
+
+    const adjusted = { ...parent, zIndex: object.zIndex - 1 } as CanvasObject;
+    result.set(parent.id, adjusted);
+    ensureParentBelow(adjusted);
+    return object.zIndex;
+  };
+
+  for (const object of result.values()) ensureParentBelow(object);
+  return result;
 }
