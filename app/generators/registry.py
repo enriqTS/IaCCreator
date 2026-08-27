@@ -49,6 +49,7 @@ from app.generators.cognito_generator import CognitoGenerator
 # Business Applications generators
 from app.generators.comprehend_generator import ComprehendGenerator
 from app.generators.connect_generator import ConnectGenerator
+from app.generators.datasync_generator import DataSyncGenerator
 from app.generators.datazone_generator import DataZoneGenerator
 from app.generators.dms_generator import DmsGenerator
 from app.generators.documentdb_generator import DocumentDBGenerator
@@ -118,6 +119,7 @@ from app.generators.systems_manager_generator import SystemsManagerGenerator
 from app.generators.target_group_generator import TargetGroupGenerator
 from app.generators.timestream_generator import TimestreamGenerator
 from app.generators.transcribe_generator import TranscribeGenerator
+from app.generators.transfer_family_generator import TransferFamilyGenerator
 from app.generators.vpc_generator import VpcGenerator
 from app.generators.waf_generator import WafGenerator
 from app.generators.workspaces_generator import WorkSpacesGenerator
@@ -232,4 +234,6 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.IOT_DEVICE_MANAGEMENT: IotDeviceManagementGenerator(),
     ServiceType.MEDIA_LIVE: MediaLiveGenerator(),
     ServiceType.INTERACTIVE_VIDEO_SERVICE: IvsGenerator(),
+    ServiceType.DATASYNC: DataSyncGenerator(),
+    ServiceType.TRANSFER_FAMILY: TransferFamilyGenerator(),
 }

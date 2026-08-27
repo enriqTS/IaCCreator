@@ -237,7 +237,13 @@ export type ServiceType =
   | 'media-package'
   | 'media-store'
   | 'media-tailor'
-  | 'interactive-video-service';
+  | 'interactive-video-service'
+  // Migration and transfer
+  | 'datasync'
+  | 'transfer-family'
+  | 'application-migration-service'
+  | 'mainframe-modernization'
+  | 'migration-hub';
 
 export interface Point {
   x: number;

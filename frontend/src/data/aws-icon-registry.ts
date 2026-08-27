@@ -372,13 +372,13 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
     folderName: 'Migration-Transfer',
     services: [
       { name: 'Application Discovery Service', iconPath: '/aws-icons/Migration-Transfer/Application-Discovery-Service.svg', serviceType: null },
-      { name: 'Application Migration Service', iconPath: '/aws-icons/Migration-Transfer/Application-Migration-Service.svg', serviceType: null },
-      { name: 'DataSync', iconPath: '/aws-icons/Migration-Transfer/DataSync.svg', serviceType: null },
-      { name: 'Mainframe Modernization', iconPath: '/aws-icons/Migration-Transfer/Mainframe-Modernization.svg', serviceType: null },
+      { name: 'Application Migration Service', iconPath: '/aws-icons/Migration-Transfer/Application-Migration-Service.svg', serviceType: 'application-migration-service' },
+      { name: 'DataSync', iconPath: '/aws-icons/Migration-Transfer/DataSync.svg', serviceType: 'datasync' },
+      { name: 'Mainframe Modernization', iconPath: '/aws-icons/Migration-Transfer/Mainframe-Modernization.svg', serviceType: 'mainframe-modernization' },
       { name: 'Migration Evaluator', iconPath: '/aws-icons/Migration-Transfer/Migration-Evaluator.svg', serviceType: null },
-      { name: 'Migration Hub', iconPath: '/aws-icons/Migration-Transfer/Migration-Hub.svg', serviceType: null },
+      { name: 'Migration Hub', iconPath: '/aws-icons/Migration-Transfer/Migration-Hub.svg', serviceType: 'migration-hub' },
       { name: 'Server Migration Service', iconPath: '/aws-icons/Migration-Transfer/Server-Migration-Service.svg', serviceType: null },
-      { name: 'Transfer Family', iconPath: '/aws-icons/Migration-Transfer/Transfer-Family.svg', serviceType: null },
+      { name: 'Transfer Family', iconPath: '/aws-icons/Migration-Transfer/Transfer-Family.svg', serviceType: 'transfer-family' },
     ],
   },
   {

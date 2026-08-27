@@ -603,11 +603,17 @@ Elemental hardware and legacy product icons should not automatically become Terr
 
 ### Migration and transfer
 
-- DataSync
-- Transfer Family
-- Application Migration Service
-- Mainframe Modernization
-- Migration Hub resources where meaningful
+- DataSync — implemented as transfer tasks between independently managed locations
+- Transfer Family — implemented as managed transfer servers
+- Application Migration Service — classified as a capability; the standard AWS provider has no owned resource
+- Mainframe Modernization — classified as a capability; the standard AWS provider has no owned resource
+- Migration Hub — classified as a capability; no meaningful standard AWS provider resource owns the product concept
+
+Migration and transfer batch identity decisions:
+
+- DataSync tasks accept source and destination location ARNs so locations can remain independently owned resources.
+- Transfer Family owns a server; users, workflows, connectors, and access resources remain separate future objects.
+- API-only and orchestration product icons remain typed capabilities without misleading Terraform ownership.
 
 ### Advanced networking and security
 

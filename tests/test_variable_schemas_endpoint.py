@@ -151,6 +151,8 @@ EXPECTED_SERVICE_TYPES = {
     "iot-device-management",
     "media-live",
     "interactive-video-service",
+    "datasync",
+    "transfer-family",
 }
 
 

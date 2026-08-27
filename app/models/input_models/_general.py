@@ -276,6 +276,13 @@ class ServiceType(StrEnum):
     MEDIA_TAILOR = "media-tailor"
     INTERACTIVE_VIDEO_SERVICE = "interactive-video-service"
 
+    # Migration and transfer
+    DATASYNC = "datasync"
+    TRANSFER_FAMILY = "transfer-family"
+    APPLICATION_MIGRATION_SERVICE = "application-migration-service"
+    MAINFRAME_MODERNIZATION = "mainframe-modernization"
+    MIGRATION_HUB = "migration-hub"
+
 
 class ResourceInstance(BaseModel):
     """A specific named resource within a service module."""
@@ -448,6 +455,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.cognito_config import CognitoConfig
     from app.models.input_models.comprehend_config import ComprehendConfig
     from app.models.input_models.connect_config import ConnectConfig
+    from app.models.input_models.datasync_config import DataSyncConfig
     from app.models.input_models.datazone_config import DataZoneConfig
     from app.models.input_models.dms_config import DmsConfig
     from app.models.input_models.documentdb_config import DocumentDbConfig
@@ -518,6 +526,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.target_group_config import TargetGroupConfig
     from app.models.input_models.timestream_config import TimestreamConfig
     from app.models.input_models.transcribe_config import TranscribeConfig
+    from app.models.input_models.transfer_family_config import TransferFamilyConfig
     from app.models.input_models.vpc_config import VpcConfig
     from app.models.input_models.waf_config import WafConfig
     from app.models.input_models.workspaces_config import WorkSpacesConfig
@@ -622,6 +631,8 @@ def _build_service_config_models() -> dict:
         ServiceType.IOT_DEVICE_MANAGEMENT: IotDeviceManagementConfig,
         ServiceType.MEDIA_LIVE: MediaLiveConfig,
         ServiceType.INTERACTIVE_VIDEO_SERVICE: IvsConfig,
+        ServiceType.DATASYNC: DataSyncConfig,
+        ServiceType.TRANSFER_FAMILY: TransferFamilyConfig,
     }
 
 

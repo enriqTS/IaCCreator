@@ -2234,6 +2234,98 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     }
   ],
+  "datasync": [
+    {
+      "description": "Task tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "default": "data-transfer",
+      "description": "DataSync task name",
+      "group": "General",
+      "label": "Task name",
+      "name": "task_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "ARN of the source DataSync location",
+      "group": "General",
+      "label": "Source location ARN",
+      "name": "source_location_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "ARN of the destination DataSync location",
+      "group": "General",
+      "label": "Destination location ARN",
+      "name": "destination_location_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "ONLY_FILES_TRANSFERRED",
+      "description": "Data verification mode",
+      "group": "General",
+      "label": "Verify mode",
+      "name": "verify_mode",
+      "options": [
+        {
+          "label": "Transferred files",
+          "value": "ONLY_FILES_TRANSFERRED"
+        },
+        {
+          "label": "Point-in-time consistent",
+          "value": "POINT_IN_TIME_CONSISTENT"
+        },
+        {
+          "label": "None",
+          "value": "NONE"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "ONLY_FILES_TRANSFERRED",
+          "POINT_IN_TIME_CONSISTENT",
+          "NONE"
+        ]
+      }
+    },
+    {
+      "default": "ALWAYS",
+      "description": "Destination overwrite behavior",
+      "group": "General",
+      "label": "Overwrite mode",
+      "name": "overwrite_mode",
+      "options": [
+        {
+          "label": "Always overwrite",
+          "value": "ALWAYS"
+        },
+        {
+          "label": "Never overwrite",
+          "value": "NEVER"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "ALWAYS",
+          "NEVER"
+        ]
+      }
+    }
+  ],
   "datazone": [
     {
       "description": "Domain description",
@@ -6198,6 +6290,93 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "phrases",
       "required": false,
       "type": "list"
+    }
+  ],
+  "transfer-family": [
+    {
+      "description": "Server tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "description": "Enabled transfer protocols",
+      "group": "General",
+      "label": "Protocols",
+      "name": "protocols",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "default": "PUBLIC",
+      "description": "Server endpoint type",
+      "group": "General",
+      "label": "Endpoint type",
+      "name": "endpoint_type",
+      "options": [
+        {
+          "label": "Public",
+          "value": "PUBLIC"
+        },
+        {
+          "label": "VPC hosted",
+          "value": "VPC"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "PUBLIC",
+          "VPC"
+        ]
+      }
+    },
+    {
+      "default": "SERVICE_MANAGED",
+      "description": "Identity provider type",
+      "group": "General",
+      "label": "Identity provider type",
+      "name": "identity_provider_type",
+      "options": [
+        {
+          "label": "Service managed",
+          "value": "SERVICE_MANAGED"
+        },
+        {
+          "label": "Directory Service",
+          "value": "AWS_DIRECTORY_SERVICE"
+        },
+        {
+          "label": "API Gateway",
+          "value": "API_GATEWAY"
+        },
+        {
+          "label": "Lambda",
+          "value": "AWS_LAMBDA"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "SERVICE_MANAGED",
+          "AWS_DIRECTORY_SERVICE",
+          "API_GATEWAY",
+          "AWS_LAMBDA"
+        ]
+      }
+    },
+    {
+      "default": false,
+      "description": "Delete the server even when users exist",
+      "group": "General",
+      "label": "Force destroy",
+      "name": "force_destroy",
+      "required": false,
+      "type": "bool"
     }
   ],
   "vpc": [

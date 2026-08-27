@@ -112,6 +112,9 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     # Media
     ServiceType.MEDIA_LIVE: "media",
     ServiceType.INTERACTIVE_VIDEO_SERVICE: "media",
+    # Migration and transfer
+    ServiceType.DATASYNC: "migration-transfer",
+    ServiceType.TRANSFER_FAMILY: "migration-transfer",
     # End user computing
     ServiceType.WORKSPACES: "end-user-computing",
     # Other

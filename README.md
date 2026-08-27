@@ -90,6 +90,10 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - OpenSearch
 - Redshift
 
+**Migration and transfer:**
+- DataSync transfer tasks
+- Transfer Family managed servers
+
 **Media:**
 - MediaLive input security groups
 - Interactive Video Service channels

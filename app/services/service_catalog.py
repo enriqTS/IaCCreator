@@ -244,6 +244,13 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.MQ,
         ServiceType.MWAA,
     },
+    "migration-transfer": {
+        ServiceType.DATASYNC,
+        ServiceType.TRANSFER_FAMILY,
+        ServiceType.APPLICATION_MIGRATION_SERVICE,
+        ServiceType.MAINFRAME_MODERNIZATION,
+        ServiceType.MIGRATION_HUB,
+    },
     "networking": {
         ServiceType.VPC,
         ServiceType.SUBNET,
@@ -277,6 +284,9 @@ _CAPABILITIES = {
     ServiceType.MEDIA_PACKAGE,
     ServiceType.MEDIA_TAILOR,
     ServiceType.KINESIS_VIDEO_STREAMS,
+    ServiceType.APPLICATION_MIGRATION_SERVICE,
+    ServiceType.MAINFRAME_MODERNIZATION,
+    ServiceType.MIGRATION_HUB,
     ServiceType.BOTTLEROCKET,
     ServiceType.ELASTIC_FABRIC_ADAPTER,
     ServiceType.FARGATE,
