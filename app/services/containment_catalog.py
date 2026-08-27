@@ -5,6 +5,7 @@ from app.models.containment import (
     ContainmentCatalogResponse,
     ContainmentOutcome,
     ContainmentRule,
+    InheritedFieldRule,
     ServiceContainmentCapability,
 )
 from app.models.input_models import ServiceType
@@ -59,18 +60,27 @@ def build_containment_catalog() -> ContainmentCatalogResponse:
             container_type="region",
             display_name="AWS Region",
             allowed_parent_types=["generic"],
+            allowed_child_types=sorted(
+                child for child, parents in _PARENT_TYPES.items() if "region" in parents
+            ),
             config_fields=["region"],
         ),
         ContainerTypeDefinition(
             container_type="availability-zone",
             display_name="Availability Zone",
             allowed_parent_types=["region", "generic"],
+            allowed_child_types=sorted(
+                child
+                for child, parents in _PARENT_TYPES.items()
+                if "availability-zone" in parents
+            ),
             config_fields=["availability_zone"],
         ),
         ContainerTypeDefinition(
             container_type="generic",
             display_name="Architecture boundary",
             allowed_parent_types=sorted(CONTAINER_TYPES),
+            allowed_child_types=sorted(_PARENT_TYPES),
         ),
     ]
     capabilities = [
@@ -78,6 +88,11 @@ def build_containment_catalog() -> ContainmentCatalogResponse:
             service_type=service.value,
             container_presentation=service in {ServiceType.VPC, ServiceType.SUBNET},
             allowed_parent_types=sorted(_PARENT_TYPES.get(service.value, set())),
+            allowed_child_types=sorted(
+                child
+                for child, parents in _PARENT_TYPES.items()
+                if service.value in parents
+            ),
         )
         for service in ServiceType
         if service.value in _PARENT_TYPES
@@ -117,4 +132,24 @@ def build_containment_catalog() -> ContainmentCatalogResponse:
         container_types=definitions,
         service_capabilities=capabilities,
         rules=rules,
+        inherited_fields=[
+            InheritedFieldRule(
+                field="region",
+                source_types=["region"],
+                target_types=["availability-zone", "vpc", "subnet"],
+                policy="managed",
+            ),
+            InheritedFieldRule(
+                field="availability_zone",
+                source_types=["availability-zone"],
+                target_types=["subnet"],
+                policy="managed",
+            ),
+            InheritedFieldRule(
+                field="vpc_id",
+                source_types=["vpc"],
+                target_types=["subnet", "security-group"],
+                policy="managed",
+            ),
+        ],
     )

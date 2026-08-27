@@ -469,7 +469,7 @@ Implement these connection specifications with semantic containers rather than h
 3. [x] Add `parentContainerId`, presentation mode, and connector provenance.
 4. [x] Add semantic container objects to frontend and backend unions.
 5. [x] Increment the diagram format version.
-6. [-] Add persistence migration and round-trip coverage. Migration and serialization are implemented; dedicated semantic-container persistence round-trip tests remain.
+6. [x] Add persistence migration and round-trip coverage.
 7. [x] Expose containment capabilities through the editor bootstrap or a dedicated endpoint.
 
 ### Completion criteria
@@ -484,9 +484,9 @@ Implement these connection specifications with semantic containers rather than h
 1. [x] Implement containment tree construction.
 2. [x] Reject missing parents, invalid parents, self-parenting, and cycles.
 3. [x] Implement nearest-ancestor resolution.
-4. [-] Implement Region, AZ, VPC, and Subnet scope resolution. Effective ancestor scopes and Subnet AZ inheritance are implemented; consistency and precedence validation remain.
-5. [-] Detect explicit-value and connector conflicts. Inherited AZ conflicts are rejected and equivalent explicit connectors suppress managed duplicates; broader conflict policies remain.
-6. [-] Add typed containment issues. Typed issue contracts exist, but operation validation errors are not yet returned as populated typed issues.
+4. [x] Implement Region, AZ, VPC, and Subnet scope resolution for the initial single-Region model, including nearest-scope precedence and Region/AZ consistency checks.
+5. [x] Detect explicit-value and connector conflicts for the implemented managed fields and relationships.
+6. [x] Add typed containment issues and return rejected operations with unchanged canonical state.
 7. [x] Integrate normalization into diagram normalize, save, load, preview, and generation flows.
 
 ### Completion criteria
@@ -678,7 +678,7 @@ Deliver one vertical slice:
 2. [-] Subnet resource container presentation. Contracts and persistence are implemented; rendering and controls remain.
 3. [-] Region and Availability Zone scope containers. Contracts, catalog entries, persistence, and basic rendering are implemented; placement UX remains.
 4. [x] `parentContainerId` persistence and migration.
-5. [-] Backend containment validation and normalization. Structural validation and scope resolution are implemented; conflict normalization remains.
+5. [x] Backend containment validation and normalization for the initial milestone.
 6. [x] VPC → Subnet managed connection.
 7. [x] VPC → Security Group ancestor-derived connection.
 8. [x] Subnet Availability Zone inheritance resolution.

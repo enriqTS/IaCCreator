@@ -72,6 +72,35 @@ class TestVersionTwoUpgrade:
         assert line["targetAnchorObjectId"] is None
 
 
+class TestVersionThreeUpgrade:
+    def test_semantic_and_connector_defaults_are_explicit(self):
+        state = migrate_diagram_state(
+            {
+                "version": 3,
+                "canvasObjects": [
+                    {
+                        "id": "vpc",
+                        "objectType": "architecture-block",
+                        "serviceType": "vpc",
+                        "name": "vpc",
+                    }
+                ],
+                "connectors": [
+                    {
+                        "id": "connection",
+                        "sourceId": "vpc",
+                        "targetId": "vpc",
+                        "connectionType": "legacy",
+                    }
+                ],
+            }
+        )
+        assert state["canvasObjects"][0]["parentContainerId"] is None
+        assert state["canvasObjects"][0]["presentation"] == "node"
+        assert state["connectors"][0]["origin"] == "explicit"
+        assert state["connectors"][0]["container_id"] is None
+
+
 class TestNormalisation:
     def test_unknown_shape_falls_back_to_rectangle(self):
         state = migrate_diagram_state(

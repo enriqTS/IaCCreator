@@ -116,9 +116,10 @@ export const apiClient = {
     global_terraform_defaults: GlobalTerraformConfig;
     diagram_version: number;
     containment?: {
-      container_types: { container_type: string; display_name: string; allowed_parent_types: string[]; config_fields: string[] }[];
-      service_capabilities: { service_type: string; container_presentation: boolean; allowed_parent_types: string[] }[];
+      container_types: { container_type: string; display_name: string; allowed_parent_types: string[]; allowed_child_types: string[]; config_fields: string[] }[];
+      service_capabilities: { service_type: string; container_presentation: boolean; allowed_parent_types: string[]; allowed_child_types: string[]; allowed_lifecycles: string[] }[];
       rules: { child_type: string; parent_type: string; resolved_ancestor_type?: string | null; connection_type?: string | null; inherited_fields: string[]; outcome: 'terraform-connection' | 'inherited-scope' | 'visual-only' }[];
+      inherited_fields: { field: string; source_types: string[]; target_types: string[]; policy: 'managed' | 'overridable' | 'external-fallback' }[];
     };
   }>> {
     return request('/api/editor-bootstrap', { method: 'GET' }, (res) => res.json());

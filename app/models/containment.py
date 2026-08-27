@@ -16,6 +16,7 @@ class ContainerTypeDefinition(BaseModel):
     container_type: str
     display_name: str
     allowed_parent_types: list[str] = Field(default_factory=list)
+    allowed_child_types: list[str] = Field(default_factory=list)
     config_fields: list[str] = Field(default_factory=list)
 
 
@@ -23,6 +24,10 @@ class ServiceContainmentCapability(BaseModel):
     service_type: str
     container_presentation: bool = False
     allowed_parent_types: list[str] = Field(default_factory=list)
+    allowed_child_types: list[str] = Field(default_factory=list)
+    allowed_lifecycles: list[str] = Field(
+        default_factory=lambda: ["active", "deprecated"]
+    )
 
 
 class ContainmentRule(BaseModel):
@@ -34,10 +39,18 @@ class ContainmentRule(BaseModel):
     outcome: ContainmentOutcome
 
 
+class InheritedFieldRule(BaseModel):
+    field: str
+    source_types: list[str]
+    target_types: list[str]
+    policy: Literal["managed", "overridable", "external-fallback"]
+
+
 class ContainmentCatalogResponse(BaseModel):
     container_types: list[ContainerTypeDefinition]
     service_capabilities: list[ServiceContainmentCapability]
     rules: list[ContainmentRule]
+    inherited_fields: list[InheritedFieldRule]
 
 
 class ContainmentIssue(BaseModel):

@@ -155,6 +155,90 @@ def test_containment_connection_generates_vpc_module_reference():
     assert canonical.connectors[0].origin == "containment"
 
 
+def test_rejected_operation_returns_typed_issue_and_original_state():
+    state = diagram([resource("vpc", "vpc"), resource("subnet", "subnet")])
+
+    result = ContainmentOperationService().apply(
+        state,
+        ContainmentOperation(operation="assign", object_id="subnet", parent_id="vpc"),
+    )
+
+    subnet = next(obj for obj in result.diagram.canvasObjects if obj.id == "subnet")
+    assert subnet.parentContainerId is None
+    assert result.resolution.issues[-1].code == "invalid-parent-type"
+
+
+def test_rejects_region_az_and_managed_identity_conflicts():
+    region_state = diagram(
+        [container("region", "region", config={"region": "eu-west-1"})]
+    )
+    region_result = ContainmentOperationService().apply(
+        region_state,
+        ContainmentOperation(
+            operation="set-scope",
+            object_id="region",
+            config={"region": "eu-west-1"},
+        ),
+    )
+    assert region_result.resolution.issues[-1].code == "region-conflict"
+
+    az_state = diagram(
+        [
+            container("region", "region", config={"region": "us-east-1"}),
+            container(
+                "az",
+                "availability-zone",
+                "region",
+                {"availability_zone": "eu-west-1a"},
+            ),
+        ]
+    )
+    az_result = ContainmentOperationService().apply(
+        az_state,
+        ContainmentOperation(
+            operation="set-scope",
+            object_id="az",
+            config={"availability_zone": "eu-west-1a"},
+        ),
+    )
+    assert az_result.resolution.issues[-1].code == "availability-zone-conflict"
+
+    identity_payload = diagram(
+        [
+            resource("vpc", "vpc", presentation="container"),
+            resource("subnet", "subnet", "vpc"),
+        ]
+    ).model_dump(mode="json")
+    identity_payload["canvasObjects"][1]["config"]["vpc_id"] = "vpc-external"
+    identity_state = DiagramStateInput.model_validate(identity_payload)
+    identity_result = ContainmentOperationService().apply(
+        identity_state,
+        ContainmentOperation(
+            operation="set-presentation",
+            object_id="vpc",
+            presentation="container",
+        ),
+    )
+    assert identity_result.resolution.issues[-1].code == "configuration-conflict"
+
+
+def test_semantic_state_round_trips_without_redundant_child_collections():
+    original = diagram(
+        [
+            container("region", "region", config={"region": "us-east-1"}),
+            resource("vpc", "vpc", "region", "container"),
+            resource("subnet", "subnet", "vpc"),
+        ]
+    )
+    normalized = DiagramNormalizer().normalize(original.model_dump(mode="json"))
+    restored = DiagramStateInput.model_validate(normalized.model_dump(mode="json"))
+
+    assert restored == normalized
+    assert restored.canvasObjects[2].parentContainerId == "vpc"
+    assert restored.connectors[0].origin == "containment"
+    assert "children" not in restored.model_dump(mode="json")["canvasObjects"][1]
+
+
 def test_rejects_cycle_and_non_container_parent():
     with pytest.raises(ValidationError, match="cycle"):
         diagram([container("a", "generic", "b"), container("b", "generic", "a")])

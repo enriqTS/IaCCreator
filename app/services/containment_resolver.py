@@ -3,6 +3,7 @@
 from hashlib import sha256
 
 from app.models.containment import (
+    ContainmentIssue,
     ContainmentResolution,
     DerivedConnection,
     EffectiveScope,
@@ -20,6 +21,9 @@ class ContainmentResolver:
         self, diagram: DiagramStateInput
     ) -> tuple[DiagramStateInput, ContainmentResolution]:
         resolution = self.resolve(diagram)
+        errors = [issue for issue in resolution.issues if issue.severity == "error"]
+        if errors:
+            raise ValueError("; ".join(issue.message for issue in errors))
         state = diagram.model_dump(mode="json")
         objects = {obj["id"]: obj for obj in state["canvasObjects"]}
 
@@ -59,6 +63,7 @@ class ContainmentResolver:
         scopes: list[EffectiveScope] = []
         inherited: list[InheritedValue] = []
         derived: list[DerivedConnection] = []
+        issues: list[ContainmentIssue] = []
         provider_region = diagram.globalTerraformConfig.provider.region
 
         for obj in diagram.canvasObjects:
@@ -67,21 +72,56 @@ class ContainmentResolver:
             while current.parentContainerId:
                 current = objects[current.parentContainerId]
                 ancestors.append(current)
-            region = provider_region
-            az = None
+            own_config = getattr(obj, "config", {})
+            own_kind = semantic_type(obj)
+            region = own_config.get("region") if own_kind == "region" else None
+            az = own_config.get("availability_zone")
             vpc_id = None
             subnet_id = None
             for ancestor in ancestors:
                 kind = semantic_type(ancestor)
                 config = getattr(ancestor, "config", {})
-                if kind == "region" and config.get("region"):
+                if kind == "region" and config.get("region") and region is None:
                     region = config["region"]
-                elif kind == "availability-zone" and config.get("availability_zone"):
+                elif (
+                    kind == "availability-zone"
+                    and config.get("availability_zone")
+                    and az is None
+                ):
                     az = config["availability_zone"]
                 elif kind == "vpc" and vpc_id is None:
                     vpc_id = ancestor.id
                 elif kind == "subnet" and subnet_id is None:
                     subnet_id = ancestor.id
+            region = region or provider_region
+            if region != provider_region:
+                issues.append(
+                    ContainmentIssue(
+                        code="region-conflict",
+                        message=(
+                            f"{obj.id} resolves to Region {region}, but the provider uses "
+                            f"{provider_region}"
+                        ),
+                        object_id=obj.id,
+                    )
+                )
+            if az and not az.startswith(region):
+                issues.append(
+                    ContainmentIssue(
+                        code="availability-zone-conflict",
+                        message=f"Availability Zone {az} does not belong to Region {region}",
+                        object_id=obj.id,
+                    )
+                )
+            if vpc_id and own_config.get("vpc_id") not in {None, "", vpc_id}:
+                issues.append(
+                    ContainmentIssue(
+                        code="configuration-conflict",
+                        message=f"{obj.id}.vpc_id conflicts with containing VPC {vpc_id}",
+                        object_id=obj.id,
+                        parent_id=vpc_id,
+                    )
+                )
             scopes.append(
                 EffectiveScope(
                     object_id=obj.id,
@@ -130,4 +170,5 @@ class ContainmentResolver:
             effective_scopes=scopes,
             derived_connections=derived,
             inherited_values=inherited,
+            issues=issues,
         )
