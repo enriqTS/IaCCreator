@@ -1,5 +1,22 @@
 # Semantic Containers Implementation Plan
 
+## Implementation status
+
+Legend: `[x]` implemented, `[-]` partially implemented, `[ ]` not implemented.
+
+Current foundation implemented in commit `7e53eb2`:
+
+- [x] Diagram format v4 with migration defaults for semantic parents, presentation, and connector provenance.
+- [x] Backend and frontend contracts for scope containers, resource presentation, parent pointers, and managed connector metadata.
+- [x] Backend-owned containment catalog exposed by `/api/editor-bootstrap`.
+- [x] Parent existence, container capability, parent-child compatibility, self-parenting, and cycle validation.
+- [x] Basic ancestor traversal and effective Region, Availability Zone, VPC, and Subnet scope resolution.
+- [x] Typed containment operation request/response at `POST /api/diagrams/containment/apply`.
+- [x] Canonical frontend serialization and loading for semantic containers.
+- [-] Basic Region, Availability Zone, and generic boundary rendering; full interactions are pending.
+- [ ] Managed connection derivation and foundational networking connection handlers.
+- [ ] Drag/drop reparenting, subtree movement, inherited-field UI, minimap support, and Terraform validation.
+
 ## Purpose
 
 This document defines the implementation plan for nested, backend-aware architecture containers. A semantic container is a visible canvas boundary whose membership can derive Terraform connections, deployment scope, and inherited configuration.
@@ -447,13 +464,13 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 1 — Domain contracts
 
-1. Define typed containment catalog response models.
-2. Define container types and service containment capabilities.
-3. Add `parentContainerId`, presentation mode, and connector provenance.
-4. Add semantic container objects to frontend and backend unions.
-5. Increment the diagram format version.
-6. Add persistence migration and round-trip coverage.
-7. Expose containment capabilities through the editor bootstrap or a dedicated endpoint.
+1. [x] Define typed containment catalog response models.
+2. [x] Define container types and service containment capabilities.
+3. [x] Add `parentContainerId`, presentation mode, and connector provenance.
+4. [x] Add semantic container objects to frontend and backend unions.
+5. [x] Increment the diagram format version.
+6. [-] Add persistence migration and round-trip coverage. Migration and serialization are implemented; dedicated semantic-container persistence round-trip tests remain.
+7. [x] Expose containment capabilities through the editor bootstrap or a dedicated endpoint.
 
 ### Completion criteria
 
@@ -464,13 +481,13 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 2 — Validation and normalization
 
-1. Implement containment tree construction.
-2. Reject missing parents, invalid parents, self-parenting, and cycles.
-3. Implement nearest-ancestor resolution.
-4. Implement Region, AZ, VPC, and Subnet scope resolution.
-5. Detect explicit-value and connector conflicts.
-6. Add typed containment issues.
-7. Integrate normalization into diagram normalize, save, load, preview, and generation flows.
+1. [x] Implement containment tree construction.
+2. [x] Reject missing parents, invalid parents, self-parenting, and cycles.
+3. [x] Implement nearest-ancestor resolution.
+4. [-] Implement Region, AZ, VPC, and Subnet scope resolution. Effective ancestor scopes and Subnet AZ inheritance are implemented; consistency and precedence validation remain.
+5. [ ] Detect explicit-value and connector conflicts.
+6. [-] Add typed containment issues. Typed issue contracts exist, but operation validation errors are not yet returned as populated typed issues.
+7. [ ] Integrate normalization into diagram normalize, save, load, preview, and generation flows.
 
 ### Completion criteria
 
@@ -480,7 +497,7 @@ Implement these connection specifications with semantic containers rather than h
 
 ## Phase 3 — Foundational connections
 
-Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-placement connection specifications required by the initial containment rules.
+- [ ] Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-placement connection specifications required by the initial containment rules.
 
 ### Completion criteria
 
@@ -490,13 +507,13 @@ Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-pl
 
 ## Phase 4 — Managed connection derivation
 
-1. Implement `ContainmentResolver`.
-2. Derive managed connections only through registered specifications.
-3. Add connector provenance and deterministic IDs.
-4. Deduplicate explicit and derived relationships.
-5. Remove obsolete connectors during reparenting.
-6. Integrate derived connectors with preview and architecture conversion.
-7. Add the containment operations endpoint.
+1. [-] Implement `ContainmentResolver`. Tree traversal, effective scopes, and inherited Subnet AZ values are implemented.
+2. [ ] Derive managed connections only through registered specifications.
+3. [-] Add connector provenance and deterministic IDs. Provenance is implemented; deterministic managed connector creation is pending.
+4. [ ] Deduplicate explicit and derived relationships.
+5. [ ] Remove obsolete connectors during reparenting.
+6. [ ] Integrate derived connectors with preview and architecture conversion.
+7. [x] Add the containment operations endpoint.
 
 ### Completion criteria
 
@@ -506,13 +523,13 @@ Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-pl
 
 ## Phase 5 — Container rendering
 
-1. Add the semantic container renderer.
-2. Add Region and Availability Zone objects to the catalog.
-3. Add VPC and Subnet container presentation.
-4. Implement nested z-order and padding.
-5. Add selection, resize, rename, lock, and context-menu behavior.
-6. Exclude container backgrounds from routing obstacles.
-7. Add minimap rendering.
+1. [-] Add the semantic container renderer. A basic selectable boundary renderer exists.
+2. [-] Add Region and Availability Zone objects to the catalog. Backend definitions exist; object-sidebar placement entries are pending.
+3. [-] Add VPC and Subnet container presentation. Contracts and persistence exist; resource-container rendering and controls are pending.
+4. [ ] Implement nested z-order and padding.
+5. [ ] Add selection, resize, rename, lock, and context-menu behavior. Basic selection only is implemented.
+6. [ ] Exclude container backgrounds from routing obstacles.
+7. [ ] Add minimap rendering.
 
 ### Completion criteria
 
@@ -522,13 +539,13 @@ Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-pl
 
 ## Phase 6 — Drag, drop, and subtree movement
 
-1. Add candidate-container hit testing.
-2. Highlight valid and invalid targets.
-3. Prefer the deepest eligible container.
-4. Apply reparenting through the backend endpoint on drop.
-5. Move descendants with parent containers.
-6. Implement drag-out behavior.
-7. Integrate with snapping, anchoring, routing, selection, and history.
+1. [ ] Add candidate-container hit testing.
+2. [ ] Highlight valid and invalid targets.
+3. [ ] Prefer the deepest eligible container.
+4. [ ] Apply reparenting through the backend endpoint on drop.
+5. [ ] Move descendants with parent containers.
+6. [ ] Implement drag-out behavior.
+7. [ ] Integrate with snapping, anchoring, routing, selection, and history.
 
 ### Completion criteria
 
@@ -538,13 +555,13 @@ Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-pl
 
 ## Phase 7 — Configuration experience
 
-1. Display inherited fields and their source.
-2. Make containment-managed fields read-only.
-3. Show whether containment produces a connection, inherited scope, or visual-only membership.
-4. Show derived connection previews.
-5. Add “Move into,” “Remove from container,” and “Select container” actions.
-6. Add node/container presentation switching for eligible resources.
-7. Explain single-Region limitations.
+1. [ ] Display inherited fields and their source.
+2. [ ] Make containment-managed fields read-only.
+3. [ ] Show whether containment produces a connection, inherited scope, or visual-only membership.
+4. [ ] Show derived connection previews.
+5. [ ] Add “Move into,” “Remove from container,” and “Select container” actions.
+6. [ ] Add node/container presentation switching for eligible resources.
+7. [ ] Explain single-Region limitations.
 
 ### Completion criteria
 
@@ -553,7 +570,7 @@ Implement the VPC, Subnet, Security Group, Route Table, gateway, and workload-pl
 
 ## Phase 8 — Extended service coverage
 
-Expand containment rules as connection support grows:
+- [ ] Expand containment rules as connection support grows:
 
 - EFS mount targets in Subnets;
 - Load Balancers in Subnets and VPCs;
@@ -657,17 +674,17 @@ Render VPC and Subnet resources as containers rather than creating wrapper resou
 
 Deliver one vertical slice:
 
-1. VPC resource container presentation.
-2. Subnet resource container presentation.
-3. Region and Availability Zone scope containers.
-4. `parentContainerId` persistence and migration.
-5. Backend containment validation and normalization.
-6. VPC → Subnet managed connection.
-7. VPC → Security Group ancestor-derived connection.
-8. Subnet Availability Zone inheritance.
-9. Drag/drop reparenting and subtree movement.
-10. Inherited-field display and connection preview.
-11. Generated-project Terraform validation.
+1. [-] VPC resource container presentation. Contracts and persistence are implemented; rendering and controls remain.
+2. [-] Subnet resource container presentation. Contracts and persistence are implemented; rendering and controls remain.
+3. [-] Region and Availability Zone scope containers. Contracts, catalog entries, persistence, and basic rendering are implemented; placement UX remains.
+4. [x] `parentContainerId` persistence and migration.
+5. [-] Backend containment validation and normalization. Structural validation and scope resolution are implemented; conflict normalization remains.
+6. [ ] VPC → Subnet managed connection.
+7. [ ] VPC → Security Group ancestor-derived connection.
+8. [x] Subnet Availability Zone inheritance resolution.
+9. [ ] Drag/drop reparenting and subtree movement.
+10. [ ] Inherited-field display and connection preview.
+11. [ ] Generated-project Terraform validation.
 
 This milestone proves the complete architecture without requiring all service-placement relationships at once.
 
