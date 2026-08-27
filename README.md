@@ -90,6 +90,10 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - OpenSearch
 - Redshift
 
+**Media:**
+- MediaLive input security groups
+- Interactive Video Service channels
+
 **Internet of Things:**
 - IoT Core registry things
 - IoT Device Management thing groups

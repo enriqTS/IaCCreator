@@ -76,6 +76,7 @@ from app.generators.iam_generator import IAMGenerator
 from app.generators.internet_gateway_generator import InternetGatewayGenerator
 from app.generators.iot_core_generator import IotCoreGenerator
 from app.generators.iot_device_management_generator import IotDeviceManagementGenerator
+from app.generators.ivs_generator import IvsGenerator
 from app.generators.kendra_generator import KendraGenerator
 from app.generators.keyspaces_generator import KeyspacesGenerator
 from app.generators.kinesis_firehose_generator import KinesisFirehoseGenerator
@@ -88,6 +89,7 @@ from app.generators.lightsail_generator import LightsailGenerator
 from app.generators.load_balancer_generator import LoadBalancerGenerator
 from app.generators.managed_grafana_generator import ManagedGrafanaGenerator
 from app.generators.managed_prometheus_generator import ManagedPrometheusGenerator
+from app.generators.media_live_generator import MediaLiveGenerator
 from app.generators.memorydb_generator import MemoryDbGenerator
 from app.generators.mq_generator import MqGenerator
 from app.generators.msk_generator import MSKGenerator
@@ -228,4 +230,6 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.LEX: LexGenerator(),
     ServiceType.IOT_CORE: IotCoreGenerator(),
     ServiceType.IOT_DEVICE_MANAGEMENT: IotDeviceManagementGenerator(),
+    ServiceType.MEDIA_LIVE: MediaLiveGenerator(),
+    ServiceType.INTERACTIVE_VIDEO_SERVICE: IvsGenerator(),
 }

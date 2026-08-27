@@ -149,6 +149,8 @@ EXPECTED_SERVICE_TYPES = {
     "lex",
     "iot-core",
     "iot-device-management",
+    "media-live",
+    "interactive-video-service",
 }
 
 

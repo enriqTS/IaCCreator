@@ -583,14 +583,21 @@ Classify retired products before implementation and do not offer them for new de
 
 ### Media
 
-- MediaConnect
-- MediaConvert
-- MediaLive
-- MediaPackage
-- MediaStore where still supported
-- MediaTailor
-- Interactive Video Service
-- Kinesis Video Streams
+- MediaConnect — classified as a capability; current standard AWS provider support is insufficient
+- MediaConvert — classified as a capability; current standard AWS provider support is insufficient
+- MediaLive — implemented as input security groups
+- MediaPackage — classified as a capability; current standard AWS provider support is insufficient
+- MediaStore — retired and unavailable for new deployments
+- MediaTailor — classified as a capability; current standard AWS provider support is insufficient
+- Interactive Video Service — implemented as IVS channels
+- Kinesis Video Streams — classified as a capability; the standard AWS provider has no owned resource
+
+Media batch identity decisions:
+
+- MediaLive owns an independently provisionable input security group rather than an incomplete channel graph.
+- Interactive Video Service owns a channel and exposes ingest and playback endpoints.
+- The duplicate Kinesis Video Streams catalog occurrence was removed; the service is cataloged under Media.
+- Legacy Elemental hardware and unsupported API-only products do not receive misleading Terraform generators.
 
 Elemental hardware and legacy product icons should not automatically become Terraform resources.
 

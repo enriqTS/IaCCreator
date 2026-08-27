@@ -229,7 +229,15 @@ export type ServiceType =
   | 'iot-sitewise'
   | 'iot-twinmaker'
   | 'iot-analytics'
-  | 'iot-fleetwise';
+  | 'iot-fleetwise'
+  // Media
+  | 'media-connect'
+  | 'media-convert'
+  | 'media-live'
+  | 'media-package'
+  | 'media-store'
+  | 'media-tailor'
+  | 'interactive-video-service';
 
 export interface Point {
   x: number;

@@ -3287,6 +3287,94 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "interactive-video-service": [
+    {
+      "description": "Channel tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "default": "live-channel",
+      "description": "IVS channel name",
+      "group": "General",
+      "label": "Channel name",
+      "name": "channel_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "STANDARD",
+      "description": "IVS channel type",
+      "group": "General",
+      "label": "Channel type",
+      "name": "channel_type",
+      "options": [
+        {
+          "label": "Standard",
+          "value": "STANDARD"
+        },
+        {
+          "label": "Basic",
+          "value": "BASIC"
+        },
+        {
+          "label": "Advanced SD",
+          "value": "ADVANCED_SD"
+        },
+        {
+          "label": "Advanced HD",
+          "value": "ADVANCED_HD"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "STANDARD",
+          "BASIC",
+          "ADVANCED_SD",
+          "ADVANCED_HD"
+        ]
+      }
+    },
+    {
+      "default": "LOW",
+      "description": "Channel latency mode",
+      "group": "General",
+      "label": "Latency mode",
+      "name": "latency_mode",
+      "options": [
+        {
+          "label": "Low latency",
+          "value": "LOW"
+        },
+        {
+          "label": "Normal latency",
+          "value": "NORMAL"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "LOW",
+          "NORMAL"
+        ]
+      }
+    },
+    {
+      "default": false,
+      "description": "Require playback authorization",
+      "group": "General",
+      "label": "Authorized",
+      "name": "authorized",
+      "required": false,
+      "type": "bool"
+    }
+  ],
   "internet-gateway": [
     {
       "default": "",
@@ -4336,6 +4424,24 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "alias",
       "required": false,
       "type": "string"
+    }
+  ],
+  "media-live": [
+    {
+      "description": "Input security group tags",
+      "group": "General",
+      "label": "Tags",
+      "name": "tags",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "description": "CIDR ranges allowed to push live video",
+      "group": "General",
+      "label": "Allowed CIDRs",
+      "name": "allowed_cidrs",
+      "required": false,
+      "type": "list"
     }
   ],
   "memorydb": [

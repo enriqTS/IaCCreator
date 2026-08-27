@@ -109,6 +109,9 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     # Internet of Things
     ServiceType.IOT_CORE: "internet-of-things",
     ServiceType.IOT_DEVICE_MANAGEMENT: "internet-of-things",
+    # Media
+    ServiceType.MEDIA_LIVE: "media",
+    ServiceType.INTERACTIVE_VIDEO_SERVICE: "media",
     # End user computing
     ServiceType.WORKSPACES: "end-user-computing",
     # Other

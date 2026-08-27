@@ -267,6 +267,15 @@ class ServiceType(StrEnum):
     IOT_ANALYTICS = "iot-analytics"
     IOT_FLEETWISE = "iot-fleetwise"
 
+    # Media
+    MEDIA_CONNECT = "media-connect"
+    MEDIA_CONVERT = "media-convert"
+    MEDIA_LIVE = "media-live"
+    MEDIA_PACKAGE = "media-package"
+    MEDIA_STORE = "media-store"
+    MEDIA_TAILOR = "media-tailor"
+    INTERACTIVE_VIDEO_SERVICE = "interactive-video-service"
+
 
 class ResourceInstance(BaseModel):
     """A specific named resource within a service module."""
@@ -465,6 +474,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.iot_device_management_config import (
         IotDeviceManagementConfig,
     )
+    from app.models.input_models.ivs_config import IvsConfig
     from app.models.input_models.kendra_config import KendraConfig
     from app.models.input_models.keyspaces_config import KeyspacesConfig
     from app.models.input_models.kinesis_config import KinesisConfig
@@ -479,6 +489,7 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.managed_prometheus_config import (
         ManagedPrometheusConfig,
     )
+    from app.models.input_models.media_live_config import MediaLiveConfig
     from app.models.input_models.memorydb_config import MemoryDbConfig
     from app.models.input_models.mq_config import MqConfig
     from app.models.input_models.msk_config import MskConfig
@@ -609,6 +620,8 @@ def _build_service_config_models() -> dict:
         ServiceType.LEX: LexConfig,
         ServiceType.IOT_CORE: IotCoreConfig,
         ServiceType.IOT_DEVICE_MANAGEMENT: IotDeviceManagementConfig,
+        ServiceType.MEDIA_LIVE: MediaLiveConfig,
+        ServiceType.INTERACTIVE_VIDEO_SERVICE: IvsConfig,
     }
 
 
