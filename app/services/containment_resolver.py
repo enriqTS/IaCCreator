@@ -7,6 +7,7 @@ from app.models.containment import (
     ContainmentResolution,
     DerivedConnection,
     EffectiveScope,
+    EnvironmentScopeView,
     InheritedValue,
 )
 from app.models.diagram_models import DiagramStateInput
@@ -167,8 +168,26 @@ class ContainmentResolver:
                         source_id=source,
                     )
                 )
+        environment_scopes = [
+            EnvironmentScopeView(
+                environment=environment.name,
+                effective_scopes=[
+                    scope.model_copy(
+                        update={
+                            "region": environment.variables.get("region", scope.region),
+                            "availability_zone": environment.variables.get(
+                                "availability_zone", scope.availability_zone
+                            ),
+                        }
+                    )
+                    for scope in scopes
+                ],
+            )
+            for environment in diagram.environments
+        ]
         return ContainmentResolution(
             effective_scopes=scopes,
+            environment_scopes=environment_scopes,
             derived_connections=derived,
             inherited_values=inherited,
             issues=issues,

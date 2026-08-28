@@ -149,6 +149,7 @@ export const apiClient = {
   /** POST /api/diagrams/containment/resolve — inspect effective semantic outcomes. */
   resolveContainment(diagram: DiagramState): Promise<ApiResult<{
     effective_scopes: { object_id: string; region?: string | null; availability_zone?: string | null; vpc_id?: string | null; subnet_id?: string | null }[];
+    environment_scopes: { environment: string; effective_scopes: { object_id: string; region?: string | null; availability_zone?: string | null; vpc_id?: string | null; subnet_id?: string | null }[] }[];
     derived_connections: { connector_id: string; source_id: string; target_id: string; connection_type: string; container_id: string }[];
     inherited_values: { object_id: string; field: string; value: unknown; source_id: string; policy: 'managed' | 'overridable' | 'external-fallback' }[];
     issues: { code: string; message: string; object_id?: string | null; parent_id?: string | null; severity: 'error' | 'warning' }[];

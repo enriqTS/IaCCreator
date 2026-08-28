@@ -585,7 +585,7 @@ Implement in dependency order:
 1. [x] Collapsible containers with persisted state, descendant and connector visibility, history, and nested-collapse behavior.
 2. [x] Deterministic automatic layout within semantic containers.
 3. [x] Backend-defined generic typed architecture boundaries for AWS Organizations, organizational units, and accounts.
-4. [ ] Environment-specific scope views.
+4. [x] Environment-specific scope views using environment `region` and `availability_zone` overrides without duplicating canonical resources.
 5. [ ] Provider aliases and multi-region generation.
 6. [ ] Cross-region connection validation.
 7. [ ] Import of existing architectures into semantic boundaries.

@@ -85,8 +85,14 @@ class DerivedConnection(BaseModel):
     container_id: str
 
 
+class EnvironmentScopeView(BaseModel):
+    environment: str
+    effective_scopes: list[EffectiveScope] = Field(default_factory=list)
+
+
 class ContainmentResolution(BaseModel):
     effective_scopes: list[EffectiveScope] = Field(default_factory=list)
+    environment_scopes: list[EnvironmentScopeView] = Field(default_factory=list)
     derived_connections: list[DerivedConnection] = Field(default_factory=list)
     inherited_values: list[InheritedValue] = Field(default_factory=list)
     issues: list[ContainmentIssue] = Field(default_factory=list)

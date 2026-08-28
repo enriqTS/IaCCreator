@@ -9,18 +9,19 @@ from app.models.input_models import ServiceType
 from app.services.code_generator import CodeGenerator
 from app.services.containment_catalog import build_containment_catalog
 from app.services.containment_operation_service import ContainmentOperationService
+from app.services.containment_resolver import ContainmentResolver
 from app.services.diagram_converter import DiagramConverter
 from app.services.diagram_normalizer import DiagramNormalizer
 from app.services.ir_builder import IRBuilder
 from app.services.resource_initializer import ResourceInitializer
 
 
-def diagram(objects):
+def diagram(objects, environments=None):
     return DiagramStateInput.model_validate(
         {
             "version": 4,
             "projectName": "scopes",
-            "environments": [],
+            "environments": environments or [],
             "canvasObjects": objects,
             "connectors": [],
             "viewport": {},
@@ -83,6 +84,23 @@ def test_typed_boundaries_can_nest_deployment_scopes():
     normalized = DiagramNormalizer().normalize(state.model_dump(mode="json"))
 
     assert normalized.canvasObjects[-1].parentContainerId == "account"
+
+
+def test_resolves_environment_specific_scope_views_without_copying_resources():
+    state = diagram(
+        [container("region", "region", config={"region": "us-east-1"})],
+        environments=[
+            {"name": "development", "variables": {}},
+            {"name": "recovery", "variables": {"region": "us-west-2"}},
+        ],
+    )
+
+    resolution = ContainmentResolver().resolve(state)
+    views = {view.environment: view for view in resolution.environment_scopes}
+
+    assert views["development"].effective_scopes[0].region == "us-east-1"
+    assert views["recovery"].effective_scopes[0].region == "us-west-2"
+    assert len(state.canvasObjects) == 1
 
 
 def test_resolves_nested_availability_zone_for_subnet():

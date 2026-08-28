@@ -12,8 +12,10 @@ export interface ProjectSlice {
   // Project state
   projectName: string;
   environments: EnvironmentConfig[];
+  activeEnvironmentName: string | null;
   setProjectName: (name: string) => void;
   setEnvironments: (envs: EnvironmentConfig[]) => void;
+  setActiveEnvironment: (name: string | null) => void;
 
   // Terraform variables
   setTerraformVariable: (objectId: string, varName: string, value: string | number | boolean) => void;
@@ -26,13 +28,28 @@ export const createProjectSlice: StateCreator<DiagramStore, [], [], ProjectSlice
     // --- Project state ---
     projectName: '',
     environments: [] as EnvironmentConfig[],
+    activeEnvironmentName: null,
 
     setProjectName: (name: string): void => {
       set({ projectName: name });
     },
 
     setEnvironments: (envs: EnvironmentConfig[]): void => {
-      set({ environments: envs });
+      set((state) => ({
+        environments: envs,
+        activeEnvironmentName: state.activeEnvironmentName
+          && envs.some((environment) => environment.name === state.activeEnvironmentName)
+          ? state.activeEnvironmentName
+          : envs[0]?.name ?? null,
+      }));
+    },
+
+    setActiveEnvironment: (name: string | null): void => {
+      set((state) => ({
+        activeEnvironmentName: name && state.environments.some((environment) => environment.name === name)
+          ? name
+          : null,
+      }));
     },
 
     // --- Terraform variables ---

@@ -7,7 +7,7 @@
 - `canvas-slice`, `connector-slice`, and `anchoring-slice` own objects, connectors, anchors, and line geometry.
 - `clipboard-slice`, `grouping-slice`, and `zorder-slice` own editing operations.
 - `history-slice` and `history-support` own undo/redo snapshots.
-- `project-slice`, `serialization-slice`, and `persistence-slice` own project state, canonical diagram serialization, and server persistence.
+- `project-slice`, `serialization-slice`, and `persistence-slice` own project state, the active environment scope view, canonical diagram serialization, and server persistence.
 - `ui-slice` and `viewport-slice` own tool, selection, overlay, and viewport state.
 - `semantic-containment-slice` owns drag target feedback, submits assign/remove/subtree-move intent, and caches backend-resolved effective scopes and inherited values for configuration rendering.
 

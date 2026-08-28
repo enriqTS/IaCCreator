@@ -11,7 +11,14 @@ export default function SemanticOutcomePanel({ objectId }: { objectId: string })
   const object = useDiagramStore((state) => state.canvasObjects.get(objectId));
   const objects = useDiagramStore((state) => state.canvasObjects);
   const connectors = useDiagramStore((state) => state.connectors);
-  const scope = useDiagramStore((state) => state.effectiveContainmentScopes.get(objectId));
+  const defaultScope = useDiagramStore((state) => state.effectiveContainmentScopes.get(objectId));
+  const environmentScopes = useDiagramStore((state) => state.environmentContainmentScopes);
+  const environments = useDiagramStore((state) => state.environments);
+  const activeEnvironment = useDiagramStore((state) => state.activeEnvironmentName);
+  const setActiveEnvironment = useDiagramStore((state) => state.setActiveEnvironment);
+  const scope = activeEnvironment
+    ? environmentScopes.get(activeEnvironment)?.get(objectId) ?? defaultScope
+    : defaultScope;
   const inheritedValues = useDiagramStore((state) => state.containmentInheritedValues);
   const inherited = inheritedValues.filter((value) => value.object_id === objectId);
   const refresh = useDiagramStore((state) => state.refreshContainmentResolution);
@@ -55,7 +62,22 @@ export default function SemanticOutcomePanel({ objectId }: { objectId: string })
       </div>
 
       <div>
-        <h3 className="mb-2 text-xs font-semibold text-muted-foreground">Effective scope</h3>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h3 className="text-xs font-semibold text-muted-foreground">Effective scope</h3>
+          {environments.length > 0 && (
+            <select
+              aria-label="Scope environment"
+              className="h-7 rounded-md border bg-background px-2 text-xs"
+              value={activeEnvironment ?? ''}
+              onChange={(event) => setActiveEnvironment(event.target.value || null)}
+            >
+              <option value="">Project default</option>
+              {environments.map((environment) => (
+                <option key={environment.name} value={environment.name}>{environment.name}</option>
+              ))}
+            </select>
+          )}
+        </div>
         {scopeValues.length > 0 ? (
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
             {scopeValues.map(([label, value]) => (

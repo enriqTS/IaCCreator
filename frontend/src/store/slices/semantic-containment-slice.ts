@@ -25,6 +25,7 @@ export interface ContainmentInheritedValue {
 
 export interface SemanticContainmentSlice {
   effectiveContainmentScopes: Map<string, EffectiveContainmentScope>;
+  environmentContainmentScopes: Map<string, Map<string, EffectiveContainmentScope>>;
   containmentInheritedValues: ContainmentInheritedValue[];
   refreshContainmentResolution: () => Promise<void>;
   pendingContainmentObjectId: string | null;
@@ -85,6 +86,7 @@ function canonicalState(
 
 export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], SemanticContainmentSlice> = (set, get) => ({
   effectiveContainmentScopes: new Map(),
+  environmentContainmentScopes: new Map(),
   containmentInheritedValues: [],
   refreshContainmentResolution: async () => {
     const result = await apiClient.resolveContainment(get().serializeDiagramState());
@@ -92,6 +94,12 @@ export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], 
     set({
       effectiveContainmentScopes: new Map(
         result.data.effective_scopes.map((scope) => [scope.object_id, scope]),
+      ),
+      environmentContainmentScopes: new Map(
+        (result.data.environment_scopes ?? []).map((view) => [
+          view.environment,
+          new Map(view.effective_scopes.map((scope) => [scope.object_id, scope])),
+        ]),
       ),
       containmentInheritedValues: result.data.inherited_values,
     });
