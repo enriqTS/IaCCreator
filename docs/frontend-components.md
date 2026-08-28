@@ -21,6 +21,7 @@ Configuration is centered in `config/overlay/`. `ConfigOverlay` is a modal conta
 ## Navigation and supporting UI
 
 - `objects/` is the permanent object sidebar: search, categories, pins, recent items, armed-placement state, and collapsed rail.
+- `menu/ImportArchitectureDialog.tsx` submits pasted `ArchitectureDescription` JSON and applies the backend-normalized semantic canvas response.
 - `toolbar/Toolbar.tsx` contains drawing and editing tools.
 - `menu/` contains diagram, project, Terraform, and preference dialogs.
 - `shortcuts/KeyboardShortcutsOverlay.tsx` presents keyboard shortcut help.

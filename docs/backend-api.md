@@ -14,6 +14,7 @@ The app configures CORS from `CORS_ORIGIN` (default `http://localhost:3000`), cr
 |---|---|---|---|
 | POST | `/generate/json` | `ArchitectureDescription` | `GenerationResponse` |
 | POST | `/generate/zip` | `ArchitectureDescription` | ZIP download |
+| POST | `/api/import/architecture` | `ArchitectureImportRequest` | `ArchitectureImportResponse` |
 | POST | `/api/import/openapi` | `OpenApiImportRequest` | `OpenApiImportResponse` |
 | GET | `/api/naming-rules` | — | `NamingRulesResponse` |
 | GET | `/api/variable-schemas` | — | `VariableSchemasResponse` |
@@ -61,6 +62,8 @@ Generation validates each typed service config, builds a `ProjectIR`, generates 
 ```
 
 Diagram CRUD is session scoped. Writes normalize and validate state before persistence, and reads return the canonical current version. Reading, updating, or deleting a diagram owned by another session returns `403`; a missing diagram returns `404`.
+
+`/api/import/architecture` converts an existing `ArchitectureDescription` into deterministic canonical canvas state. It preserves explicit connections, infers registered VPC/Subnet containment, creates Region boundaries, and sends the result through standard normalization before returning it.
 
 The editor bootstrap describes backend support and domain defaults. Resource initialization derives unique names, typed config defaults, and Terraform variable defaults. Diagram-based generation and preview convert canonical canvas state on the backend; the direct `/generate/*` endpoints remain available for API consumers.
 

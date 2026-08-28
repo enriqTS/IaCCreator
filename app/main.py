@@ -14,6 +14,10 @@ from app.exceptions import DomainError
 from app.generators.schema_validator import validate_config_against_schema
 from app.logging_config import configure_logging
 from app.middleware.session_middleware import SessionMiddleware
+from app.models.architecture_import import (
+    ArchitectureImportRequest,
+    ArchitectureImportResponse,
+)
 from app.models.connection_configs.schema_models import (
     ConnectionSchemaEntry,
     ConnectionSchemasResponse,
@@ -47,6 +51,7 @@ from app.models.response_models import (
 )
 from app.persistence.factory import get_repository
 from app.routers.diagrams import router as diagram_router
+from app.services.architecture_importer import ArchitectureImporter
 from app.services.code_generator import CodeGenerator
 from app.services.connection_handlers.registry import CONNECTION_SPECS
 from app.services.connection_operation_service import ConnectionOperationService
@@ -116,6 +121,7 @@ _diagram_normalizer = DiagramNormalizer()
 _connection_operations = ConnectionOperationService()
 _resource_initializer = ResourceInitializer()
 _containment_operations = ContainmentOperationService()
+_architecture_importer = ArchitectureImporter()
 _containment_resolver = ContainmentResolver()
 
 
@@ -312,6 +318,14 @@ async def preview_diagram_connections(
 ) -> ConnectionPreviewResponse:
     """Preview connections directly from editor state."""
     return await preview_connections(await diagram_architecture(diagram))
+
+
+@app.post("/api/import/architecture", response_model=ArchitectureImportResponse)
+async def import_architecture(
+    request: ArchitectureImportRequest,
+) -> ArchitectureImportResponse:
+    """Import a generation architecture into canonical semantic canvas state."""
+    return _architecture_importer.import_architecture(request.architecture)
 
 
 @app.post("/api/import/openapi", response_model=OpenApiImportResponse)

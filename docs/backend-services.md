@@ -33,6 +33,7 @@ The current registry includes API Gateway route-handler and authorizer connectio
 
 ## Other services
 
+- `ArchitectureImporter` converts typed generation architectures into deterministic canvas objects, infers registered containment, and normalizes the result before returning it.
 - `containment_catalog.py` defines deployment scopes and typed architecture boundaries, including Organizations, organizational units, and accounts, for dynamic editor discovery.
 - `ContainmentResolver` returns project-default and per-environment effective scope views; environment `region` and `availability_zone` variables override display scope without copying canonical resources.
 - `SessionManager` creates, resolves, and touches anonymous-session users through `AbstractRepository`.

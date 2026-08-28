@@ -14,6 +14,7 @@ import PreferencesDialog from '@/components/menu/PreferencesDialog';
 import NewDiagramDialog from '@/components/menu/NewDiagramDialog';
 import ProjectSettingsDialog from '@/components/menu/ProjectSettingsDialog';
 import TerraformSettingsDialog from '@/components/menu/TerraformSettingsDialog';
+import ImportArchitectureDialog from '@/components/menu/ImportArchitectureDialog';
 import ToastProvider from '@/components/toast/ToastProvider';
 import OnboardingTour from '@/components/tour/OnboardingTour';
 import KeyboardShortcutsOverlay from '@/components/shortcuts/KeyboardShortcutsOverlay';
@@ -25,6 +26,7 @@ import { getCanvasViewportSize } from '@/utils/viewport';
 export default function DiagramEditorPage() {
   const [newDiagramOpen, setNewDiagramOpen] = useState(false);
   const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
+  const [importArchitectureOpen, setImportArchitectureOpen] = useState(false);
   const [terraformSettingsOpen, setTerraformSettingsOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [shortcutsOverlayOpen, setShortcutsOverlayOpen] = useState(false);
@@ -309,6 +311,7 @@ export default function DiagramEditorPage() {
             onNewDiagram={handleNewDiagram}
             onSave={handleSave}
             onLoad={handleLoad}
+            onImportArchitecture={() => setImportArchitectureOpen(true)}
             onExport={handleExport}
             onProjectSettings={handleProjectSettings}
             onTerraformSettings={() => setTerraformSettingsOpen(true)}
@@ -326,6 +329,10 @@ export default function DiagramEditorPage() {
       <NewDiagramDialog
         open={newDiagramOpen}
         onClose={() => setNewDiagramOpen(false)}
+      />
+      <ImportArchitectureDialog
+        open={importArchitectureOpen}
+        onClose={() => setImportArchitectureOpen(false)}
       />
       <ProjectSettingsDialog
         key={projectSettingsOpen ? 'open' : 'closed'}

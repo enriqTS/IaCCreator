@@ -235,6 +235,19 @@ export const apiClient = {
     }, (res) => res.json() as Promise<ConnectionPreviewResponse>);
   },
 
+  /** Import generation architecture JSON into canonical semantic canvas state. */
+  importArchitecture(architecture: unknown): Promise<ApiResult<{
+    diagram: DiagramState;
+    imported_resource_count: number;
+    inferred_container_count: number;
+  }>> {
+    return request('/api/import/architecture', {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ architecture }),
+    }, (res) => res.json());
+  },
+
   /** Generate Terraform directly from canonical diagram state. */
   generateTerraform(
     diagram: DiagramState,

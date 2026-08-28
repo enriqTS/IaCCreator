@@ -10,6 +10,7 @@ import {
   FileCog,
   Wrench,
   HelpCircle,
+  Import,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +25,7 @@ export interface HamburgerMenuProps {
   onNewDiagram: () => void;
   onSave: () => void;
   onLoad: () => void;
+  onImportArchitecture: () => void;
   onExport: () => void;
   onProjectSettings: () => void;
   onTerraformSettings: () => void;
@@ -66,6 +68,13 @@ export default function HamburgerMenu(props: HamburgerMenuProps) {
           >
             <FolderOpen />
             Load
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            data-testid="menu-item-onImportArchitecture"
+            onSelect={props.onImportArchitecture}
+          >
+            <Import />
+            Import Architecture
           </DropdownMenuItem>
           <DropdownMenuItem
             data-testid="menu-item-onExport"

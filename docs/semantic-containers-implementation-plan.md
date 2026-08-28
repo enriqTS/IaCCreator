@@ -14,6 +14,7 @@ Current status after Phase 8:
 - [x] Phase 6 backend-applied drag/drop reparenting, drag-out removal, target feedback, and subtree movement.
 - [x] Phase 7 inherited-field, semantic-outcome, derived-preview, containment-action, and single-Region configuration experience.
 - [x] Phase 8 extended service coverage for every relationship that has containment semantics.
+- [x] Phase 9 advanced presentation, typed boundaries, environment views, multi-Region generation and validation, and architecture import.
 
 ## Purpose
 
@@ -588,7 +589,7 @@ Implement in dependency order:
 4. [x] Environment-specific scope views using environment `region` and `availability_zone` overrides without duplicating canonical resources.
 5. [x] Provider aliases and multi-region generation with per-resource module provider selection and environment Region overrides.
 6. [x] Cross-region connection validation driven by per-connection registry policy with typed containment issues and generation rejection.
-7. [ ] Import of existing architectures into semantic boundaries.
+7. [x] Import of existing `ArchitectureDescription` payloads into deterministic, normalized semantic boundaries.
 
 ### Completion criteria
 
