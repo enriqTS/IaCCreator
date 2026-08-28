@@ -26,7 +26,7 @@ Resource names are validated for Terraform-safe syntax and uniqueness. Stable ID
 `app/models/ir_models.py` is the internal boundary between validation and generation.
 
 - `ProjectIR` contains environments, service modules, normalized connections, and global configuration.
-- `ResourceInstanceIR` retains typed config, Terraform variables, connections, and collected IAM statements.
+- `ResourceInstanceIR` retains typed config, Terraform variables, effective provider Region, connections, and collected IAM statements.
 - `ConnectionIR` preserves source/target names and stable IDs.
 - `ConnectionContribution` carries `ModuleInput`, `ModuleOutput`, `ModuleResource`, and `IAMGrant` values from handlers to the assembler.
 - `GenerationSummary` and `FileTree` represent generated output.

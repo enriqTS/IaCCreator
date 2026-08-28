@@ -21,15 +21,43 @@ class GlobalConfigGenerator:
         lines.append("}")
         return "\n".join(lines) + "\n"
 
-    def generate_provider_tf(self, config: GlobalTerraformConfigIR) -> str:
-        """Produce provider.tf with an AWS provider block (region, optional profile)."""
+    def generate_provider_tf(
+        self,
+        config: GlobalTerraformConfigIR,
+        default_region: str | None = None,
+        regions: set[str] | None = None,
+    ) -> str:
+        """Produce the default provider and deterministic aliases for other Regions."""
         indent = self._r.INDENT
+        default = default_region or config.provider_region
+        configured_regions = sorted((regions or set()) | {default})
+        blocks = [self._provider_block(config, default, None, indent)]
+        blocks.extend(
+            self._provider_block(config, region, self.provider_alias(region), indent)
+            for region in configured_regions
+            if region != default
+        )
+        return "\n\n".join(blocks) + "\n"
+
+    @staticmethod
+    def provider_alias(region: str) -> str:
+        return region.replace("-", "_")
+
+    @staticmethod
+    def _provider_block(
+        config: GlobalTerraformConfigIR,
+        region: str,
+        alias: str | None,
+        indent: str,
+    ) -> str:
         lines = ['provider "aws" {']
-        lines.append(f'{indent}region = "{config.provider_region}"')
+        if alias:
+            lines.append(f'{indent}alias = "{alias}"')
+        lines.append(f'{indent}region = "{region}"')
         if config.provider_profile:
             lines.append(f'{indent}profile = "{config.provider_profile}"')
         lines.append("}")
-        return "\n".join(lines) + "\n"
+        return "\n".join(lines)
 
     def generate_versions_tf(self, config: GlobalTerraformConfigIR) -> str:
         """Produce versions.tf with required_version and required_providers."""

@@ -86,6 +86,27 @@ def test_typed_boundaries_can_nest_deployment_scopes():
     assert normalized.canvasObjects[-1].parentContainerId == "account"
 
 
+def test_multi_region_containment_selects_provider_aliases_for_modules():
+    state = diagram(
+        [
+            container("east", "region", config={"region": "us-east-1"}),
+            resource("east-vpc", "vpc", "east"),
+            container("west", "region", config={"region": "us-west-2"}),
+            resource("west-vpc", "vpc", "west"),
+        ]
+    )
+
+    canonical = DiagramNormalizer().normalize(state.model_dump(mode="json"))
+    architecture = DiagramConverter().convert(canonical)
+    tree = CodeGenerator().generate(IRBuilder().build(architecture))
+
+    provider = tree["scopes/environments/dev/provider.tf"]
+    main = tree["scopes/environments/dev/main.tf"]
+    assert 'alias = "us_west_2"' in provider
+    assert 'region = "us-west-2"' in provider
+    assert "providers = { aws = aws.us_west_2 }" in main
+
+
 def test_resolves_environment_specific_scope_views_without_copying_resources():
     state = diagram(
         [container("region", "region", config={"region": "us-east-1"})],
@@ -233,20 +254,7 @@ def test_rejected_operation_returns_typed_issue_and_original_state():
     assert result.resolution.issues[-1].code == "invalid-parent-type"
 
 
-def test_rejects_region_az_and_managed_identity_conflicts():
-    region_state = diagram(
-        [container("region", "region", config={"region": "eu-west-1"})]
-    )
-    region_result = ContainmentOperationService().apply(
-        region_state,
-        ContainmentOperation(
-            operation="set-scope",
-            object_id="region",
-            config={"region": "eu-west-1"},
-        ),
-    )
-    assert region_result.resolution.issues[-1].code == "region-conflict"
-
+def test_rejects_az_and_managed_identity_conflicts():
     az_state = diagram(
         [
             container("region", "region", config={"region": "us-east-1"}),

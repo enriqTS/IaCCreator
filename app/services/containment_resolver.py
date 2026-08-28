@@ -94,17 +94,6 @@ class ContainmentResolver:
                 elif kind == "subnet" and subnet_id is None:
                     subnet_id = ancestor.id
             region = region or provider_region
-            if region != provider_region:
-                issues.append(
-                    ContainmentIssue(
-                        code="region-conflict",
-                        message=(
-                            f"{obj.id} resolves to Region {region}, but the provider uses "
-                            f"{provider_region}"
-                        ),
-                        object_id=obj.id,
-                    )
-                )
             if az and not az.startswith(region):
                 issues.append(
                     ContainmentIssue(

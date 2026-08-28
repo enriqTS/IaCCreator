@@ -391,7 +391,7 @@ class TestEndToEndIntegration:
         # Global config files
         assert 'backend "s3"' in tree[f"{base}/backend.tf"]
         assert 'bucket = "tf-state"' in tree[f"{base}/backend.tf"]
-        assert 'region = "us-west-2"' in tree[f"{base}/provider.tf"]
+        assert 'region = "us-east-1"' in tree[f"{base}/provider.tf"]
         assert 'profile = "deploy"' in tree[f"{base}/provider.tf"]
         assert 'required_version = ">= 1.5.0"' in tree[f"{base}/versions.tf"]
         assert 'version = "~> 5.0"' in tree[f"{base}/versions.tf"]

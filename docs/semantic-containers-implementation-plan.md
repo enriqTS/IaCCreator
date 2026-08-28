@@ -586,7 +586,7 @@ Implement in dependency order:
 2. [x] Deterministic automatic layout within semantic containers.
 3. [x] Backend-defined generic typed architecture boundaries for AWS Organizations, organizational units, and accounts.
 4. [x] Environment-specific scope views using environment `region` and `availability_zone` overrides without duplicating canonical resources.
-5. [ ] Provider aliases and multi-region generation.
+5. [x] Provider aliases and multi-region generation with per-resource module provider selection and environment Region overrides.
 6. [ ] Cross-region connection validation.
 7. [ ] Import of existing architectures into semantic boundaries.
 

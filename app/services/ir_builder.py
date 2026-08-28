@@ -70,6 +70,7 @@ class IRBuilder:
                 iam_statements=[],
                 connections=instance_connections,
                 terraform_variables=resource.terraform_variables,
+                provider_region=resource.provider_region,
             )
             service_groups[resource.service_type].append(instance_ir)
 

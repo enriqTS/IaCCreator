@@ -314,6 +314,9 @@ class ResourceInstance(BaseModel):
     terraform_variables: dict[str, str | int | float | bool] = Field(
         default_factory=dict
     )
+    provider_region: str | None = Field(
+        None, description="Effective AWS Region used to select a provider alias"
+    )
 
     @model_validator(mode="before")
     @classmethod

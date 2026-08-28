@@ -116,7 +116,7 @@ export default function SemanticOutcomePanel({ objectId }: { objectId: string })
 
       <div className="flex gap-2 rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-xs">
         <Info className="mt-0.5 size-3 shrink-0" />
-        Region containers must match the project provider Region. Multi-Region generation is not yet supported.
+        Resources in other Regions use deterministic AWS provider aliases. Environment Region overrides move the environment view to its selected Region.
       </div>
     </div>
   );

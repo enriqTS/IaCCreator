@@ -2,6 +2,7 @@
 
 from app.models.diagram_state import DiagramState
 from app.models.input_models import ArchitectureDescription
+from app.services.containment_resolver import ContainmentResolver
 
 
 class DiagramConverter:
@@ -13,6 +14,8 @@ class DiagramConverter:
             for obj in diagram.canvasObjects
             if obj.objectType == "architecture-block"
         }
+        resolution = ContainmentResolver().resolve(diagram)
+        scopes = {scope.object_id: scope for scope in resolution.effective_scopes}
         resources = [
             {
                 "id": obj.id,
@@ -20,6 +23,7 @@ class DiagramConverter:
                 "service_type": obj.serviceType,
                 "config": obj.config,
                 "terraform_variables": obj.terraformVariables,
+                "provider_region": scopes[obj.id].region,
             }
             for obj in blocks.values()
         ]

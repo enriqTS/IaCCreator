@@ -138,6 +138,9 @@ class FileTreeAssembler:
         base = f"{root}/environments/{env.name}"
 
         # provider.tf owns the provider block, so main.tf carries only module wiring
+        default_region = env.variables.get(
+            "region", project.global_config.provider_region
+        )
         parts: list[str] = []
         for inst in all_instances:
             if inst.service_type not in GENERATOR_REGISTRY or inst.config.is_layer:
@@ -146,7 +149,12 @@ class FileTreeAssembler:
                 self._renderer.render_module(
                     inst.name,
                     self._module_source(inst),
-                    self._module_arguments(inst, contribution),
+                    self._environment_module_arguments(
+                        inst,
+                        contribution,
+                        default_region,
+                        "region" in env.variables,
+                    ),
                 )
             )
         tree[f"{base}/main.tf"] = "\n".join(parts)
@@ -197,8 +205,13 @@ class FileTreeAssembler:
         tree[f"{base}/backend.tf"] = self._global_config_gen.generate_backend_tf(
             global_cfg
         )
+        regions = {
+            env.variables.get("region", inst.provider_region or default_region)
+            for inst in all_instances
+            if inst.service_type in GENERATOR_REGISTRY and not inst.config.is_layer
+        }
         tree[f"{base}/provider.tf"] = self._global_config_gen.generate_provider_tf(
-            global_cfg
+            global_cfg, default_region, regions
         )
         tree[f"{base}/versions.tf"] = self._global_config_gen.generate_versions_tf(
             global_cfg
@@ -207,6 +220,24 @@ class FileTreeAssembler:
     # ------------------------------------------------------------------
     # Module wiring helpers
     # ------------------------------------------------------------------
+
+    def _environment_module_arguments(
+        self,
+        instance: ResourceInstanceIR,
+        contribution: ConnectionContribution,
+        default_region: str,
+        environment_overrides_region: bool,
+    ) -> dict[str, str]:
+        arguments = self._module_arguments(instance, contribution)
+        region = (
+            default_region
+            if environment_overrides_region
+            else instance.provider_region or default_region
+        )
+        if region != default_region:
+            alias = self._global_config_gen.provider_alias(region)
+            return {"providers": f"{{ aws = aws.{alias} }}", **arguments}
+        return arguments
 
     @staticmethod
     def _safe_name(name: str) -> str:

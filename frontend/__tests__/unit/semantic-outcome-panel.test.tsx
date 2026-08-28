@@ -53,13 +53,13 @@ describe('SemanticOutcomePanel', () => {
     });
   });
 
-  it('shows inherited sources, semantic outcome, and the Region limitation', async () => {
+  it('shows inherited sources, semantic outcome, and provider alias behavior', async () => {
     render(<SemanticOutcomePanel objectId="subnet" />);
 
     expect(screen.getByTestId('containment-outcome').textContent).toContain('Scope inherited');
     await waitFor(() => expect(screen.getByText(/availability_zone/)).toBeDefined());
     expect(screen.getAllByText(/from Primary Region/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Multi-Region generation is not yet supported/)).toBeDefined();
+    expect(screen.getByText(/deterministic AWS provider aliases/)).toBeDefined();
   });
 
   it('switches effective scope without duplicating the canvas resource', async () => {

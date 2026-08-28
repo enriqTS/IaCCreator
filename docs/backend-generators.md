@@ -34,7 +34,7 @@ and per-instance modules under:
 
 Each instance gets its resource, variable, and output files. A service whose config model owns an execution role also gets `iam.tf` and `{project}/iam-policies/{instance}-policy.json`; this is not Lambda-specific.
 
-The assembler uses `module_arguments.py`, `module_paths.py`, and `service_category_map.py` to keep environment module wiring and categorized paths consistent. `TfvarsGenerator` creates environment variable declarations and values; `GlobalConfigGenerator` writes `backend.tf`, `provider.tf`, and `versions.tf`.
+The assembler uses `module_arguments.py`, `module_paths.py`, and `service_category_map.py` to keep environment module wiring and categorized paths consistent. `TfvarsGenerator` creates environment variable declarations and values; `GlobalConfigGenerator` writes `backend.tf`, `provider.tf`, and `versions.tf`. It emits a default AWS provider plus deterministic Region aliases, and environment module calls select the alias resolved from each resource's semantic Region. An environment `region` variable overrides the default and places all of that environment's modules in the selected Region.
 
 ## Connection-generated Terraform
 

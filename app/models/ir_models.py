@@ -98,6 +98,7 @@ class ResourceInstanceIR(BaseModel):
     iam_statements: list[IAMStatement] = Field(default_factory=list)
     connections: list[ConnectionIR] = Field(default_factory=list)
     terraform_variables: dict[str, Any] = Field(default_factory=dict)
+    provider_region: str | None = None
 
     @model_validator(mode="before")
     @classmethod
