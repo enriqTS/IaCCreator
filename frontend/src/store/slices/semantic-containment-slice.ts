@@ -35,6 +35,7 @@ export interface SemanticContainmentSlice {
   finishContainmentDrag: (objectId: string) => Promise<void>;
   assignSemanticParent: (objectId: string, parentId: string | null) => Promise<void>;
   setResourcePresentation: (objectId: string, presentation: 'node' | 'container') => Promise<void>;
+  toggleContainerCollapsed: (objectId: string) => void;
 }
 
 function canonicalState(
@@ -165,6 +166,19 @@ export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], 
       containmentInheritedValues: result.data.resolution.inherited_values as ContainmentInheritedValue[],
       pendingContainmentObjectId: null,
     }));
+  },
+
+  toggleContainerCollapsed: (objectId) => {
+    const object = get().canvasObjects.get(objectId);
+    const isContainer = object?.objectType === 'semantic-container'
+      || (object?.objectType === 'architecture-block' && object.presentation === 'container');
+    if (!object || !isContainer) return;
+    get().pushHistory();
+    set((state) => {
+      const canvasObjects = new Map(state.canvasObjects);
+      canvasObjects.set(objectId, { ...object, collapsed: !object.collapsed });
+      return { canvasObjects };
+    });
   },
 
   setResourcePresentation: async (objectId, presentation) => {

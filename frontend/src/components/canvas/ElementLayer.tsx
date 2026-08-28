@@ -16,6 +16,7 @@ import { getObjectBounds } from '@/types/diagram';
 import { getAnchorPoints } from '@/utils/anchor';
 import type { AnchorPosition } from '@/utils/anchor';
 import type { AlignmentGuide } from '@/utils/snap';
+import { hiddenByCollapsedAncestor } from '@/utils/semantic-containment';
 
 const ANCHOR_POSITIONS_LIST: AnchorPosition[] = ['top', 'right', 'bottom', 'left'];
 
@@ -68,13 +69,23 @@ export default function ElementLayer() {
     }
   }, []);
 
+  const hiddenObjectIds = new Set(
+    Array.from(canvasObjects.values())
+      .filter((obj) => obj.objectType !== 'line' && hiddenByCollapsedAncestor(obj, canvasObjects))
+      .map((obj) => obj.id),
+  );
   const canvasObjectsArray = Array.from(canvasObjects.values()).sort((a, b) => a.zIndex - b.zIndex);
-  const lineObjects = canvasObjectsArray.filter((obj) => obj.objectType === 'line');
-  const nonLineObjects = canvasObjectsArray.filter((obj) => obj.objectType !== 'line');
+  const lineObjects = canvasObjectsArray.filter((obj) => obj.objectType === 'line'
+    && !hiddenObjectIds.has(obj.sourceAnchor?.objectId ?? '')
+    && !hiddenObjectIds.has(obj.targetAnchor?.objectId ?? ''));
+  const nonLineObjects = canvasObjectsArray.filter((obj) => obj.objectType !== 'line' && !hiddenObjectIds.has(obj.id));
 
   // Show resize handles only when exactly one object is selected
   const selectedObject = selectedObjectIds.size === 1
     ? canvasObjects.get([...selectedObjectIds][0]) ?? null
+    : null;
+  const visibleSelectedObject = selectedObject && !hiddenObjectIds.has(selectedObject.id)
+    ? selectedObject
     : null;
 
   return (
@@ -212,7 +223,7 @@ export default function ElementLayer() {
       {lineAlignmentGuides.length > 0 && <AlignmentGuides guides={lineAlignmentGuides} />}
 
       {/* Resize handles on the selected canvas object */}
-      {selectedObject && <ResizeHandles object={selectedObject} />}
+      {visibleSelectedObject && <ResizeHandles object={visibleSelectedObject} />}
 
       {/* Group bounding boxes for selected groups */}
       {(() => {

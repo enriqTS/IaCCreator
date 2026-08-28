@@ -33,6 +33,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
           zIndex: obj.zIndex,
           ...(obj.groupId !== undefined && { groupId: obj.groupId }),
           ...('parentContainerId' in obj && obj.parentContainerId !== undefined && { parentContainerId: obj.parentContainerId }),
+          ...('collapsed' in obj && obj.collapsed && { collapsed: true }),
         };
 
         if (obj.objectType === 'architecture-block') {
@@ -160,6 +161,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
               ...(groupId !== undefined && { groupId }),
               ...(sObj.parentContainerId != null && { parentContainerId: sObj.parentContainerId }),
               presentation: sObj.presentation ?? 'node',
+              ...(sObj.collapsed && { collapsed: true }),
             };
             canvasObjectsMap.set(obj.id, obj);
           } else if (sObj.objectType === 'line') {
@@ -262,6 +264,7 @@ export const createSerializationSlice: StateCreator<DiagramStore, [], [], Serial
               zIndex,
               ...(groupId !== undefined && { groupId }),
               ...(sObj.parentContainerId != null && { parentContainerId: sObj.parentContainerId }),
+              ...(sObj.collapsed && { collapsed: true }),
             };
             canvasObjectsMap.set(obj.id, obj);
           } else if (sObj.objectType === 'uml') {

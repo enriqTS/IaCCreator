@@ -1,4 +1,4 @@
-import type { CanvasObject, Rect } from '@/types/diagram';
+import type { ArchitectureBlock, CanvasObject, Rect, SemanticContainerObject } from '@/types/diagram';
 import { getObjectBounds } from '@/types/diagram';
 
 export interface ContainmentPlacementRule {
@@ -18,7 +18,9 @@ export function semanticType(object: CanvasObject): string {
   return 'visual';
 }
 
-export function isSemanticContainer(object: CanvasObject): boolean {
+export function isSemanticContainer(
+  object: CanvasObject,
+): object is SemanticContainerObject | ArchitectureBlock {
   return object.objectType === 'semantic-container'
     || (object.objectType === 'architecture-block'
       && object.presentation === 'container'
@@ -35,6 +37,23 @@ export function containmentDepth(object: CanvasObject, objects: Map<string, Canv
     current = objects.get(current.parentContainerId);
   }
   return depth;
+}
+
+export function hiddenByCollapsedAncestor(
+  object: CanvasObject,
+  objects: Map<string, CanvasObject>,
+): boolean {
+  let current = object;
+  const visited = new Set<string>();
+  while ('parentContainerId' in current && current.parentContainerId) {
+    if (visited.has(current.parentContainerId)) return false;
+    visited.add(current.parentContainerId);
+    const parent = objects.get(current.parentContainerId);
+    if (!parent) return false;
+    if (isSemanticContainer(parent) && parent.collapsed) return true;
+    current = parent;
+  }
+  return false;
 }
 
 export function overlapRatio(inner: Rect, outer: Rect): number {

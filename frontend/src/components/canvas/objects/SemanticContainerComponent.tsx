@@ -13,6 +13,7 @@ interface Props {
 export default function SemanticContainerComponent({ object, isSelected }: Props) {
   const { width, height } = object.visualConfig;
   const activeTargetId = useDiagramStore((state) => state.activeContainmentTargetId);
+  const toggleCollapsed = useDiagramStore((state) => state.toggleContainerCollapsed);
   const activeTargetValid = useDiagramStore((state) => state.activeContainmentTargetValid);
   const isDropTarget = activeTargetId === object.id;
   const scope = object.objectType === 'semantic-container' ? object.containerType : object.serviceType;
@@ -38,7 +39,7 @@ export default function SemanticContainerComponent({ object, isSelected }: Props
           left: object.position.x - width / 2,
           top: object.position.y - height / 2,
           width,
-          height,
+          height: object.collapsed ? 34 : height,
           pointerEvents: 'auto',
           border: `${isDropTarget ? Math.max(3, borderWidth) : borderWidth}px ${scope === 'availability-zone' ? 'dashed' : 'solid'} ${isDropTarget ? (activeTargetValid ? '#22c55e' : '#ef4444') : isSelected ? '#60a5fa' : borderColor}`,
           background: isDropTarget ? (activeTargetValid ? '#14532d' : '#7f1d1d') : fillColor,
@@ -60,6 +61,25 @@ export default function SemanticContainerComponent({ object, isSelected }: Props
             boxSizing: 'border-box',
           }}
         >
+          <button
+            type="button"
+            aria-label={object.collapsed ? `Expand ${object.name}` : `Collapse ${object.name}`}
+            onMouseDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              toggleCollapsed(object.id);
+            }}
+            style={{
+              marginRight: 6,
+              border: 0,
+              padding: 0,
+              color: 'inherit',
+              background: 'transparent',
+              cursor: 'pointer',
+            }}
+          >
+            {object.collapsed ? '▸' : '▾'}
+          </button>
           {object.name} · {scope}
           {object.locked && <span style={{ float: 'right' }}>🔒</span>}
         </div>

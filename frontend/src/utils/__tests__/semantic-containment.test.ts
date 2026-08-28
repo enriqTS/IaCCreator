@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ArchitectureBlock, CanvasObject, SemanticContainerObject } from '@/types/diagram';
-import { findContainmentDropCandidate, normalizeSemanticZOrder, overlapRatio } from '@/utils/semantic-containment';
+import { findContainmentDropCandidate, hiddenByCollapsedAncestor, normalizeSemanticZOrder, overlapRatio } from '@/utils/semantic-containment';
 
 function container(id: string, zIndex: number, parentContainerId?: string): SemanticContainerObject {
   return {
@@ -52,6 +52,21 @@ describe('semantic containment geometry', () => {
     ]);
 
     expect(candidate).toEqual({ id: 'subnet', valid: true, depth: 1 });
+  });
+
+  it('hides every nested descendant of a collapsed boundary', () => {
+    const region = { ...container('region', 0), collapsed: true };
+    const subnet = container('subnet', 1, 'region');
+    const workload = resource('workload', 2, 'subnet');
+    const objects = new Map<string, CanvasObject>([
+      [region.id, region],
+      [subnet.id, subnet],
+      [workload.id, workload],
+    ]);
+
+    expect(hiddenByCollapsedAncestor(region, objects)).toBe(false);
+    expect(hiddenByCollapsedAncestor(subnet, objects)).toBe(true);
+    expect(hiddenByCollapsedAncestor(workload, objects)).toBe(true);
   });
 
   it('uses the dragged object area as the overlap denominator', () => {

@@ -552,6 +552,7 @@ export interface ArchitectureBlock {
   groupId?: string;
   parentContainerId?: string;
   presentation?: 'node' | 'container';
+  collapsed?: boolean;
   locked?: boolean;
 }
 
@@ -608,6 +609,7 @@ export interface SemanticContainerObject {
   parentContainerId?: string;
   zIndex: number;
   groupId?: string;
+  collapsed?: boolean;
   locked?: boolean;
 }
 

@@ -172,6 +172,7 @@ class CanvasObjectBase(BaseModel):
     groupId: str | None = None
     parentContainerId: str | None = None
     locked: bool = False
+    collapsed: bool = False
 
 
 class ArchitectureBlockObject(CanvasObjectBase):
