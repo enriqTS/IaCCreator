@@ -75,7 +75,8 @@ class ContainmentResolver:
             own_config = getattr(obj, "config", {})
             own_kind = semantic_type(obj)
             region = own_config.get("region") if own_kind == "region" else None
-            az = own_config.get("availability_zone")
+            explicit_az = own_config.get("availability_zone")
+            az = explicit_az if own_kind == "availability-zone" else None
             vpc_id = None
             subnet_id = None
             for ancestor in ancestors:
@@ -94,6 +95,7 @@ class ContainmentResolver:
                 elif kind == "subnet" and subnet_id is None:
                     subnet_id = ancestor.id
             region = region or provider_region
+            az = az or explicit_az
             if az and not az.startswith(region):
                 issues.append(
                     ContainmentIssue(
@@ -139,22 +141,25 @@ class ContainmentResolver:
                             container_id=ancestor.id,
                         )
                     )
-            if (
-                obj.objectType == "architecture-block"
-                and obj.serviceType.value == "subnet"
-                and az
-            ):
-                source = next(
+            az_source = next(
+                (
                     ancestor.id
                     for ancestor in ancestors
                     if semantic_type(ancestor) == "availability-zone"
-                )
+                ),
+                None,
+            )
+            if (
+                obj.objectType == "architecture-block"
+                and obj.serviceType.value == "subnet"
+                and az_source
+            ):
                 inherited.append(
                     InheritedValue(
                         object_id=obj.id,
                         field="availability_zone",
                         value=az,
-                        source_id=source,
+                        source_id=az_source,
                     )
                 )
         scope_by_id = {scope.object_id: scope for scope in scopes}

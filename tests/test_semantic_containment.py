@@ -593,10 +593,72 @@ def test_arbitrary_branching_trees_normalize_deterministically(objects):
     assert first == second
 
 
+def test_nearest_scope_ancestor_wins_across_branching_generic_boundaries():
+    state = diagram(
+        [
+            container("region", "region", config={"region": "us-east-1"}),
+            container("outer", "generic", "region"),
+            container(
+                "az",
+                "availability-zone",
+                "outer",
+                {"availability_zone": "us-east-1b"},
+            ),
+            container("inner", "generic", "az"),
+            resource("vpc", "vpc", "inner", "container"),
+            resource("subnet", "subnet", "vpc"),
+            container("sibling", "generic", "region"),
+        ]
+    )
+
+    resolution = ContainmentResolver().resolve(state)
+    subnet_scope = next(
+        scope for scope in resolution.effective_scopes if scope.object_id == "subnet"
+    )
+    inherited = next(
+        value for value in resolution.inherited_values if value.object_id == "subnet"
+    )
+
+    assert subnet_scope.region == "us-east-1"
+    assert subnet_scope.availability_zone == "us-east-1b"
+    assert subnet_scope.vpc_id == "vpc"
+    assert inherited.source_id == "az"
+
+
+def test_managed_inherited_value_accepts_matching_explicit_value_and_rejects_conflict():
+    matching = diagram(
+        [
+            container("region", "region", config={"region": "us-east-1"}),
+            container(
+                "az", "availability-zone", "region", {"availability_zone": "us-east-1a"}
+            ),
+            resource("vpc", "vpc", "az", "container"),
+            resource("subnet", "subnet", "vpc"),
+        ]
+    ).model_dump(mode="json")
+    matching["canvasObjects"][-1]["config"]["availability_zone"] = "us-east-1a"
+    normalized = DiagramNormalizer().normalize(matching)
+    assert normalized.canvasObjects[-1].config["availability_zone"] == "us-east-1a"
+
+    conflicting = diagram(
+        [
+            container("region", "region", config={"region": "us-east-1"}),
+            container(
+                "az", "availability-zone", "region", {"availability_zone": "us-east-1a"}
+            ),
+            resource("vpc", "vpc", "az", "container"),
+            resource("subnet", "subnet", "vpc"),
+        ]
+    ).model_dump(mode="json")
+    conflicting["canvasObjects"][-1]["config"]["availability_zone"] = "us-east-1b"
+    with pytest.raises(ValueError, match="conflicts with containment"):
+        DiagramNormalizer().normalize(conflicting)
+
+
 @given(
     operations=st.lists(
         st.tuples(
-            st.sampled_from(["assign", "remove"]),
+            st.sampled_from(["assign", "remove", "delete"]),
             st.integers(min_value=0, max_value=7),
             st.integers(min_value=0, max_value=7),
         ),
@@ -609,12 +671,29 @@ def test_assign_reparent_remove_sequences_preserve_canonical_invariants(operatio
     service = ContainmentOperationService()
 
     for operation, child_index, parent_index in operations:
-        request = ContainmentOperation(
-            operation=operation,
-            object_id=f"node-{child_index}",
-            parent_id=f"node-{parent_index}" if operation == "assign" else None,
-        )
-        state = service.apply(state, request).diagram
+        object_id = f"node-{child_index}"
+        if operation == "delete":
+            payload = state.model_dump(mode="json")
+            target = next(
+                (obj for obj in payload["canvasObjects"] if obj["id"] == object_id),
+                None,
+            )
+            if target is not None:
+                parent_id = target.get("parentContainerId")
+                payload["canvasObjects"] = [
+                    obj for obj in payload["canvasObjects"] if obj["id"] != object_id
+                ]
+                for child in payload["canvasObjects"]:
+                    if child.get("parentContainerId") == object_id:
+                        child["parentContainerId"] = parent_id
+                state = DiagramStateInput.model_validate(payload)
+        else:
+            request = ContainmentOperation(
+                operation=operation,
+                object_id=object_id,
+                parent_id=f"node-{parent_index}" if operation == "assign" else None,
+            )
+            state = service.apply(state, request).diagram
         DiagramStateInput.model_validate(state.model_dump(mode="json"))
 
     assert DiagramNormalizer().normalize(state.model_dump(mode="json")) == state
