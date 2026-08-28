@@ -580,15 +580,24 @@ Direct Load Balancer → VPC membership has no independent Terraform relationshi
 
 ## Phase 9 — Advanced scope
 
-Potential later work:
+Implement in dependency order:
 
-- collapsible containers;
-- automatic container layout;
-- generic typed architecture boundaries;
-- environment-specific scope views;
-- provider alias and multi-region generation;
-- cross-region connection validation;
-- import of existing architectures into semantic boundaries.
+1. [x] Collapsible containers with persisted state, descendant and connector visibility, history, and nested-collapse behavior.
+2. [ ] Deterministic automatic layout within semantic containers.
+3. [ ] Backend-defined generic typed architecture boundaries.
+4. [ ] Environment-specific scope views.
+5. [ ] Provider aliases and multi-region generation.
+6. [ ] Cross-region connection validation.
+7. [ ] Import of existing architectures into semantic boundaries.
+
+### Completion criteria
+
+- Advanced presentation state persists and remains undoable without changing infrastructure semantics.
+- Layout is deterministic and preserves hierarchy without scaling descendants.
+- New boundary semantics come from typed backend contracts rather than frontend compatibility tables.
+- Environment views resolve scope without duplicating canonical resources.
+- Multi-region projects use provider aliases and reject unsupported cross-region relationships.
+- Imported architectures pass through the same normalization and containment validation as edited diagrams.
 
 ## Backend tests
 
