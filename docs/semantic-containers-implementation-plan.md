@@ -583,7 +583,7 @@ Direct Load Balancer → VPC membership has no independent Terraform relationshi
 Implement in dependency order:
 
 1. [x] Collapsible containers with persisted state, descendant and connector visibility, history, and nested-collapse behavior.
-2. [ ] Deterministic automatic layout within semantic containers.
+2. [x] Deterministic automatic layout within semantic containers.
 3. [ ] Backend-defined generic typed architecture boundaries.
 4. [ ] Environment-specific scope views.
 5. [ ] Provider aliases and multi-region generation.

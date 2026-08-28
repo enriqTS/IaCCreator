@@ -2,6 +2,7 @@ import type { StateCreator } from 'zustand';
 import type { CanvasObject, Connector } from '@/types/diagram';
 import { apiClient } from '@/utils/api-client';
 import { normalizeSemanticZOrder } from '@/utils/semantic-containment';
+import { layoutContainerChildren } from '@/utils/container-layout';
 import { useToastStore } from '@/store/toast-store';
 import type { DiagramState } from '@/types/serialization';
 import type { DiagramStore } from './store-types';
@@ -36,6 +37,7 @@ export interface SemanticContainmentSlice {
   assignSemanticParent: (objectId: string, parentId: string | null) => Promise<void>;
   setResourcePresentation: (objectId: string, presentation: 'node' | 'container') => Promise<void>;
   toggleContainerCollapsed: (objectId: string) => void;
+  layoutSemanticContainer: (objectId: string) => void;
 }
 
 function canonicalState(
@@ -166,6 +168,14 @@ export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], 
       containmentInheritedValues: result.data.resolution.inherited_values as ContainmentInheritedValue[],
       pendingContainmentObjectId: null,
     }));
+  },
+
+  layoutSemanticContainer: (objectId) => {
+    const current = get().canvasObjects;
+    const laidOut = layoutContainerChildren(objectId, current);
+    if (laidOut === current) return;
+    get().pushHistory();
+    set({ canvasObjects: laidOut });
   },
 
   toggleContainerCollapsed: (objectId) => {

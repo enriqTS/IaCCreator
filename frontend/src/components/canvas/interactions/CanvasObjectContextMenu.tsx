@@ -21,6 +21,7 @@ import {
   Box,
   BoxSelect,
   LogOut,
+  LayoutGrid,
 } from 'lucide-react';
 import { useEditorDomainStore } from '@/store/editor-domain-store';
 import { isSemanticContainer, semanticType } from '@/utils/semantic-containment';
@@ -216,6 +217,14 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
             <BoxSelect className="size-4" /> Select Container
           </Item>
         </>
+      )}
+      {isSingleSelection && singleObject && isSemanticContainer(singleObject) && (
+        <Item onClick={() => {
+          useDiagramStore.getState().layoutSemanticContainer(singleObject.id);
+          onClose();
+        }}>
+          <LayoutGrid className="size-4" /> Arrange Contents
+        </Item>
       )}
       {showPresentation && singleObject && singleObject.objectType === 'architecture-block' && (
         <Item onClick={() => {

@@ -34,7 +34,8 @@ Canvas objects are the active diagram model. Legacy element state is not the mod
 - `api-client.ts` centralizes cookie-authenticated requests and structured API errors.
 - `export.ts` submits canonical diagram state to `/api/diagrams/generate/zip`.
 - `viewport.ts`, `bounds-utils.ts`, `anchor.ts`, and `snap.ts` provide canvas geometry and snapping.
-- `semantic-containment.ts` provides overlap-threshold hit testing, deepest-container selection, descendant traversal, and hierarchy z-order normalization using the backend bootstrap rules.
+- `semantic-containment.ts` provides overlap-threshold hit testing, deepest-container selection, collapsed-ancestor visibility, descendant traversal, and hierarchy z-order normalization using the backend bootstrap rules.
+- `container-layout.ts` deterministically arranges direct children and translates nested subtrees without changing their internal geometry.
 - `utils/routing/` contains the grid builder, pathfinder, obstacle collector, and orthogonal-router entry point; `parallel-offset.ts` separates parallel lines.
 - `keyboard-shortcuts.ts` centralizes shortcut behavior.
 - `name-utils.ts` and `object-search.ts` provide naming and catalog search helpers.
