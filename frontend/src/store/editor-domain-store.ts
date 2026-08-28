@@ -14,6 +14,14 @@ export interface ServiceCapabilities {
   connectable: boolean;
 }
 
+export interface SemanticContainerDefinition {
+  container_type: string;
+  display_name: string;
+  allowed_parent_types: string[];
+  allowed_child_types: string[];
+  config_fields: string[];
+}
+
 export interface ContainmentRule {
   child_type: string;
   parent_type: string;
@@ -24,6 +32,7 @@ export interface ContainmentRule {
 interface EditorDomainState {
   serviceCapabilities: Map<string, ServiceCapabilities> | null;
   semanticContainerTypes: Set<string> | null;
+  semanticContainerDefinitions: SemanticContainerDefinition[];
   containmentRules: ContainmentRule[];
   load: () => Promise<void>;
 }
@@ -31,6 +40,7 @@ interface EditorDomainState {
 export const useEditorDomainStore = create<EditorDomainState>()((set) => ({
   serviceCapabilities: null,
   semanticContainerTypes: null,
+  semanticContainerDefinitions: [],
   containmentRules: [],
   load: async () => {
     const result = await apiClient.getEditorBootstrap();
@@ -45,6 +55,7 @@ export const useEditorDomainStore = create<EditorDomainState>()((set) => ({
       semanticContainerTypes: new Set(
         result.data.containment?.container_types.map((container) => container.container_type) ?? [],
       ),
+      semanticContainerDefinitions: result.data.containment?.container_types ?? [],
       containmentRules: result.data.containment?.rules.map((rule) => ({
         child_type: rule.child_type,
         parent_type: rule.parent_type,

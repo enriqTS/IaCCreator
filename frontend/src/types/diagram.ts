@@ -297,7 +297,7 @@ export type Tool =
   | { type: 'place-service'; serviceType: ServiceType }
   | { type: 'place-shape'; shape: GeometricShape }
   | { type: 'place-uml'; umlKind: UMLKind }
-  | { type: 'place-semantic-container'; containerType: 'region' | 'availability-zone' | 'generic' }
+  | { type: 'place-semantic-container'; containerType: string }
   | { type: 'place-line' }
   | { type: 'place-arrow' };
 
@@ -601,7 +601,7 @@ export interface TextObject {
 export interface SemanticContainerObject {
   id: string;
   objectType: 'semantic-container';
-  containerType: 'region' | 'availability-zone' | 'generic';
+  containerType: string;
   name: string;
   position: Point;
   config: ResourceConfig;

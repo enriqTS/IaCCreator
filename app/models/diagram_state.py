@@ -256,7 +256,7 @@ class SemanticContainerObject(PositionedObject):
     """A deployment scope or visual semantic boundary."""
 
     objectType: Literal["semantic-container"]
-    containerType: Literal["region", "availability-zone", "generic"]
+    containerType: str
     config: dict[str, Any] = Field(default_factory=dict)
     visualConfig: ContainerVisual = Field(default_factory=ContainerVisual)
 

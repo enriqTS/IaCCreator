@@ -52,17 +52,13 @@ export interface PickerCategory {
   items: PickerItem[];
 }
 
+export interface ContainerPickerDefinition {
+  container_type: string;
+  display_name: string;
+}
+
 function buildAllPickerItems(): PickerCategory[] {
-  const categories: PickerCategory[] = [
-    {
-      category: 'Architecture Scopes',
-      items: [
-        { name: 'AWS Region', category: 'Architecture Scopes', tool: { type: 'place-semantic-container', containerType: 'region' } },
-        { name: 'Availability Zone', category: 'Architecture Scopes', tool: { type: 'place-semantic-container', containerType: 'availability-zone' } },
-        { name: 'Generic Boundary', category: 'Architecture Scopes', tool: { type: 'place-semantic-container', containerType: 'generic' } },
-      ],
-    },
-  ];
+  const categories: PickerCategory[] = [];
 
   for (const cat of AWS_ICON_REGISTRY) {
     const items: PickerItem[] = cat.services.map((svc) => ({
@@ -112,6 +108,26 @@ function buildAllPickerItems(): PickerCategory[] {
 }
 
 export const ALL_CATEGORIES: PickerCategory[] = buildAllPickerItems();
+
+export function categoriesWithContainers(
+  definitions: ContainerPickerDefinition[],
+): PickerCategory[] {
+  if (definitions.length === 0) return ALL_CATEGORIES;
+  return [
+    {
+      category: 'Architecture Scopes',
+      items: definitions.map((definition) => ({
+        name: definition.display_name,
+        category: 'Architecture Scopes',
+        tool: {
+          type: 'place-semantic-container',
+          containerType: definition.container_type,
+        },
+      })),
+    },
+    ...ALL_CATEGORIES,
+  ];
+}
 
 export const ALL_ITEMS: PickerItem[] = ALL_CATEGORIES.flatMap((c) => c.items);
 

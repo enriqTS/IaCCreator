@@ -33,6 +33,7 @@ The current registry includes API Gateway route-handler and authorizer connectio
 
 ## Other services
 
+- `containment_catalog.py` defines deployment scopes and typed architecture boundaries, including Organizations, organizational units, and accounts, for dynamic editor discovery.
 - `SessionManager` creates, resolves, and touches anonymous-session users through `AbstractRepository`.
 - `diagram_migrations.py` upgrades persisted diagram state on read.
 - `services/openapi/` parses an OpenAPI document and maps it to API Gateway configuration for `/api/import/openapi`.

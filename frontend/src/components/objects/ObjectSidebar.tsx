@@ -5,10 +5,11 @@ import { PanelLeftClose, PanelRightClose, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ABBREVIATION_MAP } from '@/data/abbreviation-map';
-import { ALL_CATEGORIES, ALL_ITEMS } from '@/data/object-catalog';
+import { categoriesWithContainers } from '@/data/object-catalog';
 import { smartSearch, sortCategories } from '@/utils/object-search';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
+import { useEditorDomainStore } from '@/store/editor-domain-store';
 import ObjectArmedBar from './ObjectArmedBar';
 import ObjectCategorySection from './ObjectCategorySection';
 import ObjectShortlist from './ObjectShortlist';
@@ -28,6 +29,12 @@ export default function ObjectSidebar({ header }: ObjectSidebarProps) {
   const position = useLayoutPreferencesStore((s) => s.objectSidebarPosition);
   const width = useLayoutPreferencesStore((s) => s.objectSidebarWidth);
   const setWidth = useLayoutPreferencesStore((s) => s.setObjectSidebarWidth);
+  const containerDefinitions = useEditorDomainStore((s) => s.semanticContainerDefinitions);
+  const allCategories = useMemo(
+    () => categoriesWithContainers(containerDefinitions),
+    [containerDefinitions],
+  );
+  const allItems = useMemo(() => allCategories.flatMap((category) => category.items), [allCategories]);
 
   const startResize = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -47,16 +54,16 @@ export default function ObjectSidebar({ header }: ObjectSidebarProps) {
 
   const { categories, matchCount } = useMemo(() => {
     const term = search.trim();
-    if (!term) return { categories: sortCategories(ALL_CATEGORIES), matchCount: 0 };
+    if (!term) return { categories: sortCategories(allCategories), matchCount: 0 };
 
-    const matches = smartSearch(ALL_ITEMS, term, ABBREVIATION_MAP);
+    const matches = smartSearch(allItems, term, ABBREVIATION_MAP);
     const keys = new Set(matches.map((i) => `${i.name}|${i.category}`));
-    const filtered = ALL_CATEGORIES.map((cat) => ({
+    const filtered = allCategories.map((cat) => ({
       ...cat,
       items: cat.items.filter((item) => keys.has(`${item.name}|${item.category}`)),
     })).filter((cat) => cat.items.length > 0);
     return { categories: sortCategories(filtered), matchCount: matches.length };
-  }, [search]);
+  }, [allCategories, allItems, search]);
 
   const searching = search.trim() !== '';
 
@@ -130,7 +137,7 @@ export default function ObjectSidebar({ header }: ObjectSidebarProps) {
           ref={searchRef}
           data-testid="object-sidebar-search"
           type="text"
-          placeholder={`Search ${ALL_ITEMS.length} objects`}
+          placeholder={`Search ${allItems.length} objects`}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pr-9 pl-8"

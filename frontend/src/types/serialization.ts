@@ -62,7 +62,7 @@ export interface SerializedCanvasObject {
   groupId?: string;
   parentContainerId?: string | null;
   presentation?: 'node' | 'container';
-  containerType?: 'region' | 'availability-zone' | 'generic';
+  containerType?: string;
   collapsed?: boolean;
 }
 

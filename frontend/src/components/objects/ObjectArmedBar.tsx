@@ -5,12 +5,24 @@ import { Button } from '@/components/ui/button';
 import { getItemIcon } from '@/data/shape-icons';
 import { findItemForTool } from '@/data/object-catalog';
 import { useDiagramStore } from '@/store/diagram-store';
+import { useEditorDomainStore } from '@/store/editor-domain-store';
 
 export default function ObjectArmedBar() {
   const activeTool = useDiagramStore((s) => s.activeTool);
   const setActiveTool = useDiagramStore((s) => s.setActiveTool);
+  const containerDefinitions = useEditorDomainStore((s) => s.semanticContainerDefinitions);
 
-  const item = findItemForTool(activeTool);
+  const item = findItemForTool(activeTool) ?? (
+    typeof activeTool === 'object' && activeTool.type === 'place-semantic-container'
+      ? {
+          name: containerDefinitions.find(
+            (definition) => definition.container_type === activeTool.containerType,
+          )?.display_name ?? activeTool.containerType,
+          category: 'Architecture Scopes',
+          tool: activeTool,
+        }
+      : null
+  );
   if (!item) return null;
 
   return (

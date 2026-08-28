@@ -11,12 +11,21 @@ from app.models.containment import (
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.registry import resolve_spec
 
-SCOPE_TYPES = {"region", "availability-zone", "generic"}
+ARCHITECTURE_BOUNDARY_TYPES = {"organization", "organizational-unit", "account"}
+SCOPE_TYPES = {
+    "region",
+    "availability-zone",
+    "generic",
+    *ARCHITECTURE_BOUNDARY_TYPES,
+}
 RESOURCE_CONTAINER_TYPES = {"vpc", "subnet"}
 CONTAINER_TYPES = SCOPE_TYPES | RESOURCE_CONTAINER_TYPES
 
 _PARENT_TYPES: dict[str, set[str]] = {
-    "region": {"generic"},
+    "organization": {"generic"},
+    "organizational-unit": {"organization", "organizational-unit", "generic"},
+    "account": {"organization", "organizational-unit", "generic"},
+    "region": {"account", "generic"},
     "availability-zone": {"region", "generic"},
     "vpc": {"region", "availability-zone", "generic"},
     "subnet": {"vpc"},
@@ -66,6 +75,36 @@ def allowed_parent(child_type: str, parent_type: str) -> bool:
 
 def build_containment_catalog() -> ContainmentCatalogResponse:
     definitions = [
+        ContainerTypeDefinition(
+            container_type="organization",
+            display_name="AWS Organization",
+            allowed_parent_types=["generic"],
+            allowed_child_types=sorted(
+                child
+                for child, parents in _PARENT_TYPES.items()
+                if "organization" in parents
+            ),
+        ),
+        ContainerTypeDefinition(
+            container_type="organizational-unit",
+            display_name="Organizational Unit",
+            allowed_parent_types=["organization", "organizational-unit", "generic"],
+            allowed_child_types=sorted(
+                child
+                for child, parents in _PARENT_TYPES.items()
+                if "organizational-unit" in parents
+            ),
+        ),
+        ContainerTypeDefinition(
+            container_type="account",
+            display_name="AWS Account",
+            allowed_parent_types=["organization", "organizational-unit", "generic"],
+            allowed_child_types=sorted(
+                child
+                for child, parents in _PARENT_TYPES.items()
+                if "account" in parents
+            ),
+        ),
         ContainerTypeDefinition(
             container_type="region",
             display_name="AWS Region",

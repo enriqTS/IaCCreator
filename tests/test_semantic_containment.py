@@ -7,6 +7,7 @@ from app.models.containment import ContainmentOperation
 from app.models.diagram_models import DiagramStateInput
 from app.models.input_models import ServiceType
 from app.services.code_generator import CodeGenerator
+from app.services.containment_catalog import build_containment_catalog
 from app.services.containment_operation_service import ContainmentOperationService
 from app.services.diagram_converter import DiagramConverter
 from app.services.diagram_normalizer import DiagramNormalizer
@@ -56,6 +57,32 @@ def resource(object_id, service, parent=None, presentation="node"):
         "parentContainerId": parent,
         "presentation": presentation,
     }
+
+
+def test_catalog_defines_typed_architecture_boundaries():
+    catalog = build_containment_catalog()
+    definitions = {item.container_type: item for item in catalog.container_types}
+
+    assert definitions["organization"].allowed_child_types == [
+        "account",
+        "organizational-unit",
+    ]
+    assert "region" in definitions["account"].allowed_child_types
+
+
+def test_typed_boundaries_can_nest_deployment_scopes():
+    state = diagram(
+        [
+            container("organization", "organization"),
+            container("unit", "organizational-unit", "organization"),
+            container("account", "account", "unit"),
+            container("region", "region", "account", {"region": "us-east-1"}),
+        ]
+    )
+
+    normalized = DiagramNormalizer().normalize(state.model_dump(mode="json"))
+
+    assert normalized.canvasObjects[-1].parentContainerId == "account"
 
 
 def test_resolves_nested_availability_zone_for_subnet():

@@ -25,7 +25,7 @@ Canvas objects are the active diagram model. Legacy element state is not the mod
 
 ## Catalog and types
 
-`data/object-catalog.ts` is the frontend catalog boundary. It combines AWS icon entries with shapes, UML, text, and lines, and marks services unsupported when no generator is available. The backend `ServiceType` and generator registry remain the domain authority.
+`data/object-catalog.ts` is the frontend catalog boundary. It combines AWS icon entries with shapes, UML, text, and lines, and marks services unsupported when no generator is available. Semantic boundary entries are built dynamically from the backend containment catalog. The backend `ServiceType`, generator registry, and containment catalog remain the domain authority.
 
 `types/diagram.ts` defines canvas objects, tools, visual configuration, geometry, and service-related client types. `types/serialization.ts` defines saved diagram and generation payloads. `types/api.ts`, `types/connection-preview.ts`, and `types/apigw-config.ts` define API-facing data.
 
