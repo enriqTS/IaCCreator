@@ -1,3 +1,6 @@
+import subprocess
+from pathlib import Path
+
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -6,7 +9,9 @@ from pydantic import ValidationError
 from app.models.containment import ContainmentOperation
 from app.models.diagram_models import DiagramStateInput
 from app.models.input_models import ServiceType
+from app.persistence.tinydb_repo import TinyDBRepository
 from app.services.code_generator import CodeGenerator
+from app.services.connection_previewer import ConnectionPreviewer
 from app.services.containment_catalog import build_containment_catalog
 from app.services.containment_operation_service import ContainmentOperationService
 from app.services.containment_resolver import ContainmentResolver
@@ -392,3 +397,224 @@ def test_rejects_cycle_and_non_container_parent():
 
     with pytest.raises(ValidationError, match="not container-capable"):
         diagram([resource("vpc", "vpc"), resource("subnet", "subnet", "vpc")])
+
+
+def test_rejects_missing_parent_and_self_parent_independently():
+    with pytest.raises(ValidationError, match="missing semantic parent"):
+        diagram([container("child", "generic", "missing")])
+
+    with pytest.raises(ValidationError, match="contain itself"):
+        diagram([container("self", "generic", "self")])
+
+
+def test_remove_and_reparent_replace_obsolete_managed_connectors():
+    initial = diagram(
+        [
+            resource("first-vpc", "vpc", presentation="container"),
+            resource("second-vpc", "vpc", presentation="container"),
+            resource("subnet", "subnet", "first-vpc"),
+        ]
+    )
+    normalized = DiagramNormalizer().normalize(initial.model_dump(mode="json"))
+
+    removed = ContainmentOperationService().apply(
+        normalized, ContainmentOperation(operation="remove", object_id="subnet")
+    )
+    assert removed.diagram.connectors == []
+
+    reparented = ContainmentOperationService().apply(
+        normalized,
+        ContainmentOperation(
+            operation="assign", object_id="subnet", parent_id="second-vpc"
+        ),
+    )
+    assert len(reparented.diagram.connectors) == 1
+    assert reparented.diagram.connectors[0].sourceId == "second-vpc"
+    assert reparented.diagram.connectors[0].container_id == "second-vpc"
+
+
+def test_child_and_container_deletion_normalize_connector_cleanup():
+    original = DiagramNormalizer().normalize(
+        diagram(
+            [
+                resource("vpc", "vpc", presentation="container"),
+                resource("subnet", "subnet", "vpc", "container"),
+                resource("security", "security-group", "subnet"),
+            ]
+        ).model_dump(mode="json")
+    )
+
+    child_deleted = original.model_dump(mode="json")
+    child_deleted["canvasObjects"] = [
+        obj for obj in child_deleted["canvasObjects"] if obj["id"] != "security"
+    ]
+    child_deleted["connectors"] = [
+        connector
+        for connector in child_deleted["connectors"]
+        if connector["targetId"] != "security"
+    ]
+    normalized_child_delete = DiagramNormalizer().normalize(child_deleted)
+    assert all(
+        connector.targetId != "security"
+        for connector in normalized_child_delete.connectors
+    )
+
+    container_deleted = original.model_dump(mode="json")
+    container_deleted["canvasObjects"] = [
+        obj for obj in container_deleted["canvasObjects"] if obj["id"] != "subnet"
+    ]
+    security = next(
+        obj for obj in container_deleted["canvasObjects"] if obj["id"] == "security"
+    )
+    security["parentContainerId"] = "vpc"
+    container_deleted["connectors"] = [
+        connector
+        for connector in container_deleted["connectors"]
+        if connector["sourceId"] != "subnet" and connector["targetId"] != "subnet"
+    ]
+    normalized_reparent = DiagramNormalizer().normalize(container_deleted)
+    assert normalized_reparent.canvasObjects[-1].parentContainerId == "vpc"
+    assert all(
+        connector.sourceId != "subnet" for connector in normalized_reparent.connectors
+    )
+
+    cascade_deleted = original.model_dump(mode="json")
+    cascade_deleted["canvasObjects"] = [
+        obj
+        for obj in cascade_deleted["canvasObjects"]
+        if obj["id"] not in {"subnet", "security"}
+    ]
+    cascade_deleted["connectors"] = []
+    assert DiagramNormalizer().normalize(cascade_deleted).connectors == []
+
+
+def test_rich_semantic_hierarchy_round_trips_through_repository(tmp_path):
+    canonical = DiagramNormalizer().normalize(
+        diagram(
+            [
+                container("region", "region", config={"region": "us-east-1"}),
+                container(
+                    "az",
+                    "availability-zone",
+                    "region",
+                    {"availability_zone": "us-east-1a"},
+                ),
+                resource("vpc", "vpc", "az", "container"),
+                resource("subnet", "subnet", "vpc", "container"),
+                resource("function", "lambda", "subnet"),
+            ]
+        ).model_dump(mode="json")
+    )
+    repo = TinyDBRepository(db_path=str(tmp_path / "semantic.json"))
+    payload = canonical.model_dump(mode="json")
+
+    diagram_id = repo.save_diagram("session", payload)
+    restored = repo.get_diagram(diagram_id)
+
+    assert restored is not None
+    assert restored.diagram_state == payload
+    assert len(restored.diagram_state["connectors"]) == 2
+
+
+def test_containment_derived_connection_uses_standard_preview_pipeline():
+    canonical = DiagramNormalizer().normalize(
+        diagram(
+            [
+                resource("vpc", "vpc", presentation="container"),
+                resource("subnet", "subnet", "vpc"),
+            ]
+        ).model_dump(mode="json")
+    )
+    previews = ConnectionPreviewer().preview_all(
+        IRBuilder().build(DiagramConverter().convert(canonical))
+    )
+
+    assert len(previews) == 1
+    assert previews[0].source_id == "vpc"
+    assert previews[0].target_id == "subnet"
+    assert previews[0].connection_type == "contains"
+
+
+def test_containment_derived_project_passes_terraform_validation(tmp_path):
+    canonical = DiagramNormalizer().normalize(
+        diagram(
+            [
+                resource("vpc", "vpc", presentation="container"),
+                resource("subnet", "subnet", "vpc"),
+            ]
+        ).model_dump(mode="json")
+    )
+    tree = CodeGenerator().generate(
+        IRBuilder().build(DiagramConverter().convert(canonical))
+    )
+    for relative_path, content in tree.items():
+        destination = Path(tmp_path, relative_path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(content)
+    environment = tmp_path / "scopes" / "environments" / "dev"
+
+    subprocess.run(
+        ["terraform", "init", "-backend=false", "-input=false"],
+        cwd=environment,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    validation = subprocess.run(
+        ["terraform", "validate", "-no-color"],
+        cwd=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert validation.returncode == 0, validation.stdout + validation.stderr
+
+
+@st.composite
+def branching_containment_trees(draw):
+    size = draw(st.integers(min_value=1, max_value=25))
+    parents: list[int | None] = [None]
+    for index in range(1, size):
+        parents.append(
+            draw(st.one_of(st.none(), st.integers(min_value=0, max_value=index - 1)))
+        )
+    return [
+        container(
+            f"node-{index}", "generic", f"node-{parent}" if parent is not None else None
+        )
+        for index, parent in enumerate(parents)
+    ]
+
+
+@given(objects=branching_containment_trees())
+def test_arbitrary_branching_trees_normalize_deterministically(objects):
+    first = DiagramNormalizer().normalize(diagram(objects).model_dump(mode="json"))
+    second = DiagramNormalizer().normalize(first.model_dump(mode="json"))
+    assert first == second
+
+
+@given(
+    operations=st.lists(
+        st.tuples(
+            st.sampled_from(["assign", "remove"]),
+            st.integers(min_value=0, max_value=7),
+            st.integers(min_value=0, max_value=7),
+        ),
+        min_size=1,
+        max_size=40,
+    )
+)
+def test_assign_reparent_remove_sequences_preserve_canonical_invariants(operations):
+    state = diagram([container(f"node-{index}", "generic") for index in range(8)])
+    service = ContainmentOperationService()
+
+    for operation, child_index, parent_index in operations:
+        request = ContainmentOperation(
+            operation=operation,
+            object_id=f"node-{child_index}",
+            parent_id=f"node-{parent_index}" if operation == "assign" else None,
+        )
+        state = service.apply(state, request).diagram
+        DiagramStateInput.model_validate(state.model_dump(mode="json"))
+
+    assert DiagramNormalizer().normalize(state.model_dump(mode="json")) == state
