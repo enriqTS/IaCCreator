@@ -1,3 +1,4 @@
+import fc from 'fast-check';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CanvasObjectContextMenu from '@/components/canvas/interactions/CanvasObjectContextMenu';
@@ -115,6 +116,41 @@ describe('semantic containment interactions', () => {
     expect(operation.mock.calls.map((call) => call[1].operation)).toEqual(['assign', 'assign', 'remove']);
   });
 
+  it('preserves hierarchy invariants through arbitrary assign, reparent, remove, and delete sequences', async () => {
+    await fc.assert(fc.asyncProperty(
+      fc.array(fc.oneof(
+        fc.record({ operation: fc.constant('assign'), parentId: fc.constantFrom('first', 'second') }),
+        fc.record({ operation: fc.constant('remove'), parentId: fc.constant(undefined) }),
+        fc.record({ operation: fc.constant('delete'), parentId: fc.constantFrom('first', 'second', 'child') }),
+      ), { minLength: 1, maxLength: 30 }),
+      async (operations) => {
+        reset([container('first'), container('second'), resource('child')]);
+        vi.spyOn(apiClient, 'applyContainmentOperation').mockImplementation(async (_diagram, intent) => successfulResponse(
+          intent.operation === 'remove' ? undefined : intent.parent_id as string,
+        ));
+
+        for (const operation of operations) {
+          const state = useDiagramStore.getState();
+          if (operation.operation === 'delete') {
+            state.removeCanvasObject(operation.parentId);
+          } else if (state.canvasObjects.has('child')) {
+            const parentId = operation.operation === 'assign' && state.canvasObjects.has(operation.parentId)
+              ? operation.parentId
+              : null;
+            await state.assignSemanticParent('child', parentId);
+          }
+
+          for (const object of useDiagramStore.getState().canvasObjects.values()) {
+            if ('parentContainerId' in object && object.parentContainerId) {
+              expect(useDiagramStore.getState().canvasObjects.has(object.parentContainerId)).toBe(true);
+              expect(object.parentContainerId).not.toBe(object.id);
+            }
+          }
+        }
+      },
+    ), { numRuns: 50 });
+  });
+
   it('assigns, reparents, and removes through backend-normalized operations', async () => {
     const operation = vi.spyOn(apiClient, 'applyContainmentOperation');
     operation.mockImplementation(async (_diagram, intent) => successfulResponse(
@@ -170,6 +206,25 @@ describe('semantic containment interactions', () => {
     render(<CanvasObjectContextMenu menu={{ objectId: 'child', x: 0, y: 0 }} onClose={close} />);
     fireEvent.click(screen.getByText('Select Container'));
     expect(useDiagramStore.getState().selectedObjectIds).toEqual(new Set(['first']));
+  });
+
+  it('offers explicit reparent and cascade choices when deleting a container', () => {
+    reset([container('parent'), container('nested', 'parent'), resource('child', 'nested')]);
+    useDiagramStore.setState({ selectedObjectIds: new Set(['nested']) });
+    const first = render(<CanvasObjectContextMenu menu={{ objectId: 'nested', x: 0, y: 0 }} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByText('Delete and Reparent Contents'));
+    expect(useDiagramStore.getState().canvasObjects.has('nested')).toBe(false);
+    expect(useDiagramStore.getState().canvasObjects.get('child')?.parentContainerId).toBe('parent');
+    first.unmount();
+
+    reset([container('parent'), container('nested', 'parent'), resource('child', 'nested')]);
+    useDiagramStore.setState({ selectedObjectIds: new Set(['nested']) });
+    render(<CanvasObjectContextMenu menu={{ objectId: 'nested', x: 0, y: 0 }} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByText('Delete Subtree'));
+    expect(useDiagramStore.getState().canvasObjects.has('nested')).toBe(false);
+    expect(useDiagramStore.getState().canvasObjects.has('child')).toBe(false);
+    expect(useDiagramStore.getState().canvasObjects.has('parent')).toBe(true);
   });
 
   it('hides and restores descendant connectors when a boundary collapses', () => {

@@ -242,9 +242,23 @@ export default function CanvasObjectContextMenu({ menu, onClose, onRename }: Can
       <div className={separatorClass} />
 
       {/* Delete */}
-      <Item destructive onClick={() => { useDiagramStore.getState().removeMultipleCanvasObjects(selectedObjectIds); onClose(); }}>
-        <Trash2 className="size-4" /> Delete
-      </Item>
+      {isSingleSelection && singleObject && isSemanticContainer(singleObject) && descendantIds.size > 0 ? (
+        <>
+          <Item destructive onClick={() => { useDiagramStore.getState().removeCanvasObject(singleObject.id); onClose(); }}>
+            <Trash2 className="size-4" /> Delete and Reparent Contents
+          </Item>
+          <Item destructive onClick={() => {
+            useDiagramStore.getState().removeMultipleCanvasObjects(new Set([singleObject.id, ...descendantIds]));
+            onClose();
+          }}>
+            <Trash2 className="size-4" /> Delete Subtree
+          </Item>
+        </>
+      ) : (
+        <Item destructive onClick={() => { useDiagramStore.getState().removeMultipleCanvasObjects(selectedObjectIds); onClose(); }}>
+          <Trash2 className="size-4" /> Delete
+        </Item>
+      )}
     </div>
   );
 }

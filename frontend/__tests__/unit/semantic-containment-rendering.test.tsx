@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import Minimap from '@/components/canvas/Minimap';
+import ElementLayer from '@/components/canvas/ElementLayer';
 import SemanticContainerComponent from '@/components/canvas/objects/SemanticContainerComponent';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock, CanvasObject, SemanticContainerObject } from '@/types/diagram';
@@ -50,6 +51,19 @@ function reset(objects: CanvasObject[] = []) {
 
 describe('semantic containment rendering', () => {
   beforeEach(() => reset());
+
+  it('renders multiple nested boundaries together in hierarchy order', () => {
+    const outer = container('outer');
+    const inner = { ...container('inner', 'outer'), position: { x: 120, y: 120 }, zIndex: 1 };
+    const workload = { ...resource('workload', 'inner'), serviceType: 'lambda' as const, presentation: 'node' as const, zIndex: 2 };
+    reset([workload, inner, outer]);
+
+    const { container: rendered } = render(<ElementLayer />);
+    const boundaries = [...rendered.querySelectorAll('[data-testid^="semantic-container-"]')];
+
+    expect(boundaries.map((boundary) => boundary.getAttribute('data-object-id'))).toEqual(['outer', 'inner']);
+    expect(rendered.querySelector('[data-object-id="workload"]')).not.toBeNull();
+  });
 
   it('renders nested boundaries and valid and invalid target states', () => {
     const scope = container('scope');
