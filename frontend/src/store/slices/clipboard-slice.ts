@@ -89,6 +89,9 @@ export const createClipboardSlice: StateCreator<DiagramStore, [], [], ClipboardS
             id: newId,
             zIndex: maxZ,
             groupId: undefined,
+            parentContainerId: obj.parentContainerId
+              ? idMap.get(obj.parentContainerId)
+              : undefined,
             position: { x: obj.position.x + offsetX, y: obj.position.y + offsetY },
           };
           nextObjects.set(newId, pasted);
@@ -99,6 +102,11 @@ export const createClipboardSlice: StateCreator<DiagramStore, [], [], ClipboardS
             id: newId,
             zIndex: maxZ,
             groupId: undefined,
+            ...('parentContainerId' in obj && {
+              parentContainerId: obj.parentContainerId
+                ? idMap.get(obj.parentContainerId)
+                : undefined,
+            }),
             position: { x: obj.position.x + offsetX, y: obj.position.y + offsetY },
           } as CanvasObject;
           nextObjects.set(newId, pasted);
@@ -188,6 +196,9 @@ export const createClipboardSlice: StateCreator<DiagramStore, [], [], ClipboardS
             id: newId,
             zIndex: maxZ,
             groupId: undefined,
+            parentContainerId: obj.parentContainerId
+              ? idMap.get(obj.parentContainerId)
+              : undefined,
             position: { x: obj.position.x + 20, y: obj.position.y + 20 },
           };
           nextObjects.set(newId, dup);
@@ -197,6 +208,11 @@ export const createClipboardSlice: StateCreator<DiagramStore, [], [], ClipboardS
             id: newId,
             zIndex: maxZ,
             groupId: undefined,
+            ...('parentContainerId' in obj && {
+              parentContainerId: obj.parentContainerId
+                ? idMap.get(obj.parentContainerId)
+                : undefined,
+            }),
             position: { x: obj.position.x + 20, y: obj.position.y + 20 },
           } as CanvasObject;
           nextObjects.set(newId, dup);

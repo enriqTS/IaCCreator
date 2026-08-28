@@ -168,6 +168,7 @@ export const createSemanticContainmentSlice: StateCreator<DiagramStore, [], [], 
       useToastStore.getState().addToast(error.message, 'error');
       return;
     }
+    get().pushHistory();
     set((current) => ({
       ...canonicalState(current.canvasObjects, result.data.diagram),
       effectiveContainmentScopes: new Map(

@@ -147,14 +147,15 @@ export const createCanvasSlice: StateCreator<DiagramStore, [], [], CanvasSlice> 
         const obj = state.canvasObjects.get(id)!;
         next.delete(id);
 
-        // Cascade-delete connectors for architecture blocks
-        let nextConnectors = state.connectors;
-        if (obj.objectType === 'architecture-block') {
-          nextConnectors = new Map(state.connectors);
-          for (const [cid, conn] of state.connectors) {
-            if (conn.sourceId === id || conn.targetId === id) {
-              nextConnectors.delete(cid);
-            }
+        const nextConnectors = new Map(state.connectors);
+        for (const [cid, conn] of state.connectors) {
+          if (conn.sourceId === id || conn.targetId === id) nextConnectors.delete(cid);
+        }
+
+        const deletedParentId = 'parentContainerId' in obj ? obj.parentContainerId : undefined;
+        for (const [childId, child] of next) {
+          if ('parentContainerId' in child && child.parentContainerId === id) {
+            next.set(childId, { ...child, parentContainerId: deletedParentId } as CanvasObject);
           }
         }
 
@@ -234,13 +235,8 @@ export const createCanvasSlice: StateCreator<DiagramStore, [], [], CanvasSlice> 
           next.delete(id);
           nextSelectedObjectIds.delete(id);
 
-          // Cascade-delete connectors for architecture blocks
-          if (obj.objectType === 'architecture-block') {
-            for (const [cid, conn] of nextConnectors) {
-              if (conn.sourceId === id || conn.targetId === id) {
-                nextConnectors.delete(cid);
-              }
-            }
+          for (const [cid, conn] of nextConnectors) {
+            if (conn.sourceId === id || conn.targetId === id) nextConnectors.delete(cid);
           }
 
           // Handle group membership
@@ -261,6 +257,18 @@ export const createCanvasSlice: StateCreator<DiagramStore, [], [], CanvasSlice> 
               }
             }
           }
+        }
+
+        for (const [childId, child] of next) {
+          if (!('parentContainerId' in child) || !child.parentContainerId || !ids.has(child.parentContainerId)) continue;
+          let parentId: string | undefined = child.parentContainerId;
+          const visited = new Set<string>();
+          while (parentId && ids.has(parentId) && !visited.has(parentId)) {
+            visited.add(parentId);
+            const parent = state.canvasObjects.get(parentId);
+            parentId = parent && 'parentContainerId' in parent ? parent.parentContainerId : undefined;
+          }
+          next.set(childId, { ...child, parentContainerId: parentId } as CanvasObject);
         }
 
         // Detach anchors on remaining lines that reference any deleted object
