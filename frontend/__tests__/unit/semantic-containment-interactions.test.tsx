@@ -5,6 +5,8 @@ import ElementLayer from '@/components/canvas/ElementLayer';
 import { apiClient } from '@/utils/api-client';
 import { useDiagramStore } from '@/store/diagram-store';
 import { useEditorDomainStore } from '@/store/editor-domain-store';
+import { useLayoutPreferencesStore } from '@/store/layout-preferences-store';
+import { useSnapDrag } from '@/hooks/useSnapDrag';
 import type { ArchitectureBlock, CanvasObject, LineObject, SemanticContainerObject } from '@/types/diagram';
 
 function container(id: string, parentContainerId?: string): SemanticContainerObject {
@@ -55,6 +57,12 @@ function reset(objects: CanvasObject[]) {
   useEditorDomainStore.setState({
     containmentRules: [{ child_type: 'lambda', parent_type: 'generic' }],
   });
+  useLayoutPreferencesStore.setState({ snapToGridEnabled: false, alignmentGuidesEnabled: false });
+}
+
+function DragHarness() {
+  const { handleMouseDown } = useSnapDrag({ objectId: 'child', isSelected: true });
+  return <button type="button" onPointerDown={handleMouseDown}>Drag child</button>;
 }
 
 function successfulResponse(parentContainerId?: string) {
@@ -74,6 +82,37 @@ describe('semantic containment interactions', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     reset([container('first'), container('second'), resource('child')]);
+  });
+
+  it('drags into, between, and out of containers through the interaction hook', async () => {
+    reset([
+      { ...container('first'), position: { x: 100, y: 100 } },
+      { ...container('second'), position: { x: 500, y: 100 } },
+      { ...resource('child'), position: { x: 900, y: 100 } },
+    ]);
+    useDiagramStore.setState({ selectedObjectIds: new Set(['child']) });
+    const operation = vi.spyOn(apiClient, 'applyContainmentOperation');
+    operation.mockImplementation(async (_diagram, intent) => successfulResponse(
+      intent.operation === 'remove' ? undefined : intent.parent_id as string,
+    ));
+    render(<DragHarness />);
+    const drag = screen.getByRole('button', { name: 'Drag child' });
+
+    fireEvent.pointerDown(drag, { button: 0, clientX: 900, clientY: 100 });
+    fireEvent.pointerMove(window, { clientX: 100, clientY: 100 });
+    fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+    await waitFor(() => expect(useDiagramStore.getState().canvasObjects.get('child')?.parentContainerId).toBe('first'));
+
+    fireEvent.pointerDown(drag, { button: 0, clientX: 100, clientY: 100 });
+    fireEvent.pointerMove(window, { clientX: 500, clientY: 100 });
+    fireEvent.pointerUp(window, { clientX: 500, clientY: 100 });
+    await waitFor(() => expect(useDiagramStore.getState().canvasObjects.get('child')?.parentContainerId).toBe('second'));
+
+    fireEvent.pointerDown(drag, { button: 0, clientX: 500, clientY: 100 });
+    fireEvent.pointerMove(window, { clientX: 900, clientY: 100 });
+    fireEvent.pointerUp(window, { clientX: 900, clientY: 100 });
+    await waitFor(() => expect(useDiagramStore.getState().canvasObjects.get('child')?.parentContainerId).toBeUndefined());
+    expect(operation.mock.calls.map((call) => call[1].operation)).toEqual(['assign', 'assign', 'remove']);
   });
 
   it('assigns, reparents, and removes through backend-normalized operations', async () => {
