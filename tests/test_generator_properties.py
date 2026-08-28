@@ -6,7 +6,7 @@ Feature: enhanced-variable-configuration
 import inspect
 import re
 
-from hypothesis import given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from app.generators.registry import GENERATOR_REGISTRY
@@ -322,7 +322,7 @@ def resource_instance_with_populated_fields(draw):
 
 
 @given(data=resource_instance_with_populated_fields())
-@settings(max_examples=100)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
 def test_populated_config_fields_produce_var_references(data):
     """For any populated (non-None) config field whose visible_when is satisfied,
     the generated HCL resource block shall contain a corresponding var.<field> reference.

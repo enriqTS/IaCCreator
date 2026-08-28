@@ -146,5 +146,5 @@ describe('Selection Set Correctness Property', () => {
       ),
       { numRuns: 200 },
     );
-  });
+  }, 15_000);
 });

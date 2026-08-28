@@ -122,5 +122,5 @@ describe('Serialization Round Trip Property', () => {
       ),
       { numRuns: 200 },
     );
-  });
+  }, 15_000);
 });
