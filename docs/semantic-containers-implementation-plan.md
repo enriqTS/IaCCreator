@@ -587,7 +587,7 @@ Implement in dependency order:
 3. [x] Backend-defined generic typed architecture boundaries for AWS Organizations, organizational units, and accounts.
 4. [x] Environment-specific scope views using environment `region` and `availability_zone` overrides without duplicating canonical resources.
 5. [x] Provider aliases and multi-region generation with per-resource module provider selection and environment Region overrides.
-6. [ ] Cross-region connection validation.
+6. [x] Cross-region connection validation driven by per-connection registry policy with typed containment issues and generation rejection.
 7. [ ] Import of existing architectures into semantic boundaries.
 
 ### Completion criteria

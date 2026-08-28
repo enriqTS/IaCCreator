@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 from app.models.connection_configs._metadata import ConnectionFieldSchema
@@ -15,6 +17,7 @@ class ConnectionSchemaEntry(BaseModel):
     connection_type: str
     label: str
     is_default: bool
+    region_policy: Literal["same-region", "cross-region"]
     fields: list[ConnectionFieldSchema]
 
 

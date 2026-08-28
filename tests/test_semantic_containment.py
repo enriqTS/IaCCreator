@@ -86,6 +86,35 @@ def test_typed_boundaries_can_nest_deployment_scopes():
     assert normalized.canvasObjects[-1].parentContainerId == "account"
 
 
+def test_reports_typed_issue_for_unsupported_cross_region_connection():
+    state = diagram(
+        [
+            container("east", "region", config={"region": "us-east-1"}),
+            resource("east-vpc", "vpc", "east", "container"),
+            resource("east-subnet", "subnet", "east-vpc", "container"),
+            container("west", "region", config={"region": "us-west-2"}),
+            resource("west-vpc", "vpc", "west", "container"),
+            resource("west-subnet", "subnet", "west-vpc", "container"),
+            resource("function", "lambda", "west-subnet"),
+        ]
+    )
+    payload = state.model_dump(mode="json")
+    payload["connectors"] = [
+        {
+            "id": "cross-region-placement",
+            "sourceId": "east-subnet",
+            "targetId": "function",
+            "connectionType": "places",
+        }
+    ]
+
+    resolution = ContainmentResolver().resolve(
+        DiagramStateInput.model_validate(payload)
+    )
+
+    assert any(issue.code == "cross-region-connection" for issue in resolution.issues)
+
+
 def test_multi_region_containment_selects_provider_aliases_for_modules():
     state = diagram(
         [

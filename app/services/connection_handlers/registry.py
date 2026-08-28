@@ -1,6 +1,7 @@
 """Connection registry — the single source of truth for which connections exist."""
 
 from dataclasses import dataclass
+from typing import Literal
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs.configs import (
@@ -58,6 +59,7 @@ class ConnectionSpec:
     handler: ConnectionHandler
     # Chosen when a payload does not name a connection_type for this pair
     is_default: bool = True
+    region_policy: Literal["same-region", "cross-region"] = "same-region"
 
     @property
     def key(self) -> tuple[ServiceType, ServiceType, str]:
@@ -210,6 +212,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Lambda → DynamoDB",
         config_model=LambdaDynamoDBConfig,
         handler=IamGrantHandler(ServiceType.DYNAMODB),
+        region_policy="cross-region",
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,
@@ -218,6 +221,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Lambda → S3",
         config_model=LambdaS3Config,
         handler=IamGrantHandler(ServiceType.S3),
+        region_policy="cross-region",
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,
@@ -234,6 +238,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Lambda → SNS",
         config_model=EmptyConnectionConfig,
         handler=IamGrantHandler(ServiceType.SNS, access_pattern="full"),
+        region_policy="cross-region",
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,
@@ -242,6 +247,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Lambda → SQS",
         config_model=EmptyConnectionConfig,
         handler=IamGrantHandler(ServiceType.SQS, access_pattern="write"),
+        region_policy="cross-region",
     ),
     ConnectionSpec(
         source=ServiceType.S3,
@@ -266,6 +272,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="ECS → DynamoDB",
         config_model=LambdaDynamoDBConfig,
         handler=IamGrantHandler(ServiceType.DYNAMODB),
+        region_policy="cross-region",
     ),
     ConnectionSpec(
         source=ServiceType.ECS,
@@ -274,6 +281,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="ECS → S3",
         config_model=LambdaS3Config,
         handler=IamGrantHandler(ServiceType.S3),
+        region_policy="cross-region",
     ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,
@@ -306,6 +314,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="SNS → SQS",
         config_model=EmptyConnectionConfig,
         handler=SNSSQSHandler(),
+        region_policy="cross-region",
     ),
     ConnectionSpec(
         source=ServiceType.SNS,

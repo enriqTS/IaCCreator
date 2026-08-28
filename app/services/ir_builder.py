@@ -6,6 +6,7 @@ from collections import defaultdict
 from pydantic import ValidationError
 
 from app.exceptions import (
+    CrossRegionConnectionError,
     IncompatibleConnectionError,
     InvalidConnectionConfigError,
     ResourceNotFoundError,
@@ -161,6 +162,7 @@ class IRBuilder:
                     target_service_type=target_resource.service_type.value,
                 )
 
+            self._validate_connection_regions(source_resource, target_resource, spec)
             connection_config = conn.connection_config
 
             # Derive routes from API Gateway config for route_handler connections
@@ -189,6 +191,24 @@ class IRBuilder:
             )
 
         return result
+
+    @staticmethod
+    def _validate_connection_regions(source_resource, target_resource, spec) -> None:
+        source_region = source_resource.provider_region
+        target_region = target_resource.provider_region
+        if (
+            spec.region_policy == "same-region"
+            and source_region
+            and target_region
+            and source_region != target_region
+        ):
+            raise CrossRegionConnectionError(
+                source_resource.name,
+                source_region,
+                target_resource.name,
+                target_region,
+                spec.connection_type,
+            )
 
     @staticmethod
     def _validate_config(conn: Connection, spec, connection_config: dict) -> dict:

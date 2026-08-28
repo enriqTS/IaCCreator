@@ -157,6 +157,57 @@ class ContainmentResolver:
                         source_id=source,
                     )
                 )
+        scope_by_id = {scope.object_id: scope for scope in scopes}
+        connection_candidates = [
+            (
+                connector.sourceId,
+                connector.targetId,
+                connector.connectionType,
+                connector.connection_config or {},
+            )
+            for connector in diagram.connectors
+            if connector.origin == "explicit"
+        ] + [
+            (
+                connection.source_id,
+                connection.target_id,
+                connection.connection_type,
+                {},
+            )
+            for connection in derived
+        ]
+        for source_id, target_id, connection_type, config in connection_candidates:
+            source = objects.get(source_id)
+            target = objects.get(target_id)
+            if (
+                source is None
+                or target is None
+                or source.objectType != "architecture-block"
+                or target.objectType != "architecture-block"
+            ):
+                continue
+            spec = resolve_spec(
+                source.serviceType, target.serviceType, connection_type, config
+            )
+            source_region = scope_by_id[source_id].region
+            target_region = scope_by_id[target_id].region
+            if (
+                spec is not None
+                and spec.region_policy == "same-region"
+                and source_region != target_region
+            ):
+                issues.append(
+                    ContainmentIssue(
+                        code="cross-region-connection",
+                        message=(
+                            f"{source.name} ({source_region}) → {target.name} "
+                            f"({target_region}) cannot use {spec.connection_type} "
+                            "across Regions"
+                        ),
+                        object_id=target_id,
+                    )
+                )
+
         environment_scopes = [
             EnvironmentScopeView(
                 environment=environment.name,

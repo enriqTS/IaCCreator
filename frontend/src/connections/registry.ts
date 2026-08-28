@@ -62,5 +62,6 @@ export interface ConnectionSchema {
   connectionType: string;
   label: string;
   isDefault: boolean;
+  regionPolicy: 'same-region' | 'cross-region';
   fields: SchemaField[];
 }

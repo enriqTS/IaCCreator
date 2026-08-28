@@ -29,6 +29,28 @@ class IncompatibleConnectionError(DomainError):
         )
 
 
+class CrossRegionConnectionError(DomainError):
+    """Raised when a connection requires both endpoints in one AWS Region."""
+
+    def __init__(
+        self,
+        source: str,
+        source_region: str,
+        target: str,
+        target_region: str,
+        connection_type: str,
+    ):
+        self.source = source
+        self.source_region = source_region
+        self.target = target
+        self.target_region = target_region
+        self.connection_type = connection_type
+        super().__init__(
+            f"Connection '{source}' ({source_region}) → '{target}' ({target_region}) "
+            f"cannot use '{connection_type}' across Regions"
+        )
+
+
 class GeneratorConfigError(DomainError):
     """Raised when a generator receives a config instance of an unexpected type."""
 

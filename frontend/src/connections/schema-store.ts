@@ -58,6 +58,7 @@ export interface ApiConnection {
   connection_type: string;
   label: string;
   is_default: boolean;
+  region_policy: 'same-region' | 'cross-region';
   fields: ApiField[];
 }
 
@@ -140,6 +141,7 @@ function toSchema(connection: ApiConnection): ConnectionSchema {
     connectionType: connection.connection_type,
     label: connection.label,
     isDefault: connection.is_default,
+    regionPolicy: connection.region_policy,
     fields: connection.fields.map(toField),
   };
 }

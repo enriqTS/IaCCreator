@@ -19,13 +19,13 @@ ArchitectureDescription
 
 ## Connections
 
-`app/services/connection_handlers/registry.py` is the single source of truth. Each `ConnectionSpec` defines source and target service types, a connection type, label, default selection, config model, and handler. `resolve_spec()` supports exact matches, legacy API Gateway roles, and the default for an unambiguous pair.
+`app/services/connection_handlers/registry.py` is the single source of truth. Each `ConnectionSpec` defines source and target service types, a connection type, label, default selection, Region policy, config model, and handler. `resolve_spec()` supports exact matches, legacy API Gateway roles, and the default for an unambiguous pair.
 
 Handlers return `ConnectionContribution`, not generated files alone. A contribution can add module inputs, outputs, module-owned HCL resources, and IAM grants. `ConnectionProcessor` merges all contributions, then attaches grants to the instance owning the execution role.
 
 The current registry includes API Gateway route-handler and authorizer connections; Lambda, ECS, S3, DynamoDB, SNS, and SQS wiring; DynamoDB streams; EventBridge targets; foundational VPC membership and routing; and workload network placement. Reusable placement handlers aggregate Subnet and Security Group module references by sorted source name, so multiple connections produce one deterministic list input without merge collisions. Supported list-valued targets include Lambda, EKS, EC2 Auto Scaling, Load Balancer, EFS, MemoryDB, DMS, MQ, MWAA, Network Firewall, and Client VPN.
 
-`ConnectionPreviewer` invokes the same handler behavior to return generated resources, IAM grants, and handler-reported issues for the editor.
+`ConnectionPreviewer` invokes the same handler behavior to return generated resources, IAM grants, and handler-reported issues for the editor. Same-Region policies reject invalid generation, while containment resolution reports a typed `cross-region-connection` issue; explicitly cross-Region IAM and delivery relationships are marked in the registry.
 
 ## File assembly
 

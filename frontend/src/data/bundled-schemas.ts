@@ -1597,6 +1597,22 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     },
     {
+      "description": "Subnets associated with the Client VPN endpoint",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "Security groups applied to Client VPN associations",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
       "default": true,
       "description": "Enable split-tunnel routing",
       "group": "General",
@@ -2949,6 +2965,23 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "instance_type",
       "required": false,
       "type": "string"
+    },
+    {
+      "default": "",
+      "description": "Subnet ID",
+      "group": "Network",
+      "label": "Subnet ID",
+      "name": "subnet_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Security group IDs",
+      "group": "Network",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
     }
   ],
   "ec2-auto-scaling": [
@@ -4569,22 +4602,20 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     },
     {
-      "default": "",
-      "description": "Comma-separated subnet IDs",
+      "description": "Load balancer subnet IDs",
       "group": "General",
       "label": "Subnet IDs",
       "name": "subnet_ids",
       "required": false,
-      "type": "string"
+      "type": "list"
     },
     {
-      "default": "",
-      "description": "Comma-separated security group IDs",
+      "description": "Load balancer security group IDs",
       "group": "General",
       "label": "Security group IDs",
       "name": "security_group_ids",
       "required": false,
-      "type": "string",
+      "type": "list",
       "visible_when": {
         "equals": "application",
         "field": "load_balancer_type"
@@ -5147,13 +5178,12 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     },
     {
-      "default": "",
-      "description": "Firewall endpoint subnet ID",
+      "description": "Firewall endpoint subnet IDs",
       "group": "General",
-      "label": "Subnet ID",
-      "name": "subnet_id",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
       "required": false,
-      "type": "string"
+      "type": "list"
     },
     {
       "default": "",

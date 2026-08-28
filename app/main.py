@@ -342,6 +342,7 @@ async def get_connection_schemas() -> ConnectionSchemasResponse:
                 connection_type=spec.connection_type,
                 label=spec.label,
                 is_default=spec.is_default,
+                region_policy=spec.region_policy,
                 fields=spec.config_model.get_field_schema(),
             )
             for spec in CONNECTION_SPECS
