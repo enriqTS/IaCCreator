@@ -1,3 +1,4 @@
+import fc from 'fast-check';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useDiagramStore } from '@/store/diagram-store';
 import type { ArchitectureBlock, CanvasObject, Connector, SemanticContainerObject } from '@/types/diagram';
@@ -120,6 +121,44 @@ describe('semantic containment lifecycle', () => {
 
     expect(useDiagramStore.getState().canvasObjects.get('child')?.position).toEqual(originalPosition);
     expect(useDiagramStore.getState().canvasObjects.get('child')?.visualConfig).toEqual(originalSize);
+  });
+
+  it('keeps connector identity stable after subtree movement', () => {
+    const root = container('root');
+    const child = resource('child', 'root');
+    const connector: Connector = { id: 'stable', sourceId: 'root', targetId: 'child', connectionType: 'contains', origin: 'containment' };
+    reset([root, child], [connector]);
+    useDiagramStore.setState({ selectedObjectIds: new Set(['root']) });
+
+    useDiagramStore.getState().moveSelectedObjects(25, -10);
+
+    expect(useDiagramStore.getState().connectors.get('stable')).toEqual(connector);
+  });
+
+  it('preserves hierarchy through arbitrary geometry and presentation operation sequences', () => {
+    fc.assert(fc.property(
+      fc.array(fc.oneof(
+        fc.record({ kind: fc.constant('move'), dx: fc.integer({ min: -50, max: 50 }), dy: fc.integer({ min: -50, max: 50 }) }),
+        fc.record({ kind: fc.constant('resize'), width: fc.integer({ min: 40, max: 500 }), height: fc.integer({ min: 40, max: 500 }) }),
+        fc.record({ kind: fc.constant('collapse') }),
+      ), { minLength: 1, maxLength: 50 }),
+      (operations) => {
+        const root = container('root');
+        const nested = container('nested', 'root');
+        const child = resource('child', 'nested');
+        reset([root, nested, child]);
+        useDiagramStore.setState({ selectedObjectIds: new Set(['root']) });
+
+        for (const operation of operations) {
+          if (operation.kind === 'move') useDiagramStore.getState().moveSelectedObjects(operation.dx, operation.dy);
+          else if (operation.kind === 'resize') useDiagramStore.getState().updateObjectBounds('root', operation);
+          else useDiagramStore.getState().toggleContainerCollapsed('root');
+        }
+
+        expect(useDiagramStore.getState().canvasObjects.get('nested')?.parentContainerId).toBe('root');
+        expect(useDiagramStore.getState().canvasObjects.get('child')?.parentContainerId).toBe('nested');
+      },
+    ));
   });
 
   it('keeps semantic boundaries out of routing obstacles', () => {
