@@ -1,5 +1,24 @@
 # Service Connections Implementation Plan
 
+## Implementation status
+
+Legend: `[x]` implemented, `[-]` partially implemented, `[ ]` not implemented.
+
+Current phase status:
+
+- [-] Phase 1 foundational networking: VPC membership, routes, subnet placement, and most security-group placement are implemented; EKS and EC2 Auto Scaling security-group wiring remains.
+- [ ] Phase 2 ingress, load balancing, and DNS.
+- [ ] Phase 3 encryption and secrets.
+- [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
+- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and DMS network placement exist; the listed database integrations remain.
+- [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
+- [ ] Phase 7 identity, certificates, and edge security.
+- [-] Phase 8 observability, governance, and security administration: Lambda-to-CloudWatch logging exists; the broader phase remains.
+- [ ] Phase 9 CI/CD and container delivery.
+- [ ] Phase 10 analytics and streaming.
+- [ ] Phase 11 machine learning.
+- [-] Phase 12 IoT, media, migration, and advanced networking: foundational Network Firewall and Client VPN placement exists; the listed advanced integrations remain.
+
 ## Purpose
 
 This document is the roadmap for adding semantic connections now that the supported AWS service generators are implemented. It focuses on relationships that replace copied IDs and ARNs with Terraform references, create relationship resources, and grant narrowly scoped IAM access.
@@ -8,21 +27,11 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 115 Terraform-capable service types, while the connection registry contains 16 connection specifications involving only nine services:
+The generator registry contains 115 Terraform-capable service types, while the connection registry contains 49 connection specifications involving 29 services.
 
-- API Gateway
-- Lambda
-- ECS
-- DynamoDB
-- S3
-- CloudWatch
-- SNS
-- SQS
-- EventBridge
+Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement; route-table associations; and managed Internet, NAT, and transit-gateway routes.
 
-The current connections cover API Gateway Lambda integrations and authorizers, Lambda and ECS IAM access, Lambda log delivery, S3 notifications, DynamoDB streams, EventBridge targets, SNS subscriptions, and SQS event sources.
-
-The remaining 106 generated services do not participate in a registered semantic connection. Most cross-resource fields therefore require users to enter IDs, ARNs, names, or endpoints manually.
+Most generated services still do not participate in a registered semantic connection. Cross-resource fields outside the implemented coverage therefore still require users to enter IDs, ARNs, names, or endpoints manually.
 
 ## Design rules
 
@@ -43,17 +52,17 @@ Every connection must follow these rules:
 
 Before implementing the domain batches, add reusable handlers or collaborators for recurring contribution patterns:
 
-- scalar module-input references;
-- append-to-list module-input references;
-- execution-role IAM grants;
-- subnet and security-group placement;
-- KMS encryption references and grants;
-- route and association resources;
-- target attachments;
-- event-source mappings;
-- notifications and subscriptions;
-- service-role creation;
-- DNS aliases and validation records.
+- [x] scalar module-input references;
+- [x] append-to-list module-input references;
+- [x] execution-role IAM grants;
+- [x] subnet and security-group placement;
+- [ ] KMS encryption references and grants;
+- [x] route and association resources;
+- [ ] target attachments;
+- [x] event-source mappings;
+- [x] notifications and subscriptions;
+- [ ] connection-owned service-role creation;
+- [ ] DNS aliases and validation records.
 
 Split connection config models and handlers into focused modules as the registry grows. Do not turn the registry, config module, or a generic handler into a god object.
 
@@ -65,13 +74,13 @@ Generators must expose stable outputs needed by connections, normally IDs, ARNs,
 
 Implement:
 
-- VPC → Subnet: supply `vpc_id`.
-- VPC → Security Group: supply `vpc_id`.
-- VPC → Route Table: supply `vpc_id`.
-- VPC → Internet Gateway: supply `vpc_id`.
-- VPC → private Route 53 hosted zone: create the VPC association.
-- VPC → Target Group: supply `vpc_id`.
-- VPC → Network Firewall: supply `vpc_id`.
+- [x] VPC → Subnet: supply `vpc_id`.
+- [x] VPC → Security Group: supply `vpc_id`.
+- [x] VPC → Route Table: supply `vpc_id`.
+- [x] VPC → Internet Gateway: supply `vpc_id`.
+- [x] VPC → private Route 53 hosted zone: create the VPC association.
+- [x] VPC → Target Group: supply `vpc_id`.
+- [x] VPC → Network Firewall: supply `vpc_id`.
 
 Use a reusable VPC-reference contribution where ownership semantics are identical.
 
@@ -79,13 +88,13 @@ Use a reusable VPC-reference contribution where ownership semantics are identica
 
 Implement:
 
-- Subnet → NAT Gateway: supply `subnet_id`.
-- Subnet → Route Table: create `aws_route_table_association`.
-- Internet Gateway → Route Table: add an internet route.
-- NAT Gateway → Route Table: add a NAT route.
-- Transit Gateway → Route Table: add a transit-gateway route where applicable.
-- Subnet → Network Firewall: append firewall subnet mappings.
-- Subnet → Client VPN: create `aws_ec2_client_vpn_network_association`.
+- [x] Subnet → NAT Gateway: supply `subnet_id`.
+- [x] Subnet → Route Table: create `aws_route_table_association`.
+- [x] Internet Gateway → Route Table: add an internet route.
+- [x] NAT Gateway → Route Table: add a NAT route.
+- [x] Transit Gateway → Route Table: add a transit-gateway route where applicable.
+- [x] Subnet → Network Firewall: append firewall subnet mappings.
+- [x] Subnet → Client VPN: create `aws_ec2_client_vpn_network_association`.
 
 Add typed route configuration for destination CIDRs and validate gateway-specific requirements.
 
@@ -93,27 +102,27 @@ Add typed route configuration for destination CIDRs and validate gateway-specifi
 
 Add subnet and security-group connections for:
 
-- Lambda
-- EC2
-- EKS
-- EC2 Auto Scaling
-- Load Balancer
-- EFS
-- MemoryDB
-- DMS
-- MQ
-- MWAA
-- Network Firewall
-- Client VPN
+- [x] Lambda
+- [x] EC2
+- [-] EKS: subnet placement exists; security-group wiring remains.
+- [-] EC2 Auto Scaling: subnet placement exists; security-group wiring remains.
+- [x] Load Balancer
+- [x] EFS
+- [x] MemoryDB
+- [x] DMS
+- [x] MQ
+- [x] MWAA
+- [x] Network Firewall
+- [x] Client VPN
 
 List-valued contributions must merge multiple connectors without replacing existing external-resource values.
 
 ### Completion criteria
 
-- A VPC architecture can be assembled without manually copying VPC, subnet, or security-group IDs.
-- Public and private routes are represented by typed connections.
-- Multiple subnet and security-group connections aggregate correctly.
-- Generated networking projects pass Terraform validation.
+- [-] A VPC architecture can be assembled without manually copying VPC, subnet, or security-group IDs; EKS and EC2 Auto Scaling security groups remain.
+- [x] Public and private routes are represented by typed connections.
+- [x] Multiple subnet and security-group connections aggregate correctly.
+- [x] Generated networking projects pass Terraform validation.
 
 ## Phase 2 — Ingress, load balancing, and DNS
 
