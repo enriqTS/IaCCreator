@@ -10,6 +10,7 @@ from app.models.connection_configs.configs import (
     DynamoDBLambdaConfig,
     EmptyConnectionConfig,
     EventBridgeTargetConfig,
+    GatewayRouteConfig,
     LambdaDynamoDBConfig,
     LambdaS3Config,
     S3LambdaConfig,
@@ -27,6 +28,7 @@ from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
     EventBridgeSQSHandler,
 )
+from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
 from app.services.connection_handlers.network_placement import (
@@ -100,6 +102,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
     ],
     ConnectionSpec(
         source=ServiceType.VPC,
+        target=ServiceType.NETWORK_FIREWALL,
+        connection_type="contains",
+        label="VPC → Network Firewall",
+        config_model=EmptyConnectionConfig,
+        handler=VpcMembershipHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.VPC,
         target=ServiceType.ROUTE53,
         connection_type="contains",
         label="VPC → private Route 53 hosted zone",
@@ -122,6 +132,29 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         config_model=EmptyConnectionConfig,
         handler=RouteTableAssociationHandler(),
     ),
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.ROUTE_TABLE,
+            connection_type="routes",
+            label=f"{source.value} → Route Table",
+            config_model=GatewayRouteConfig,
+            handler=GatewayRouteHandler(output_name, argument_name),
+        )
+        for source, output_name, argument_name in (
+            (
+                ServiceType.INTERNET_GATEWAY,
+                "internet_gateway_id",
+                "gateway_id",
+            ),
+            (ServiceType.NAT_GATEWAY, "nat_gateway_id", "nat_gateway_id"),
+            (
+                ServiceType.TRANSIT_GATEWAY,
+                "transit_gateway_id",
+                "transit_gateway_id",
+            ),
+        )
+    ],
     ConnectionSpec(
         source=ServiceType.SUBNET,
         target=ServiceType.EC2,

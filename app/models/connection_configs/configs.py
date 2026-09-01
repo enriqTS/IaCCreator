@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import (
@@ -236,6 +236,33 @@ class DynamoDBLambdaConfig(BaseConnectionConfig):
             ]
         ),
     )
+
+
+class GatewayRouteConfig(BaseConnectionConfig):
+    """A route from a route table through a managed gateway."""
+
+    destination_cidr_block: str = ConnectionField(
+        "0.0.0.0/0",
+        label="Destination CIDR",
+        description="IPv4 network reached through this gateway",
+        validation=ValidationRule(
+            pattern=r"^(?:\d{1,3}\.){3}\d{1,3}/(?:[0-9]|[12][0-9]|3[0-2])$",
+            pattern_description="Must be an IPv4 CIDR block",
+        ),
+    )
+
+    @field_validator("destination_cidr_block")
+    @classmethod
+    def validate_destination(cls, value: str) -> str:
+        from ipaddress import IPv4Network
+
+        try:
+            IPv4Network(value, strict=True)
+        except ValueError as exc:
+            raise ValueError(
+                "destination_cidr_block must be an IPv4 network CIDR"
+            ) from exc
+        return value
 
 
 class EventBridgeTargetConfig(BaseConnectionConfig):
