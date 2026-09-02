@@ -238,6 +238,19 @@ class DynamoDBLambdaConfig(BaseConnectionConfig):
     )
 
 
+class TargetGroupAttachmentConfig(BaseConnectionConfig):
+    """An EC2 instance registered with a load balancer target group."""
+
+    port: int | None = ConnectionField(
+        None,
+        label="Port Override",
+        description="Optional port used when registering this target",
+        type="number",
+        placeholder="Uses the target group port",
+        validation=ValidationRule(min=1, max=65535),
+    )
+
+
 class GatewayRouteConfig(BaseConnectionConfig):
     """A route from a route table through a managed gateway."""
 

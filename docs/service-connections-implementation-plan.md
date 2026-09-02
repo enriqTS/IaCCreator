@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 115 Terraform-capable service types, while the connection registry contains 51 connection specifications involving 29 services.
+The generator registry contains 115 Terraform-capable service types, while the connection registry contains 52 connection specifications involving 29 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; and Target Group attachment to EC2 Auto Scaling.
 
@@ -58,7 +58,7 @@ Before implementing the domain batches, add reusable handlers or collaborators f
 - [x] subnet and security-group placement;
 - [ ] KMS encryption references and grants;
 - [x] route and association resources;
-- [ ] target attachments;
+- [x] target attachments;
 - [x] event-source mappings;
 - [x] notifications and subscriptions;
 - [ ] connection-owned service-role creation;
@@ -129,7 +129,7 @@ List-valued contributions must merge multiple connectors without replacing exist
 Implement:
 
 - [ ] Load Balancer → Target Group: create listener/default-action wiring.
-- [ ] Target Group → EC2: create target attachment.
+- [x] Target Group → EC2: create target attachment.
 - [x] Target Group → EC2 Auto Scaling: supply target-group ARNs.
 - [ ] Target Group → ECS: configure the ECS service load-balancer block.
 - [ ] Target Group → Lambda: create attachment and invoke permission where supported.

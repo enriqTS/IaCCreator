@@ -15,6 +15,7 @@ from app.models.connection_configs.configs import (
     LambdaS3Config,
     S3LambdaConfig,
     SqsLambdaConfig,
+    TargetGroupAttachmentConfig,
 )
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
@@ -47,6 +48,9 @@ from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
 from app.services.connection_handlers.subnet_membership import SubnetMembershipHandler
+from app.services.connection_handlers.target_group_attachment import (
+    TargetGroupEC2AttachmentHandler,
+)
 from app.services.connection_handlers.vpc_membership import VpcMembershipHandler
 
 
@@ -223,6 +227,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.CLIENT_VPN,
         )
     ],
+    ConnectionSpec(
+        source=ServiceType.TARGET_GROUP,
+        target=ServiceType.EC2,
+        connection_type="attaches",
+        label="Target Group → EC2",
+        config_model=TargetGroupAttachmentConfig,
+        handler=TargetGroupEC2AttachmentHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.TARGET_GROUP,
         target=ServiceType.EC2_AUTO_SCALING,
