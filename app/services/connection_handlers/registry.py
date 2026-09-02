@@ -22,6 +22,10 @@ from app.models.connection_configs.configs import (
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
 from app.services.connection_handlers.base import ConnectionHandler
+from app.services.connection_handlers.certificate import (
+    CertificateCloudFrontHandler,
+    CertificateLoadBalancerHandler,
+)
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
 from app.services.connection_handlers.ec2_placement import (
@@ -240,6 +244,23 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.CLIENT_VPN,
         )
     ],
+    ConnectionSpec(
+        source=ServiceType.CERTIFICATE_MANAGER,
+        target=ServiceType.LOAD_BALANCER,
+        connection_type="secures",
+        label="Certificate Manager → Load Balancer",
+        config_model=EmptyConnectionConfig,
+        handler=CertificateLoadBalancerHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.CERTIFICATE_MANAGER,
+        target=ServiceType.CLOUDFRONT,
+        connection_type="secures",
+        label="Certificate Manager → CloudFront",
+        config_model=EmptyConnectionConfig,
+        handler=CertificateCloudFrontHandler(),
+        region_policy="cross-region",
+    ),
     ConnectionSpec(
         source=ServiceType.WAF,
         target=ServiceType.LOAD_BALANCER,

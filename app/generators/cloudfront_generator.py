@@ -50,7 +50,17 @@ class CloudFrontGenerator:
             "restrictions": [
                 {"geo_restriction": {"restriction_type": "none", "locations": []}}
             ],
-            "viewer_certificate": [{"cloudfront_default_certificate": True}],
+            "viewer_certificate": [
+                {
+                    "cloudfront_default_certificate": True,
+                }
+                if config.certificate_arn is None
+                else {
+                    "acm_certificate_arn": Expr("var.certificate_arn"),
+                    "ssl_support_method": "sni-only",
+                    "minimum_protocol_version": "TLSv1.2_2021",
+                }
+            ],
         }
         if config.default_root_object is not None:
             attrs["default_root_object"] = Expr("var.default_root_object")
@@ -79,6 +89,12 @@ class CloudFrontGenerator:
             parts.append(
                 self._r.render_variable(
                     "default_root_object", "string", "Default root object"
+                )
+            )
+        if config.certificate_arn is not None:
+            parts.append(
+                self._r.render_variable(
+                    "certificate_arn", "string", "ACM certificate ARN"
                 )
             )
         if config.web_acl_id is not None:

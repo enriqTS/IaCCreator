@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 115 Terraform-capable service types, while the connection registry contains 58 connection specifications involving 29 services.
+The generator registry contains 115 Terraform-capable service types, while the connection registry contains 60 connection specifications involving 29 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; and Target Group attachment to EC2 Auto Scaling.
 
@@ -136,8 +136,8 @@ Implement:
 - [x] Route 53 → Load Balancer: create alias records.
 - [x] Route 53 → CloudFront: create alias records.
 - [ ] Route 53 → Global Accelerator: create aliases where supported.
-- [ ] Certificate Manager → Load Balancer: configure HTTPS listener certificates.
-- [ ] Certificate Manager → CloudFront: configure the viewer certificate.
+- [x] Certificate Manager → Load Balancer: configure HTTPS listener certificates.
+- [x] Certificate Manager → CloudFront: configure the viewer certificate.
 - [x] WAF → Load Balancer: create a web ACL association.
 - [x] WAF → CloudFront: supply the web ACL ARN.
 - [ ] Global Accelerator → Load Balancer: create endpoint-group and endpoint wiring.

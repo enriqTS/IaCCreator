@@ -24,6 +24,9 @@ class CloudFrontConfig(BaseServiceConfig):
             OptionEntry(value="redirect-to-https", label="Redirect to HTTPS"),
         ],
     )
+    certificate_arn: str | None = TerraformField(
+        None, description="ACM certificate ARN for the viewer certificate"
+    )
     web_acl_id: str | None = TerraformField(
         None, description="ARN of the WAFv2 web ACL protecting the distribution"
     )
