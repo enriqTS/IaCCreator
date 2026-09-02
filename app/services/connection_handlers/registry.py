@@ -32,6 +32,7 @@ from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
 from app.services.connection_handlers.network_placement import (
+    ListPlacementHandler,
     SecurityGroupListAssociationHandler,
     SubnetListPlacementHandler,
 )
@@ -222,6 +223,20 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.CLIENT_VPN,
         )
     ],
+    ConnectionSpec(
+        source=ServiceType.TARGET_GROUP,
+        target=ServiceType.EC2_AUTO_SCALING,
+        connection_type="attaches",
+        label="Target Group → EC2 Auto Scaling",
+        config_model=EmptyConnectionConfig,
+        handler=ListPlacementHandler(
+            ServiceType.TARGET_GROUP,
+            "attaches",
+            "target_group_arns",
+            "target_group_arn",
+            "Target groups attached to this Auto Scaling group",
+        ),
+    ),
     ConnectionSpec(
         source=ServiceType.API_GATEWAY,
         target=ServiceType.LAMBDA,

@@ -7,7 +7,7 @@ Legend: `[x]` implemented, `[-]` partially implemented, `[ ]` not implemented.
 Current phase status:
 
 - [-] Phase 1 foundational networking: VPC membership, routes, subnet placement, and direct security-group placement are implemented; EC2 Auto Scaling security groups require the planned launch-template resource type.
-- [ ] Phase 2 ingress, load balancing, and DNS.
+- [-] Phase 2 ingress, load balancing, and DNS: Target Group attachment to EC2 Auto Scaling is implemented; listener, direct target, DNS, certificate, WAF, CloudFront, and accelerator wiring remains.
 - [ ] Phase 3 encryption and secrets.
 - [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and DMS network placement exist; the listed database integrations remain.
@@ -130,7 +130,7 @@ Implement:
 
 - Load Balancer → Target Group: create listener/default-action wiring.
 - Target Group → EC2: create target attachment.
-- Target Group → EC2 Auto Scaling: supply target-group ARNs.
+- [x] Target Group → EC2 Auto Scaling: supply target-group ARNs.
 - Target Group → ECS: configure the ECS service load-balancer block.
 - Target Group → Lambda: create attachment and invoke permission where supported.
 - Route 53 → Load Balancer: create alias records.

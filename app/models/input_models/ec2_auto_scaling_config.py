@@ -20,6 +20,9 @@ class Ec2AutoScalingConfig(BaseServiceConfig):
     subnet_ids: list[str] = TerraformField(
         [], description="Subnets used by the Auto Scaling group"
     )
+    target_group_arns: list[str] = TerraformField(
+        [], description="Load balancer target groups attached to the group"
+    )
     min_size: int = TerraformField(
         1, description="Minimum instance count", validation=ValidationRule(min=0)
     )

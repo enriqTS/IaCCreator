@@ -18,6 +18,7 @@ class Ec2AutoScalingGenerator:
             {
                 "name": instance.name,
                 "vpc_zone_identifier": Expr("var.subnet_ids"),
+                "target_group_arns": Expr("var.target_group_arns"),
                 "min_size": Expr("var.min_size"),
                 "max_size": Expr("var.max_size"),
                 "desired_capacity": Expr("var.desired_capacity"),
@@ -39,6 +40,7 @@ class Ec2AutoScalingGenerator:
             ("launch_template_id", "string", "EC2 launch template ID"),
             ("launch_template_version", "string", "Launch template version"),
             ("subnet_ids", "list(string)", "Auto Scaling group subnet IDs"),
+            ("target_group_arns", "list(string)", "Attached target group ARNs"),
             ("min_size", "number", "Minimum instance count"),
             ("max_size", "number", "Maximum instance count"),
             ("desired_capacity", "number", "Desired instance count"),
