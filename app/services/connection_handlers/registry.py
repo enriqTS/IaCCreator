@@ -61,6 +61,10 @@ from app.services.connection_handlers.target_group_lambda import (
     TargetGroupLambdaAttachmentHandler,
 )
 from app.services.connection_handlers.vpc_membership import VpcMembershipHandler
+from app.services.connection_handlers.waf_association import (
+    WafCloudFrontHandler,
+    WafLoadBalancerHandler,
+)
 
 
 @dataclass(frozen=True)
@@ -236,6 +240,22 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.CLIENT_VPN,
         )
     ],
+    ConnectionSpec(
+        source=ServiceType.WAF,
+        target=ServiceType.LOAD_BALANCER,
+        connection_type="protects",
+        label="WAF → Load Balancer",
+        config_model=EmptyConnectionConfig,
+        handler=WafLoadBalancerHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.WAF,
+        target=ServiceType.CLOUDFRONT,
+        connection_type="protects",
+        label="WAF → CloudFront",
+        config_model=EmptyConnectionConfig,
+        handler=WafCloudFrontHandler(),
+    ),
     *[
         ConnectionSpec(
             source=ServiceType.ROUTE53,

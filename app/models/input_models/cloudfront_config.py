@@ -24,6 +24,9 @@ class CloudFrontConfig(BaseServiceConfig):
             OptionEntry(value="redirect-to-https", label="Redirect to HTTPS"),
         ],
     )
+    web_acl_id: str | None = TerraformField(
+        None, description="ARN of the WAFv2 web ACL protecting the distribution"
+    )
     price_class: str = TerraformField(
         "PriceClass_100",
         description="Edge location price class",

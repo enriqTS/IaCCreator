@@ -54,6 +54,8 @@ class CloudFrontGenerator:
         }
         if config.default_root_object is not None:
             attrs["default_root_object"] = Expr("var.default_root_object")
+        if config.web_acl_id is not None:
+            attrs["web_acl_id"] = Expr("var.web_acl_id")
         return self._r.render_resource(
             "aws_cloudfront_distribution", instance.name, attrs
         )
@@ -79,6 +81,8 @@ class CloudFrontGenerator:
                     "default_root_object", "string", "Default root object"
                 )
             )
+        if config.web_acl_id is not None:
+            parts.append(self._r.render_variable("web_acl_id", "string", "Web ACL ARN"))
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
