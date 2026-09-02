@@ -42,5 +42,10 @@ class GlobalAcceleratorGenerator:
                 self._r.render_output(
                     "dns_name", f"{ref}.dns_name", "Accelerator DNS name"
                 ),
+                self._r.render_output(
+                    "hosted_zone_id",
+                    f"{ref}.hosted_zone_id",
+                    "Accelerator hosted zone ID",
+                ),
             ]
         )

@@ -15,7 +15,7 @@ def _resolve_config(instance: ResourceInstanceIR) -> EcsConfig:
     return instance.config  # type: ignore[return-value]
 
 
-def _default_container_definitions(name: str) -> str:
+def _default_container_definitions(name: str, ports: list[int]) -> str:
     """A single placeholder container, so an unconfigured task is still valid."""
     return json.dumps(
         [
@@ -23,6 +23,9 @@ def _default_container_definitions(name: str) -> str:
                 "name": name,
                 "image": "public.ecr.aws/docker/library/busybox:latest",
                 "essential": True,
+                "portMappings": [
+                    {"containerPort": port, "protocol": "tcp"} for port in ports
+                ],
             }
         ]
     )
@@ -69,6 +72,15 @@ class ECSGenerator:
             service_attrs["launch_type"] = Expr("var.ecs_launch_type")
         if config.ecs_desired_count is not None:
             service_attrs["desired_count"] = Expr("var.ecs_desired_count")
+        if config.ecs_load_balancers:
+            service_attrs["load_balancer"] = [
+                {
+                    "target_group_arn": Expr(f"var.{item['variable_name']}"),
+                    "container_name": item["container_name"],
+                    "container_port": item["container_port"],
+                }
+                for item in config.ecs_load_balancers
+            ]
 
         result += "\n" + self._r.render_resource(
             "aws_ecs_service", f"{instance.name}_service", service_attrs
@@ -107,7 +119,15 @@ class ECSGenerator:
                 "container_definitions",
                 "string",
                 "JSON container definitions for the task",
-                default=_default_container_definitions(instance.name),
+                default=_default_container_definitions(
+                    instance.name,
+                    sorted(
+                        {
+                            int(item["container_port"])
+                            for item in config.ecs_load_balancers
+                        }
+                    ),
+                ),
             ),
         ]
         if config.ecs_launch_type is not None:

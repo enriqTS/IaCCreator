@@ -49,6 +49,7 @@ class EcsConfig(BaseServiceConfig):
     # ── Internal (not Terraform variables) ────────────────────────────────
     ecs_launch_type: str | None = None
     ecs_desired_count: int | None = None
+    ecs_load_balancers: list[dict[str, str | int]] = []
 
     @classmethod
     def execution_role_base_statements(cls, instance_name: str) -> list[dict]:

@@ -238,6 +238,45 @@ class DynamoDBLambdaConfig(BaseConnectionConfig):
     )
 
 
+class EcsTargetGroupConfig(BaseConnectionConfig):
+    """An ECS service registered with a target group."""
+
+    container_name: str | None = ConnectionField(
+        None, label="Container Name", placeholder="Defaults to the ECS resource name"
+    )
+    container_port: int = ConnectionField(
+        80,
+        label="Container Port",
+        type="number",
+        validation=ValidationRule(min=1, max=65535),
+    )
+
+
+class AcceleratorEndpointConfig(BaseConnectionConfig):
+    """A Global Accelerator listener forwarding to a load balancer."""
+
+    listener_port: int = ConnectionField(
+        80,
+        label="Listener Port",
+        type="number",
+        validation=ValidationRule(min=1, max=65535),
+    )
+    endpoint_port: int = ConnectionField(
+        80,
+        label="Endpoint Port",
+        type="number",
+        validation=ValidationRule(min=1, max=65535),
+    )
+    protocol: str = ConnectionField(
+        "TCP",
+        label="Protocol",
+        type="select",
+        options=[OptionEntry(value=value, label=value) for value in ("TCP", "UDP")],
+        validation=ValidationRule(allowed_values=["TCP", "UDP"]),
+    )
+    health_check_path: str = ConnectionField("/", label="Health Check Path")
+
+
 class DnsAliasConfig(BaseConnectionConfig):
     """A Route 53 alias pointing at a managed endpoint."""
 

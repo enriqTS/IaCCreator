@@ -5,10 +5,12 @@ from typing import Literal
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs.configs import (
+    AcceleratorEndpointConfig,
     ApiGatewayAuthorizerConfig,
     ApiGatewayRouteHandlerConfig,
     DnsAliasConfig,
     DynamoDBLambdaConfig,
+    EcsTargetGroupConfig,
     EmptyConnectionConfig,
     EventBridgeTargetConfig,
     GatewayRouteConfig,
@@ -20,6 +22,9 @@ from app.models.connection_configs.configs import (
     TargetGroupAttachmentConfig,
 )
 from app.models.input_models import ServiceType
+from app.services.connection_handlers.accelerator_endpoint import (
+    AcceleratorLoadBalancerHandler,
+)
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
 from app.services.connection_handlers.base import ConnectionHandler
 from app.services.connection_handlers.certificate import (
@@ -32,6 +37,7 @@ from app.services.connection_handlers.ec2_placement import (
     SecurityGroupEC2AssociationHandler,
     SubnetEC2PlacementHandler,
 )
+from app.services.connection_handlers.ecs_target_group import TargetGroupECSHandler
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
     EventBridgeSQSHandler,
@@ -289,8 +295,17 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         for target, dns_output, zone_output in (
             (ServiceType.LOAD_BALANCER, "dns_name", "zone_id"),
             (ServiceType.CLOUDFRONT, "domain_name", "hosted_zone_id"),
+            (ServiceType.GLOBAL_ACCELERATOR, "dns_name", "hosted_zone_id"),
         )
     ],
+    ConnectionSpec(
+        source=ServiceType.GLOBAL_ACCELERATOR,
+        target=ServiceType.LOAD_BALANCER,
+        connection_type="accelerates",
+        label="Global Accelerator → Load Balancer",
+        config_model=AcceleratorEndpointConfig,
+        handler=AcceleratorLoadBalancerHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.LOAD_BALANCER,
         target=ServiceType.TARGET_GROUP,
@@ -306,6 +321,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Target Group → EC2",
         config_model=TargetGroupAttachmentConfig,
         handler=TargetGroupEC2AttachmentHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.TARGET_GROUP,
+        target=ServiceType.ECS,
+        connection_type="serves",
+        label="Target Group → ECS",
+        config_model=EcsTargetGroupConfig,
+        handler=TargetGroupECSHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.TARGET_GROUP,
