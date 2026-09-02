@@ -44,6 +44,7 @@ from app.services.connection_handlers.eventbridge_targets import (
 )
 from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.iam_grant import IamGrantHandler
+from app.services.connection_handlers.kms_encryption import KmsEncryptionHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
 from app.services.connection_handlers.load_balancer_listener import (
     LoadBalancerTargetGroupHandler,
@@ -248,6 +249,29 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.MQ,
             ServiceType.MWAA,
             ServiceType.CLIENT_VPN,
+        )
+    ],
+    *[
+        ConnectionSpec(
+            source=ServiceType.KMS,
+            target=target,
+            connection_type="encrypts",
+            label=f"KMS → {target.value}",
+            config_model=EmptyConnectionConfig,
+            handler=KmsEncryptionHandler(input_name),
+        )
+        for target, input_name in (
+            (ServiceType.S3, "sse_kms_key_id"),
+            (ServiceType.DYNAMODB, "server_side_encryption_kms_key_arn"),
+            (ServiceType.SNS, "kms_master_key_id"),
+            (ServiceType.CLOUDWATCH, "kms_key_id"),
+            (ServiceType.EBS, "kms_key_id"),
+            (ServiceType.EFS, "kms_key_id"),
+            (ServiceType.BACKUP, "kms_key_arn"),
+            (ServiceType.SECRETS_MANAGER, "kms_key_id"),
+            (ServiceType.DATAZONE, "kms_key_identifier"),
+            (ServiceType.CODEARTIFACT, "kms_key"),
+            (ServiceType.LAMBDA, "kms_key_arn"),
         )
     ],
     ConnectionSpec(

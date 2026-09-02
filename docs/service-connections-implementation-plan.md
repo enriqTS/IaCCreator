@@ -8,7 +8,7 @@ Current phase status:
 
 - [-] Phase 1 foundational networking: VPC membership, routes, subnet placement, and direct security-group placement are implemented; EC2 Auto Scaling security groups require the planned launch-template resource type.
 - [x] Phase 2 ingress, load balancing, and DNS.
-- [ ] Phase 3 encryption and secrets.
+- [-] Phase 3 encryption and secrets: native KMS references are implemented for eleven services; SQS, CloudTrail, key-policy integration, and secret consumers remain.
 - [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and DMS network placement exist; the listed database integrations remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 115 Terraform-capable service types, while the connection registry contains 63 connection specifications involving 29 services.
+The generator registry contains 115 Terraform-capable service types, while the connection registry contains 74 connection specifications involving 39 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; and Target Group attachment to EC2 Auto Scaling.
 
@@ -156,19 +156,19 @@ Add standalone listener or endpoint-group resource types if connection ownership
 
 Implement `encrypted_by` connections from KMS to:
 
-- S3
-- DynamoDB
-- SNS
-- SQS
-- CloudWatch
-- EBS
-- EFS
-- Backup
-- Secrets Manager
-- DataZone
-- CodeArtifact
-- Lambda
-- CloudTrail where applicable
+- [x] S3
+- [x] DynamoDB
+- [x] SNS
+- [ ] SQS
+- [x] CloudWatch
+- [x] EBS
+- [x] EFS
+- [x] Backup
+- [x] Secrets Manager
+- [x] DataZone
+- [x] CodeArtifact
+- [x] Lambda
+- [ ] CloudTrail where applicable
 
 Each connection must supply the target key identifier, add consumer IAM grants where needed, and handle key-policy requirements without creating cycles.
 
