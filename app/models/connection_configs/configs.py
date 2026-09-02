@@ -238,6 +238,31 @@ class DynamoDBLambdaConfig(BaseConnectionConfig):
     )
 
 
+class LoadBalancerListenerConfig(BaseConnectionConfig):
+    """A load balancer listener forwarding to a target group."""
+
+    port: int = ConnectionField(
+        80,
+        label="Listener Port",
+        description="Port exposed by the load balancer",
+        type="number",
+        validation=ValidationRule(min=1, max=65535),
+    )
+    protocol: str = ConnectionField(
+        "HTTP",
+        label="Listener Protocol",
+        description="Protocol accepted by the listener",
+        type="select",
+        options=[
+            OptionEntry(value=value, label=value)
+            for value in ("HTTP", "HTTPS", "TCP", "TLS", "UDP", "TCP_UDP")
+        ],
+        validation=ValidationRule(
+            allowed_values=["HTTP", "HTTPS", "TCP", "TLS", "UDP", "TCP_UDP"]
+        ),
+    )
+
+
 class TargetGroupAttachmentConfig(BaseConnectionConfig):
     """An EC2 instance registered with a load balancer target group."""
 

@@ -13,6 +13,7 @@ from app.models.connection_configs.configs import (
     GatewayRouteConfig,
     LambdaDynamoDBConfig,
     LambdaS3Config,
+    LoadBalancerListenerConfig,
     S3LambdaConfig,
     SqsLambdaConfig,
     TargetGroupAttachmentConfig,
@@ -32,6 +33,9 @@ from app.services.connection_handlers.eventbridge_targets import (
 from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
+from app.services.connection_handlers.load_balancer_listener import (
+    LoadBalancerTargetGroupHandler,
+)
 from app.services.connection_handlers.network_placement import (
     ListPlacementHandler,
     SecurityGroupListAssociationHandler,
@@ -227,6 +231,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.CLIENT_VPN,
         )
     ],
+    ConnectionSpec(
+        source=ServiceType.LOAD_BALANCER,
+        target=ServiceType.TARGET_GROUP,
+        connection_type="forwards_to",
+        label="Load Balancer → Target Group",
+        config_model=LoadBalancerListenerConfig,
+        handler=LoadBalancerTargetGroupHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.TARGET_GROUP,
         target=ServiceType.EC2,
