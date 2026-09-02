@@ -7,6 +7,7 @@ from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs.configs import (
     ApiGatewayAuthorizerConfig,
     ApiGatewayRouteHandlerConfig,
+    DnsAliasConfig,
     DynamoDBLambdaConfig,
     EmptyConnectionConfig,
     EventBridgeTargetConfig,
@@ -21,6 +22,7 @@ from app.models.connection_configs.configs import (
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
 from app.services.connection_handlers.base import ConnectionHandler
+from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
 from app.services.connection_handlers.ec2_placement import (
     SecurityGroupEC2AssociationHandler,
@@ -232,6 +234,20 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.MQ,
             ServiceType.MWAA,
             ServiceType.CLIENT_VPN,
+        )
+    ],
+    *[
+        ConnectionSpec(
+            source=ServiceType.ROUTE53,
+            target=target,
+            connection_type="aliases",
+            label=f"Route 53 → {target.value}",
+            config_model=DnsAliasConfig,
+            handler=DnsAliasHandler(dns_output, zone_output),
+        )
+        for target, dns_output, zone_output in (
+            (ServiceType.LOAD_BALANCER, "dns_name", "zone_id"),
+            (ServiceType.CLOUDFRONT, "domain_name", "hosted_zone_id"),
         )
     ],
     ConnectionSpec(

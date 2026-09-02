@@ -99,5 +99,10 @@ class CloudFrontGenerator:
                     f"aws_cloudfront_distribution.{instance.name}.domain_name",
                     "Distribution domain name",
                 ),
+                self._r.render_output(
+                    "hosted_zone_id",
+                    f"aws_cloudfront_distribution.{instance.name}.hosted_zone_id",
+                    "CloudFront hosted zone ID",
+                ),
             ]
         )

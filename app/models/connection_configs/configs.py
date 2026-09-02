@@ -238,6 +238,23 @@ class DynamoDBLambdaConfig(BaseConnectionConfig):
     )
 
 
+class DnsAliasConfig(BaseConnectionConfig):
+    """A Route 53 alias pointing at a managed endpoint."""
+
+    record_name: str = ConnectionField(
+        "",
+        label="Record Name",
+        description="Name relative to the hosted zone; empty creates the zone apex",
+        placeholder="api or leave empty for the zone apex",
+    )
+    evaluate_target_health: bool = ConnectionField(
+        False,
+        label="Evaluate Target Health",
+        description="Use the alias target health when answering DNS queries",
+        type="boolean",
+    )
+
+
 class LoadBalancerListenerConfig(BaseConnectionConfig):
     """A load balancer listener forwarding to a target group."""
 
