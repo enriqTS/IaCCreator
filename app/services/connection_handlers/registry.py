@@ -212,6 +212,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         )
         for target in (
             ServiceType.LAMBDA,
+            ServiceType.EKS,
             ServiceType.LOAD_BALANCER,
             ServiceType.EFS,
             ServiceType.MEMORYDB,

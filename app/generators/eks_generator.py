@@ -23,7 +23,10 @@ class EKSGenerator:
         """Generate resource.tf with aws_eks_cluster resource."""
         config = _resolve_config(instance)
 
-        vpc_config: dict = {"subnet_ids": Expr("var.subnet_ids")}
+        vpc_config: dict = {
+            "subnet_ids": Expr("var.subnet_ids"),
+            "security_group_ids": Expr("var.security_group_ids"),
+        }
         if config.eks_endpoint_public_access is not None:
             vpc_config["endpoint_public_access"] = Expr(
                 "var.eks_endpoint_public_access"
@@ -57,6 +60,13 @@ class EKSGenerator:
                 "subnet_ids",
                 "list(string)",
                 "List of subnet IDs for the EKS cluster VPC config",
+                default=config.subnet_ids or [],
+            ),
+            self._r.render_variable(
+                "security_group_ids",
+                "list(string)",
+                "Additional security group IDs for the EKS control plane",
+                default=config.security_group_ids or [],
             ),
         ]
         if config.eks_version is not None:

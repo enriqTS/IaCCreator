@@ -16,6 +16,7 @@ class EksConfig(BaseServiceConfig):
         "cluster_name",
         "cluster_role_arn",
         "subnet_ids",
+        "security_group_ids",
     )
 
     # ── General ───────────────────────────────────────────────────────────
@@ -35,6 +36,11 @@ class EksConfig(BaseServiceConfig):
         None,
         group="Networking",
         description="List of subnet IDs for the EKS cluster VPC config",
+    )
+    security_group_ids: list[str] | None = TerraformField(
+        None,
+        group="Networking",
+        description="Additional security group IDs for the EKS control plane",
     )
 
     # ── Internal (not Terraform variables) ────────────────────────────────

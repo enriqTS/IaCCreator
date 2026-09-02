@@ -6,7 +6,7 @@ Legend: `[x]` implemented, `[-]` partially implemented, `[ ]` not implemented.
 
 Current phase status:
 
-- [-] Phase 1 foundational networking: VPC membership, routes, subnet placement, and most security-group placement are implemented; EKS and EC2 Auto Scaling security-group wiring remains.
+- [-] Phase 1 foundational networking: VPC membership, routes, subnet placement, and direct security-group placement are implemented; EC2 Auto Scaling security groups require the planned launch-template resource type.
 - [ ] Phase 2 ingress, load balancing, and DNS.
 - [ ] Phase 3 encryption and secrets.
 - [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
@@ -104,8 +104,8 @@ Add subnet and security-group connections for:
 
 - [x] Lambda
 - [x] EC2
-- [-] EKS: subnet placement exists; security-group wiring remains.
-- [-] EC2 Auto Scaling: subnet placement exists; security-group wiring remains.
+- [x] EKS
+- [-] EC2 Auto Scaling: subnet placement exists; security groups belong to its external launch template and require the planned launch-template resource type.
 - [x] Load Balancer
 - [x] EFS
 - [x] MemoryDB
@@ -119,7 +119,7 @@ List-valued contributions must merge multiple connectors without replacing exist
 
 ### Completion criteria
 
-- [-] A VPC architecture can be assembled without manually copying VPC, subnet, or security-group IDs; EKS and EC2 Auto Scaling security groups remain.
+- [-] A VPC architecture can be assembled without manually copying VPC, subnet, or security-group IDs; EC2 Auto Scaling remains blocked on a managed launch-template resource.
 - [x] Public and private routes are represented by typed connections.
 - [x] Multiple subnet and security-group connections aggregate correctly.
 - [x] Generated networking projects pass Terraform validation.
