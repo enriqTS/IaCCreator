@@ -34,7 +34,7 @@ class TargetGroupConfig(BaseServiceConfig):
         description="Target type",
         options=[
             OptionEntry(value=value, label=value.title())
-            for value in ("instance", "ip")
+            for value in ("instance", "ip", "lambda")
         ],
     )
     health_check_path: str = TerraformField(

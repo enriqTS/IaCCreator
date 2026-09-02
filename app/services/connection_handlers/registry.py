@@ -55,6 +55,9 @@ from app.services.connection_handlers.subnet_membership import SubnetMembershipH
 from app.services.connection_handlers.target_group_attachment import (
     TargetGroupEC2AttachmentHandler,
 )
+from app.services.connection_handlers.target_group_lambda import (
+    TargetGroupLambdaAttachmentHandler,
+)
 from app.services.connection_handlers.vpc_membership import VpcMembershipHandler
 
 
@@ -246,6 +249,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Target Group → EC2",
         config_model=TargetGroupAttachmentConfig,
         handler=TargetGroupEC2AttachmentHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.TARGET_GROUP,
+        target=ServiceType.LAMBDA,
+        connection_type="attaches",
+        label="Target Group → Lambda",
+        config_model=EmptyConnectionConfig,
+        handler=TargetGroupLambdaAttachmentHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.TARGET_GROUP,
