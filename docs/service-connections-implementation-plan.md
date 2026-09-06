@@ -8,7 +8,7 @@ Current phase status:
 
 - [-] Phase 1 foundational networking: VPC membership, routes, subnet placement, and direct security-group placement are implemented; EC2 Auto Scaling security groups require the planned launch-template resource type.
 - [x] Phase 2 ingress, load balancing, and DNS.
-- [-] Phase 3 encryption and secrets: native KMS references are implemented for eleven services; SQS, CloudTrail, key-policy integration, and secret consumers remain.
+- [-] Phase 3 encryption and secrets: native KMS references are implemented for twelve services; CloudTrail, key-policy integration, producer/consumer KMS grants, and secret consumers remain.
 - [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and DMS network placement exist; the listed database integrations remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 115 Terraform-capable service types, while the connection registry contains 74 connection specifications involving 39 services.
+The generator registry contains 115 Terraform-capable service types, while the connection registry contains 75 connection specifications involving 39 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; and Target Group attachment to EC2 Auto Scaling.
 
@@ -159,7 +159,7 @@ Implement `encrypted_by` connections from KMS to:
 - [x] S3
 - [x] DynamoDB
 - [x] SNS
-- [ ] SQS
+- [x] SQS: native key reference; producer/consumer grants remain under shared KMS IAM integration.
 - [x] CloudWatch
 - [x] EBS
 - [x] EFS

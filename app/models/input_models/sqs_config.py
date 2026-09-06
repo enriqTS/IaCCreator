@@ -20,6 +20,7 @@ class SqsConfig(BaseServiceConfig):
         "delay_seconds",
         "max_message_size",
         "content_based_deduplication",
+        "kms_master_key_id",
         "tags",
     )
 
@@ -64,6 +65,12 @@ class SqsConfig(BaseServiceConfig):
         None,
         group="Configuration",
         description="Enable content-based deduplication for the SQS queue",
+    )
+
+    kms_master_key_id: str | None = TerraformField(
+        None,
+        group="Encryption",
+        description="KMS key ID, ARN, or alias used to encrypt queue messages",
     )
 
     # ── Metadata ──────────────────────────────────────────────────────────

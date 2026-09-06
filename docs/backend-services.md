@@ -39,3 +39,5 @@ The current registry includes API Gateway route-handler and authorizer connectio
 - `SessionManager` creates, resolves, and touches anonymous-session users through `AbstractRepository`.
 - `diagram_migrations.py` upgrades persisted diagram state on read.
 - `services/openapi/` parses an OpenAPI document and maps it to API Gateway configuration for `/api/import/openapi`.
+
+KMS → SQS uses the shared `encrypts` handler and the typed empty connection config. The queue module receives the key module’s `key_arn` output as `kms_master_key_id`; repeated identical connections share one input. This native encryption reference creates no execution role or key-policy back-reference. KMS permissions for queue producers and consumers remain pending shared IAM integration.

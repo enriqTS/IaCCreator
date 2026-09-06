@@ -264,6 +264,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             (ServiceType.S3, "sse_kms_key_id"),
             (ServiceType.DYNAMODB, "server_side_encryption_kms_key_arn"),
             (ServiceType.SNS, "kms_master_key_id"),
+            (ServiceType.SQS, "kms_master_key_id"),
             (ServiceType.CLOUDWATCH, "kms_key_id"),
             (ServiceType.EBS, "kms_key_id"),
             (ServiceType.EFS, "kms_key_id"),

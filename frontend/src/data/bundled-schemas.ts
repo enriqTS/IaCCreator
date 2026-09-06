@@ -1699,6 +1699,22 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       }
     },
     {
+      "description": "ACM certificate ARN for the viewer certificate",
+      "group": "General",
+      "label": "Certificate ARN",
+      "name": "certificate_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "ARN of the WAFv2 web ACL protecting the distribution",
+      "group": "General",
+      "label": "Web ACL ID",
+      "name": "web_acl_id",
+      "required": false,
+      "type": "string"
+    },
+    {
       "default": "PriceClass_100",
       "description": "Edge location price class",
       "group": "General",
@@ -3012,6 +3028,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "list"
     },
     {
+      "description": "Load balancer target groups attached to the group",
+      "group": "General",
+      "label": "Target group ARNs",
+      "name": "target_group_arns",
+      "required": false,
+      "type": "list"
+    },
+    {
       "default": 1,
       "description": "Minimum instance count",
       "group": "General",
@@ -3290,6 +3314,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "group": "Networking",
       "label": "Subnet IDs",
       "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "Additional security group IDs for the EKS control plane",
+      "group": "Networking",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
       "required": false,
       "type": "list"
     }
@@ -6344,6 +6376,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "bool"
     },
     {
+      "description": "KMS key ID, ARN, or alias used to encrypt queue messages",
+      "group": "Encryption",
+      "label": "KMS master key ID",
+      "name": "kms_master_key_id",
+      "required": false,
+      "type": "string"
+    },
+    {
       "description": "Tags to apply to the SQS queue",
       "group": "Metadata",
       "label": "Tags",
@@ -6617,6 +6657,10 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
         {
           "label": "Ip",
           "value": "ip"
+        },
+        {
+          "label": "Lambda",
+          "value": "lambda"
         }
       ],
       "required": false,
@@ -6624,7 +6668,8 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "validation": {
         "allowed_values": [
           "instance",
-          "ip"
+          "ip",
+          "lambda"
         ]
       }
     },

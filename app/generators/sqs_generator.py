@@ -42,6 +42,8 @@ class SQSGenerator:
             attrs["delay_seconds"] = Expr("var.delay_seconds")
         if config.max_message_size is not None:
             attrs["max_message_size"] = Expr("var.max_message_size")
+        if config.kms_master_key_id is not None:
+            attrs["kms_master_key_id"] = Expr("var.kms_master_key_id")
         if config.tags is not None:
             attrs["tags"] = Expr("var.tags")
         return self._r.render_resource("aws_sqs_queue", instance.name, attrs)
@@ -105,6 +107,15 @@ class SQSGenerator:
                     "number",
                     "The limit of how many bytes a message can contain",
                     default=config.max_message_size,
+                )
+            )
+        if config.kms_master_key_id is not None:
+            parts.append(
+                self._r.render_variable(
+                    "kms_master_key_id",
+                    "string",
+                    "KMS key used to encrypt queue messages",
+                    default=config.kms_master_key_id,
                 )
             )
         if config.tags is not None:

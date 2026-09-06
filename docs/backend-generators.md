@@ -39,3 +39,5 @@ The assembler uses `module_arguments.py`, `module_paths.py`, and `service_catego
 ## Connection-generated Terraform
 
 Connection handlers return `ConnectionContribution`: module inputs, module outputs, module-owned resources, and IAM grants. `FileTreeAssembler` folds those into the owning instance module and passes cross-module values through environment module calls. List-valued network inputs remain typed HCL collections; explicit IDs are fallback defaults, while managed Subnet and Security Group connections override module-call inputs with Terraform references. Network Firewall emits one dynamic subnet mapping per selected Subnet, and Client VPN emits network associations for selected Subnets. This keeps connection resources in their owning module and avoids Terraform dependency cycles.
+
+SQS supports an optional native `kms_master_key_id` input for external key IDs, ARNs, or aliases. KMS connections supply a managed key ARN through that same input, overriding the external fallback. The generator emits the encryption argument only when a key is configured.
