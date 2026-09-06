@@ -44,6 +44,7 @@ from app.services.connection_handlers.eventbridge_targets import (
 )
 from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.iam_grant import IamGrantHandler
+from app.services.connection_handlers.kms_cloudtrail import KmsCloudTrailHandler
 from app.services.connection_handlers.kms_encryption import KmsEncryptionHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
 from app.services.connection_handlers.load_balancer_listener import (
@@ -251,6 +252,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.CLIENT_VPN,
         )
     ],
+    ConnectionSpec(
+        source=ServiceType.KMS,
+        target=ServiceType.CLOUDTRAIL,
+        connection_type="encrypts",
+        label="KMS → CloudTrail",
+        config_model=EmptyConnectionConfig,
+        handler=KmsCloudTrailHandler(),
+    ),
     *[
         ConnectionSpec(
             source=ServiceType.KMS,

@@ -9,11 +9,15 @@ class CloudtrailGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, CloudTrailConfig)
+        config = get_typed_config(instance, CloudTrailConfig)
+        encryption = {}
+        if config.kms_key_id is not None:
+            encryption["kms_key_id"] = Expr("var.kms_key_id")
         return self._r.render_resource(
             "aws_cloudtrail",
             instance.name,
             {
+                **encryption,
                 "name": Expr("var.trail_name"),
                 "s3_bucket_name": Expr("var.s3_bucket_name"),
                 "include_global_service_events": Expr(
@@ -25,7 +29,7 @@ class CloudtrailGenerator:
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, CloudTrailConfig)
+        config = get_typed_config(instance, CloudTrailConfig)
         fields = [
             ("trail_name", "string", "CloudTrail trail name"),
             ("s3_bucket_name", "string", "S3 delivery bucket name"),
@@ -33,7 +37,17 @@ class CloudtrailGenerator:
             ("is_multi_region_trail", "bool", "Record every region"),
             ("enable_log_file_validation", "bool", "Enable log validation"),
         ]
-        return "\n".join(self._r.render_variable(*field) for field in fields)
+        parts = [self._r.render_variable(*field) for field in fields]
+        if config.kms_key_id is not None:
+            parts.append(
+                self._r.render_variable(
+                    "kms_key_id",
+                    "string",
+                    "KMS encryption key ARN",
+                    default=config.kms_key_id,
+                )
+            )
+        return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
         ref = f"aws_cloudtrail.{instance.name}"

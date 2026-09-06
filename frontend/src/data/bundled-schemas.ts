@@ -1775,6 +1775,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     },
     {
+      "description": "KMS key ARN used to encrypt delivered logs",
+      "group": "General",
+      "label": "KMS key ID",
+      "name": "kms_key_id",
+      "required": false,
+      "type": "string"
+    },
+    {
       "default": true,
       "description": "Include global service events",
       "group": "General",

@@ -11,6 +11,9 @@ class CloudTrailConfig(BaseServiceConfig):
     s3_bucket_name: str = TerraformField(
         "", description="S3 bucket receiving trail logs"
     )
+    kms_key_id: str | None = TerraformField(
+        None, description="KMS key ARN used to encrypt delivered logs"
+    )
     include_global_service_events: bool = TerraformField(
         True, description="Include global service events"
     )

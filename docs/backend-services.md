@@ -41,3 +41,5 @@ The current registry includes API Gateway route-handler and authorizer connectio
 - `services/openapi/` parses an OpenAPI document and maps it to API Gateway configuration for `/api/import/openapi`.
 
 KMS → SQS uses the shared `encrypts` handler and the typed empty connection config. The queue module receives the key module’s `key_arn` output as `kms_master_key_id`; repeated identical connections share one input. This native encryption reference creates no execution role or key-policy back-reference. KMS permissions for queue producers and consumers remain pending shared IAM integration.
+
+KMS → CloudTrail aggregates connected trail identities into one key-owned policy with scoped GenerateDataKey and DescribeKey permissions and the default account administrator statement. Each trail exports an ARN derived from its provider identity and configured name, independently of trail creation. The key module exports the policy resource’s key ARN, so trail creation waits for permissions without a dependency cycle. Repeated connectors are deduplicated; multiple keys for one trail are rejected.
