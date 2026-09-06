@@ -21,6 +21,7 @@ from app.models.connection_configs.configs import (
     SqsLambdaConfig,
     TargetGroupAttachmentConfig,
 )
+from app.models.connection_configs.secrets import EcsSecretConfig
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.accelerator_endpoint import (
     AcceleratorLoadBalancerHandler,
@@ -37,6 +38,7 @@ from app.services.connection_handlers.ec2_placement import (
     SecurityGroupEC2AssociationHandler,
     SubnetEC2PlacementHandler,
 )
+from app.services.connection_handlers.ecs_secret import EcsSecretHandler
 from app.services.connection_handlers.ecs_target_group import TargetGroupECSHandler
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
@@ -62,6 +64,7 @@ from app.services.connection_handlers.route_table_association import (
     RouteTableAssociationHandler,
 )
 from app.services.connection_handlers.s3_lambda import S3LambdaHandler
+from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
@@ -99,6 +102,22 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.LAMBDA,
+        target=ServiceType.SECRETS_MANAGER,
+        connection_type="reads_secret",
+        label="Lambda → Secrets Manager (read access)",
+        config_model=EmptyConnectionConfig,
+        handler=SecretAccessHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.ECS,
+        target=ServiceType.SECRETS_MANAGER,
+        connection_type="injects_secret",
+        label="ECS → Secrets Manager (environment injection)",
+        config_model=EcsSecretConfig,
+        handler=EcsSecretHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.VPC,
         target=ServiceType.SUBNET,

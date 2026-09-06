@@ -36,3 +36,5 @@ Resource names are validated for Terraform-safe syntax and uniqueness. Stable ID
 `DiagramStateInput` validates persisted diagram requests. Diagram storage is versioned and upgraded through `services/diagram_migrations.py` when read. The current format is a discriminated canvas-object union covering architecture blocks, lines with anchors and waypoints, geometric/text/UML objects, typed visuals, connectors, groups, viewport, global configuration, and routing mode. Partial resource and connection configurations are shape-validated against their registered backend models while drafts may omit required generation fields. See `frontend/src/types/serialization.ts` for the client serialization contract.
 
 Persistence records (`UserRecord`, `DiagramRecord`, and `DiagramSummary`) live in `app/persistence/models.py`.
+
+`connection_configs/secrets.py` defines the typed ECS injection fields. ECS generation uses a private connection-derived flag to select native injection rendering; it is not a user-editable service field.

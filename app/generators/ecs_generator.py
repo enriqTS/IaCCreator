@@ -3,6 +3,7 @@
 import json
 
 from app.generators.base import get_typed_config  # noqa: F401
+from app.generators.ecs_secrets import secret_task_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ecs_config import EcsConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -56,6 +57,8 @@ class ECSGenerator:
             "network_mode": "awsvpc",
             "requires_compatibilities": ["FARGATE"],
         }
+        if config._inject_runtime_secrets:
+            task_attrs.update(secret_task_attributes(instance.name))
         result += "\n" + self._r.render_resource(
             "aws_ecs_task_definition", f"{instance.name}_task", task_attrs
         )

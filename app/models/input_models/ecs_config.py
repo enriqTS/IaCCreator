@@ -2,6 +2,8 @@
 
 from typing import ClassVar, Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField
@@ -47,6 +49,7 @@ class EcsConfig(BaseServiceConfig):
     )
 
     # ── Internal (not Terraform variables) ────────────────────────────────
+    _inject_runtime_secrets: bool = PrivateAttr(default=False)
     ecs_launch_type: str | None = None
     ecs_desired_count: int | None = None
     ecs_load_balancers: list[dict[str, str | int]] = []
