@@ -20,7 +20,7 @@ from tests.hcl_assertions import assert_tree_parses
 
 
 def architecture(service):
-    kind = "reads_secret" if service == ServiceType.LAMBDA else "injects_secret"
+    kind = "reads_secret" if service != ServiceType.ECS else "injects_secret"
     return connection_architecture(
         resolve_spec(service, ServiceType.SECRETS_MANAGER, kind, {})
     )
@@ -30,7 +30,9 @@ def project(payload):
     return IRBuilder().build(ArchitectureDescription.model_validate(payload))
 
 
-@pytest.mark.parametrize("service", [ServiceType.LAMBDA, ServiceType.ECS])
+@pytest.mark.parametrize(
+    "service", [ServiceType.LAMBDA, ServiceType.ECS, ServiceType.EC2]
+)
 def test_runtime_policy_uses_scoped_terraform_references(service):
     ir = project(architecture(service))
     preview = ConnectionPreviewer().preview_all(ir)[0]
@@ -57,7 +59,9 @@ def test_runtime_policy_uses_scoped_terraform_references(service):
     assert "secret_version" not in "\n".join(tree.values())
 
 
-@pytest.mark.parametrize("service", [ServiceType.LAMBDA, ServiceType.ECS])
+@pytest.mark.parametrize(
+    "service", [ServiceType.LAMBDA, ServiceType.ECS, ServiceType.EC2]
+)
 @given(order=st.permutations([0, 1, 2]))
 def test_multiple_and_duplicate_secret_connections_are_deterministic(service, order):
     payload = architecture(service)
@@ -77,7 +81,9 @@ def test_multiple_and_duplicate_secret_connections_are_deterministic(service, or
     assert dict(CodeGenerator().generate(ir)) == dict(baseline)
 
 
-@pytest.mark.parametrize("service", [ServiceType.LAMBDA, ServiceType.ECS])
+@pytest.mark.parametrize(
+    "service", [ServiceType.LAMBDA, ServiceType.ECS, ServiceType.EC2]
+)
 @pytest.mark.parametrize("managed", [False, True])
 def test_custom_key_decrypt_access(service, managed):
     payload = architecture(service)
@@ -213,7 +219,9 @@ def test_ecs_merge_evaluates_with_external_container_definitions(tmp_path):
     assert rendered[1]["image"] == "sidecar:image"
 
 
-@pytest.mark.parametrize("service", [ServiceType.LAMBDA, ServiceType.ECS])
+@pytest.mark.parametrize(
+    "service", [ServiceType.LAMBDA, ServiceType.ECS, ServiceType.EC2]
+)
 def test_encrypted_secret_project_validates(tmp_path, service):
     from tests.test_generated_project_validates import (
         _init_args,
@@ -238,3 +246,40 @@ def test_encrypted_secret_project_validates(tmp_path, service):
     environment = tmp_path / "connection-check/environments/dev"
     _run_terraform(_init_args(), environment)
     _run_terraform(["validate", "-no-color"], environment)
+
+
+def test_ec2_secret_access_creates_and_attaches_one_profile():
+    ir = project(architecture(ServiceType.EC2))
+    preview = ConnectionPreviewer().preview_all(ir)[0]
+    assert {resource.resource_type for resource in preview.resources} == {
+        "aws_iam_role",
+        "aws_iam_instance_profile",
+        "aws_iam_role_policy",
+    }
+    tree = CodeGenerator().generate(ir)
+    instance = next(
+        content for path, content in tree.items() if path.endswith("/ec2.tf")
+    )
+    assert (
+        "iam_instance_profile = aws_iam_instance_profile.runtime_secrets.name"
+        in instance
+    )
+    assert "depends_on = [aws_iam_role_policy.runtime_secrets]" in instance
+    credentials = next(
+        content
+        for path, content in tree.items()
+        if path.endswith("/runtime_secrets_role.tf")
+    )
+    assert "ec2.amazonaws.com" in credentials
+    assert "role = aws_iam_role.source-resource_role.name" in credentials
+
+
+def test_unconnected_ec2_does_not_create_secret_credentials():
+    payload = architecture(ServiceType.EC2)
+    payload["connections"] = []
+    tree = CodeGenerator().generate(project(payload))
+    assert not any("runtime_secrets" in path for path in tree)
+    instance = next(
+        content for path, content in tree.items() if path.endswith("/ec2.tf")
+    )
+    assert "iam_instance_profile" not in instance

@@ -38,6 +38,7 @@ from app.services.connection_handlers.ec2_placement import (
     SecurityGroupEC2AssociationHandler,
     SubnetEC2PlacementHandler,
 )
+from app.services.connection_handlers.ec2_secret import Ec2SecretHandler
 from app.services.connection_handlers.ecs_secret import EcsSecretHandler
 from app.services.connection_handlers.ecs_target_group import TargetGroupECSHandler
 from app.services.connection_handlers.eventbridge_targets import (
@@ -102,6 +103,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EC2,
+        target=ServiceType.SECRETS_MANAGER,
+        connection_type="reads_secret",
+        label="EC2 → Secrets Manager (read access)",
+        config_model=EmptyConnectionConfig,
+        handler=Ec2SecretHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,
         target=ServiceType.SECRETS_MANAGER,

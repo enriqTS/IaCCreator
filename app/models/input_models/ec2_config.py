@@ -2,6 +2,8 @@
 
 from typing import ClassVar, Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField
@@ -42,4 +44,5 @@ class Ec2Config(BaseServiceConfig):
     )
 
     # ── Internal (not Terraform variables) ────────────────────────────────
+    _reads_runtime_secrets: bool = PrivateAttr(default=False)
     key_name: str | None = None

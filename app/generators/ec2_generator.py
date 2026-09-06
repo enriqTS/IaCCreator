@@ -30,6 +30,11 @@ class EC2Generator:
             "vpc_security_group_ids": Expr("var.security_group_ids"),
             "tags": Expr("{ Name = var.instance_name }"),
         }
+        if config._reads_runtime_secrets:
+            attrs["iam_instance_profile"] = Expr(
+                "aws_iam_instance_profile.runtime_secrets.name"
+            )
+            attrs["depends_on"] = Expr("[aws_iam_role_policy.runtime_secrets]")
         if config.key_name is not None:
             attrs["key_name"] = Expr("var.key_name")
 
