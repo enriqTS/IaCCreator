@@ -55,6 +55,9 @@ from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.kms_cloudtrail import KmsCloudTrailHandler
 from app.services.connection_handlers.kms_encryption import KmsEncryptionHandler
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
+from app.services.connection_handlers.launch_template import (
+    LaunchTemplateAutoScalingHandler,
+)
 from app.services.connection_handlers.load_balancer_listener import (
     LoadBalancerTargetGroupHandler,
 )
@@ -108,6 +111,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EC2_LAUNCH_TEMPLATE,
+        target=ServiceType.EC2_AUTO_SCALING,
+        connection_type="launches",
+        label="EC2 Launch Template → EC2 Auto Scaling",
+        config_model=EmptyConnectionConfig,
+        handler=LaunchTemplateAutoScalingHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.APP_RUNNER,
         target=ServiceType.SECRETS_MANAGER,
@@ -296,6 +307,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         for target in (
             ServiceType.LAMBDA,
             ServiceType.EKS,
+            ServiceType.EC2_LAUNCH_TEMPLATE,
             ServiceType.LOAD_BALANCER,
             ServiceType.EFS,
             ServiceType.MEMORYDB,

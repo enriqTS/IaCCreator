@@ -6,7 +6,7 @@ Legend: `[x]` implemented, `[-]` partially implemented, `[ ]` not implemented.
 
 Current phase status:
 
-- [-] Phase 1 foundational networking: VPC membership, routes, subnet placement, and direct security-group placement are implemented; EC2 Auto Scaling security groups require the planned launch-template resource type.
+- [x] Phase 1 foundational networking: VPC membership, routes, subnet placement, and security-group placement are implemented, including managed launch templates for EC2 Auto Scaling. Managed placement lists preserve external identifiers.
 - [x] Phase 2 ingress, load balancing, and DNS.
 - [-] Phase 3 encryption and secrets: native KMS references are implemented for thirteen services, including a scoped CloudTrail key policy; broader key-policy integration, producer/consumer KMS grants, and additional secret consumers remain; Lambda/EC2 secret reads and ECS/CodeBuild/App Runner native injection are implemented.
 - [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
@@ -27,9 +27,9 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 115 Terraform-capable service types, while the connection registry contains 81 connection specifications involving 42 services.
+The generator registry contains 116 Terraform-capable service types, while the connection registry contains 83 connection specifications involving 43 services.
 
-Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; and Target Group attachment to EC2 Auto Scaling.
+Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
 Most generated services still do not participate in a registered semantic connection. Cross-resource fields outside the implemented coverage therefore still require users to enter IDs, ARNs, names, or endpoints manually.
 
@@ -105,7 +105,7 @@ Add subnet and security-group connections for:
 - [x] Lambda
 - [x] EC2
 - [x] EKS
-- [-] EC2 Auto Scaling: subnet placement exists; security groups belong to its external launch template and require the planned launch-template resource type.
+- [x] EC2 Auto Scaling: Subnet → Auto Scaling selects workload subnets; Security Group → EC2 Launch Template aggregates security groups; EC2 Launch Template → Auto Scaling supplies a managed ID and concrete latest version. External launch templates remain supported.
 - [x] Load Balancer
 - [x] EFS
 - [x] MemoryDB
@@ -119,7 +119,7 @@ List-valued contributions must merge multiple connectors without replacing exist
 
 ### Completion criteria
 
-- [-] A VPC architecture can be assembled without manually copying VPC, subnet, or security-group IDs; EC2 Auto Scaling remains blocked on a managed launch-template resource.
+- [x] A VPC architecture can be assembled without manually copying VPC, subnet, or security-group IDs, including Auto Scaling through managed launch templates.
 - [x] Public and private routes are represented by typed connections.
 - [x] Multiple subnet and security-group connections aggregate correctly.
 - [x] Generated networking projects pass Terraform validation.
@@ -507,7 +507,6 @@ Some desired relationships cannot be modeled cleanly with the current service in
 - Global Accelerator endpoint groups if they cannot remain connection-owned;
 - Direct Connect attachments and associations where needed;
 - directory resources for WorkSpaces;
-- EC2 launch templates for EC2 Auto Scaling;
 - Batch job definitions for native job secret injection;
 - Bedrock vector collections, indexes, data sources, and action groups where required.
 

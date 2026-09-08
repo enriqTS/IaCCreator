@@ -60,6 +60,7 @@ from app.generators.ebs_generator import EbsGenerator
 from app.generators.ec2_auto_scaling_generator import Ec2AutoScalingGenerator
 from app.generators.ec2_generator import EC2Generator
 from app.generators.ec2_image_builder_generator import EC2ImageBuilderGenerator
+from app.generators.ec2_launch_template_generator import Ec2LaunchTemplateGenerator
 from app.generators.ecr_generator import ECRGenerator
 from app.generators.ecs_generator import ECSGenerator
 from app.generators.efs_generator import EfsGenerator
@@ -182,6 +183,7 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.MQ: MqGenerator(),
     ServiceType.MWAA: MwaaGenerator(),
     ServiceType.EC2_AUTO_SCALING: Ec2AutoScalingGenerator(),
+    ServiceType.EC2_LAUNCH_TEMPLATE: Ec2LaunchTemplateGenerator(),
     ServiceType.APPLICATION_AUTO_SCALING: ApplicationAutoScalingGenerator(),
     ServiceType.EC2: EC2Generator(),
     ServiceType.ECS: ECSGenerator(),

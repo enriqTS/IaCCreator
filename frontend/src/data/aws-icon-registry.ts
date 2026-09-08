@@ -109,6 +109,7 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
       { name: 'Bottlerocket', iconPath: '/aws-icons/Compute/Bottlerocket.svg', serviceType: 'bottlerocket' },
       { name: 'Compute Optimizer', iconPath: '/aws-icons/Compute/Compute-Optimizer.svg', serviceType: 'compute-optimizer' },
       { name: 'EC2 Auto Scaling', iconPath: '/aws-icons/Compute/EC2-Auto-Scaling.svg', serviceType: 'ec2-auto-scaling' },
+      { name: 'EC2 Launch Template', iconPath: '/aws-icons/Compute/EC2.svg', serviceType: 'ec2-launch-template' },
       { name: 'EC2 Image Builder', iconPath: '/aws-icons/Compute/EC2-Image-Builder.svg', serviceType: 'ec2-image-builder' },
       { name: 'EC2', iconPath: '/aws-icons/Compute/EC2.svg', serviceType: 'ec2' },
       { name: 'Elastic Beanstalk', iconPath: '/aws-icons/Compute/Elastic-Beanstalk.svg', serviceType: 'elastic-beanstalk' },

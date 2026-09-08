@@ -83,6 +83,7 @@ class ServiceType(StrEnum):
     BOTTLEROCKET = "bottlerocket"
     COMPUTE_OPTIMIZER = "compute-optimizer"
     EC2_AUTO_SCALING = "ec2-auto-scaling"
+    EC2_LAUNCH_TEMPLATE = "ec2-launch-template"
     ELASTIC_FABRIC_ADAPTER = "elastic-fabric-adapter"
     FARGATE = "fargate"
     GENOMICS_CLI = "genomics-cli"
@@ -485,6 +486,9 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.ec2_auto_scaling_config import Ec2AutoScalingConfig
     from app.models.input_models.ec2_config import Ec2Config
     from app.models.input_models.ec2_image_builder_config import Ec2ImageBuilderConfig
+    from app.models.input_models.ec2_launch_template_config import (
+        Ec2LaunchTemplateConfig,
+    )
     from app.models.input_models.ecr_config import EcrConfig
     from app.models.input_models.ecs_config import EcsConfig
     from app.models.input_models.efs_config import EfsConfig
@@ -610,6 +614,7 @@ def _build_service_config_models() -> dict:
         ServiceType.MQ: MqConfig,
         ServiceType.MWAA: MwaaConfig,
         ServiceType.EC2_AUTO_SCALING: Ec2AutoScalingConfig,
+        ServiceType.EC2_LAUNCH_TEMPLATE: Ec2LaunchTemplateConfig,
         ServiceType.APPLICATION_AUTO_SCALING: ApplicationAutoScalingConfig,
         ServiceType.EC2: Ec2Config,
         ServiceType.ECS: EcsConfig,

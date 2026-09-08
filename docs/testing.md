@@ -31,6 +31,8 @@ Key coverage areas include:
 
 `tests/test_codebuild_secret_connections.py` covers native injection, external-role ownership, configuration validation, binding conflicts, and legacy registry defaults. Shared secret tests exercise deterministic aggregation, IAM/KMS scoping, preview ownership, and encrypted-project Terraform validation for CodeBuild and App Runner alongside Lambda, EC2, and ECS. `tests/test_app_runner_secret_connections.py` additionally verifies runtime/image-pull role separation, reserved environment names, public-image settings, and Terraform-evaluated merging of managed and external secret bindings.
 
+`tests/test_launch_template_connections.py` covers managed template versions, duplicate/shared connections, conflicting templates, external template compatibility, catalog/schema exposure, and a complete VPC/subnet/security-group/route/Auto Scaling architecture validated by Terraform. `tests/test_placement_external_identifiers.py` derives cases from all list-placement registry entries and uses permutations to verify preservation of external IDs and deterministic repeated generation.
+
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.
 
 Any fixture that creates a `TestClient` from the real `app.main.app` must isolate persistence: monkeypatch `app.persistence.factory.get_repository`, reload `app.main`, and override `app.routers.diagrams.get_repo` through `app.dependency_overrides`. This prevents parallel workers from writing the real TinyDB file.

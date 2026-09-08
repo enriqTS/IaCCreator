@@ -85,6 +85,7 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.BOTTLEROCKET,
         ServiceType.COMPUTE_OPTIMIZER,
         ServiceType.EC2_AUTO_SCALING,
+        ServiceType.EC2_LAUNCH_TEMPLATE,
         ServiceType.ELASTIC_FABRIC_ADAPTER,
         ServiceType.FARGATE,
         ServiceType.GENOMICS_CLI,

@@ -83,6 +83,7 @@ EXPECTED_SERVICE_TYPES = {
     "mq",
     "mwaa",
     "ec2-auto-scaling",
+    "ec2-launch-template",
     "application-auto-scaling",
     "ec2",
     "ecs",

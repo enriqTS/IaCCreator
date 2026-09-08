@@ -47,6 +47,7 @@ from app.models.input_models.documentdb_config import DocumentDbConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.input_models.ec2_config import Ec2Config
 from app.models.input_models.ec2_image_builder_config import Ec2ImageBuilderConfig
+from app.models.input_models.ec2_launch_template_config import Ec2LaunchTemplateConfig
 from app.models.input_models.ecr_config import EcrConfig
 from app.models.input_models.ecs_config import EcsConfig
 from app.models.input_models.eks_config import EksConfig
@@ -74,6 +75,7 @@ from app.models.input_models.timestream_config import TimestreamConfig
 
 # Build registry after all config models are imported (avoids circular import)
 SERVICE_CONFIG_MODELS: dict = {
+    ServiceType.EC2_LAUNCH_TEMPLATE: Ec2LaunchTemplateConfig,
     ServiceType.LAMBDA: LambdaConfig,
     ServiceType.S3: S3Config,
     ServiceType.API_GATEWAY: ApiGatewayConfig,
@@ -143,6 +145,7 @@ __all__ = [
     "get_terraform_meta",
     # Registry
     "SERVICE_CONFIG_MODELS",
+    "Ec2LaunchTemplateConfig",
     "get_service_config_models",
     # Per-service config models
     "AmazonQConfig",

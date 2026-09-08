@@ -15,6 +15,7 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.LIGHTSAIL: "compute",
     ServiceType.ECR: "compute",
     ServiceType.EC2_AUTO_SCALING: "compute",
+    ServiceType.EC2_LAUNCH_TEMPLATE: "compute",
     ServiceType.APPLICATION_AUTO_SCALING: "compute",
     # Database
     ServiceType.DYNAMODB: "database",

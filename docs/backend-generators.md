@@ -36,6 +36,12 @@ Each instance gets its resource, variable, and output files. A service whose con
 
 The assembler uses `module_arguments.py`, `module_paths.py`, and `service_category_map.py` to keep environment module wiring and categorized paths consistent. `TfvarsGenerator` creates environment variable declarations and values; `GlobalConfigGenerator` writes `backend.tf`, `provider.tf`, and `versions.tf`. It emits a default AWS provider plus deterministic Region aliases, and environment module calls select the alias resolved from each resource's semantic Region. An environment `region` variable overrides the default and places all of that environment's modules in the selected Region.
 
+## EC2 launch templates
+
+`ec2-launch-template` generates `aws_launch_template` with an AMI/SSM image reference, instance type, VPC security-group IDs, and optional external key-pair name, base64 user data, and IAM instance-profile name. Template names use provider-generated suffixes and instance metadata requires IMDSv2. Stable outputs expose the template ID, ARN, and latest numeric version. Auto Scaling connections use that numeric version rather than `$Latest`, so template changes appear in the group configuration; rolling replacement of existing instances still requires an explicitly configured refresh policy, which is not introduced by this connection.
+
+Subnet placement belongs to the Auto Scaling group. Managed template connections override its external `launch_template_id` and `launch_template_version` inputs; unconnected groups retain those escape hatches. The frontend exposes the resource through the compute catalog and backend-generated variable schema.
+
 ## Connection-generated Terraform
 
 Connection handlers return `ConnectionContribution`: module inputs, module outputs, module-owned resources, and IAM grants. `FileTreeAssembler` folds those into the owning instance module and passes cross-module values through environment module calls. List-valued network inputs remain typed HCL collections; managed Subnet and Security Group connections merge sorted, deduplicated external IDs with module references, including direct EC2 security-group placement. Network Firewall emits one dynamic subnet mapping per selected Subnet, and Client VPN emits network associations for selected Subnets. This keeps connection resources in their owning module and avoids Terraform dependency cycles.

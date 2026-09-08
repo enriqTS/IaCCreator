@@ -58,6 +58,7 @@ export type ServiceType =
   | 'bottlerocket'
   | 'compute-optimizer'
   | 'ec2-auto-scaling'
+  | 'ec2-launch-template'
   | 'elastic-fabric-adapter'
   | 'fargate'
   | 'genomics-cli'

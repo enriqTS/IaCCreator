@@ -15,6 +15,8 @@ Every generated service has a dedicated config model, such as `lambda_config.py`
 
 Resource names are validated for Terraform-safe syntax and uniqueness. Stable IDs let connection endpoint resolution survive a rename.
 
+`Ec2LaunchTemplateConfig` models reusable EC2 launch settings independently of Auto Scaling: image, instance type, security groups, and optional key pair, user data, and instance profile. It intentionally has no subnet field; Auto Scaling owns workload subnet selection. Its `ec2-launch-template` service type is registered for generation, schema discovery, and editor placement.
+
 ## Connection and response models
 
 `app/models/connection_configs/` defines editable connection configuration and schema response models. The connection-handler registry is the source of truth for valid service pairs and connection types.

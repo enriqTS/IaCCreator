@@ -3212,6 +3212,57 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "ec2-launch-template": [
+    {
+      "description": "AMI ID or resolve:ssm parameter reference",
+      "group": "General",
+      "label": "Image ID",
+      "name": "image_id",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "default": "t3.micro",
+      "description": "EC2 instance type",
+      "group": "General",
+      "label": "Instance type",
+      "name": "instance_type",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "External security group IDs, merged with managed connections",
+      "group": "Network",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "External EC2 key pair name",
+      "group": "General",
+      "label": "Key name",
+      "name": "key_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Base64-encoded instance user data",
+      "group": "General",
+      "label": "User data",
+      "name": "user_data",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "External IAM instance profile name",
+      "group": "General",
+      "label": "IAM instance profile name",
+      "name": "iam_instance_profile_name",
+      "required": false,
+      "type": "string"
+    }
+  ],
   "ecr": [
     {
       "description": "Name of the ECR repository",
