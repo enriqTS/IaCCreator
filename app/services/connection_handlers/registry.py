@@ -22,6 +22,7 @@ from app.models.connection_configs.configs import (
     TargetGroupAttachmentConfig,
 )
 from app.models.connection_configs.secrets import (
+    AppRunnerSecretConfig,
     CodeBuildSecretConfig,
     EcsSecretConfig,
 )
@@ -35,7 +36,6 @@ from app.services.connection_handlers.certificate import (
     CertificateCloudFrontHandler,
     CertificateLoadBalancerHandler,
 )
-from app.services.connection_handlers.codebuild_secret import CodeBuildSecretHandler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
 from app.services.connection_handlers.ec2_placement import (
@@ -45,6 +45,7 @@ from app.services.connection_handlers.ec2_placement import (
 from app.services.connection_handlers.ec2_secret import Ec2SecretHandler
 from app.services.connection_handlers.ecs_secret import EcsSecretHandler
 from app.services.connection_handlers.ecs_target_group import TargetGroupECSHandler
+from app.services.connection_handlers.environment_secret import EnvironmentSecretHandler
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
     EventBridgeSQSHandler,
@@ -108,12 +109,24 @@ class ConnectionSpec:
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
     ConnectionSpec(
+        source=ServiceType.APP_RUNNER,
+        target=ServiceType.SECRETS_MANAGER,
+        connection_type="injects_secret",
+        label="App Runner → Secrets Manager (environment injection)",
+        config_model=AppRunnerSecretConfig,
+        handler=EnvironmentSecretHandler(
+            AppRunnerSecretConfig, "instance_role_arn", "App Runner"
+        ),
+    ),
+    ConnectionSpec(
         source=ServiceType.CODEBUILD,
         target=ServiceType.SECRETS_MANAGER,
         connection_type="injects_secret",
         label="CodeBuild → Secrets Manager (environment injection)",
         config_model=CodeBuildSecretConfig,
-        handler=CodeBuildSecretHandler(),
+        handler=EnvironmentSecretHandler(
+            CodeBuildSecretConfig, "service_role", "CodeBuild"
+        ),
     ),
     ConnectionSpec(
         source=ServiceType.EC2,

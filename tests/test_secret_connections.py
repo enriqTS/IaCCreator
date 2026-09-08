@@ -18,11 +18,19 @@ from app.services.ir_builder import IRBuilder
 from tests.generator_helpers import connection_architecture
 from tests.hcl_assertions import assert_tree_parses
 
+SECRET_CONSUMERS = [
+    ServiceType.LAMBDA,
+    ServiceType.ECS,
+    ServiceType.EC2,
+    ServiceType.CODEBUILD,
+    ServiceType.APP_RUNNER,
+]
+
 
 def architecture(service):
     kind = (
         "injects_secret"
-        if service in (ServiceType.ECS, ServiceType.CODEBUILD)
+        if service in (ServiceType.ECS, ServiceType.CODEBUILD, ServiceType.APP_RUNNER)
         else "reads_secret"
     )
     return connection_architecture(
@@ -36,7 +44,7 @@ def project(payload):
 
 @pytest.mark.parametrize(
     "service",
-    [ServiceType.LAMBDA, ServiceType.ECS, ServiceType.EC2, ServiceType.CODEBUILD],
+    SECRET_CONSUMERS,
 )
 def test_runtime_policy_uses_scoped_terraform_references(service):
     ir = project(architecture(service))
@@ -61,6 +69,8 @@ def test_runtime_policy_uses_scoped_terraform_references(service):
     assert "Resource = var.runtime_secret_0_arn" in policy
     if service == ServiceType.CODEBUILD:
         assert 'element(reverse(split("/", var.service_role)), 0)' in policy
+    elif service == ServiceType.APP_RUNNER:
+        assert 'element(reverse(split("/", var.instance_role_arn)), 0)' in policy
     else:
         assert "aws_iam_role.source-resource_role.id" in policy
     assert "kms:Decrypt" not in policy
@@ -69,7 +79,7 @@ def test_runtime_policy_uses_scoped_terraform_references(service):
 
 @pytest.mark.parametrize(
     "service",
-    [ServiceType.LAMBDA, ServiceType.ECS, ServiceType.EC2, ServiceType.CODEBUILD],
+    SECRET_CONSUMERS,
 )
 @given(order=st.permutations([0, 1, 2]))
 def test_multiple_and_duplicate_secret_connections_are_deterministic(service, order):
@@ -92,7 +102,7 @@ def test_multiple_and_duplicate_secret_connections_are_deterministic(service, or
 
 @pytest.mark.parametrize(
     "service",
-    [ServiceType.LAMBDA, ServiceType.ECS, ServiceType.EC2, ServiceType.CODEBUILD],
+    SECRET_CONSUMERS,
 )
 @pytest.mark.parametrize("managed", [False, True])
 def test_custom_key_decrypt_access(service, managed):
@@ -231,7 +241,7 @@ def test_ecs_merge_evaluates_with_external_container_definitions(tmp_path):
 
 @pytest.mark.parametrize(
     "service",
-    [ServiceType.LAMBDA, ServiceType.ECS, ServiceType.EC2, ServiceType.CODEBUILD],
+    SECRET_CONSUMERS,
 )
 def test_encrypted_secret_project_validates(tmp_path, service):
     from tests.test_generated_project_validates import (

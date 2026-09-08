@@ -29,7 +29,7 @@ Key coverage areas include:
 - every registered connection, connection schemas, aggregation, previews, EventBridge targets, S3 notifications, and DynamoDB streams;
 - diagram CRUD, migrations, session isolation/middleware, and TinyDB/DynamoDB factory behavior.
 
-`tests/test_codebuild_secret_connections.py` covers native injection, external-role ownership, configuration validation, binding conflicts, and legacy registry defaults. Shared secret tests exercise deterministic aggregation, IAM/KMS scoping, preview ownership, and encrypted-project Terraform validation for CodeBuild alongside Lambda, EC2, and ECS.
+`tests/test_codebuild_secret_connections.py` covers native injection, external-role ownership, configuration validation, binding conflicts, and legacy registry defaults. Shared secret tests exercise deterministic aggregation, IAM/KMS scoping, preview ownership, and encrypted-project Terraform validation for CodeBuild and App Runner alongside Lambda, EC2, and ECS. `tests/test_app_runner_secret_connections.py` additionally verifies runtime/image-pull role separation, reserved environment names, public-image settings, and Terraform-evaluated merging of managed and external secret bindings.
 
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.
 

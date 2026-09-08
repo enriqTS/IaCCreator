@@ -1,31 +1,39 @@
-"""CodeBuild native secret environment bindings on an external service role."""
+"""Native secret environment bindings on an external runtime role."""
 
 import json
 
 from app.exceptions import InvalidConnectionConfigError
 from app.generators.hcl_renderer import Expr
-from app.models.connection_configs.secrets import CodeBuildSecretConfig
+from app.models.connection_configs.secrets import EnvironmentSecretConfig
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
 from app.services.connection_handlers.secret_access import SecretAccessHandler
 
 
-class CodeBuildSecretHandler(SecretAccessHandler):
+class EnvironmentSecretHandler(SecretAccessHandler):
+    def __init__(
+        self, config_model: type[EnvironmentSecretConfig], role_field: str, label: str
+    ) -> None:
+        super().__init__()
+        self._config_model = config_model
+        self._role_field = role_field
+        self._label = label
+
     def _role_reference(self, connection: ConnectionIR, project: ProjectIR) -> Expr:
         instance = self._find_instance(connection.source_name, project)
-        if instance is None or not instance.config.service_role:
+        if instance is None or not getattr(instance.config, self._role_field):
             raise InvalidConnectionConfigError(
                 connection.source_name,
                 connection.target_name,
                 connection.connection_type,
                 [
                     {
-                        "loc": ("service_role",),
-                        "msg": "CodeBuild secret injection requires a service role ARN",
+                        "loc": (self._role_field,),
+                        "msg": f"{self._label} secret injection requires a service role ARN",
                     }
                 ],
             )
-        return Expr('element(reverse(split("/", var.service_role)), 0)')
+        return Expr(f'element(reverse(split("/", var.{self._role_field})), 0)')
 
     def handle(
         self, connection: ConnectionIR, project: ProjectIR
@@ -42,7 +50,7 @@ class CodeBuildSecretHandler(SecretAccessHandler):
         names = sorted({item.target_name for item in peers})
         bindings: dict[str, str] = {}
         for item in peers:
-            config = CodeBuildSecretConfig.model_validate(item.connection_config)
+            config = self._config_model.model_validate(item.connection_config)
             environment = (
                 config.environment_name
                 or "SECRET_" + item.target_name.replace("-", "_").upper()

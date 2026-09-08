@@ -77,6 +77,11 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.APP_RUNNER: {
+        "image_identifier": "public.ecr.aws/example/app:latest",
+        "image_repository_type": "ECR_PUBLIC",
+        "instance_role_arn": "arn:aws:iam::123456789012:role/runtime/app-role",
+    },
     ServiceType.CODEBUILD: {
         "service_role": "arn:aws:iam::123456789012:role/build/service-role",
     },

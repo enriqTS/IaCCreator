@@ -656,6 +656,39 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "image_identifier",
       "required": false,
       "type": "string"
+    },
+    {
+      "default": "ECR",
+      "description": "Container image repository type",
+      "group": "Source",
+      "label": "Image repository type",
+      "name": "image_repository_type",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "ECR image-pull role trusted by build.apprunner.amazonaws.com",
+      "group": "Source",
+      "label": "Access role ARN",
+      "name": "access_role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Runtime role trusted by tasks.apprunner.amazonaws.com",
+      "group": "Runtime",
+      "label": "Instance role ARN",
+      "name": "instance_role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "External secret or parameter ARNs by environment variable name",
+      "group": "Runtime",
+      "label": "Runtime environment secrets",
+      "name": "runtime_environment_secrets",
+      "required": false,
+      "type": "map"
     }
   ],
   "application-auto-scaling": [
@@ -2058,6 +2091,33 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "group": "General",
       "label": "Source type",
       "name": "source_type",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "aws/codebuild/standard:7.0",
+      "description": "Build container image",
+      "group": "Environment",
+      "label": "Image",
+      "name": "image",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "BUILD_GENERAL1_SMALL",
+      "description": "Build compute type",
+      "group": "Environment",
+      "label": "Compute type",
+      "name": "compute_type",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "version: 0.2\nphases:\n  build:\n    commands:\n      - echo Configure your build commands\n",
+      "description": "Inline buildspec or source-relative buildspec path",
+      "group": "Source",
+      "label": "Buildspec",
+      "name": "buildspec",
       "required": false,
       "type": "string"
     }

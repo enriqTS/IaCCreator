@@ -25,6 +25,17 @@ class CodeBuildSecretConfig(EnvironmentSecretConfig):
         return value
 
 
+class AppRunnerSecretConfig(EnvironmentSecretConfig):
+    @field_validator("environment_name")
+    @classmethod
+    def reject_reserved_names(cls, value: str | None) -> str | None:
+        if value is not None and (value == "PORT" or value.startswith("AWSAPPRUNNER")):
+            raise ValueError(
+                "PORT and AWSAPPRUNNER-prefixed names are reserved by App Runner"
+            )
+        return value
+
+
 class EcsSecretConfig(EnvironmentSecretConfig):
     container_name: str | None = ConnectionField(
         None,

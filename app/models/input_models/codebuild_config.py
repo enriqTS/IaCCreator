@@ -18,6 +18,9 @@ class CodeBuildConfig(BaseServiceConfig):
         "project_name",
         "service_role",
         "source_type",
+        "image",
+        "compute_type",
+        "buildspec",
     )
 
     _inject_runtime_secrets: bool = PrivateAttr(default=False)
