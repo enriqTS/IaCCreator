@@ -1,5 +1,7 @@
 """Reusable network placement connection handlers."""
 
+import json
+
 from app.models.input_models import ServiceType
 from app.models.ir_models import (
     ConnectionContribution,
@@ -30,6 +32,17 @@ class ListPlacementHandler(BaseConnectionHandler):
         self, connection: ConnectionIR, project: ProjectIR
     ) -> ConnectionContribution:
         target = self._find_instance(connection.target_name, project)
+        external = (
+            sorted(
+                {
+                    value
+                    for value in (getattr(target.config, self._input_name, None) or [])
+                    if value != "managed-by-connection"
+                }
+            )
+            if target is not None
+            else []
+        )
         if target is not None and not getattr(target.config, self._input_name, None):
             setattr(target.config, self._input_name, ["managed-by-connection"])
         sources = sorted(
@@ -41,7 +54,10 @@ class ListPlacementHandler(BaseConnectionHandler):
                 and item.connection_type == self._connection_type
             }
         )
-        references = ", ".join(f"module.{name}.{self._output_name}" for name in sources)
+        references = ", ".join(
+            [json.dumps(value) for value in external]
+            + [f"module.{name}.{self._output_name}" for name in sources]
+        )
         return ConnectionContribution(
             inputs=[
                 ModuleInput(
