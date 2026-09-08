@@ -77,6 +77,9 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.CODEBUILD: {
+        "service_role": "arn:aws:iam::123456789012:role/build/service-role",
+    },
     ServiceType.LAMBDA: {
         "runtime": "python3.12",
         "handler": "main.handler",

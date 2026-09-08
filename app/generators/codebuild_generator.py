@@ -16,11 +16,28 @@ class CodeBuildGenerator:
         """Generate resource.tf with aws_codebuild_project resource."""
         config = get_typed_config(instance, CodeBuildConfig)
 
-        attrs: dict = {"name": Expr("var.project_name")}
-        if config.service_role is not None:
-            attrs["service_role"] = Expr("var.service_role")
+        attrs: dict = {
+            "name": Expr("var.project_name"),
+            "service_role": Expr("var.service_role"),
+            "artifacts": {"type": "NO_ARTIFACTS"},
+            "environment": {
+                "type": "LINUX_CONTAINER",
+                "image": Expr("var.image"),
+                "compute_type": Expr("var.compute_type"),
+            },
+        }
+        if config._inject_runtime_secrets:
+            attrs["environment"]['dynamic "environment_variable"'] = {
+                "for_each": Expr("local.runtime_secrets"),
+                "content": {
+                    "name": Expr("environment_variable.key"),
+                    "value": Expr("environment_variable.value"),
+                    "type": "SECRETS_MANAGER",
+                },
+            }
+            attrs["depends_on"] = Expr("[aws_iam_role_policy.runtime_secrets]")
 
-        source_block: dict = {}
+        source_block: dict = {"type": "NO_SOURCE", "buildspec": Expr("var.buildspec")}
         if config.source_type is not None:
             source_block["type"] = Expr("var.source_type")
         if source_block:
@@ -37,13 +54,13 @@ class CodeBuildGenerator:
                 "project_name", "string", "Name of the CodeBuild project"
             ),
         ]
-        if config.service_role is not None:
+        for name in ("service_role", "image", "compute_type", "buildspec"):
             parts.append(
                 self._r.render_variable(
-                    "service_role",
+                    name,
                     "string",
-                    "IAM service role ARN for the CodeBuild project",
-                    default=config.service_role,
+                    name.replace("_", " "),
+                    default=getattr(config, name),
                 )
             )
         if config.source_type is not None:

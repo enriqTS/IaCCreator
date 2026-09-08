@@ -21,7 +21,10 @@ from app.models.connection_configs.configs import (
     SqsLambdaConfig,
     TargetGroupAttachmentConfig,
 )
-from app.models.connection_configs.secrets import EcsSecretConfig
+from app.models.connection_configs.secrets import (
+    CodeBuildSecretConfig,
+    EcsSecretConfig,
+)
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.accelerator_endpoint import (
     AcceleratorLoadBalancerHandler,
@@ -32,6 +35,7 @@ from app.services.connection_handlers.certificate import (
     CertificateCloudFrontHandler,
     CertificateLoadBalancerHandler,
 )
+from app.services.connection_handlers.codebuild_secret import CodeBuildSecretHandler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
 from app.services.connection_handlers.ec2_placement import (
@@ -103,6 +107,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.CODEBUILD,
+        target=ServiceType.SECRETS_MANAGER,
+        connection_type="injects_secret",
+        label="CodeBuild → Secrets Manager (environment injection)",
+        config_model=CodeBuildSecretConfig,
+        handler=CodeBuildSecretHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EC2,
         target=ServiceType.SECRETS_MANAGER,

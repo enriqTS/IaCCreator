@@ -8,6 +8,9 @@ from app.services.connection_handlers.base import BaseConnectionHandler
 
 
 class SecretAccessHandler(BaseConnectionHandler):
+    def _role_reference(self, connection: ConnectionIR, project: ProjectIR) -> Expr:
+        return Expr(f"aws_iam_role.{connection.source_name}_role.id")
+
     def handle(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> ConnectionContribution:
@@ -108,7 +111,7 @@ class SecretAccessHandler(BaseConnectionHandler):
                     "runtime_secrets",
                     {
                         "name": f"{consumer}-runtime-secrets",
-                        "role": Expr(f"aws_iam_role.{consumer}_role.id"),
+                        "role": self._role_reference(connection, project),
                         "policy": self._renderer.render_json_policy(
                             {"Version": "2012-10-17", "Statement": statements}
                         ),

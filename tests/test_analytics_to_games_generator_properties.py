@@ -319,7 +319,6 @@ OPTIONAL_FIELD_MAP: dict[ServiceType, list[tuple[str, str]]] = {
     ],
     ServiceType.CODEBUILD: [
         ("source_type", "var.source_type"),
-        ("service_role", "var.service_role"),
     ],
     ServiceType.CODEDEPLOY: [
         ("compute_platform", "var.compute_platform"),

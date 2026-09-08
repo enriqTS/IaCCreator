@@ -2053,6 +2053,7 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     },
     {
+      "default": "NO_SOURCE",
       "description": "Source type for the CodeBuild project",
       "group": "General",
       "label": "Source type",

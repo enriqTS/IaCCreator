@@ -8,7 +8,7 @@ Current phase status:
 
 - [-] Phase 1 foundational networking: VPC membership, routes, subnet placement, and direct security-group placement are implemented; EC2 Auto Scaling security groups require the planned launch-template resource type.
 - [x] Phase 2 ingress, load balancing, and DNS.
-- [-] Phase 3 encryption and secrets: native KMS references are implemented for thirteen services, including a scoped CloudTrail key policy; broader key-policy integration, producer/consumer KMS grants, and additional secret consumers remain; Lambda/EC2 secret reads and ECS native injection are implemented.
+- [-] Phase 3 encryption and secrets: native KMS references are implemented for thirteen services, including a scoped CloudTrail key policy; broader key-policy integration, producer/consumer KMS grants, and additional secret consumers remain; Lambda/EC2 secret reads and ECS/CodeBuild native injection are implemented.
 - [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and DMS network placement exist; the listed database integrations remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 115 Terraform-capable service types, while the connection registry contains 79 connection specifications involving 40 services.
+The generator registry contains 115 Terraform-capable service types, while the connection registry contains 80 connection specifications involving 41 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; and Target Group attachment to EC2 Auto Scaling.
 
@@ -181,7 +181,7 @@ Implement `reads_secret` or native secret-injection connections for:
 - [x] EC2: scoped runtime read access through a connection-owned role and instance profile.
 - [ ] App Runner
 - [ ] Batch
-- [ ] CodeBuild
+- [x] CodeBuild: native environment injection with scoped permissions on a configured external service role.
 - [ ] Step Functions
 - [ ] MWAA
 
