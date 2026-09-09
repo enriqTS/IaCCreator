@@ -2,6 +2,7 @@
 
 from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import Expr, HCLRenderer
+from app.generators.step_functions_secrets import secret_workflow_attributes
 from app.models.input_models.step_functions_config import StepFunctionsConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -11,18 +12,17 @@ class StepFunctionsGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, StepFunctionsConfig)
-        return self._r.render_resource(
-            "aws_sfn_state_machine",
-            instance.name,
-            {
-                "name": instance.name,
-                "role_arn": Expr("var.role_arn"),
-                "definition": Expr("var.definition"),
-                "type": Expr("var.state_machine_type"),
-                "publish": Expr("var.publish"),
-            },
-        )
+        config = get_typed_config(instance, StepFunctionsConfig)
+        attrs = {
+            "name": instance.name,
+            "role_arn": Expr("var.role_arn"),
+            "definition": Expr("var.definition"),
+            "type": Expr("var.state_machine_type"),
+            "publish": Expr("var.publish"),
+        }
+        if config._reads_runtime_secrets:
+            attrs.update(secret_workflow_attributes())
+        return self._r.render_resource("aws_sfn_state_machine", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         get_typed_config(instance, StepFunctionsConfig)

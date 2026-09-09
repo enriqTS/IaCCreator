@@ -25,6 +25,7 @@ SECRET_CONSUMERS = [
     ServiceType.CODEBUILD,
     ServiceType.APP_RUNNER,
     ServiceType.MWAA,
+    ServiceType.STEP_FUNCTIONS,
 ]
 
 
@@ -50,7 +51,10 @@ def project(payload):
 def test_runtime_policy_uses_scoped_terraform_references(service):
     ir = project(architecture(service))
     preview = ConnectionPreviewer().preview_all(ir)[0]
-    assert preview.issues == []
+    if service == ServiceType.STEP_FUNCTIONS:
+        assert len(preview.issues) == 1 and preview.issues[0].severity == "warning"
+    else:
+        assert preview.issues == []
     assert any(
         resource.resource_type == "aws_iam_role_policy"
         for resource in preview.resources
@@ -74,6 +78,8 @@ def test_runtime_policy_uses_scoped_terraform_references(service):
         assert 'element(reverse(split("/", var.instance_role_arn)), 0)' in policy
     elif service == ServiceType.MWAA:
         assert 'element(reverse(split("/", var.execution_role_arn)), 0)' in policy
+    elif service == ServiceType.STEP_FUNCTIONS:
+        assert 'element(reverse(split("/", var.role_arn)), 0)' in policy
     else:
         assert "aws_iam_role.source-resource_role.id" in policy
     assert "kms:Decrypt" not in policy
@@ -94,6 +100,11 @@ def test_multiple_and_duplicate_secret_connections_are_deterministic(service, or
         dict(payload["connections"][0], target="other-secret", target_id="other")
     )
     payload["connections"].append(dict(payload["connections"][0]))
+    if service == ServiceType.STEP_FUNCTIONS:
+        payload["resources"][0]["config"]["definition"] = (
+            '{"StartAt":"Pass","States":{"Pass":{"Type":"Pass","Next":"Other"},"Other":{"Type":"Pass","End":true}}}'
+        )
+        payload["connections"][1]["connection_config"] = {"state_name": "Other"}
     baseline = CodeGenerator().generate(project(payload))
     payload["connections"] = [payload["connections"][index] for index in order]
     ir = project(payload)

@@ -8,7 +8,7 @@ Current phase status:
 
 - [x] Phase 1 foundational networking: VPC membership, routes, subnet placement, and security-group placement are implemented, including managed launch templates for EC2 Auto Scaling. Managed placement lists preserve external identifiers.
 - [x] Phase 2 ingress, load balancing, and DNS.
-- [-] Phase 3 encryption and secrets: KMS references, shared service policies, and producer/consumer grants are complete for the thirteen registered encryption targets and their existing semantic consumers; additional secret consumers remain; Lambda/EC2/MWAA secret reads and ECS/CodeBuild/App Runner native injection are implemented.
+- [-] Phase 3 encryption and secrets: KMS references, shared service policies, and producer/consumer grants are complete for the thirteen registered encryption targets and their existing semantic consumers; Batch job-definition support remains; Lambda/EC2/MWAA secret reads, ECS/CodeBuild/App Runner native injection, and Step Functions GetSecretValue tasks are implemented.
 - [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and DMS network placement exist; the listed database integrations remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 116 Terraform-capable service types, while the connection registry contains 84 connection specifications involving 43 services.
+The generator registry contains 116 Terraform-capable service types, while the connection registry contains 85 connection specifications involving 44 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -182,7 +182,7 @@ Implement `reads_secret` or native secret-injection connections for:
 - [x] App Runner: native image-service environment injection using a configured external instance role, separate from the ECR image-pull role.
 - [ ] Batch: blocked on a job-definition resource; the current Batch node owns only a compute environment.
 - [x] CodeBuild: native environment injection with scoped permissions on a configured external service role.
-- [ ] Step Functions
+- [x] Step Functions: replaces a selected top-level JSONPath Pass state with an executable GetSecretValue task and scoped permissions on the external execution role.
 - [x] MWAA: scoped DAG runtime GetSecretValue access using the external environment execution role; no automatic Airflow secrets-backend configuration.
 
 Do not treat an IAM grant as runtime secret injection when the target supports a distinct native secrets configuration.
@@ -304,6 +304,8 @@ Implement:
 Add redrive configuration and queue-policy contributions where required.
 
 ### Step Functions
+
+Secrets Manager GetSecretValue tasks are implemented in Phase 3 using selected Pass-state replacement. The following service tasks remain.
 
 Implement:
 

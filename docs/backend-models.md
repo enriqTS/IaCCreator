@@ -39,4 +39,6 @@ Resource names are validated for Terraform-safe syntax and uniqueness. Stable ID
 
 Persistence records (`UserRecord`, `DiagramRecord`, and `DiagramSummary`) live in `app/persistence/models.py`.
 
+`connection_configs/workflows.py` defines the typed `state_name` selector for Step Functions secret tasks. `workflow_states.py` validates supported JSONPath Pass placeholders; a private connection-derived flag enables workflow mutation during generation.
+
 `connection_configs/secrets.py` defines the typed ECS injection fields. ECS generation uses a private connection-derived flag to select native injection rendering; it is not a user-editable service field.

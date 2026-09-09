@@ -26,6 +26,7 @@ from app.models.connection_configs.secrets import (
     CodeBuildSecretConfig,
     EcsSecretConfig,
 )
+from app.models.connection_configs.workflows import StepFunctionsSecretConfig
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.accelerator_endpoint import (
     AcceleratorLoadBalancerHandler,
@@ -79,6 +80,9 @@ from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
+from app.services.connection_handlers.step_functions_secret import (
+    StepFunctionsSecretHandler,
+)
 from app.services.connection_handlers.subnet_membership import SubnetMembershipHandler
 from app.services.connection_handlers.target_group_attachment import (
     TargetGroupEC2AttachmentHandler,
@@ -113,6 +117,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.STEP_FUNCTIONS,
+        target=ServiceType.SECRETS_MANAGER,
+        connection_type="reads_secret",
+        label="Step Functions → Secrets Manager (GetSecretValue task)",
+        config_model=StepFunctionsSecretConfig,
+        handler=StepFunctionsSecretHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.MWAA,
         target=ServiceType.SECRETS_MANAGER,

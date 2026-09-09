@@ -14,7 +14,7 @@ class ExternalRoleSecretAccessHandler(SecretAccessHandler):
 
     def _role_reference(self, connection: ConnectionIR, project: ProjectIR) -> Expr:
         instance = self._find_instance(connection.source_name, project)
-        if instance is None or not getattr(instance.config, self._role_field):
+        if instance is None or not getattr(instance.config, self._role_field, None):
             raise InvalidConnectionConfigError(
                 connection.source_name,
                 connection.target_name,
