@@ -61,6 +61,7 @@ from app.services.connection_handlers.launch_template import (
 from app.services.connection_handlers.load_balancer_listener import (
     LoadBalancerTargetGroupHandler,
 )
+from app.services.connection_handlers.mwaa_secret import MwaaSecretHandler
 from app.services.connection_handlers.network_placement import (
     ListPlacementHandler,
     SecurityGroupListAssociationHandler,
@@ -111,6 +112,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.MWAA,
+        target=ServiceType.SECRETS_MANAGER,
+        connection_type="reads_secret",
+        label="MWAA → Secrets Manager (DAG read access)",
+        config_model=EmptyConnectionConfig,
+        handler=MwaaSecretHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EC2_LAUNCH_TEMPLATE,
         target=ServiceType.EC2_AUTO_SCALING,

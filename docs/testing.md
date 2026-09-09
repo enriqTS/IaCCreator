@@ -29,9 +29,11 @@ Key coverage areas include:
 - every registered connection, connection schemas, aggregation, previews, EventBridge targets, S3 notifications, and DynamoDB streams;
 - diagram CRUD, migrations, session isolation/middleware, and TinyDB/DynamoDB factory behavior.
 
-`tests/test_codebuild_secret_connections.py` covers native injection, external-role ownership, configuration validation, binding conflicts, and legacy registry defaults. Shared secret tests exercise deterministic aggregation, IAM/KMS scoping, preview ownership, and encrypted-project Terraform validation for CodeBuild and App Runner alongside Lambda, EC2, and ECS. `tests/test_app_runner_secret_connections.py` additionally verifies runtime/image-pull role separation, reserved environment names, public-image settings, and Terraform-evaluated merging of managed and external secret bindings.
+`tests/test_codebuild_secret_connections.py` covers native injection, external-role ownership, configuration validation, binding conflicts, and legacy registry defaults. Shared secret tests exercise deterministic aggregation, IAM/KMS scoping, preview ownership, and encrypted-project Terraform validation for MWAA, CodeBuild, and App Runner alongside Lambda, EC2, and ECS. `tests/test_app_runner_secret_connections.py` additionally verifies runtime/image-pull role separation, reserved environment names, public-image settings, and Terraform-evaluated merging of managed and external secret bindings.
 
 `tests/test_launch_template_connections.py` covers managed template versions, duplicate/shared connections, conflicting templates, external template compatibility, catalog/schema exposure, and a complete VPC/subnet/security-group/route/Auto Scaling architecture validated by Terraform. `tests/test_placement_external_identifiers.py` derives cases from all list-placement registry entries and uses permutations to verify preservation of external IDs and deterministic repeated generation.
+
+`tests/test_mwaa_secret_connections.py` verifies external execution-role ownership, missing-role rejection, empty read-access configuration, and absence of native injection or plaintext retrieval. MWAA also participates in shared secret aggregation, preview, KMS, and encrypted-project Terraform validation tests.
 
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.
 

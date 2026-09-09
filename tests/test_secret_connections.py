@@ -24,6 +24,7 @@ SECRET_CONSUMERS = [
     ServiceType.EC2,
     ServiceType.CODEBUILD,
     ServiceType.APP_RUNNER,
+    ServiceType.MWAA,
 ]
 
 
@@ -71,6 +72,8 @@ def test_runtime_policy_uses_scoped_terraform_references(service):
         assert 'element(reverse(split("/", var.service_role)), 0)' in policy
     elif service == ServiceType.APP_RUNNER:
         assert 'element(reverse(split("/", var.instance_role_arn)), 0)' in policy
+    elif service == ServiceType.MWAA:
+        assert 'element(reverse(split("/", var.execution_role_arn)), 0)' in policy
     else:
         assert "aws_iam_role.source-resource_role.id" in policy
     assert "kms:Decrypt" not in policy

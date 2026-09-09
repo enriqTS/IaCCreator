@@ -3,37 +3,20 @@
 import json
 
 from app.exceptions import InvalidConnectionConfigError
-from app.generators.hcl_renderer import Expr
 from app.models.connection_configs.secrets import EnvironmentSecretConfig
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
-from app.services.connection_handlers.secret_access import SecretAccessHandler
+from app.services.connection_handlers.external_role_secret import (
+    ExternalRoleSecretAccessHandler,
+)
 
 
-class EnvironmentSecretHandler(SecretAccessHandler):
+class EnvironmentSecretHandler(ExternalRoleSecretAccessHandler):
     def __init__(
         self, config_model: type[EnvironmentSecretConfig], role_field: str, label: str
     ) -> None:
-        super().__init__()
+        super().__init__(role_field, label)
         self._config_model = config_model
-        self._role_field = role_field
-        self._label = label
-
-    def _role_reference(self, connection: ConnectionIR, project: ProjectIR) -> Expr:
-        instance = self._find_instance(connection.source_name, project)
-        if instance is None or not getattr(instance.config, self._role_field):
-            raise InvalidConnectionConfigError(
-                connection.source_name,
-                connection.target_name,
-                connection.connection_type,
-                [
-                    {
-                        "loc": (self._role_field,),
-                        "msg": f"{self._label} secret injection requires a service role ARN",
-                    }
-                ],
-            )
-        return Expr(f'element(reverse(split("/", var.{self._role_field})), 0)')
 
     def handle(
         self, connection: ConnectionIR, project: ProjectIR
