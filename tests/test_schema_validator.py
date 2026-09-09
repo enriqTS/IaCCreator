@@ -140,7 +140,8 @@ def test_backend_rejects_invalid_values(data):
 
     _apply_required_fields(stype, config_kwargs)
 
-    config = config_cls(**config_kwargs)
+    # Exercise schema validation independently of Pydantic's earlier type rejection.
+    config = config_cls.model_construct(**config_kwargs)
 
     with pytest.raises(HTTPException) as exc_info:
         validate_config_against_schema(stype, config)
