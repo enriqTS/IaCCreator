@@ -213,7 +213,14 @@ def resource_instance_with_populated_fields(draw):
     always_present = _ALWAYS_PRESENT_FIELDS.get(service_type, set())
 
     # Start with required base config values per service
-    config_kwargs: dict = {}
+    from tests.generator_helpers import minimal_config_for
+
+    minimal = minimal_config_for(service_type)
+    config_kwargs: dict = {
+        name: getattr(minimal, name)
+        for name, field in type(minimal).model_fields.items()
+        if field.is_required()
+    }
     if service_type == ServiceType.LAMBDA:
         config_kwargs["function_name"] = draw(
             st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True)

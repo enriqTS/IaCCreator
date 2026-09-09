@@ -663,8 +663,24 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "group": "Source",
       "label": "Image repository type",
       "name": "image_repository_type",
+      "options": [
+        {
+          "label": "Private ECR",
+          "value": "ECR"
+        },
+        {
+          "label": "Public ECR",
+          "value": "ECR_PUBLIC"
+        }
+      ],
       "required": false,
-      "type": "string"
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "ECR",
+          "ECR_PUBLIC"
+        ]
+      }
     },
     {
       "description": "ECR image-pull role trusted by build.apprunner.amazonaws.com",
@@ -672,7 +688,11 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "label": "Access role ARN",
       "name": "access_role_arn",
       "required": false,
-      "type": "string"
+      "type": "string",
+      "visible_when": {
+        "equals": "ECR",
+        "field": "image_repository_type"
+      }
     },
     {
       "description": "Runtime role trusted by tasks.apprunner.amazonaws.com",

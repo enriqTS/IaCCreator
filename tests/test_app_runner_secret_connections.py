@@ -103,6 +103,12 @@ def test_service_schemas_expose_native_injection_inputs():
         "instance_role_arn",
         "runtime_environment_secrets",
     } <= {field.name for field in AppRunnerConfig.get_variable_schema()}
+    fields = {field.name: field for field in AppRunnerConfig.get_variable_schema()}
+    assert {option.value for option in fields["image_repository_type"].options} == {
+        "ECR",
+        "ECR_PUBLIC",
+    }
+    assert fields["access_role_arn"].visible_when.equals == "ECR"
     assert {"image", "compute_type", "buildspec"} <= {
         field.name for field in CodeBuildConfig.get_variable_schema()
     }

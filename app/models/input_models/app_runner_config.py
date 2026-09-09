@@ -6,7 +6,7 @@ from pydantic import PrivateAttr
 
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
-from app.models.input_models._metadata import TerraformField
+from app.models.input_models._metadata import OptionEntry, TerraformField, VisibleWhen
 
 
 class AppRunnerConfig(BaseServiceConfig):
@@ -36,12 +36,19 @@ class AppRunnerConfig(BaseServiceConfig):
     )
 
     image_repository_type: Literal["ECR", "ECR_PUBLIC"] = TerraformField(
-        "ECR", group="Source", description="Container image repository type"
+        "ECR",
+        group="Source",
+        description="Container image repository type",
+        options=[
+            OptionEntry(value="ECR", label="Private ECR"),
+            OptionEntry(value="ECR_PUBLIC", label="Public ECR"),
+        ],
     )
     access_role_arn: str | None = TerraformField(
         None,
         group="Source",
         description="ECR image-pull role trusted by build.apprunner.amazonaws.com",
+        visible_when=VisibleWhen(field="image_repository_type", equals="ECR"),
     )
     instance_role_arn: str | None = TerraformField(
         None,
