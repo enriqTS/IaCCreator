@@ -50,6 +50,8 @@ Connection handlers return `ConnectionContribution`: module inputs, module outpu
 
 SQS supports an optional native `kms_master_key_id` input for external key IDs, ARNs, or aliases. KMS connections supply a managed key ARN through that same input, overriding the external fallback. The generator emits the encryption argument only when a key is configured.
 
+KMS consumer IAM grants and service policies are covered in [KMS connection integration](backend-kms-connections.md). Shared keys have one policy owner, and pre-creation identities keep policy-ready outputs cycle-free. Lambda log delivery uses its actual connected log group; ECS application-access grants attach the generated role as the task role.
+
 CloudTrail accepts an optional external `kms_key_id` ARN. Managed KMS connections override it with a policy-ready key output. The connection owns `aws_kms_key_policy` in the key module; the KMS generator leaves its inline policy unset so Terraform has one policy owner. Log-reader decrypt grants and the S3 delivery bucket policy remain separate concerns.
 
 ECS secret connections merge native `secrets` entries into `container_definitions`, preserving unrelated settings and external bindings. Managed bindings replace matching environment variables or secret names. A precondition rejects missing containers, and task creation depends on the secret-access policy. Defaults target the ECS node’s container and use `SECRET_<SECRET_NODE_NAME>` as the environment name. Secrets Manager nodes provision secret metadata; secret values must be populated separately before workloads use them.

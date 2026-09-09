@@ -25,7 +25,7 @@ def policy_references(instance: ResourceInstanceIR) -> list[str]:
 
 
 def input_name(reference: str) -> str:
-    return "iam_" + reference.replace(".", "_").replace("-", "_")
+    return "iam_ref_" + reference.encode().hex()
 
 
 def cross_module_inputs(instance: ResourceInstanceIR) -> ConnectionContribution:

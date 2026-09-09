@@ -1,8 +1,14 @@
 """EventBridge → target connections — the rule module owns every target it fires at."""
 
 from app.generators.hcl_renderer import Expr
+from app.models.connection_previews import ConnectionIssue
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler, safe_identifier
+from app.services.connection_handlers.kms_external_policy import (
+    external_service_key_issues,
+    require_custom_delivery_key,
+)
+from app.services.connection_handlers.queue_delivery_policy import QueueDeliveryPolicy
 
 
 class EventBridgeLambdaHandler(BaseConnectionHandler):
@@ -79,10 +85,16 @@ class EventBridgeLambdaHandler(BaseConnectionHandler):
 class EventBridgeSQSHandler(BaseConnectionHandler):
     """Fires a rule at an SQS queue, and lets EventBridge send to it."""
 
+    def validate(
+        self, connection: ConnectionIR, project: ProjectIR
+    ) -> list[ConnectionIssue]:
+        return external_service_key_issues(connection, project)
+
     def handle(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> ConnectionContribution:
         rule = connection.source_name
+        require_custom_delivery_key(connection, project)
         queue = connection.target_name
         prefix = safe_identifier(queue)
 
@@ -95,37 +107,7 @@ class EventBridgeSQSHandler(BaseConnectionHandler):
                 "arn": Expr(f"var.{prefix}_queue_arn"),
             },
         )
-        # The queue policy lives here too, so values only ever flow queue → rule
-        policy = self._renderer.render_resource(
-            "aws_sqs_queue_policy",
-            f"{prefix}_policy",
-            {
-                "queue_url": Expr(f"var.{prefix}_queue_url"),
-                "policy": self._renderer.render_json_policy(
-                    {
-                        "Version": "2012-10-17",
-                        "Statement": [
-                            {
-                                "Effect": "Allow",
-                                "Principal": {"Service": "events.amazonaws.com"},
-                                "Action": "sqs:SendMessage",
-                                "Resource": Expr(f"var.{prefix}_queue_arn"),
-                                "Condition": {
-                                    "ArnEquals": {
-                                        "aws:SourceArn": Expr(
-                                            f"aws_cloudwatch_event_rule.{rule}.arn"
-                                        )
-                                    }
-                                },
-                            }
-                        ],
-                    },
-                    depth=2,
-                ),
-            },
-        )
-
-        return ConnectionContribution(
+        result = ConnectionContribution(
             outputs=[
                 self._output(queue, "arn", f"aws_sqs_queue.{queue}.arn", "Queue ARN"),
                 self._output(queue, "url", f"aws_sqs_queue.{queue}.url", "Queue URL"),
@@ -148,6 +130,7 @@ class EventBridgeSQSHandler(BaseConnectionHandler):
             ],
             resources=[
                 self._resource(rule, f"target_{queue}.tf", target),
-                self._resource(rule, f"policy_{queue}.tf", policy),
             ],
         )
+        result.merge(QueueDeliveryPolicy().handle(connection, project))
+        return result

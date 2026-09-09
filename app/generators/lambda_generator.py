@@ -49,6 +49,7 @@ class LambdaGenerator:
         attrs: dict = {
             "function_name": Expr("var.function_name"),
             "role": Expr(f"aws_iam_role.{instance.name}_role.arn"),
+            "depends_on": Expr(f"[aws_iam_role_policy.{instance.name}_policy]"),
         }
 
         # Handle package_type conditional: when Image, skip handler/runtime

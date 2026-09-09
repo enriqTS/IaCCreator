@@ -59,6 +59,12 @@ class ECSGenerator:
         }
         if config._inject_runtime_secrets:
             task_attrs.update(secret_task_attributes(instance.name))
+        if instance.iam_statements:
+            task_attrs["task_role_arn"] = Expr(f"aws_iam_role.{instance.name}_role.arn")
+            policies = [f"aws_iam_role_policy.{instance.name}_policy"]
+            if config._inject_runtime_secrets:
+                policies.append("aws_iam_role_policy.runtime_secrets")
+            task_attrs["depends_on"] = Expr("[" + ", ".join(policies) + "]")
         result += "\n" + self._r.render_resource(
             "aws_ecs_task_definition", f"{instance.name}_task", task_attrs
         )

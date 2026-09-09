@@ -690,7 +690,7 @@ class TestHandleSnsSqs:
         """Queue policy file is placed at the correct path."""
         files = self._handle_sns_sqs()
         paths = [f.path for f in files]
-        assert "test-project/modules/messaging/sqs/my-queue/policy_my-topic.tf" in paths
+        assert "test-project/modules/messaging/sqs/my-queue/policy_delivery.tf" in paths
 
     def test_subscription_contains_resource(self):
         """Subscription file contains aws_sns_topic_subscription resource."""

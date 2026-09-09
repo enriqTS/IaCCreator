@@ -35,6 +35,8 @@ Key coverage areas include:
 
 `tests/test_mwaa_secret_connections.py` verifies external execution-role ownership, missing-role rejection, empty read-access configuration, and absence of native injection or plaintext retrieval. MWAA also participates in shared secret aggregation, preview, KMS, and encrypted-project Terraform validation tests.
 
+`tests/test_kms_access_integration.py` covers consumer-action KMS grants, shared service policies, external-key warnings, encryption flags, key conflicts, and mixed-service Terraform validation/plan graphs. `tests/test_iam_template_references.py` verifies that policy ARN placeholders evaluate to real values and foreign resources use module inputs.
+
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.
 
 Any fixture that creates a `TestClient` from the real `app.main.app` must isolate persistence: monkeypatch `app.persistence.factory.get_repository`, reload `app.main`, and override `app.routers.diagrams.get_repo` through `app.dependency_overrides`. This prevents parallel workers from writing the real TinyDB file.

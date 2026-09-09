@@ -68,15 +68,19 @@ class TestRuleGeneration:
 
 
 class TestTargetsAreOwnedByTheRule:
-    """Values flow target → rule only, so Terraform sees no dependency cycle."""
+    """Rules own targets; destination queues own their aggregated delivery policy."""
 
     def test_lambda_target_and_permission_live_with_the_rule(self, tree):
         files = {p.rsplit("/", 1)[-1] for p in tree if RULE_DIR in p}
         assert {"target_process-job.tf", "permission_process-job.tf"} <= files
 
-    def test_queue_target_and_policy_live_with_the_rule(self, tree):
+    def test_queue_target_and_policy_have_separate_owners(self, tree):
         files = {p.rsplit("/", 1)[-1] for p in tree if RULE_DIR in p}
-        assert {"target_audit.tf", "policy_audit.tf"} <= files
+        assert "target_audit.tf" in files
+        assert "policy_audit.tf" not in files
+        assert (
+            "reference-project/modules/messaging/sqs/audit/policy_delivery.tf" in tree
+        )
 
     def test_target_reads_the_arn_as_an_input(self, tree):
         assert (

@@ -541,7 +541,8 @@ def test_property_16_connection_derived_iam_statements(lambda_name, target):
     elif tsvc == ServiceType.S3:
         assert any("s3:GetObject" in s["Action"] for s in conn_stmts)
     elif tsvc == ServiceType.CLOUDWATCH:
-        assert any("logs:CreateLogGroup" in s["Action"] for s in conn_stmts)
+        assert any("logs:PutLogEvents" in s["Action"] for s in conn_stmts)
+        assert all("logs:CreateLogGroup" not in s["Action"] for s in conn_stmts)
 
 
 # --- Property 15: API Gateway–Lambda integration generation ---

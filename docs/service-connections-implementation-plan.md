@@ -8,7 +8,7 @@ Current phase status:
 
 - [x] Phase 1 foundational networking: VPC membership, routes, subnet placement, and security-group placement are implemented, including managed launch templates for EC2 Auto Scaling. Managed placement lists preserve external identifiers.
 - [x] Phase 2 ingress, load balancing, and DNS.
-- [-] Phase 3 encryption and secrets: native KMS references are implemented for thirteen services, including a scoped CloudTrail key policy; broader key-policy integration, producer/consumer KMS grants, and additional secret consumers remain; Lambda/EC2/MWAA secret reads and ECS/CodeBuild/App Runner native injection are implemented.
+- [-] Phase 3 encryption and secrets: KMS references, shared service policies, and producer/consumer grants are complete for the thirteen registered encryption targets and their existing semantic consumers; additional secret consumers remain; Lambda/EC2/MWAA secret reads and ECS/CodeBuild/App Runner native injection are implemented.
 - [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and DMS network placement exist; the listed database integrations remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
@@ -56,7 +56,7 @@ Before implementing the domain batches, add reusable handlers or collaborators f
 - [x] append-to-list module-input references;
 - [x] execution-role IAM grants;
 - [x] subnet and security-group placement;
-- [-] KMS encryption references and grants: native references, Lambda decrypt grants, and CloudTrail key policies exist; broader service policies and consumer grants remain;
+- [x] KMS encryption references and grants: native references, scoped runtime grants, and aggregated CloudTrail/CloudWatch/SNS-to-SQS/EventBridge-to-SQS key policies are implemented for the registered relationships; external key-policy ownership and AWS-managed service grants are documented in `docs/backend-kms-connections.md`;
 - [x] route and association resources;
 - [x] target attachments;
 - [x] event-source mappings;
@@ -159,7 +159,7 @@ Implement `encrypted_by` connections from KMS to:
 - [x] S3
 - [x] DynamoDB
 - [x] SNS
-- [x] SQS: native key reference; producer/consumer grants remain under shared KMS IAM integration.
+- [x] SQS: native key reference, scoped producer/consumer grants, and managed-key service policies for SNS/EventBridge delivery.
 - [x] CloudWatch
 - [x] EBS
 - [x] EFS
@@ -170,7 +170,7 @@ Implement `encrypted_by` connections from KMS to:
 - [x] Lambda
 - [x] CloudTrail: native encryption and a key-owned policy scoped to connected trail ARNs.
 
-Each connection must supply the target key identifier, add consumer IAM grants where needed, and handle key-policy requirements without creating cycles.
+Each connection supplies the target key identifier, adds consumer IAM grants where needed, and handles key-policy requirements without creating cycles. Shared-key integration is complete for the current thirteen native targets and registered consumers; see `docs/backend-kms-connections.md` for the service matrix, AWS-managed grant requirements, and external-key ownership boundaries.
 
 ### Secrets Manager
 

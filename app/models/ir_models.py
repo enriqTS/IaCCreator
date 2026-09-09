@@ -85,7 +85,14 @@ class ConnectionContribution(BaseModel):
         self.outputs.extend(
             o for o in other.outputs if (o.module, o.name) not in seen_out
         )
-        self.resources.extend(other.resources)
+        seen_resources = {
+            (item.module, item.filename, item.content) for item in self.resources
+        }
+        self.resources.extend(
+            item
+            for item in other.resources
+            if (item.module, item.filename, item.content) not in seen_resources
+        )
         self.iam.extend(other.iam)
 
 

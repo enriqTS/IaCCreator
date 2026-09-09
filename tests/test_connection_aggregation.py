@@ -31,7 +31,10 @@ class TestFanIn:
     def test_each_source_gets_its_own_resources(self, tree):
         files = {p.rsplit("/", 1)[-1] for p in tree if "/sqs/jobs/" in p}
         assert {"subscription_events.tf", "subscription_alerts.tf"} <= files
-        assert {"policy_events.tf", "policy_alerts.tf"} <= files
+        assert "policy_delivery.tf" in files
+        policy = tree["reference-project/modules/messaging/sqs/jobs/policy_delivery.tf"]
+        assert policy.count('resource "aws_sqs_queue_policy"') == 1
+        assert "var.delivery_sns_arns" in policy
 
     def test_the_environment_passes_both(self, tree):
         main = tree["reference-project/environments/dev/main.tf"]

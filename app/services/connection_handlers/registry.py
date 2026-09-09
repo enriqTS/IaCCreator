@@ -54,6 +54,7 @@ from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.kms_cloudtrail import KmsCloudTrailHandler
 from app.services.connection_handlers.kms_encryption import KmsEncryptionHandler
+from app.services.connection_handlers.kms_references import KMS_INPUTS
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
 from app.services.connection_handlers.launch_template import (
     LaunchTemplateAutoScalingHandler,
@@ -343,20 +344,8 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             config_model=EmptyConnectionConfig,
             handler=KmsEncryptionHandler(input_name),
         )
-        for target, input_name in (
-            (ServiceType.S3, "sse_kms_key_id"),
-            (ServiceType.DYNAMODB, "server_side_encryption_kms_key_arn"),
-            (ServiceType.SNS, "kms_master_key_id"),
-            (ServiceType.SQS, "kms_master_key_id"),
-            (ServiceType.CLOUDWATCH, "kms_key_id"),
-            (ServiceType.EBS, "kms_key_id"),
-            (ServiceType.EFS, "kms_key_id"),
-            (ServiceType.BACKUP, "kms_key_arn"),
-            (ServiceType.SECRETS_MANAGER, "kms_key_id"),
-            (ServiceType.DATAZONE, "kms_key_identifier"),
-            (ServiceType.CODEARTIFACT, "kms_key"),
-            (ServiceType.LAMBDA, "kms_key_arn"),
-        )
+        for target, input_name in KMS_INPUTS.items()
+        if target != ServiceType.CLOUDTRAIL
     ],
     ConnectionSpec(
         source=ServiceType.CERTIFICATE_MANAGER,

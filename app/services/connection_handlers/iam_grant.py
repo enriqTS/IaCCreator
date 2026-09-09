@@ -8,6 +8,7 @@ from app.models.ir_models import (
     ProjectIR,
 )
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.kms_consumer import KmsConsumerGrants
 from app.services.iam_registry import get_actions, get_resources
 
 
@@ -31,6 +32,10 @@ class IamGrantHandler(BaseConnectionHandler):
             actions=get_actions(self._target_service, access_pattern),
             resources=get_resources(connection.target_name, self._target_service),
         )
-        return ConnectionContribution(
-            iam=[self._grant(connection.source_name, statement)]
+        return KmsConsumerGrants().augment(
+            ConnectionContribution(
+                iam=[self._grant(connection.source_name, statement)]
+            ),
+            connection.target_name,
+            project,
         )

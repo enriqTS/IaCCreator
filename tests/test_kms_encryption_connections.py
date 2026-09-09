@@ -37,7 +37,8 @@ def test_kms_key_arn_is_wired_to_native_service_input(target, input_name):
         )
     )
     environment = tree["connection-check/environments/dev/main.tf"]
-    assert f"{input_name} = module.source-resource.key_arn" in environment
+    output = "service_key_arn" if target == ServiceType.CLOUDWATCH else "key_arn"
+    assert f"{input_name} = module.source-resource.{output}" in environment
 
 
 def test_lambda_receives_scoped_kms_decrypt_grant():

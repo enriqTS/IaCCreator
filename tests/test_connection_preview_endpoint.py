@@ -76,9 +76,7 @@ class TestEmptyConnectionsStillPreview:
         assert len(previews) == 1
         preview = previews[0]
         assert preview["label"] == "Lambda → CloudWatch"
-        assert [r["resource_type"] for r in preview["resources"]] == [
-            "aws_cloudwatch_log_group"
-        ]
+        assert preview["resources"] == []
         assert preview["iam"][0]["role_owner"] == "worker"
         assert preview["iam"][0]["effect"] == "Allow"
         assert preview["iam"][0]["actions"]

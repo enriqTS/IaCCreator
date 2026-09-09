@@ -32,6 +32,8 @@ class ConnectionProcessor:
             merged.merge(spec.handler.handle(conn, project))
 
         self._attach_iam(merged, project)
+        merged.inputs.sort(key=lambda item: (item.module, item.name))
+        merged.outputs.sort(key=lambda item: (item.module, item.name))
         return merged
 
     @staticmethod

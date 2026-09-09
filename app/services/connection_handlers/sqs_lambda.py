@@ -9,6 +9,7 @@ from app.models.ir_models import (
     ProjectIR,
 )
 from app.services.connection_handlers.base import BaseConnectionHandler, safe_identifier
+from app.services.connection_handlers.kms_consumer import KmsConsumerGrants
 from app.services.iam_registry import get_actions, get_resources
 
 
@@ -26,6 +27,7 @@ class SQSLambdaHandler(BaseConnectionHandler):
             "event_source_arn": Expr(f"var.{queue_arn_var}"),
             "function_name": Expr(f"aws_lambda_function.{function}.arn"),
             "batch_size": connection.connection_config.get("batch_size", 10),
+            "depends_on": Expr(f"[aws_iam_role_policy.{function}_policy]"),
         }
         window = connection.connection_config.get("maximum_batching_window_in_seconds")
         if window is not None:
@@ -54,7 +56,7 @@ class SQSLambdaHandler(BaseConnectionHandler):
             resources=get_resources(queue, ServiceType.SQS),
         )
 
-        return ConnectionContribution(
+        result = ConnectionContribution(
             outputs=[
                 self._output(queue, "arn", f"aws_sqs_queue.{queue}.arn", "Queue ARN")
             ],
@@ -73,3 +75,4 @@ class SQSLambdaHandler(BaseConnectionHandler):
             ],
             iam=[self._grant(function, statement)],
         )
+        return KmsConsumerGrants().augment(result, queue, project)

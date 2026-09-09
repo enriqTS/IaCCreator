@@ -43,7 +43,7 @@ def test_shared_key_policy_aggregates_trails_deterministically(duplicate):
     policy = next(
         resource
         for resource in contribution.resources
-        if resource.filename == "cloudtrail_policy.tf"
+        if resource.filename == "key_policy.tf"
     )
     assert policy.module == "source-resource"
     assert '"kms:GenerateDataKey*"' in policy.content
@@ -83,7 +83,7 @@ def test_preview_and_policy_dependency():
     key_output = next(
         output for output in contribution.outputs if output.name == "cloudtrail_key_arn"
     )
-    assert key_output.value == "aws_kms_key_policy.cloudtrail.key_id"
+    assert key_output.value == "aws_kms_key_policy.services.key_id"
     trail_output = next(
         output
         for output in contribution.outputs
@@ -121,7 +121,7 @@ def test_external_key_remains_usable(key):
         content for path, content in tree.items() if path.endswith("/cloudtrail.tf")
     )
     assert ("kms_key_id = var.kms_key_id" in resource) == (key is not None)
-    assert not any(path.endswith("/cloudtrail_policy.tf") for path in tree)
+    assert not any(path.endswith("/key_policy.tf") for path in tree)
 
 
 def test_shared_key_terraform_graph_has_no_cycle(tmp_path):
