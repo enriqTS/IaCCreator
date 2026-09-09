@@ -97,7 +97,9 @@ def _minimal_config_for(service_type: ServiceType) -> BaseServiceConfig:
             return config_cls(table_name="test-table", hash_key="id", hash_key_type="S")
         if service_type == ServiceType.API_GATEWAY:
             return config_cls(api_name="test-api", protocol_type="HTTP")
-        return config_cls()
+        from tests.generator_helpers import minimal_config_for
+
+        return minimal_config_for(service_type)
 
     return BaseServiceConfig()
 

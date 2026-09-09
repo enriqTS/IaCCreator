@@ -316,7 +316,9 @@ def resource_instance_ir_strategy(draw):
     )
     variables = {vn: draw(_tf_var_value_st) for vn in chosen}
     # Provide required fields for services that need them
-    config_kwargs = {}
+    from tests.generator_helpers import minimal_config_for
+
+    config_kwargs = minimal_config_for(svc).model_dump()
     if svc == ServiceType.LAMBDA:
         config_kwargs["function_name"] = name
     if svc == ServiceType.DYNAMODB:

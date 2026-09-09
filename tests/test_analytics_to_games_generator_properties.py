@@ -219,7 +219,9 @@ def _minimal_config_for(service_type: ServiceType) -> BaseServiceConfig:
         # Connect needs at least one field set to produce non-empty variables_tf
         if service_type == ServiceType.CONNECT:
             return config_cls(identity_management_type="CONNECT_MANAGED")
-        return config_cls()
+        from tests.generator_helpers import minimal_config_for
+
+        return minimal_config_for(service_type)
 
     # Legacy services still using BaseServiceConfig fallback
     if service_type == ServiceType.CONNECT:
