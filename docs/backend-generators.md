@@ -42,6 +42,8 @@ The assembler uses `module_arguments.py`, `module_paths.py`, and `service_catego
 
 Subnet placement belongs to the Auto Scaling group. Managed template connections override its external `launch_template_id` and `launch_template_version` inputs; unconnected groups retain those escape hatches. The frontend exposes the resource through the compute catalog and backend-generated variable schema.
 
+Execution-role policies use `templatefile` with an explicit reference context, so KMS and other ARN expressions resolve before reaching IAM. Cross-module policy resources are exported and passed as module inputs rather than referenced inside a foreign module. Repeated grants are deduplicated before policy rendering.
+
 ## Connection-generated Terraform
 
 Connection handlers return `ConnectionContribution`: module inputs, module outputs, module-owned resources, and IAM grants. `FileTreeAssembler` folds those into the owning instance module and passes cross-module values through environment module calls. List-valued network inputs remain typed HCL collections; managed Subnet and Security Group connections merge sorted, deduplicated external IDs with module references, including direct EC2 security-group placement. Network Firewall emits one dynamic subnet mapping per selected Subnet, and Client VPN emits network associations for selected Subnets. This keeps connection resources in their owning module and avoids Terraform dependency cycles.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from app.generators.hcl_renderer import Expr, HCLRenderer
+from app.generators.iam_references import template_context
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -47,7 +48,9 @@ class ExecutionRoleGenerator:
             {
                 "name": f"{name}-policy",
                 "role": Expr(f"aws_iam_role.{name}_role.id"),
-                "policy": Expr(f'file("{policy_path}")'),
+                "policy": Expr(
+                    f'templatefile("{policy_path}", {self._r.render_expression(template_context(instance))})'
+                ),
             },
         )
 

@@ -2,6 +2,7 @@
 
 import logging
 
+from app.generators.iam_references import cross_module_inputs
 from app.models.ir_models import ConnectionContribution, ProjectIR
 from app.services.connection_handlers.registry import resolve_spec
 
@@ -41,5 +42,10 @@ class ConnectionProcessor:
         }
         for grant in contribution.iam:
             instance = instances.get(grant.role_owner)
-            if instance is not None:
+            if instance is not None and grant.statement not in instance.iam_statements:
                 instance.iam_statements.append(grant.statement)
+        for instance in instances.values():
+            instance.iam_statements.sort(
+                key=lambda statement: statement.model_dump_json()
+            )
+            contribution.merge(cross_module_inputs(instance))

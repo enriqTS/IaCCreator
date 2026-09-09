@@ -70,6 +70,9 @@ class HCLRenderer:
         body = self._format_expression(document, depth=depth)
         return Expr(f"jsonencode({body})")
 
+    def render_expression(self, value: Any) -> str:
+        return self._format_expression(value, depth=1)
+
     # --- private helpers ---
 
     def _render_attrs(self, attrs: dict[str, Any], depth: int) -> list[str]:
