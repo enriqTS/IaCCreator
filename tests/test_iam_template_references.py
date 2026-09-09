@@ -31,10 +31,11 @@ def test_policy_template_evaluates_key_arn(tmp_path):
         'variable "kms_key_arn" { default = "arn:aws:kms:us-east-1:123456789012:key/example" }'
     )
     context = HCLRenderer().render_expression(template_context(instance))
+    (tmp_path / "context.tf").write_text(f"locals {{ policy_context = {context} }}")
     result = subprocess.run(
         ["terraform", "console"],
         cwd=tmp_path,
-        input=f'jsonencode(jsondecode(templatefile("policy.json", {context})))\n',
+        input='jsonencode(jsondecode(templatefile("policy.json", local.policy_context)))\n',
         capture_output=True,
         text=True,
         timeout=30,
