@@ -46,7 +46,7 @@ def test_efs_mount_targets_reference_file_system() -> None:
     hcl = GENERATOR_REGISTRY[ServiceType.EFS].generate_resource_tf(instance)
     assert 'resource "aws_efs_mount_target"' in hcl
     assert "aws_efs_file_system.shared.id" in hcl
-    assert "toset(var.subnet_ids)" in hcl
+    assert "tostring(index) => subnet_id" in hcl
 
 
 def test_backup_plan_references_generated_vault() -> None:

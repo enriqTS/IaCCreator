@@ -31,7 +31,9 @@ class EfsGenerator:
                     "aws_efs_mount_target",
                     instance.name,
                     {
-                        "for_each": Expr("toset(var.subnet_ids)"),
+                        "for_each": Expr(
+                            "{ for index, subnet_id in var.subnet_ids : tostring(index) => subnet_id }"
+                        ),
                         "file_system_id": Expr(
                             f"aws_efs_file_system.{instance.name}.id"
                         ),

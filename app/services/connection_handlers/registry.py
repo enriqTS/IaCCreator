@@ -29,6 +29,7 @@ from app.models.connection_configs.secrets import (
 )
 from app.models.connection_configs.storage import (
     EbsAttachmentConfig,
+    EfsLambdaMountConfig,
     S3NotificationConfig,
 )
 from app.models.connection_configs.workflows import StepFunctionsSecretConfig
@@ -52,6 +53,7 @@ from app.services.connection_handlers.ec2_placement import (
 from app.services.connection_handlers.ec2_secret import Ec2SecretHandler
 from app.services.connection_handlers.ecs_secret import EcsSecretHandler
 from app.services.connection_handlers.ecs_target_group import TargetGroupECSHandler
+from app.services.connection_handlers.efs_lambda import EfsLambdaMountHandler
 from app.services.connection_handlers.environment_secret import EnvironmentSecretHandler
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
@@ -125,6 +127,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EFS,
+        target=ServiceType.LAMBDA,
+        connection_type="mounts",
+        label="EFS → Lambda",
+        config_model=EfsLambdaMountConfig,
+        handler=EfsLambdaMountHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EBS,
         target=ServiceType.EC2,

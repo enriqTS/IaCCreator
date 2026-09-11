@@ -52,3 +52,41 @@ class EbsAttachmentConfig(BaseConnectionConfig):
         description="EC2 attachment device name; formatting and mounting remain OS tasks",
         validation=ValidationRule(pattern=r"^/dev/(sd|xvd)[f-p]$"),
     )
+
+
+class EfsLambdaMountConfig(BaseConnectionConfig):
+    """A non-root EFS access point mounted into Lambda."""
+
+    local_mount_path: str = ConnectionField(
+        "/mnt/efs",
+        label="Lambda mount path",
+        validation=ValidationRule(pattern=r"^/mnt/[A-Za-z0-9_-]+$"),
+    )
+    root_directory: str | None = ConnectionField(
+        None,
+        label="EFS directory",
+        description="Defaults to a directory named after the Lambda function",
+        validation=ValidationRule(pattern=r"^/[A-Za-z0-9_-]+$"),
+    )
+    uid: int = ConnectionField(
+        1000,
+        label="POSIX user ID",
+        type="number",
+        validation=ValidationRule(min=1, max=4294967294),
+    )
+    gid: int = ConnectionField(
+        1000,
+        label="POSIX group ID",
+        type="number",
+        validation=ValidationRule(min=1, max=4294967294),
+    )
+    access: str = ConnectionField(
+        "read",
+        label="Access",
+        type="select",
+        options=[
+            OptionEntry(value="read", label="Read only"),
+            OptionEntry(value="write", label="Read and write"),
+        ],
+        validation=ValidationRule(allowed_values=["read", "write"]),
+    )

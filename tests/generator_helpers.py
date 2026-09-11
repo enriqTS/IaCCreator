@@ -127,6 +127,12 @@ def connection_architecture(spec) -> dict:
                     config[key] = name
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
             config.pop("bus_name", None)
+        if spec.source == ServiceType.EFS and spec.target == ServiceType.LAMBDA:
+            if service_type == ServiceType.EFS:
+                config["subnet_ids"] = ["subnet-12345678"]
+            else:
+                config["vpc_subnet_ids"] = ["subnet-12345678"]
+                config["vpc_security_group_ids"] = ["sg-12345678"]
         config["service_type"] = service_type.value
         resources.append(
             {

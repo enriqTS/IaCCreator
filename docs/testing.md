@@ -60,3 +60,5 @@ Use behavior-oriented tests rather than source-text assertions. For geometry and
 `tests/test_s3_eventbridge_connections.py` covers managed rule scoping, preserved filters, unsupported buses/schedules/patterns, duplicate and converging bucket connections, mixed direct notifications, preview ownership, and Terraform validation/plan graphs.
 
 `tests/test_ebs_attachment_connections.py` covers volume-owned attachments, managed Availability Zone references, invalid/root device rejection, Linux device aliases, duplicate/multiple volume connections, unsupported Multi-Attach, preview guidance, and Terraform validation/plan graphs.
+
+`tests/test_efs_lambda_connections.py` verifies access-point ownership, Lambda native mount blocks, filesystem-scoped permissions, network prerequisites, invalid bindings, shared filesystems, and generated-project Terraform validation. Existing EFS subnet and security-group placement supply its mount-target networking.
