@@ -56,3 +56,5 @@ Routing tests are split between the legacy deterministic routing helpers and the
 Use behavior-oriented tests rather than source-text assertions. For geometry and interaction changes, mutation-test the relevant rule when practical: deliberately break it, confirm the new test fails, then restore it.
 
 `tests/test_s3_notification_connections.py` covers shared bucket notification ownership, external destinations, deterministic duplicates, converging SNS/SQS publishers, FIFO rejection, external-key warnings, shared KMS policies, filter conflicts, and preview ownership. A mixed architecture passes Terraform validation and plan-graph checks; registry-derived validation covers each new notification pair. Schema endpoint tests verify list-valued event defaults for all three destinations.
+
+`tests/test_s3_eventbridge_connections.py` covers managed rule scoping, preserved filters, unsupported buses/schedules/patterns, duplicate and converging bucket connections, mixed direct notifications, preview ownership, and Terraform validation/plan graphs.

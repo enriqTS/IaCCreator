@@ -125,6 +125,8 @@ def connection_architecture(spec) -> dict:
             for key in model.model_fields:
                 if key == "name" or key.endswith("_name"):
                     config[key] = name
+        if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
+            config.pop("bus_name", None)
         config["service_type"] = service_type.value
         resources.append(
             {

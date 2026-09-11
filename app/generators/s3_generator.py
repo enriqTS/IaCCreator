@@ -195,7 +195,10 @@ class S3Generator:
     ) -> str:
         """Emit aws_s3_bucket_notification when notification fields are set."""
         # AWS allows one notification per bucket, and a connection owns it when present
-        if any(c.connection_type == "notifies" for c in instance.connections):
+        if any(
+            c.connection_type in {"notifies", "delivers_to"}
+            for c in instance.connections
+        ):
             return ""
 
         has_notifications = any(

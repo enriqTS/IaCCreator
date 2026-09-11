@@ -78,6 +78,7 @@ from app.services.connection_handlers.route_table_association import (
     RouteTableAssociationHandler,
 )
 from app.services.connection_handlers.s3_destination import S3DestinationHandler
+from app.services.connection_handlers.s3_eventbridge import S3EventBridgeHandler
 from app.services.connection_handlers.s3_lambda import S3LambdaHandler
 from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
@@ -120,6 +121,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.S3,
+        target=ServiceType.EVENTBRIDGE,
+        connection_type="delivers_to",
+        label="S3 → EventBridge",
+        config_model=EmptyConnectionConfig,
+        handler=S3EventBridgeHandler(),
+    ),
     *[
         ConnectionSpec(
             source=ServiceType.S3,

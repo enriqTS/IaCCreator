@@ -23,6 +23,14 @@ class S3Notifications(BaseConnectionHandler):
         ]
         bucket = connection.source_name
         attrs: dict = {"bucket": Expr(f"aws_s3_bucket.{bucket}.id")}
+        if any(
+            item.source_name == bucket
+            and item.source_service == ServiceType.S3
+            and item.target_service == ServiceType.EVENTBRIDGE
+            and item.connection_type == "delivers_to"
+            for item in project.connections
+        ):
+            attrs["eventbridge"] = True
         dependencies = set()
         unique = {notification_key(item): item for item in peers}
         validate_notification_filters(list(unique.values()))
