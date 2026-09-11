@@ -4,7 +4,7 @@ from pydantic import field_validator
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import ConnectionField
-from app.models.input_models._metadata import OptionEntry
+from app.models.input_models._metadata import OptionEntry, ValidationRule
 
 
 class S3NotificationConfig(BaseConnectionConfig):
@@ -41,3 +41,14 @@ class S3NotificationConfig(BaseConnectionConfig):
         if not value or any(event not in allowed for event in value):
             raise ValueError("Choose at least one supported S3 event type")
         return sorted(set(value))
+
+
+class EbsAttachmentConfig(BaseConnectionConfig):
+    """An additional Linux block device attached to an EC2 instance."""
+
+    device_name: str = ConnectionField(
+        "/dev/sdf",
+        label="Device name",
+        description="EC2 attachment device name; formatting and mounting remain OS tasks",
+        validation=ValidationRule(pattern=r"^/dev/(sd|xvd)[f-p]$"),
+    )

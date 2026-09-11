@@ -27,7 +27,10 @@ from app.models.connection_configs.secrets import (
     CodeBuildSecretConfig,
     EcsSecretConfig,
 )
-from app.models.connection_configs.storage import S3NotificationConfig
+from app.models.connection_configs.storage import (
+    EbsAttachmentConfig,
+    S3NotificationConfig,
+)
 from app.models.connection_configs.workflows import StepFunctionsSecretConfig
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.accelerator_endpoint import (
@@ -41,6 +44,7 @@ from app.services.connection_handlers.certificate import (
 )
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
+from app.services.connection_handlers.ebs_attachment import EbsAttachmentHandler
 from app.services.connection_handlers.ec2_placement import (
     SecurityGroupEC2AssociationHandler,
     SubnetEC2PlacementHandler,
@@ -121,6 +125,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EBS,
+        target=ServiceType.EC2,
+        connection_type="attaches",
+        label="EBS → EC2",
+        config_model=EbsAttachmentConfig,
+        handler=EbsAttachmentHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.S3,
         target=ServiceType.EVENTBRIDGE,

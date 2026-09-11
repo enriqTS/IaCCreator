@@ -70,6 +70,11 @@ class EC2Generator:
         """Generate outputs.tf for an EC2 instance."""
         parts = [
             self._r.render_output(
+                "availability_zone",
+                f"aws_instance.{instance.name}.availability_zone",
+                "Instance Availability Zone",
+            ),
+            self._r.render_output(
                 "instance_id",
                 f"aws_instance.{instance.name}.id",
                 "ID of the EC2 instance",
