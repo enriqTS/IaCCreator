@@ -44,7 +44,7 @@ interface ApiField {
   label: string;
   type: SchemaFieldType;
   required: boolean;
-  default?: string | number | boolean | null;
+  default?: string | number | boolean | string[] | null;
   placeholder?: string | null;
   options?: ApiOption[] | null;
   validation?: ApiValidation | null;
@@ -89,7 +89,7 @@ function toField(field: ApiField): SchemaField {
     label: field.label,
     type: field.type,
     ...(field.default !== null && field.default !== undefined
-      ? { defaultValue: field.default }
+      ? { defaultValue: Array.isArray(field.default) ? field.default.join(",") : field.default }
       : {}),
     ...(field.placeholder ? { placeholder: field.placeholder } : {}),
     ...(field.options

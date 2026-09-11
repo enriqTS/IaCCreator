@@ -1,11 +1,13 @@
 """Aggregate bucket notifications under one Terraform resource owner."""
 
-import json
-
 from app.generators.hcl_renderer import Expr
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler, safe_identifier
+from app.services.connection_handlers.s3_notification_rules import (
+    notification_key,
+    validate_notification_filters,
+)
 
 
 class S3Notifications(BaseConnectionHandler):
@@ -22,15 +24,22 @@ class S3Notifications(BaseConnectionHandler):
         bucket = connection.source_name
         attrs: dict = {"bucket": Expr(f"aws_s3_bucket.{bucket}.id")}
         dependencies = set()
-        unique = {
-            (item.target_name, json.dumps(item.connection_config, sort_keys=True)): item
-            for item in peers
-        }
+        unique = {notification_key(item): item for item in peers}
+        validate_notification_filters(list(unique.values()))
         for key in sorted(unique):
             item = unique[key]
             prefix = safe_identifier(item.target_name)
+            block_name, arn_field, suffix = {
+                ServiceType.LAMBDA: (
+                    "lambda_function",
+                    "lambda_function_arn",
+                    "function_arn",
+                ),
+                ServiceType.SNS: ("topic", "topic_arn", "notification_arn"),
+                ServiceType.SQS: ("queue", "queue_arn", "notification_arn"),
+            }[item.target_service]
             block = {
-                "lambda_function_arn": Expr(f"var.{prefix}_function_arn"),
+                arn_field: Expr(f"var.{prefix}_{suffix}"),
                 "events": sorted(
                     set(item.connection_config.get("events") or ["s3:ObjectCreated:*"])
                 ),
@@ -38,8 +47,9 @@ class S3Notifications(BaseConnectionHandler):
             for name in ("filter_prefix", "filter_suffix"):
                 if item.connection_config.get(name):
                     block[name] = item.connection_config[name]
-            attrs.setdefault("lambda_function", []).append(block)
-            dependencies.add(f"aws_lambda_permission.{prefix}_permission")
+            attrs.setdefault(block_name, []).append(block)
+            if item.target_service == ServiceType.LAMBDA:
+                dependencies.add(f"aws_lambda_permission.{prefix}_permission")
         instance = self._find_instance(bucket, project)
         for service, block_name, arn_field in (
             ("lambda", "lambda_function", "lambda_function_arn"),

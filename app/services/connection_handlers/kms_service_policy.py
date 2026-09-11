@@ -50,7 +50,9 @@ class KmsServicePolicy(BaseConnectionHandler):
                     )
                 )
                 arns = Expr("var." + rule.variable)
-            statements.extend(rule.statements(arns))
+            for statement in rule.statements(arns):
+                if statement not in statements:
+                    statements.append(statement)
         content = 'data "aws_partition" "kms_policy" {}\ndata "aws_region" "kms_policy" {}\ndata "aws_caller_identity" "kms_policy" {}\n'
         content += self._renderer.render_resource(
             "aws_kms_key_policy",

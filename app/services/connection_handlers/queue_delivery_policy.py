@@ -11,6 +11,7 @@ from app.models.ir_models import (
 from app.services.connection_handlers.base import BaseConnectionHandler
 
 _DELIVERY_SOURCES = {
+    ServiceType.S3: ("s3.amazonaws.com", "bucket_arn"),
     ServiceType.SNS: ("sns.amazonaws.com", "topic_arn"),
     ServiceType.EVENTBRIDGE: ("events.amazonaws.com", "rule_arn"),
 }

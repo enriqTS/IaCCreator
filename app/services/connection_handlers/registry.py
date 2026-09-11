@@ -27,6 +27,7 @@ from app.models.connection_configs.secrets import (
     CodeBuildSecretConfig,
     EcsSecretConfig,
 )
+from app.models.connection_configs.storage import S3NotificationConfig
 from app.models.connection_configs.workflows import StepFunctionsSecretConfig
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.accelerator_endpoint import (
@@ -76,6 +77,7 @@ from app.services.connection_handlers.route53_vpc_association import (
 from app.services.connection_handlers.route_table_association import (
     RouteTableAssociationHandler,
 )
+from app.services.connection_handlers.s3_destination import S3DestinationHandler
 from app.services.connection_handlers.s3_lambda import S3LambdaHandler
 from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
@@ -118,6 +120,17 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=ServiceType.S3,
+            target=target,
+            connection_type="notifies",
+            label=f"S3 → {target.value.upper()}",
+            config_model=S3NotificationConfig,
+            handler=S3DestinationHandler(),
+        )
+        for target in (ServiceType.SNS, ServiceType.SQS)
+    ],
     ConnectionSpec(
         source=ServiceType.BATCH_JOB_DEFINITION,
         target=ServiceType.SECRETS_MANAGER,

@@ -41,11 +41,19 @@ class HCLRenderer:
         lines.append("}")
         return "\n".join(lines) + "\n"
 
-    def render_output(self, name: str, value: str, description: str) -> str:
+    def render_output(
+        self,
+        name: str,
+        value: str,
+        description: str,
+        depends_on: list[str] | None = None,
+    ) -> str:
         """Render a Terraform ``output`` block with *value* and *description*."""
         lines = [f'output "{name}" {{']
         lines.append(f"{self.INDENT}description = {self._quote(description)}")
         lines.append(f"{self.INDENT}value       = {value}")
+        if depends_on:
+            lines.append(f"{self.INDENT}depends_on = [{', '.join(depends_on)}]")
         lines.append("}")
         return "\n".join(lines) + "\n"
 

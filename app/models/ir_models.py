@@ -52,6 +52,7 @@ class ModuleOutput(BaseModel):
     name: str
     value: str
     description: str = ""
+    depends_on: list[str] = Field(default_factory=list)
 
 
 class ModuleResource(BaseModel):

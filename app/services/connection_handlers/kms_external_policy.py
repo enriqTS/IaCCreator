@@ -12,7 +12,7 @@ def require_custom_delivery_key(connection: ConnectionIR, project: ProjectIR) ->
     target = BaseConnectionHandler._find_instance(connection.target_name, project)
     if (
         target is None
-        or target.service_type != ServiceType.SQS
+        or target.service_type not in {ServiceType.SQS, ServiceType.SNS}
         or managed_key(target.name, project)
     ):
         return
@@ -25,7 +25,7 @@ def require_custom_delivery_key(connection: ConnectionIR, project: ProjectIR) ->
             [
                 {
                     "loc": ("kms_master_key_id",),
-                    "msg": "AWS service delivery to an encrypted queue requires a customer-managed KMS key",
+                    "msg": "AWS service delivery to an encrypted destination requires a customer-managed KMS key",
                 }
             ],
         )

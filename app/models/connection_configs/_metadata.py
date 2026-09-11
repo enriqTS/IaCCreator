@@ -45,7 +45,7 @@ class ConnectionFieldSchema(BaseModel):
     label: str
     type: FieldType
     required: bool = False
-    default: str | int | float | bool | None = None
+    default: list[str] | str | int | float | bool | None = None
     placeholder: str | None = None
     options: list[OptionEntry] | None = None
     validation: ValidationRule | None = None

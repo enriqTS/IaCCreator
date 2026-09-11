@@ -117,7 +117,10 @@ class FileTreeAssembler:
             if f'output "{module_output.name}"' in existing:
                 continue
             block = self._renderer.render_output(
-                module_output.name, module_output.value, module_output.description
+                module_output.name,
+                module_output.value,
+                module_output.description,
+                module_output.depends_on,
             )
             tree[path] = (existing.rstrip("\n") + "\n\n" + block).lstrip("\n")
 

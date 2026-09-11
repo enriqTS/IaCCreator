@@ -9,7 +9,7 @@ Current phase status:
 - [x] Phase 1 foundational networking: VPC membership, routes, subnet placement, and security-group placement are implemented, including managed launch templates for EC2 Auto Scaling. Managed placement lists preserve external identifiers.
 - [x] Phase 2 ingress, load balancing, and DNS.
 - [x] Phase 3 encryption and secrets: KMS references, shared service policies, and scoped grants cover the thirteen registered encryption targets and their existing consumers. Lambda/EC2/MWAA reads, ECS/CodeBuild/App Runner/Batch job-definition native injection, and Step Functions GetSecretValue tasks are implemented.
-- [-] Phase 4 storage and backup: S3-to-Lambda notifications exist, but the relationships listed in this phase remain.
+- [-] Phase 4 storage and backup: S3 notifications to Lambda, SNS, and SQS share one bucket-owned resource, with aggregated destination policies and managed-key grants; the other storage relationships remain.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and DMS network placement exist; the listed database integrations remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
 - [ ] Phase 7 identity, certificates, and edge security.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 117 Terraform-capable service types, while the connection registry contains 86 connection specifications involving 45 services.
+The generator registry contains 117 Terraform-capable service types, while the connection registry contains 88 connection specifications involving 45 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -199,8 +199,8 @@ Do not treat an IAM grant as runtime secret injection when the target supports a
 
 Implement:
 
-- S3 → SNS notifications.
-- S3 → SQS notifications.
+- [x] S3 → SNS notifications.
+- [x] S3 → SQS notifications.
 - S3 → EventBridge delivery.
 - S3 → S3 replication.
 - CloudTrail → S3 delivery.

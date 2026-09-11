@@ -156,3 +156,20 @@ class TestConnectionSchemasEndpoint:
         assert methods["type"] == "multiSelect"
         assert methods["exclusive_options"] == ["ANY"]
         assert [o["value"] for o in methods["options"]] == list(HTTP_METHODS)
+
+
+@pytest.mark.parametrize("target", ["lambda", "sns", "sqs"])
+def test_s3_notification_events_have_typed_defaults(connection_schemas, target):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "s3" and item["target"] == target
+    )
+    events = next(field for field in entry["fields"] if field["key"] == "events")
+    assert events["default"] == ["s3:ObjectCreated:*"]
+    assert events["type"] == "multiSelect"
+    assert {option["value"] for option in events["options"]} == {
+        "s3:ObjectCreated:*",
+        "s3:ObjectRemoved:*",
+        "s3:ObjectRestore:*",
+    }

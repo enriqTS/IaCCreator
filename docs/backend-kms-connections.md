@@ -58,3 +58,5 @@ AWS references used to confirm the integration semantics:
 - [EventBridge target permissions](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-targets.html)
 - [DataZone encryption at rest](https://docs.aws.amazon.com/datazone/latest/userguide/encryption-rest-datazone.html)
 - [CodeArtifact domains and encryption](https://docs.aws.amazon.com/codeartifact/latest/ug/domain-overview.html)
+
+S3 notification delivery to managed SNS/SQS destinations contributes the S3 service principal's `kms:GenerateDataKey` and `kms:Decrypt` permissions to the existing key-owned policy. A shared SNS/SQS key receives this statement once. As in the [AWS S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/userguide/grant-destinations-permissions-to-s3.html), the KMS service grant applies to that key without a source-ARN condition; destination resource policies separately constrain publishing to connected bucket ARNs. External customer-managed key policies must be prepared by their owner, and AWS-managed key aliases are rejected for these relationships.

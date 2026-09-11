@@ -84,6 +84,17 @@ def eventbridge(_arns: Expr) -> list[dict]:
     ]
 
 
+def s3(_arns: Expr) -> list[dict]:
+    return [
+        {
+            "Effect": "Allow",
+            "Principal": principal("s3"),
+            "Action": ["kms:Decrypt", "kms:GenerateDataKey"],
+            "Resource": "*",
+        }
+    ]
+
+
 @dataclass(frozen=True)
 class KeyPolicyRule:
     encrypted_service: ServiceType
@@ -112,6 +123,8 @@ class KeyPolicyRule:
 
 
 POLICY_RULES = (
+    KeyPolicyRule(ServiceType.SQS, None, s3, ServiceType.S3),
+    KeyPolicyRule(ServiceType.SNS, None, s3, ServiceType.S3),
     KeyPolicyRule(ServiceType.CLOUDTRAIL, "cloudtrail_arns", cloudtrail),
     KeyPolicyRule(ServiceType.CLOUDWATCH, "log_group_arns", logs),
     KeyPolicyRule(ServiceType.SQS, "sqs_publisher_topic_arns", sns, ServiceType.SNS),

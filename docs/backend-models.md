@@ -44,3 +44,5 @@ Persistence records (`UserRecord`, `DiagramRecord`, and `DiagramSummary`) live i
 `connection_configs/workflows.py` defines the typed `state_name` selector for Step Functions secret tasks. `workflow_states.py` validates supported JSONPath Pass placeholders; a private connection-derived flag enables workflow mutation during generation.
 
 `connection_configs/secrets.py` defines the typed ECS injection fields. ECS generation uses a private connection-derived flag to select native injection rendering; it is not a user-editable service field.
+
+`connection_configs/storage.py` supplies `S3NotificationConfig` for Lambda, SNS, and SQS object notifications. It exposes created/removed/restored event categories and optional key prefix/suffix filters, rejects empty or unsupported event selections, and normalizes repeated events. `S3LambdaConfig` remains a compatibility name. Connection field schema defaults accept string lists so the API can describe multi-select defaults without frontend derivation. `ModuleOutput` optionally declares resource dependencies for policy-ready references.

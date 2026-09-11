@@ -12,6 +12,7 @@ from app.models.connection_configs._metadata import (
     LinkedEntry,
     LinkedEntryField,
 )
+from app.models.connection_configs.storage import S3NotificationConfig
 from app.models.input_models._metadata import OptionEntry, ValidationRule
 from app.models.input_models.api_gateway_route import HTTP_METHODS
 
@@ -167,32 +168,8 @@ class SqsLambdaConfig(BaseConnectionConfig):
     )
 
 
-class S3LambdaConfig(BaseConnectionConfig):
-    """An S3 bucket notifying a Lambda when objects change."""
-
-    events: list[str] = ConnectionField(
-        default_factory=lambda: ["s3:ObjectCreated:*"],
-        label="Events",
-        description="Object events that invoke the function",
-        type="multiSelect",
-        options=[
-            OptionEntry(value="s3:ObjectCreated:*", label="Object created"),
-            OptionEntry(value="s3:ObjectRemoved:*", label="Object removed"),
-            OptionEntry(value="s3:ObjectRestore:*", label="Object restored"),
-        ],
-    )
-    filter_prefix: str | None = ConnectionField(
-        None,
-        label="Key Prefix",
-        description="Only notify for keys starting with this prefix",
-        placeholder="Optional, e.g. uploads/",
-    )
-    filter_suffix: str | None = ConnectionField(
-        None,
-        label="Key Suffix",
-        description="Only notify for keys ending with this suffix",
-        placeholder="Optional, e.g. .jpg",
-    )
+class S3LambdaConfig(S3NotificationConfig):
+    """Compatibility name for Lambda notification configuration."""
 
 
 class DynamoDBLambdaConfig(BaseConnectionConfig):
