@@ -22,19 +22,19 @@ def tree():
 
 class TestS3NotifiesLambda:
     def test_notification_lives_in_the_bucket_module(self, tree):
-        path = "reference-project/modules/storage/s3/uploads/notification_on-upload.tf"
+        path = "reference-project/modules/storage/s3/uploads/notifications.tf"
         assert 'resource "aws_s3_bucket_notification"' in tree[path]
 
     def test_function_arn_arrives_as_a_module_input(self, tree):
-        path = "reference-project/modules/storage/s3/uploads/notification_on-upload.tf"
+        path = "reference-project/modules/storage/s3/uploads/notifications.tf"
         assert "var.on_upload_function_arn" in tree[path]
 
     def test_configured_filters_are_emitted(self, tree):
-        path = "reference-project/modules/storage/s3/uploads/notification_on-upload.tf"
+        path = "reference-project/modules/storage/s3/uploads/notifications.tf"
         assert 'filter_suffix = ".csv"' in tree[path]
 
     def test_permission_precedes_the_notification(self, tree):
-        path = "reference-project/modules/storage/s3/uploads/notification_on-upload.tf"
+        path = "reference-project/modules/storage/s3/uploads/notifications.tf"
         assert "depends_on" in tree[path]
 
     def test_environment_wires_the_function_arn(self, tree):
