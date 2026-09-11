@@ -77,6 +77,7 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.AURORA: {"engine": "aurora-postgresql"},
     ServiceType.BATCH_JOB_DEFINITION: {
         "image": "public.ecr.aws/docker/library/busybox:latest",
         "execution_role_arn": "arn:aws:iam::123456789012:role/batch/task-execution",
@@ -123,7 +124,11 @@ def connection_architecture(spec) -> dict:
         if model is not None:
             # Name every name-ish field so the module gets its required arguments
             for key in model.model_fields:
-                if key == "name" or key.endswith("_name"):
+                if key in {
+                    "name",
+                    "db_identifier",
+                    "cluster_identifier",
+                } or key.endswith("_name"):
                     config[key] = name
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
             config.pop("bus_name", None)
@@ -155,7 +160,11 @@ def connection_architecture(spec) -> dict:
                 "source_id": "src",
                 "target_id": "tgt",
                 "connection_type": spec.connection_type,
-                "connection_config": {},
+                "connection_config": {
+                    "role_arn": "arn:aws:iam::123456789012:role/service-role/backup"
+                }
+                if spec.source == ServiceType.BACKUP
+                else {},
             }
         ],
         "global_terraform_config": {

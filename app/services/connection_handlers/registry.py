@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from app.models.connection_configs._base import BaseConnectionConfig
+from app.models.connection_configs.backup import BackupSelectionConfig
 from app.models.connection_configs.configs import (
     AcceleratorEndpointConfig,
     ApiGatewayAuthorizerConfig,
@@ -38,6 +39,10 @@ from app.services.connection_handlers.accelerator_endpoint import (
     AcceleratorLoadBalancerHandler,
 )
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
+from app.services.connection_handlers.backup_selection import (
+    BACKUP_OUTPUTS,
+    BackupSelectionHandler,
+)
 from app.services.connection_handlers.base import ConnectionHandler
 from app.services.connection_handlers.certificate import (
     CertificateCloudFrontHandler,
@@ -127,6 +132,17 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=ServiceType.BACKUP,
+            target=target,
+            connection_type="backs_up",
+            label=f"Backup → {target.value}",
+            config_model=BackupSelectionConfig,
+            handler=BackupSelectionHandler(),
+        )
+        for target in BACKUP_OUTPUTS
+    ],
     ConnectionSpec(
         source=ServiceType.EFS,
         target=ServiceType.LAMBDA,
