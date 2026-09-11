@@ -31,6 +31,7 @@ from app.models.connection_configs.secrets import (
 from app.models.connection_configs.storage import (
     EbsAttachmentConfig,
     EfsLambdaMountConfig,
+    S3LocationConfig,
     S3NotificationConfig,
 )
 from app.models.connection_configs.workflows import StepFunctionsSecretConfig
@@ -91,6 +92,10 @@ from app.services.connection_handlers.route_table_association import (
 from app.services.connection_handlers.s3_destination import S3DestinationHandler
 from app.services.connection_handlers.s3_eventbridge import S3EventBridgeHandler
 from app.services.connection_handlers.s3_lambda import S3LambdaHandler
+from app.services.connection_handlers.s3_location import (
+    LakeFormationS3Handler,
+    S3LocationHandler,
+)
 from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
@@ -132,6 +137,26 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.ATHENA,
+        target=ServiceType.S3,
+        connection_type="stores_results",
+        label="Athena → S3 results",
+        config_model=S3LocationConfig,
+        handler=S3LocationHandler(
+            "output_location",
+            True,
+            "Query callers must have S3 and any KMS permissions for the result location. This workgroup connection does not create a query execution identity or data catalog.",
+        ),
+    ),
+    ConnectionSpec(
+        source=ServiceType.LAKE_FORMATION,
+        target=ServiceType.S3,
+        connection_type="registers",
+        label="Lake Formation → S3 registration",
+        config_model=S3LocationConfig,
+        handler=LakeFormationS3Handler(),
+    ),
     *[
         ConnectionSpec(
             source=ServiceType.BACKUP,

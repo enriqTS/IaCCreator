@@ -953,6 +953,23 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "workgroup_name",
       "required": false,
       "type": "string"
+    },
+    {
+      "description": "External S3 query result location",
+      "group": "Results",
+      "label": "Output location",
+      "name": "output_location",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": true,
+      "description": "Enforce the workgroup result location over client settings",
+      "group": "Results",
+      "label": "Enforce workgroup configuration",
+      "name": "enforce_workgroup_configuration",
+      "required": false,
+      "type": "bool"
     }
   ],
   "aurora": [

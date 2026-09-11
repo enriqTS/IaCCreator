@@ -64,3 +64,5 @@ Use behavior-oriented tests rather than source-text assertions. For geometry and
 `tests/test_efs_lambda_connections.py` verifies access-point ownership, Lambda native mount blocks, filesystem-scoped permissions, network prerequisites, invalid bindings, shared filesystems, and generated-project Terraform validation. Existing EFS subnet and security-group placement supply its mount-target networking.
 
 `tests/test_backup_selection_connections.py` covers all five resource types, exact ARN selection, role validation and conflicts, deterministic duplicates, preview ownership, and a mixed Terraform project. Shared fixtures now supply RDS/Aurora identifiers and Aurora's required engine for registry-derived validation.
+
+`tests/test_s3_location_connections.py` verifies Athena/Lake Formation module references and prefixes, conflicting locations, idempotent duplicates, role requirements, external fallback fields, and preview guidance. Both pairs participate in registry-derived Terraform validation.

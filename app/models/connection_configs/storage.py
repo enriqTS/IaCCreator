@@ -90,3 +90,12 @@ class EfsLambdaMountConfig(BaseConnectionConfig):
         ],
         validation=ValidationRule(allowed_values=["read", "write"]),
     )
+
+
+class S3LocationConfig(BaseConnectionConfig):
+    prefix: str = ConnectionField(
+        "",
+        label="S3 key prefix",
+        description="Optional path within the connected bucket",
+        validation=ValidationRule(pattern=r"^(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]*$"),
+    )
