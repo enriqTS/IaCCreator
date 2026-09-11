@@ -168,10 +168,17 @@ def connection_strategy(
 
     @st.composite
     def _build_connections(draw):
-        n = draw(st.integers(min_value=0, max_value=min(len(valid_pairs), 4)))
         chosen = draw(
-            st.lists(pair_st, min_size=n, max_size=n).filter(
-                lambda cs: len({(c[0], c[1]) for c in cs}) == len(cs)
+            st.lists(
+                pair_st,
+                max_size=min(len(valid_pairs), 4),
+                unique_by=lambda pair: (
+                    pair[0],
+                    pair[3],
+                    None
+                    if pair[2:] == (ServiceType.LAMBDA, ServiceType.CLOUDWATCH)
+                    else pair[1],
+                ),
             )
         )
         return [
