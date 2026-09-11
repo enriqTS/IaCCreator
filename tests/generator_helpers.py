@@ -77,6 +77,10 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.BATCH_JOB_DEFINITION: {
+        "image": "public.ecr.aws/docker/library/busybox:latest",
+        "execution_role_arn": "arn:aws:iam::123456789012:role/batch/task-execution",
+    },
     ServiceType.STEP_FUNCTIONS: {
         "role_arn": "arn:aws:iam::123456789012:role/workflows/execution"
     },

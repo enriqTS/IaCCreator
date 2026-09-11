@@ -101,6 +101,7 @@ def invalid_value_for_rule(draw, rule):
 # Fields a service needs before its own schema validation is the thing under test
 _REQUIRED_FIELDS: dict[ServiceType, dict] = {
     ServiceType.LAMBDA: {"function_name": "test-func"},
+    ServiceType.BATCH_JOB_DEFINITION: {"image": "busybox:latest"},
     ServiceType.DYNAMODB: {
         "table_name": "test-table",
         "hash_key": "pk",

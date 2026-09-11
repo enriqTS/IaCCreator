@@ -23,6 +23,7 @@ from app.models.connection_configs.configs import (
 )
 from app.models.connection_configs.secrets import (
     AppRunnerSecretConfig,
+    BatchSecretConfig,
     CodeBuildSecretConfig,
     EcsSecretConfig,
 )
@@ -117,6 +118,16 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.BATCH_JOB_DEFINITION,
+        target=ServiceType.SECRETS_MANAGER,
+        connection_type="injects_secret",
+        label="Batch Job Definition → Secrets Manager (environment injection)",
+        config_model=BatchSecretConfig,
+        handler=EnvironmentSecretHandler(
+            BatchSecretConfig, "execution_role_arn", "Batch job definition"
+        ),
+    ),
     ConnectionSpec(
         source=ServiceType.STEP_FUNCTIONS,
         target=ServiceType.SECRETS_MANAGER,

@@ -74,6 +74,7 @@ class ServiceType(StrEnum):
     ELASTIC_BEANSTALK = "elastic-beanstalk"
     APP_RUNNER = "app-runner"
     BATCH = "batch"
+    BATCH_JOB_DEFINITION = "batch-job-definition"
     EC2_IMAGE_BUILDER = "ec2-image-builder"
     LIGHTSAIL = "lightsail"
     ECR = "ecr"
@@ -456,6 +457,9 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.aws_config_config import AwsConfigConfig
     from app.models.input_models.backup_config import BackupConfig
     from app.models.input_models.batch_config import BatchConfig
+    from app.models.input_models.batch_job_definition_config import (
+        BatchJobDefinitionConfig,
+    )
     from app.models.input_models.bedrock_agent_config import BedrockAgentConfig
     from app.models.input_models.bedrock_agentcore_config import BedrockAgentcoreConfig
     from app.models.input_models.bedrock_config import BedrockConfig
@@ -622,6 +626,7 @@ def _build_service_config_models() -> dict:
         ServiceType.ELASTIC_BEANSTALK: ElasticBeanstalkConfig,
         ServiceType.APP_RUNNER: AppRunnerConfig,
         ServiceType.BATCH: BatchConfig,
+        ServiceType.BATCH_JOB_DEFINITION: BatchJobDefinitionConfig,
         ServiceType.EC2_IMAGE_BUILDER: Ec2ImageBuilderConfig,
         ServiceType.LIGHTSAIL: LightsailConfig,
         ServiceType.ECR: EcrConfig,

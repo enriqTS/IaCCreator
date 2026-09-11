@@ -85,7 +85,7 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - EKS
 - Elastic Beanstalk
 - App Runner
-- Batch
+- Batch compute environments and EC2 container job definitions with native secret injection
 - EC2 Image Builder
 - Lightsail
 - ECR

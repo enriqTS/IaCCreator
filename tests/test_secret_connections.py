@@ -26,13 +26,20 @@ SECRET_CONSUMERS = [
     ServiceType.APP_RUNNER,
     ServiceType.MWAA,
     ServiceType.STEP_FUNCTIONS,
+    ServiceType.BATCH_JOB_DEFINITION,
 ]
 
 
 def architecture(service):
     kind = (
         "injects_secret"
-        if service in (ServiceType.ECS, ServiceType.CODEBUILD, ServiceType.APP_RUNNER)
+        if service
+        in (
+            ServiceType.ECS,
+            ServiceType.CODEBUILD,
+            ServiceType.APP_RUNNER,
+            ServiceType.BATCH_JOB_DEFINITION,
+        )
         else "reads_secret"
     )
     return connection_architecture(
@@ -76,7 +83,7 @@ def test_runtime_policy_uses_scoped_terraform_references(service):
         assert 'element(reverse(split("/", var.service_role)), 0)' in policy
     elif service == ServiceType.APP_RUNNER:
         assert 'element(reverse(split("/", var.instance_role_arn)), 0)' in policy
-    elif service == ServiceType.MWAA:
+    elif service in (ServiceType.MWAA, ServiceType.BATCH_JOB_DEFINITION):
         assert 'element(reverse(split("/", var.execution_role_arn)), 0)' in policy
     elif service == ServiceType.STEP_FUNCTIONS:
         assert 'element(reverse(split("/", var.role_arn)), 0)' in policy

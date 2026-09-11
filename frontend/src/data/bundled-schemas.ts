@@ -1119,6 +1119,80 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     }
   ],
+  "batch-job-definition": [
+    {
+      "description": "Plaintext environment variables; secret bindings replace matching names",
+      "group": "Environment",
+      "label": "Environment variables",
+      "name": "environment_variables",
+      "required": false,
+      "type": "map"
+    },
+    {
+      "description": "Container image URI",
+      "group": "General",
+      "label": "Image",
+      "name": "image",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "default": 1,
+      "description": "EC2 job vCPU count",
+      "group": "General",
+      "label": "Vcpus",
+      "name": "vcpus",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 1
+      }
+    },
+    {
+      "default": 1024,
+      "description": "Container memory in MiB",
+      "group": "General",
+      "label": "Memory mib",
+      "name": "memory_mib",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "min": 4
+      }
+    },
+    {
+      "description": "Container command override",
+      "group": "General",
+      "label": "Command",
+      "name": "command",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "Task execution role trusted by ecs-tasks.amazonaws.com; used for secret injection",
+      "group": "IAM",
+      "label": "Execution role ARN",
+      "name": "execution_role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Optional application role for job code, separate from the execution role",
+      "group": "IAM",
+      "label": "Job role ARN",
+      "name": "job_role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "External secret ARNs by environment variable name; permissions remain externally managed",
+      "group": "Environment",
+      "label": "External secrets",
+      "name": "external_secrets",
+      "required": false,
+      "type": "map"
+    }
+  ],
   "bedrock": [
     {
       "description": "Name of the custom model",

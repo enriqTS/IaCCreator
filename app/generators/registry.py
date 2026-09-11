@@ -24,6 +24,7 @@ from app.generators.aws_config_generator import AwsConfigGenerator
 from app.generators.backup_generator import BackupGenerator
 from app.generators.base import ServiceGenerator
 from app.generators.batch_generator import BatchGenerator
+from app.generators.batch_job_definition_generator import BatchJobDefinitionGenerator
 from app.generators.bedrock_agent_generator import BedrockAgentGenerator
 from app.generators.bedrock_agentcore_generator import BedrockAgentCoreGenerator
 
@@ -191,6 +192,7 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.ELASTIC_BEANSTALK: ElasticBeanstalkGenerator(),
     ServiceType.APP_RUNNER: AppRunnerGenerator(),
     ServiceType.BATCH: BatchGenerator(),
+    ServiceType.BATCH_JOB_DEFINITION: BatchJobDefinitionGenerator(),
     ServiceType.EC2_IMAGE_BUILDER: EC2ImageBuilderGenerator(),
     ServiceType.LIGHTSAIL: LightsailGenerator(),
     ServiceType.ECR: ECRGenerator(),

@@ -11,6 +11,7 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.ELASTIC_BEANSTALK: "compute",
     ServiceType.APP_RUNNER: "compute",
     ServiceType.BATCH: "compute",
+    ServiceType.BATCH_JOB_DEFINITION: "compute",
     ServiceType.EC2_IMAGE_BUILDER: "compute",
     ServiceType.LIGHTSAIL: "compute",
     ServiceType.ECR: "compute",

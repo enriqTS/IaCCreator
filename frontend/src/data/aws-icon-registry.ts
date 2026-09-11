@@ -106,6 +106,7 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
       { name: 'App Runner', iconPath: '/aws-icons/Compute/App-Runner.svg', serviceType: 'app-runner' },
       { name: 'Application Auto Scaling', iconPath: '/aws-icons/Compute/Application-Auto-Scaling.svg', serviceType: 'application-auto-scaling' },
       { name: 'Batch', iconPath: '/aws-icons/Compute/Batch.svg', serviceType: 'batch' },
+      { name: 'Batch Job Definition', iconPath: '/aws-icons/Compute/Batch.svg', serviceType: 'batch-job-definition' },
       { name: 'Bottlerocket', iconPath: '/aws-icons/Compute/Bottlerocket.svg', serviceType: 'bottlerocket' },
       { name: 'Compute Optimizer', iconPath: '/aws-icons/Compute/Compute-Optimizer.svg', serviceType: 'compute-optimizer' },
       { name: 'EC2 Auto Scaling', iconPath: '/aws-icons/Compute/EC2-Auto-Scaling.svg', serviceType: 'ec2-auto-scaling' },

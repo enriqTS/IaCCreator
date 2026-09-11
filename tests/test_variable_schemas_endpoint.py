@@ -91,6 +91,7 @@ EXPECTED_SERVICE_TYPES = {
     "elastic-beanstalk",
     "app-runner",
     "batch",
+    "batch-job-definition",
     "ec2-image-builder",
     "lightsail",
     "ecr",

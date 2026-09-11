@@ -29,6 +29,7 @@ from app.models.input_models.appstream_config import AppStreamConfig
 from app.models.input_models.athena_config import AthenaConfig
 from app.models.input_models.aurora_config import AuroraConfig
 from app.models.input_models.batch_config import BatchConfig
+from app.models.input_models.batch_job_definition_config import BatchJobDefinitionConfig
 from app.models.input_models.bedrock_agent_config import BedrockAgentConfig
 from app.models.input_models.bedrock_agentcore_config import BedrockAgentcoreConfig
 from app.models.input_models.bedrock_config import BedrockConfig
@@ -89,6 +90,7 @@ SERVICE_CONFIG_MODELS: dict = {
     ServiceType.ELASTIC_BEANSTALK: ElasticBeanstalkConfig,
     ServiceType.APP_RUNNER: AppRunnerConfig,
     ServiceType.BATCH: BatchConfig,
+    ServiceType.BATCH_JOB_DEFINITION: BatchJobDefinitionConfig,
     ServiceType.EC2_IMAGE_BUILDER: Ec2ImageBuilderConfig,
     ServiceType.LIGHTSAIL: LightsailConfig,
     ServiceType.ECR: EcrConfig,
@@ -156,6 +158,7 @@ __all__ = [
     "AthenaConfig",
     "AuroraConfig",
     "BatchConfig",
+    "BatchJobDefinitionConfig",
     "BedrockAgentConfig",
     "BedrockAgentcoreConfig",
     "BedrockConfig",

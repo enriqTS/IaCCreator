@@ -78,6 +78,7 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.ELASTIC_BEANSTALK,
         ServiceType.APP_RUNNER,
         ServiceType.BATCH,
+        ServiceType.BATCH_JOB_DEFINITION,
         ServiceType.EC2_IMAGE_BUILDER,
         ServiceType.LIGHTSAIL,
         ServiceType.ECR,

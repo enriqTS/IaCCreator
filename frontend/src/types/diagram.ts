@@ -47,6 +47,7 @@ export type ServiceType =
   | 'elastic-beanstalk'
   | 'app-runner'
   | 'batch'
+  | 'batch-job-definition'
   | 'ec2-image-builder'
   | 'lightsail'
   // Containers — full-generator services

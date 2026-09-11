@@ -36,6 +36,17 @@ class AppRunnerSecretConfig(EnvironmentSecretConfig):
         return value
 
 
+class BatchSecretConfig(EnvironmentSecretConfig):
+    @field_validator("environment_name")
+    @classmethod
+    def reject_reserved_prefix(cls, value: str | None) -> str | None:
+        if value is not None and value.startswith("AWS_BATCH"):
+            raise ValueError(
+                "AWS_BATCH-prefixed environment names are reserved by Batch"
+            )
+        return value
+
+
 class EcsSecretConfig(EnvironmentSecretConfig):
     container_name: str | None = ConnectionField(
         None,

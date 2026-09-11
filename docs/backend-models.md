@@ -17,6 +17,8 @@ Resource names are validated for Terraform-safe syntax and uniqueness. Stable ID
 
 `Ec2LaunchTemplateConfig` models reusable EC2 launch settings independently of Auto Scaling: image, instance type, security groups, and optional key pair, user data, and instance profile. It intentionally has no subnet field; Auto Scaling owns workload subnet selection. Its `ec2-launch-template` service type is registered for generation, schema discovery, and editor placement.
 
+`BatchJobDefinitionConfig` models EC2 single-container job settings independently of `BatchConfig` compute environments. It exposes native external-secret and plaintext environment maps, rejects reserved names and unsupported fields, and requires an execution role when external secret bindings are configured. Managed injection uses the typed `BatchSecretConfig` environment-name selector and a private generation flag.
+
 ## Connection and response models
 
 `app/models/connection_configs/` defines editable connection configuration and schema response models. The connection-handler registry is the source of truth for valid service pairs and connection types.
