@@ -87,3 +87,5 @@ Managed S3 replication supersedes the configuration-driven replication resource 
 Firehose supports external `bucket_arn`, `role_arn`, and `s3_prefix` fields for its native `extended_s3_configuration`. Set `destination` to `extended_s3` when supplying an external S3 destination. Managed S3 connections supply the bucket and destination mode and order stream creation after the delivery policy.
 
 A managed CloudFront S3 origin replaces the custom HTTP origin block with `s3_origin_config` and an Origin Access Control reference. External custom origins retain their existing generation. S3 origin permissions aggregate with audit delivery in `bucket_policy.tf`.
+
+`DataSyncS3LocationGenerator` emits `aws_datasync_location_s3` and a stable `location_arn` output. Managed bucket connections own the access-role policy in the location module and order location creation after it.

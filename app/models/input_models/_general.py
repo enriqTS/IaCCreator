@@ -280,6 +280,7 @@ class ServiceType(StrEnum):
 
     # Migration and transfer
     DATASYNC = "datasync"
+    DATASYNC_S3_LOCATION = "datasync-s3-location"
     TRANSFER_FAMILY = "transfer-family"
     APPLICATION_MIGRATION_SERVICE = "application-migration-service"
     MAINFRAME_MODERNIZATION = "mainframe-modernization"
@@ -481,6 +482,9 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.comprehend_config import ComprehendConfig
     from app.models.input_models.connect_config import ConnectConfig
     from app.models.input_models.datasync_config import DataSyncConfig
+    from app.models.input_models.datasync_s3_location_config import (
+        DataSyncS3LocationConfig,
+    )
     from app.models.input_models.datazone_config import DataZoneConfig
     from app.models.input_models.direct_connect_config import DirectConnectConfig
     from app.models.input_models.dms_config import DmsConfig
@@ -681,6 +685,7 @@ def _build_service_config_models() -> dict:
         ServiceType.MEDIA_LIVE: MediaLiveConfig,
         ServiceType.INTERACTIVE_VIDEO_SERVICE: IvsConfig,
         ServiceType.DATASYNC: DataSyncConfig,
+        ServiceType.DATASYNC_S3_LOCATION: DataSyncS3LocationConfig,
         ServiceType.TRANSFER_FAMILY: TransferFamilyConfig,
         ServiceType.TRANSIT_GATEWAY: TransitGatewayConfig,
         ServiceType.DIRECT_CONNECT: DirectConnectConfig,

@@ -130,6 +130,7 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.INTERACTIVE_VIDEO_SERVICE: "media",
     # Migration and transfer
     ServiceType.DATASYNC: "migration-transfer",
+    ServiceType.DATASYNC_S3_LOCATION: "migration-transfer",
     ServiceType.TRANSFER_FAMILY: "migration-transfer",
     # End user computing
     ServiceType.WORKSPACES: "end-user-computing",

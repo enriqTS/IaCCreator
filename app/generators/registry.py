@@ -52,6 +52,7 @@ from app.generators.cognito_generator import CognitoGenerator
 from app.generators.comprehend_generator import ComprehendGenerator
 from app.generators.connect_generator import ConnectGenerator
 from app.generators.datasync_generator import DataSyncGenerator
+from app.generators.datasync_s3_location_generator import DataSyncS3LocationGenerator
 from app.generators.datazone_generator import DataZoneGenerator
 from app.generators.direct_connect_generator import DirectConnectGenerator
 from app.generators.dms_generator import DmsGenerator
@@ -255,6 +256,7 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.MEDIA_LIVE: MediaLiveGenerator(),
     ServiceType.INTERACTIVE_VIDEO_SERVICE: IvsGenerator(),
     ServiceType.DATASYNC: DataSyncGenerator(),
+    ServiceType.DATASYNC_S3_LOCATION: DataSyncS3LocationGenerator(),
     ServiceType.TRANSFER_FAMILY: TransferFamilyGenerator(),
     ServiceType.TRANSIT_GATEWAY: TransitGatewayGenerator(),
     ServiceType.DIRECT_CONNECT: DirectConnectGenerator(),

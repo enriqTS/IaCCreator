@@ -256,6 +256,7 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
     },
     "migration-transfer": {
         ServiceType.DATASYNC,
+        ServiceType.DATASYNC_S3_LOCATION,
         ServiceType.TRANSFER_FAMILY,
         ServiceType.APPLICATION_MIGRATION_SERVICE,
         ServiceType.MAINFRAME_MODERNIZATION,

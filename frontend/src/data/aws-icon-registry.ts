@@ -376,6 +376,7 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
       { name: 'Application Discovery Service', iconPath: '/aws-icons/Migration-Transfer/Application-Discovery-Service.svg', serviceType: null },
       { name: 'Application Migration Service', iconPath: '/aws-icons/Migration-Transfer/Application-Migration-Service.svg', serviceType: 'application-migration-service' },
       { name: 'DataSync', iconPath: '/aws-icons/Migration-Transfer/DataSync.svg', serviceType: 'datasync' },
+      { name: 'DataSync S3 Location', iconPath: '/aws-icons/Migration-Transfer/DataSync.svg', serviceType: 'datasync-s3-location' },
       { name: 'Mainframe Modernization', iconPath: '/aws-icons/Migration-Transfer/Mainframe-Modernization.svg', serviceType: 'mainframe-modernization' },
       { name: 'Migration Evaluator', iconPath: '/aws-icons/Migration-Transfer/Migration-Evaluator.svg', serviceType: null },
       { name: 'Migration Hub', iconPath: '/aws-icons/Migration-Transfer/Migration-Hub.svg', serviceType: 'migration-hub' },

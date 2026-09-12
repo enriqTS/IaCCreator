@@ -208,7 +208,7 @@ Implement:
 - [x] MWAA → S3 source bucket.
 - [x] Athena → S3 result location; query data/catalog relationships remain in Phase 10.
 - [x] Kinesis Firehose → S3 destination.
-- DataSync ↔ S3 locations after location resources exist.
+- [x] DataSync S3 locations → S3 buckets; DataSync tasks → source/destination locations.
 - [x] Lake Formation → S3 resource registration.
 - [x] CloudFront → private S3 origin with Origin Access Control.
 - CodePipeline → S3 artifact store.

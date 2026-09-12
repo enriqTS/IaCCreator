@@ -2602,6 +2602,53 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       }
     }
   ],
+  "datasync-s3-location": [
+    {
+      "default": "",
+      "description": "S3 bucket ARN",
+      "group": "General",
+      "label": "S3 bucket ARN",
+      "name": "s3_bucket_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "External role trusted by DataSync",
+      "group": "General",
+      "label": "Bucket access role ARN",
+      "name": "bucket_access_role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "/",
+      "description": "S3 location path",
+      "group": "General",
+      "label": "Subdirectory",
+      "name": "subdirectory",
+      "required": false,
+      "type": "string",
+      "validation": {
+        "pattern": "^/(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]*$"
+      }
+    },
+    {
+      "default": "read",
+      "description": "Source read access or destination read/write access",
+      "group": "General",
+      "label": "Access",
+      "name": "access",
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "read",
+          "write"
+        ]
+      }
+    }
+  ],
   "datazone": [
     {
       "description": "Domain description",

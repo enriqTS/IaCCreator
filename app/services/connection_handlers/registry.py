@@ -51,6 +51,8 @@ from app.services.connection_handlers.certificate import (
     CertificateLoadBalancerHandler,
 )
 from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
+from app.services.connection_handlers.datasync_location import DataSyncLocationHandler
+from app.services.connection_handlers.datasync_s3 import DataSyncS3Handler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
 from app.services.connection_handlers.ebs_attachment import EbsAttachmentHandler
@@ -143,6 +145,29 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.DATASYNC_S3_LOCATION,
+        target=ServiceType.S3,
+        connection_type="uses_bucket",
+        label="DataSync location → S3",
+        config_model=EmptyConnectionConfig,
+        handler=DataSyncS3Handler(),
+    ),
+    *[
+        ConnectionSpec(
+            source=ServiceType.DATASYNC,
+            target=ServiceType.DATASYNC_S3_LOCATION,
+            connection_type=kind,
+            label=f"DataSync → {label} location",
+            config_model=EmptyConnectionConfig,
+            handler=DataSyncLocationHandler(field),
+            is_default=kind == "reads_from",
+        )
+        for kind, label, field in [
+            ("reads_from", "source", "source_location_arn"),
+            ("writes_to", "destination", "destination_location_arn"),
+        ]
+    ],
     ConnectionSpec(
         source=ServiceType.CLOUDFRONT,
         target=ServiceType.S3,

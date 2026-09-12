@@ -76,3 +76,5 @@ Use behavior-oriented tests rather than source-text assertions. For geometry and
 - `test_firehose_s3_connections.py`: native delivery configuration, policy scope, duplicate connections, invalid destinations/roles, and encrypted Terraform validation/graph.
 
 - `test_cloudfront_s3_connections.py`: signed REST origins, read-only permissions, origin cardinality, shared audit/KMS policies, deterministic aggregation, and cycle-free Terraform graphs.
+
+- `test_datasync_s3_connections.py`: standalone locations, directional IAM, location cardinality, encryption, idempotence, and complete transfer Terraform graphs.

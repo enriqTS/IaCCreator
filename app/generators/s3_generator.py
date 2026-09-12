@@ -405,7 +405,9 @@ class S3Generator:
                     "sse_kms_key_id",
                     "string",
                     "ARN of the KMS key to use for server-side encryption",
-                    default=config.sse_kms_key_id,
+                    default=None
+                    if config.sse_kms_key_id == "managed-by-connection"
+                    else config.sse_kms_key_id,
                 )
             )
         if config.sse_bucket_key_enabled is not None:
