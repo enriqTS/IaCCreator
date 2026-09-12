@@ -249,6 +249,8 @@ class S3Generator:
         self, instance: ResourceInstanceIR, config: S3Config
     ) -> str:
         """Emit aws_s3_bucket_replication_configuration when replication fields are set."""
+        if any(c.connection_type == "replicates_to" for c in instance.connections):
+            return ""
         if config.replication_role_arn is None:
             return ""
 

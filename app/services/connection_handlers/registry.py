@@ -22,6 +22,7 @@ from app.models.connection_configs.configs import (
     SqsLambdaConfig,
     TargetGroupAttachmentConfig,
 )
+from app.models.connection_configs.replication import S3ReplicationConfig
 from app.models.connection_configs.secrets import (
     AppRunnerSecretConfig,
     BatchSecretConfig,
@@ -96,6 +97,7 @@ from app.services.connection_handlers.s3_location import (
     LakeFormationS3Handler,
     S3LocationHandler,
 )
+from app.services.connection_handlers.s3_replication import S3ReplicationHandler
 from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
@@ -137,6 +139,15 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.S3,
+        target=ServiceType.S3,
+        connection_type="replicates_to",
+        label="S3 → S3 replication",
+        config_model=S3ReplicationConfig,
+        handler=S3ReplicationHandler(),
+        region_policy="cross-region",
+    ),
     ConnectionSpec(
         source=ServiceType.ATHENA,
         target=ServiceType.S3,

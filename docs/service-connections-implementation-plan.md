@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 117 Terraform-capable service types, while the connection registry contains 98 connection specifications involving 49 services.
+The generator registry contains 117 Terraform-capable service types, while the connection registry contains 99 connection specifications involving 49 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -202,7 +202,7 @@ Implement:
 - [x] S3 → SNS notifications.
 - [x] S3 → SQS notifications.
 - [x] S3 → EventBridge delivery.
-- S3 → S3 replication.
+- [x] S3 → S3 live replication with an explicitly configured external replication role.
 - CloudTrail → S3 delivery.
 - AWS Config → S3 delivery.
 - MWAA → S3 source bucket.

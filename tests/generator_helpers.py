@@ -164,6 +164,7 @@ def connection_architecture(spec) -> dict:
                     "role_arn": "arn:aws:iam::123456789012:role/service-role/backup"
                 }
                 if spec.source == ServiceType.BACKUP
+                or spec.connection_type == "replicates_to"
                 else {},
             }
         ],

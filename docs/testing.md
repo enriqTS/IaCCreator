@@ -66,3 +66,5 @@ Use behavior-oriented tests rather than source-text assertions. For geometry and
 `tests/test_backup_selection_connections.py` covers all five resource types, exact ARN selection, role validation and conflicts, deterministic duplicates, preview ownership, and a mixed Terraform project. Shared fixtures now supply RDS/Aurora identifiers and Aurora's required engine for registry-derived validation.
 
 `tests/test_s3_location_connections.py` verifies Athena/Lake Formation module references and prefixes, conflicting locations, idempotent duplicates, role requirements, external fallback fields, and preview guidance. Both pairs participate in registry-derived Terraform validation.
+
+`tests/test_s3_replication_connections.py` covers versioning dependencies, deterministic multi-destination rules, external destinations, role conflicts, managed KMS references, cross-Region wiring, and Terraform validation/plan graphs.
