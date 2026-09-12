@@ -26,6 +26,9 @@ class KinesisFirehoseConfig(BaseServiceConfig):
     _schema_field_order: ClassVar[tuple[str, ...]] = (
         "stream_name",
         "destination",
+        "role_arn",
+        "bucket_arn",
+        "s3_prefix",
     )
 
     # ── General ───────────────────────────────────────────────────────────

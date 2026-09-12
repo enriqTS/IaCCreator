@@ -4074,6 +4074,31 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "destination",
       "required": false,
       "type": "string"
+    },
+    {
+      "description": "External Firehose delivery role ARN",
+      "group": "General",
+      "label": "Role ARN",
+      "name": "role_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "S3 destination bucket ARN",
+      "group": "General",
+      "label": "Bucket ARN",
+      "name": "bucket_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "",
+      "description": "S3 delivery object prefix",
+      "group": "General",
+      "label": "S3 prefix",
+      "name": "s3_prefix",
+      "required": false,
+      "type": "string"
     }
   ],
   "kms": [
