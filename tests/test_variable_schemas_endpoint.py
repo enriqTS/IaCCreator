@@ -154,6 +154,7 @@ EXPECTED_SERVICE_TYPES = {
     "media-live",
     "interactive-video-service",
     "datasync",
+    "datasync-s3-location",
     "transfer-family",
     "transit-gateway",
     "direct-connect",

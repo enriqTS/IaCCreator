@@ -149,15 +149,15 @@ class TestConnectionValidation:
             IRBuilder().build(desc)
         assert "non-existent target resource" in str(exc_info.value)
 
-    def test_rejects_incompatible_connection_s3_to_s3(self):
+    def test_rejects_incompatible_connection_s3_to_ec2(self):
         desc = _make_input(
             resources=[
                 ResourceInstance(name="bucket-a", service_type=ServiceType.S3),
-                ResourceInstance(name="bucket-b", service_type=ServiceType.S3),
+                ResourceInstance(name="instance-b", service_type=ServiceType.EC2),
             ],
             connections=[
                 Connection(
-                    source="bucket-a", target="bucket-b", connection_type="reads_from"
+                    source="bucket-a", target="instance-b", connection_type="reads_from"
                 )
             ],
         )

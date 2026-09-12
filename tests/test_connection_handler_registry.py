@@ -132,7 +132,7 @@ class TestUnregisteredConnectionTypeWarning:
     """Verify that unregistered connection types log a warning and produce no output."""
 
     def test_unregistered_pair_logs_warning(self, caplog):
-        """An unregistered pair (S3→S3) logs a warning."""
+        """An unregistered pair (S3→EC2) logs a warning."""
         processor = ConnectionProcessor()
 
         s3_source = ResourceInstanceIR(
@@ -142,14 +142,14 @@ class TestUnregisteredConnectionTypeWarning:
         )
         s3_target = ResourceInstanceIR(
             name="bucket-b",
-            service_type=ServiceType.S3,
+            service_type=ServiceType.EC2,
             config=ApiGatewayConfig(api_name="dummy", protocol_type="HTTP"),
         )
         conn = ConnectionIR(
             source_name="bucket-a",
             target_name="bucket-b",
             source_service=ServiceType.S3,
-            target_service=ServiceType.S3,
+            target_service=ServiceType.EC2,
             connection_type="replicates_to",
         )
         project = _make_project([s3_source, s3_target], [conn])
@@ -172,14 +172,14 @@ class TestUnregisteredConnectionTypeWarning:
         )
         s3_target = ResourceInstanceIR(
             name="bucket-b",
-            service_type=ServiceType.S3,
+            service_type=ServiceType.EC2,
             config=ApiGatewayConfig(api_name="dummy", protocol_type="HTTP"),
         )
         conn = ConnectionIR(
             source_name="bucket-a",
             target_name="bucket-b",
             source_service=ServiceType.S3,
-            target_service=ServiceType.S3,
+            target_service=ServiceType.EC2,
             connection_type="replicates_to",
         )
         project = _make_project([s3_source, s3_target], [conn])
