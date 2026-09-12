@@ -66,6 +66,7 @@ from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
     EventBridgeSQSHandler,
 )
+from app.services.connection_handlers.firehose_s3 import FirehoseS3Handler
 from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.kms_cloudtrail import KmsCloudTrailHandler
@@ -141,6 +142,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.KINESIS_FIREHOSE,
+        target=ServiceType.S3,
+        connection_type="delivers_to",
+        label="Firehose → S3 destination",
+        config_model=S3LocationConfig,
+        handler=FirehoseS3Handler(),
+    ),
     ConnectionSpec(
         source=ServiceType.MWAA,
         target=ServiceType.S3,

@@ -207,7 +207,7 @@ Implement:
 - [x] AWS Config → S3 delivery.
 - [x] MWAA → S3 source bucket.
 - [x] Athena → S3 result location; query data/catalog relationships remain in Phase 10.
-- Kinesis Firehose → S3 destination.
+- [x] Kinesis Firehose → S3 destination.
 - DataSync ↔ S3 locations after location resources exist.
 - [x] Lake Formation → S3 resource registration.
 - CloudFront → S3 origin.

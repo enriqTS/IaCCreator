@@ -26,6 +26,14 @@ class KinesisFirehoseGenerator:
         if config.destination is not None:
             attrs["destination"] = Expr("var.destination")
 
+        if config.bucket_arn is not None:
+            attrs["extended_s3_configuration"] = {
+                "role_arn": Expr("var.role_arn"),
+                "bucket_arn": Expr("var.bucket_arn"),
+                "prefix": Expr("var.s3_prefix"),
+            }
+        if config._managed_s3_destination:
+            attrs["depends_on"] = Expr("[aws_iam_role_policy.s3_delivery]")
         return self._r.render_resource(
             "aws_kinesis_firehose_delivery_stream", instance.name, attrs
         )
@@ -46,6 +54,15 @@ class KinesisFirehoseGenerator:
                     "Destination for the Kinesis Firehose delivery stream",
                     default=config.destination,
                 )
+            )
+        if config.bucket_arn is not None:
+            parts.extend(
+                self._r.render_variable(name, "string", description)
+                for name, description in [
+                    ("role_arn", "Firehose delivery role ARN"),
+                    ("bucket_arn", "S3 destination bucket ARN"),
+                    ("s3_prefix", "Delivery object prefix"),
+                ]
             )
         return "\n".join(parts)
 

@@ -77,6 +77,9 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.KINESIS_FIREHOSE: {
+        "role_arn": "arn:aws:iam::123456789012:role/firehose/delivery"
+    },
     ServiceType.COMPREHEND: {
         "data_access_role_arn": "arn:aws:iam::123456789012:role/comprehend/data",
         "output_data_s3_uri": "s3://external-output/results/",
