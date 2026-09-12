@@ -9,7 +9,7 @@ Current phase status:
 - [x] Phase 1 foundational networking: VPC membership, routes, subnet placement, and security-group placement are implemented, including managed launch templates for EC2 Auto Scaling. Managed placement lists preserve external identifiers.
 - [x] Phase 2 ingress, load balancing, and DNS.
 - [x] Phase 3 encryption and secrets: KMS references, shared service policies, and scoped grants cover the thirteen registered encryption targets and their existing consumers. Lambda/EC2/MWAA reads, ECS/CodeBuild/App Runner/Batch job-definition native injection, and Step Functions GetSecretValue tasks are implemented.
-- [-] Phase 4 storage and backup: S3 notifications to Lambda, SNS, and SQS share one bucket-owned resource, with aggregated destination policies and managed-key grants; the other storage relationships remain.
+- [-] Phase 4 storage and backup: all listed S3 relationships, EBS attachments, Lambda EFS mounts, and Backup selections are implemented. EC2/ECS/EKS EFS mounts remain conditional on runtime mount models, which those services do not yet expose.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and DMS network placement exist; the listed database integrations remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
 - [ ] Phase 7 identity, certificates, and edge security.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 117 Terraform-capable service types, while the connection registry contains 99 connection specifications involving 49 services.
+The generator registry contains 118 Terraform-capable service types, while the connection registry contains 109 connection specifications involving 55 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -223,7 +223,7 @@ Implement:
 - [x] EFS → Subnet mount targets (canonical connection: Subnet → EFS, implemented in Phase 1).
 - [x] EFS → Security Group (canonical connection: Security Group → EFS, implemented in Phase 1).
 - [x] EFS → Lambda filesystem configuration.
-- EFS → EC2, ECS, and EKS mounts where target models support them.
+- [ ] EFS → EC2, ECS, and EKS mounts: deferred pending native runtime models. EC2 has no bootstrap/user-data mount configuration; ECS exposes container JSON but no task volumes or mount bindings; EKS models the cluster, not CSI drivers, persistent volumes, or workloads. No mount connections are advertised for these unsupported targets.
 - [x] EBS → EC2 volume attachment.
 - [x] Backup → EBS, EFS, RDS, Aurora, and DynamoDB selections using explicitly configured external backup roles.
 

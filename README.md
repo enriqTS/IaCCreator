@@ -105,7 +105,7 @@ Full Terraform generation (with service-specific config panels and HCL output):
 - Redshift
 
 **Migration and transfer:**
-- DataSync transfer tasks
+- DataSync transfer tasks and reusable S3 locations
 - Transfer Family managed servers
 
 **Media:**
