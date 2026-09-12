@@ -62,6 +62,14 @@ class CloudFrontGenerator:
                 }
             ],
         }
+        if config._s3_origin:
+            origin = attrs["origin"][0]
+            origin.pop("custom_origin_config")
+            origin["s3_origin_config"] = {"origin_access_identity": ""}
+            origin["origin_access_control_id"] = Expr(
+                "aws_cloudfront_origin_access_control.s3.id"
+            )
+            attrs["default_cache_behavior"][0]["allowed_methods"] = ["GET", "HEAD"]
         if config.default_root_object is not None:
             attrs["default_root_object"] = Expr("var.default_root_object")
         if config.web_acl_id is not None:

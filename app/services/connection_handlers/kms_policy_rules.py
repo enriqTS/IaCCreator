@@ -122,7 +122,22 @@ class KeyPolicyRule:
         }
 
 
+def cloudfront(arns: Expr) -> list[dict]:
+    return [
+        {
+            "Effect": "Allow",
+            "Principal": principal("cloudfront"),
+            "Action": "kms:Decrypt",
+            "Resource": "*",
+            "Condition": {"StringEquals": {"aws:SourceArn": arns}},
+        }
+    ]
+
+
 POLICY_RULES = (
+    KeyPolicyRule(
+        ServiceType.S3, "s3_distribution_arns", cloudfront, ServiceType.CLOUDFRONT
+    ),
     KeyPolicyRule(ServiceType.SQS, None, s3, ServiceType.S3),
     KeyPolicyRule(ServiceType.SNS, None, s3, ServiceType.S3),
     KeyPolicyRule(ServiceType.CLOUDTRAIL, "cloudtrail_arns", cloudtrail),

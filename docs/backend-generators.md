@@ -85,3 +85,5 @@ Athena now emits its native result-configuration block for an external or manage
 Managed S3 replication supersedes the configuration-driven replication resource and keeps external destination settings in the shared source-owned configuration. Each managed destination exports an ARN dependent on its versioning resource. KMS-encrypted source replication requires a replica key and emits native encrypted-object selection criteria. Replica key inputs are distinct per destination/prefix. Replication role trust and S3/KMS authorization are explicit external prerequisites, reported in preview.
 
 Firehose supports external `bucket_arn`, `role_arn`, and `s3_prefix` fields for its native `extended_s3_configuration`. Set `destination` to `extended_s3` when supplying an external S3 destination. Managed S3 connections supply the bucket and destination mode and order stream creation after the delivery policy.
+
+A managed CloudFront S3 origin replaces the custom HTTP origin block with `s3_origin_config` and an Origin Access Control reference. External custom origins retain their existing generation. S3 origin permissions aggregate with audit delivery in `bucket_policy.tf`.

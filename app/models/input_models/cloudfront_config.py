@@ -2,12 +2,15 @@
 
 from typing import Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import OptionEntry, TerraformField
 
 
 class CloudFrontConfig(BaseServiceConfig):
+    _s3_origin: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.CLOUDFRONT] = ServiceType.CLOUDFRONT
     origin_domain_name: str = TerraformField("", description="Origin DNS domain name")
     origin_id: str = TerraformField("primary-origin", description="Origin identifier")

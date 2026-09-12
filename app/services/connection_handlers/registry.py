@@ -50,6 +50,7 @@ from app.services.connection_handlers.certificate import (
     CertificateCloudFrontHandler,
     CertificateLoadBalancerHandler,
 )
+from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
 from app.services.connection_handlers.ebs_attachment import EbsAttachmentHandler
@@ -142,6 +143,15 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.CLOUDFRONT,
+        target=ServiceType.S3,
+        connection_type="origin",
+        label="CloudFront → private S3 origin",
+        config_model=EmptyConnectionConfig,
+        handler=CloudFrontS3Handler(),
+        region_policy="cross-region",
+    ),
     ConnectionSpec(
         source=ServiceType.KINESIS_FIREHOSE,
         target=ServiceType.S3,

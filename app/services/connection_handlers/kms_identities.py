@@ -24,6 +24,8 @@ _IDENTITY_FIELDS = {
 
 
 def identity(instance: ResourceInstanceIR) -> tuple[str, ConnectionContribution]:
+    if instance.service_type == ServiceType.CLOUDFRONT:
+        return f"module.{instance.name}.distribution_arn", ConnectionContribution()
     output, service, suffix = _IDENTITY_FIELDS[instance.service_type]
     expression = f'"arn:${{data.aws_partition.kms_identity.partition}}:{service}:${{data.aws_region.kms_identity.region}}:${{data.aws_caller_identity.kms_identity.account_id}}:{suffix}"'
     contribution = ConnectionContribution(

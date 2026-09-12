@@ -210,7 +210,7 @@ Implement:
 - [x] Kinesis Firehose → S3 destination.
 - DataSync ↔ S3 locations after location resources exist.
 - [x] Lake Formation → S3 resource registration.
-- CloudFront → S3 origin.
+- [x] CloudFront → private S3 origin with Origin Access Control.
 - CodePipeline → S3 artifact store.
 - [x] Comprehend → S3 training data.
 
