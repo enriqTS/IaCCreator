@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any, get_args, get_origin
 
@@ -77,6 +78,39 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.CODEPIPELINE: {
+        "role_arn": "arn:aws:iam::123456789012:role/pipeline/execution",
+        "stages_json": json.dumps(
+            [
+                {
+                    "name": "Source",
+                    "actions": [
+                        {
+                            "name": "Source",
+                            "category": "Source",
+                            "provider": "S3",
+                            "output_artifacts": ["source"],
+                            "configuration": {
+                                "S3Bucket": "external-source",
+                                "S3ObjectKey": "source.zip",
+                                "PollForSourceChanges": "false",
+                            },
+                        }
+                    ],
+                },
+                {
+                    "name": "Approval",
+                    "actions": [
+                        {
+                            "name": "Approve",
+                            "category": "Approval",
+                            "provider": "Manual",
+                        }
+                    ],
+                },
+            ]
+        ),
+    },
     ServiceType.DATASYNC_S3_LOCATION: {
         "bucket_access_role_arn": "arn:aws:iam::123456789012:role/datasync/access",
         "s3_bucket_arn": "arn:aws:s3:::external",

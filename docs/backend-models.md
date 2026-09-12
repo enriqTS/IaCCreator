@@ -50,3 +50,5 @@ Persistence records (`UserRecord`, `DiagramRecord`, and `DiagramSummary`) live i
 `EfsLambdaMountConfig` describes a single Lambda access-point mount, with non-root POSIX IDs and read-only access by default. `EbsAttachmentConfig` describes an additional Linux device; the connection validates uniqueness across the architecture and handles Availability Zone references in the backend.
 
 `DataSyncS3LocationConfig` (`datasync-s3-location`) models a reusable S3 transfer location with an external bucket access role, subdirectory, and explicit read/write access mode. Tasks continue to support external source/destination location ARNs.
+
+CodePipeline accepts `stages_json`, validated and normalized by typed `PipelineStage`/`PipelineAction` models, plus external artifact bucket/key fields. Nonempty pipelines require at least two unique stages and a source-first stage. The editor uses its existing string field; parsing and defaults remain backend-owned.

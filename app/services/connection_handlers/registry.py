@@ -51,6 +51,7 @@ from app.services.connection_handlers.certificate import (
     CertificateLoadBalancerHandler,
 )
 from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
+from app.services.connection_handlers.codepipeline_s3 import CodePipelineS3Handler
 from app.services.connection_handlers.datasync_location import DataSyncLocationHandler
 from app.services.connection_handlers.datasync_s3 import DataSyncS3Handler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
@@ -145,6 +146,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.CODEPIPELINE,
+        target=ServiceType.S3,
+        connection_type="stores_artifacts",
+        label="CodePipeline → S3 artifacts",
+        config_model=EmptyConnectionConfig,
+        handler=CodePipelineS3Handler(),
+    ),
     ConnectionSpec(
         source=ServiceType.DATASYNC_S3_LOCATION,
         target=ServiceType.S3,

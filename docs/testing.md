@@ -78,3 +78,5 @@ Use behavior-oriented tests rather than source-text assertions. For geometry and
 - `test_cloudfront_s3_connections.py`: signed REST origins, read-only permissions, origin cardinality, shared audit/KMS policies, deterministic aggregation, and cycle-free Terraform graphs.
 
 - `test_datasync_s3_connections.py`: standalone locations, directional IAM, location cardinality, encryption, idempotence, and complete transfer Terraform graphs.
+
+- `test_codepipeline_s3_connections.py`: typed stage JSON validation, artifact ownership, duplicate handling, unsupported region overrides, and encrypted pipeline Terraform graphs.

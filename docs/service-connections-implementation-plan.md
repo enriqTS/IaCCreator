@@ -211,7 +211,7 @@ Implement:
 - [x] DataSync S3 locations → S3 buckets; DataSync tasks → source/destination locations.
 - [x] Lake Formation → S3 resource registration.
 - [x] CloudFront → private S3 origin with Origin Access Control.
-- CodePipeline → S3 artifact store.
+- [x] CodePipeline → S3 artifact store with validated stage/action definitions.
 - [x] Comprehend → S3 training data.
 
 Connection-owned notifications and replication should supersede duplicate configuration-driven generation while preserving external-resource escape hatches.

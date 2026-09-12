@@ -2277,6 +2277,31 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "role_arn",
       "required": false,
       "type": "string"
+    },
+    {
+      "description": "External S3 artifact bucket name",
+      "group": "General",
+      "label": "Artifact bucket name",
+      "name": "artifact_bucket_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Artifact encryption KMS key ARN",
+      "group": "General",
+      "label": "Artifact KMS key ARN",
+      "name": "artifact_kms_key_arn",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "[]",
+      "description": "JSON array of pipeline stages and typed action definitions",
+      "group": "General",
+      "label": "Stages json",
+      "name": "stages_json",
+      "required": false,
+      "type": "string"
     }
   ],
   "cognito": [

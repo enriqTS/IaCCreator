@@ -89,3 +89,5 @@ Firehose supports external `bucket_arn`, `role_arn`, and `s3_prefix` fields for 
 A managed CloudFront S3 origin replaces the custom HTTP origin block with `s3_origin_config` and an Origin Access Control reference. External custom origins retain their existing generation. S3 origin permissions aggregate with audit delivery in `bucket_policy.tf`.
 
 `DataSyncS3LocationGenerator` emits `aws_datasync_location_s3` and a stable `location_arn` output. Managed bucket connections own the access-role policy in the location module and order location creation after it.
+
+CodePipeline renders configured stages/actions as nested dynamic blocks from normalized `stages_json`, and an S3 `artifact_store` with optional KMS encryption. Managed artifact connections order creation after the artifact-role policy. Action-specific configuration and permissions remain caller supplied.
