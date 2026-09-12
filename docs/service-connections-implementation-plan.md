@@ -203,8 +203,8 @@ Implement:
 - [x] S3 → SQS notifications.
 - [x] S3 → EventBridge delivery.
 - [x] S3 → S3 live replication with an explicitly configured external replication role.
-- CloudTrail → S3 delivery.
-- AWS Config → S3 delivery.
+- [x] CloudTrail → S3 delivery.
+- [x] AWS Config → S3 delivery.
 - MWAA → S3 source bucket.
 - [x] Athena → S3 result location; query data/catalog relationships remain in Phase 10.
 - Kinesis Firehose → S3 destination.

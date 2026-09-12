@@ -68,3 +68,5 @@ Use behavior-oriented tests rather than source-text assertions. For geometry and
 `tests/test_s3_location_connections.py` verifies Athena/Lake Formation module references and prefixes, conflicting locations, idempotent duplicates, role requirements, external fallback fields, and preview guidance. Both pairs participate in registry-derived Terraform validation.
 
 `tests/test_s3_replication_connections.py` covers versioning dependencies, deterministic multi-destination rules, external destinations, role conflicts, managed KMS references, cross-Region wiring, and Terraform validation/plan graphs.
+
+- `test_s3_log_delivery_connections.py`: shared audit bucket policy scope, duplicate/order invariance, single-destination validation, and Terraform validation/dependency graph.

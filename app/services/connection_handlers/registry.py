@@ -97,6 +97,7 @@ from app.services.connection_handlers.s3_location import (
     LakeFormationS3Handler,
     S3LocationHandler,
 )
+from app.services.connection_handlers.s3_log_delivery import S3LogDeliveryHandler
 from app.services.connection_handlers.s3_replication import S3ReplicationHandler
 from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
@@ -139,6 +140,18 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.S3,
+            connection_type="delivers_to",
+            label=f"{source.value} → S3 delivery",
+            config_model=EmptyConnectionConfig,
+            handler=S3LogDeliveryHandler(),
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.CLOUDTRAIL, ServiceType.AWS_CONFIG)
+    ],
     ConnectionSpec(
         source=ServiceType.S3,
         target=ServiceType.S3,
