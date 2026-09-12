@@ -77,6 +77,10 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.COMPREHEND: {
+        "data_access_role_arn": "arn:aws:iam::123456789012:role/comprehend/data",
+        "output_data_s3_uri": "s3://external-output/results/",
+    },
     ServiceType.AURORA: {"engine": "aurora-postgresql"},
     ServiceType.BATCH_JOB_DEFINITION: {
         "image": "public.ecr.aws/docker/library/busybox:latest",

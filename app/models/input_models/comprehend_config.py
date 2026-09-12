@@ -1,11 +1,14 @@
 from typing import Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField
 
 
 class ComprehendConfig(BaseServiceConfig):
+    _reads_s3_source: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.COMPREHEND] = ServiceType.COMPREHEND
     classifier_name: str = TerraformField(
         "document-classifier", description="Document classifier name"

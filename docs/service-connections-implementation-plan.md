@@ -205,14 +205,14 @@ Implement:
 - [x] S3 → S3 live replication with an explicitly configured external replication role.
 - [x] CloudTrail → S3 delivery.
 - [x] AWS Config → S3 delivery.
-- MWAA → S3 source bucket.
+- [x] MWAA → S3 source bucket.
 - [x] Athena → S3 result location; query data/catalog relationships remain in Phase 10.
 - Kinesis Firehose → S3 destination.
 - DataSync ↔ S3 locations after location resources exist.
 - [x] Lake Formation → S3 resource registration.
 - CloudFront → S3 origin.
 - CodePipeline → S3 artifact store.
-- Comprehend → S3 training data.
+- [x] Comprehend → S3 training data.
 
 Connection-owned notifications and replication should supersede duplicate configuration-driven generation while preserving external-resource escape hatches.
 

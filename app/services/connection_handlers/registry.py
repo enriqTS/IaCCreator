@@ -98,6 +98,7 @@ from app.services.connection_handlers.s3_location import (
     S3LocationHandler,
 )
 from app.services.connection_handlers.s3_log_delivery import S3LogDeliveryHandler
+from app.services.connection_handlers.s3_read_source import S3ReadSourceHandler
 from app.services.connection_handlers.s3_replication import S3ReplicationHandler
 from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
@@ -140,6 +141,22 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.MWAA,
+        target=ServiceType.S3,
+        connection_type="reads_source",
+        label="MWAA → S3 source",
+        config_model=EmptyConnectionConfig,
+        handler=S3ReadSourceHandler("execution_role_arn", "source_bucket_arn", True),
+    ),
+    ConnectionSpec(
+        source=ServiceType.COMPREHEND,
+        target=ServiceType.S3,
+        connection_type="trains_from",
+        label="Comprehend → S3 training data",
+        config_model=S3LocationConfig,
+        handler=S3ReadSourceHandler("data_access_role_arn", "training_data_s3_uri"),
+    ),
     *[
         ConnectionSpec(
             source=source,

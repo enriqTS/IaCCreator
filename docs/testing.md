@@ -70,3 +70,5 @@ Use behavior-oriented tests rather than source-text assertions. For geometry and
 `tests/test_s3_replication_connections.py` covers versioning dependencies, deterministic multi-destination rules, external destinations, role conflicts, managed KMS references, cross-Region wiring, and Terraform validation/plan graphs.
 
 - `test_s3_log_delivery_connections.py`: shared audit bucket policy scope, duplicate/order invariance, single-destination validation, and Terraform validation/dependency graph.
+
+- `test_s3_read_source_connections.py`: MWAA/Comprehend native references, read policies, external-role requirements, versioning, managed-key grants, duplicate handling, and Terraform graphs.

@@ -9,11 +9,17 @@ class ComprehendGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, ComprehendConfig)
+        config = get_typed_config(instance, ComprehendConfig)
+        dependencies = (
+            {"depends_on": Expr("[aws_iam_role_policy.source_data]")}
+            if config._reads_s3_source
+            else {}
+        )
         return self._r.render_resource(
             "aws_comprehend_document_classifier",
             instance.name,
             {
+                **dependencies,
                 "name": Expr("var.classifier_name"),
                 "data_access_role_arn": Expr("var.data_access_role_arn"),
                 "language_code": Expr("var.language_code"),

@@ -14,6 +14,7 @@ from app.models.input_models._metadata import (
 
 
 class MwaaConfig(BaseServiceConfig):
+    _reads_s3_source: bool = PrivateAttr(default=False)
     _reads_runtime_secrets: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.MWAA] = ServiceType.MWAA
     execution_role_arn: str = TerraformField("", description="MWAA execution role ARN")

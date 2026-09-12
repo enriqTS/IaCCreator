@@ -30,8 +30,13 @@ class MwaaGenerator:
         }
         if config.airflow_version is not None:
             attrs["airflow_version"] = Expr("var.airflow_version")
+        dependencies = []
         if config._reads_runtime_secrets:
-            attrs["depends_on"] = Expr("[aws_iam_role_policy.runtime_secrets]")
+            dependencies.append("aws_iam_role_policy.runtime_secrets")
+        if config._reads_s3_source:
+            dependencies.append("aws_iam_role_policy.source_data")
+        if dependencies:
+            attrs["depends_on"] = Expr("[" + ", ".join(dependencies) + "]")
         return self._r.render_resource("aws_mwaa_environment", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
