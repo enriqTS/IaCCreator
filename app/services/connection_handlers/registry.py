@@ -81,6 +81,7 @@ from app.services.connection_handlers.eventbridge_targets import (
 from app.services.connection_handlers.firehose_s3 import FirehoseS3Handler
 from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.iam_grant import IamGrantHandler
+from app.services.connection_handlers.kinesis_access import KinesisAccessHandler
 from app.services.connection_handlers.kms_cloudtrail import KmsCloudTrailHandler
 from app.services.connection_handlers.kms_encryption import KmsEncryptionHandler
 from app.services.connection_handlers.kms_references import KMS_INPUTS
@@ -154,6 +155,20 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.KINESIS,
+            connection_type=kind,
+            label=f"{source.value} → Kinesis {access} access",
+            config_model=EmptyConnectionConfig,
+            handler=KinesisAccessHandler(access),
+            is_default=access == "read",
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+        for kind, access in (("reads_from", "read"), ("writes_to", "write"))
+    ],
     ConnectionSpec(
         source=ServiceType.EFS,
         target=ServiceType.EKS,

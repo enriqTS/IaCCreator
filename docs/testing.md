@@ -29,6 +29,8 @@ Key coverage areas include:
 - every registered connection, connection schemas, aggregation, previews, EventBridge targets, S3 notifications, and DynamoDB streams;
 - diagram CRUD, migrations, session isolation/middleware, and TinyDB/DynamoDB factory behavior.
 
+`tests/test_kinesis_access_connections.py` verifies stream-scoped read/write actions, runtime role attachment and exported references, read-only defaults, deterministic duplicate/multi-stream aggregation, preview guidance, and Terraform validation/plan graphs. Registry-derived tests additionally validate all four Lambda/ECS Kinesis connections and their API schema exposure.
+
 `tests/test_codebuild_secret_connections.py` covers native injection, external-role ownership, configuration validation, binding conflicts, and legacy registry defaults. Shared secret tests exercise deterministic aggregation, IAM/KMS scoping, preview ownership, and encrypted-project Terraform validation for Batch job definitions, Step Functions, MWAA, CodeBuild, and App Runner alongside Lambda, EC2, and ECS. `tests/test_app_runner_secret_connections.py` additionally verifies runtime/image-pull role separation, reserved environment names, public-image settings, and Terraform-evaluated merging of managed and external secret bindings.
 
 `tests/test_launch_template_connections.py` covers managed template versions, duplicate/shared connections, conflicting templates, external template compatibility, catalog/schema exposure, and a complete VPC/subnet/security-group/route/Auto Scaling architecture validated by Terraform. `tests/test_placement_external_identifiers.py` derives cases from all list-placement registry entries and uses permutations to verify preservation of external IDs and deterministic repeated generation.

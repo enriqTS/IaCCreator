@@ -2,6 +2,8 @@
 
 The service layer turns validated requests into a Terraform file tree and owns connection, session, migration, and OpenAPI-import processing.
 
+Lambda/ECS → Kinesis `reads_from` and `writes_to` use `KinesisAccessHandler`. Read access is the default and supports standard GetRecords polling; write access grants only PutRecord/PutRecords. Each consumer receives stream name/ARN module inputs and matching `kinesis_<stream-node-name>_name` / `_arn` outputs for application configuration. Permissions attach to the Lambda execution role or ECS task role. Applications select the stream's SDK Region; cross-Region connections are permitted. Network access, Lambda event-source mappings, enhanced fan-out consumers, KCL lease/coordination tables, and external customer-managed KMS permissions are not created by these connections. No credentials are generated or retrieved. Action scoping follows the [AWS Kinesis authorization reference](https://docs.aws.amazon.com/service-authorization/latest/reference/list_kinesis.html); [KCL prerequisites](https://docs.aws.amazon.com/streams/latest/dev/kcl-iam-permissions.html) require additional resources beyond standard polling.
+
 ## Generation flow
 
 ```
