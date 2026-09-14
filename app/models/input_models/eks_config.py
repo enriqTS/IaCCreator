@@ -10,6 +10,13 @@ from app.models.input_models._metadata import TerraformField
 class EksConfig(BaseServiceConfig):
     """EKS-specific configuration — single source of truth."""
 
+    manage_efs_csi_driver: bool = TerraformField(
+        True, description="Manage the EFS CSI add-on when EFS mounts are connected"
+    )
+    efs_csi_addon_version: str | None = TerraformField(
+        None, description="Optional compatible EFS CSI add-on version"
+    )
+
     service_type: Literal[ServiceType.EKS] = ServiceType.EKS
 
     _schema_field_order: ClassVar[tuple[str, ...]] = (
@@ -17,6 +24,8 @@ class EksConfig(BaseServiceConfig):
         "cluster_role_arn",
         "subnet_ids",
         "security_group_ids",
+        "manage_efs_csi_driver",
+        "efs_csi_addon_version",
     )
 
     # ── General ───────────────────────────────────────────────────────────

@@ -30,11 +30,23 @@ class EC2Generator:
             "vpc_security_group_ids": Expr("var.security_group_ids"),
             "tags": Expr("{ Name = var.instance_name }"),
         }
-        if config._reads_runtime_secrets:
+        if config._reads_runtime_secrets or config._mounts_efs:
             attrs["iam_instance_profile"] = Expr(
                 "aws_iam_instance_profile.runtime_secrets.name"
             )
-            attrs["depends_on"] = Expr("[aws_iam_role_policy.runtime_secrets]")
+            policies = []
+            if config._reads_runtime_secrets:
+                policies.append("aws_iam_role_policy.runtime_secrets")
+            if config._mounts_efs:
+                policies.append("aws_iam_role_policy.efs_mounts")
+            attrs["depends_on"] = Expr("[" + ", ".join(policies) + "]")
+        if config._mounts_efs:
+            attrs["user_data"] = Expr(
+                'templatefile("${path.module}/efs_bootstrap.sh.tftpl", { mounts = local.efs_mounts, install_helper = local.install_efs_utils, user_script = base64encode(var.user_data) })'
+            )
+            attrs["user_data_replace_on_change"] = True
+        elif config.user_data:
+            attrs["user_data"] = Expr("var.user_data")
         if config.key_name is not None:
             attrs["key_name"] = Expr("var.key_name")
 
@@ -55,6 +67,19 @@ class EC2Generator:
                 "security_group_ids", "list(string)", "Security group IDs"
             ),
         ]
+        if config.user_data or config._mounts_efs:
+            parts.append(
+                self._r.render_variable(
+                    "user_data",
+                    "string",
+                    "Instance bootstrap script",
+                    default=Expr(
+                        self._r.render_expression(config.user_data)
+                        .replace("${", "$${")
+                        .replace("%{", "%%{")
+                    ),
+                )
+            )
         if config.key_name is not None:
             parts.append(
                 self._r.render_variable(

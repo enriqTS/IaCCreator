@@ -12,6 +12,15 @@ from app.models.input_models._metadata import TerraformField
 class EcsConfig(BaseServiceConfig):
     """ECS-specific configuration — single source of truth."""
 
+    _mounts_efs: bool = PrivateAttr(default=False)
+    subnet_ids: list[str] = TerraformField([], description="Task subnets")
+    security_group_ids: list[str] = TerraformField(
+        [], description="Task security groups"
+    )
+    assign_public_ip: bool = TerraformField(
+        False, description="Assign a public IP to Fargate tasks"
+    )
+
     service_type: Literal[ServiceType.ECS] = ServiceType.ECS
 
     owns_execution_role: ClassVar[bool] = True
@@ -22,6 +31,9 @@ class EcsConfig(BaseServiceConfig):
         "task_family",
         "ecs_cpu",
         "ecs_memory",
+        "subnet_ids",
+        "security_group_ids",
+        "assign_public_ip",
     )
 
     # ── General ───────────────────────────────────────────────────────────

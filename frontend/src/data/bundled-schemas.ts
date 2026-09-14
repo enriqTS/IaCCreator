@@ -3250,6 +3250,15 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "security_group_ids",
       "required": false,
       "type": "list"
+    },
+    {
+      "default": "",
+      "description": "Instance user data; managed EFS mounts require a shell script",
+      "group": "General",
+      "label": "User data",
+      "name": "user_data",
+      "required": false,
+      "type": "string"
     }
   ],
   "ec2-auto-scaling": [
@@ -3490,6 +3499,31 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "ecs_memory",
       "required": false,
       "type": "string"
+    },
+    {
+      "description": "Task subnets",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "Task security groups",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "default": false,
+      "description": "Assign a public IP to Fargate tasks",
+      "group": "General",
+      "label": "Assign public IP",
+      "name": "assign_public_ip",
+      "required": false,
+      "type": "bool"
     }
   ],
   "efs": [
@@ -3627,6 +3661,23 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "security_group_ids",
       "required": false,
       "type": "list"
+    },
+    {
+      "default": true,
+      "description": "Manage the EFS CSI add-on when EFS mounts are connected",
+      "group": "General",
+      "label": "Manage EFS csi driver",
+      "name": "manage_efs_csi_driver",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "description": "Optional compatible EFS CSI add-on version",
+      "group": "General",
+      "label": "EFS csi addon version",
+      "name": "efs_csi_addon_version",
+      "required": false,
+      "type": "string"
     }
   ],
   "elastic-beanstalk": [

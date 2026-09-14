@@ -91,3 +91,5 @@ A managed CloudFront S3 origin replaces the custom HTTP origin block with `s3_or
 `DataSyncS3LocationGenerator` emits `aws_datasync_location_s3` and a stable `location_arn` output. Managed bucket connections own the access-role policy in the location module and order location creation after it.
 
 CodePipeline renders configured stages/actions as nested dynamic blocks from normalized `stages_json`, and an S3 `artifact_store` with optional KMS encryption. Managed artifact connections order creation after the artifact-role policy. Action-specific configuration and permissions remain caller supplied.
+
+EFS runtime generation uses `ecs_efs.py` to merge native ECS task volumes and container mount points, `eks_efs_manifests.py` to render static PV/PVC and workload bindings, and `templates/efs_bootstrap.sh.tftpl` for EC2 TLS/IAM mounts. EC2 mount changes enable user-data replacement. EKS emits Terraform outputs containing YAML and an `EFS-MOUNTS.md` apply guide. See [EFS runtime connections](backend-efs-connections.md).

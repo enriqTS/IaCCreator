@@ -178,9 +178,22 @@ def connection_architecture(spec) -> dict:
                     config[key] = name
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
             config.pop("bus_name", None)
-        if spec.source == ServiceType.EFS and spec.target == ServiceType.LAMBDA:
+        if spec.source == ServiceType.EFS and spec.target in {
+            ServiceType.LAMBDA,
+            ServiceType.ECS,
+            ServiceType.EC2,
+            ServiceType.EKS,
+        }:
             if service_type == ServiceType.EFS:
                 config["subnet_ids"] = ["subnet-12345678"]
+            elif service_type == ServiceType.EC2:
+                config["subnet_id"] = "subnet-12345678"
+                config["security_group_ids"] = ["sg-12345678"]
+            elif service_type == ServiceType.EKS:
+                config["subnet_ids"] = ["subnet-12345678", "subnet-87654321"]
+            elif service_type == ServiceType.ECS:
+                config["subnet_ids"] = ["subnet-12345678"]
+                config["security_group_ids"] = ["sg-12345678"]
             else:
                 config["vpc_subnet_ids"] = ["subnet-12345678"]
                 config["vpc_security_group_ids"] = ["sg-12345678"]
@@ -211,6 +224,8 @@ def connection_architecture(spec) -> dict:
                 }
                 if spec.source == ServiceType.BACKUP
                 or spec.connection_type == "replicates_to"
+                else {"node_role_arn": "arn:aws:iam::123456789012:role/eks/workers"}
+                if spec.source == ServiceType.EFS and spec.target == ServiceType.EKS
                 else {},
             }
         ],

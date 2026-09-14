@@ -22,6 +22,11 @@ from app.models.connection_configs.configs import (
     SqsLambdaConfig,
     TargetGroupAttachmentConfig,
 )
+from app.models.connection_configs.efs import (
+    EfsEc2MountConfig,
+    EfsEcsMountConfig,
+    EfsEksMountConfig,
+)
 from app.models.connection_configs.replication import S3ReplicationConfig
 from app.models.connection_configs.secrets import (
     AppRunnerSecretConfig,
@@ -64,6 +69,9 @@ from app.services.connection_handlers.ec2_placement import (
 from app.services.connection_handlers.ec2_secret import Ec2SecretHandler
 from app.services.connection_handlers.ecs_secret import EcsSecretHandler
 from app.services.connection_handlers.ecs_target_group import TargetGroupECSHandler
+from app.services.connection_handlers.efs_ec2 import EfsEc2MountHandler
+from app.services.connection_handlers.efs_ecs import EfsEcsMountHandler
+from app.services.connection_handlers.efs_eks import EfsEksMountHandler
 from app.services.connection_handlers.efs_lambda import EfsLambdaMountHandler
 from app.services.connection_handlers.environment_secret import EnvironmentSecretHandler
 from app.services.connection_handlers.eventbridge_targets import (
@@ -146,6 +154,30 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EFS,
+        target=ServiceType.EKS,
+        connection_type="mounts",
+        label="EFS → EKS storage manifests",
+        config_model=EfsEksMountConfig,
+        handler=EfsEksMountHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.EFS,
+        target=ServiceType.EC2,
+        connection_type="mounts",
+        label="EFS → EC2 mount",
+        config_model=EfsEc2MountConfig,
+        handler=EfsEc2MountHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.EFS,
+        target=ServiceType.ECS,
+        connection_type="mounts",
+        label="EFS → ECS mount",
+        config_model=EfsEcsMountConfig,
+        handler=EfsEcsMountHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.CODEPIPELINE,
         target=ServiceType.S3,
@@ -490,6 +522,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         )
         for target in (
             ServiceType.LAMBDA,
+            ServiceType.ECS,
             ServiceType.EKS,
             ServiceType.EC2_AUTO_SCALING,
             ServiceType.LOAD_BALANCER,
@@ -518,6 +551,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         )
         for target in (
             ServiceType.LAMBDA,
+            ServiceType.ECS,
             ServiceType.EKS,
             ServiceType.EC2_LAUNCH_TEMPLATE,
             ServiceType.LOAD_BALANCER,

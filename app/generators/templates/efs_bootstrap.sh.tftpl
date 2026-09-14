@@ -1,0 +1,24 @@
+#!/bin/bash
+set -euo pipefail
+%{ if install_helper ~}
+if command -v dnf >/dev/null 2>&1; then
+  dnf install -y amazon-efs-utils
+elif command -v yum >/dev/null 2>&1; then
+  yum install -y amazon-efs-utils
+else
+  echo 'EFS helper installation requires Amazon Linux with dnf or yum' >&2
+  exit 1
+fi
+%{ endif ~}
+command -v mount.efs >/dev/null 2>&1 || { echo 'Install amazon-efs-utils in the AMI before boot' >&2; exit 1; }
+%{ for mount in mounts ~}
+mkdir -p '${mount.path}'
+entry='${mount.filesystem_id}:/ ${mount.path} efs _netdev,tls,iam,accesspoint=${mount.access_point_id},${mount.read_only ? "ro" : "rw"} 0 0'
+grep -Fqx -- "$entry" /etc/fstab || printf '%s\n' "$entry" >> /etc/fstab
+for attempt in $(seq 1 12); do
+  if mount '${mount.path}'; then break; fi
+  sleep 10
+done
+mountpoint -q '${mount.path}' || exit 1
+%{ endfor ~}
+printf '%s' '${user_script}' | base64 --decode | bash

@@ -3,6 +3,7 @@
 import json
 
 from app.generators.base import get_typed_config  # noqa: F401
+from app.generators.ecs_efs import add_efs_task_attributes
 from app.generators.ecs_secrets import secret_task_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ecs_config import EcsConfig
@@ -59,6 +60,8 @@ class ECSGenerator:
         }
         if config._inject_runtime_secrets:
             task_attrs.update(secret_task_attributes(instance.name))
+        if config._mounts_efs:
+            add_efs_task_attributes(task_attrs)
         if instance.iam_statements:
             task_attrs["task_role_arn"] = Expr(f"aws_iam_role.{instance.name}_role.arn")
             policies = [f"aws_iam_role_policy.{instance.name}_policy"]
@@ -77,6 +80,15 @@ class ECSGenerator:
                 f"aws_ecs_task_definition.{instance.name}_task.arn"
             ),
         }
+        if config.subnet_ids:
+            service_attrs["network_configuration"] = {
+                "subnets": Expr("var.subnet_ids"),
+                "security_groups": Expr("var.security_group_ids"),
+                "assign_public_ip": Expr("var.assign_public_ip"),
+            }
+        if config._mounts_efs and config.ecs_launch_type is None:
+            service_attrs["launch_type"] = "FARGATE"
+            service_attrs["platform_version"] = "LATEST"
         if config.ecs_launch_type is not None:
             service_attrs["launch_type"] = Expr("var.ecs_launch_type")
         if config.ecs_desired_count is not None:
@@ -139,6 +151,20 @@ class ECSGenerator:
                 ),
             ),
         ]
+        if config.subnet_ids:
+            parts.extend(
+                [
+                    self._r.render_variable(
+                        "subnet_ids", "list(string)", "Task subnets"
+                    ),
+                    self._r.render_variable(
+                        "security_group_ids", "list(string)", "Task security groups"
+                    ),
+                    self._r.render_variable(
+                        "assign_public_ip", "bool", "Assign public task IP"
+                    ),
+                ]
+            )
         if config.ecs_launch_type is not None:
             parts.append(
                 self._r.render_variable(
