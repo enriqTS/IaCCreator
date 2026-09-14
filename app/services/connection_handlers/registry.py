@@ -22,6 +22,7 @@ from app.models.connection_configs.configs import (
     SqsLambdaConfig,
     TargetGroupAttachmentConfig,
 )
+from app.models.connection_configs.database import DatabaseIamAuthConfig
 from app.models.connection_configs.efs import (
     EfsEc2MountConfig,
     EfsEcsMountConfig,
@@ -57,6 +58,7 @@ from app.services.connection_handlers.certificate import (
 )
 from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
 from app.services.connection_handlers.codepipeline_s3 import CodePipelineS3Handler
+from app.services.connection_handlers.database_access import DatabaseAccessHandler
 from app.services.connection_handlers.datasync_location import DataSyncLocationHandler
 from app.services.connection_handlers.datasync_s3 import DataSyncS3Handler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
@@ -155,6 +157,19 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=target,
+            connection_type="authenticates_to",
+            label=f"{source.value} → {target.value} IAM database login",
+            config_model=DatabaseIamAuthConfig,
+            handler=DatabaseAccessHandler(),
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+        for target in (ServiceType.RDS, ServiceType.AURORA)
+    ],
     *[
         ConnectionSpec(
             source=source,

@@ -166,6 +166,11 @@ def connection_architecture(spec) -> dict:
     ):
         config = minimal_config_for(service_type).model_dump(exclude_none=True)
         config.update(DEPLOYABLE_EXTRAS.get(service_type, {}))
+        if (
+            spec.connection_type == "authenticates_to"
+            and service_type == ServiceType.RDS
+        ):
+            config["engine"] = "postgres"
         model = models.get(service_type)
         if model is not None:
             # Name every name-ish field so the module gets its required arguments
@@ -226,6 +231,8 @@ def connection_architecture(spec) -> dict:
                 or spec.connection_type == "replicates_to"
                 else {"node_role_arn": "arn:aws:iam::123456789012:role/eks/workers"}
                 if spec.source == ServiceType.EFS and spec.target == ServiceType.EKS
+                else {"database_user": "app_user"}
+                if spec.connection_type == "authenticates_to"
                 else {},
             }
         ],

@@ -86,3 +86,5 @@ Use behavior-oriented tests rather than source-text assertions. For geometry and
 - `test_efs_ec2_connections.py`: shared secret/mount role ownership, shell user-data validation and escaping, rendered bootstrap shell syntax, instance replacement, and Terraform validation/graphs.
 - `test_efs_ecs_connections.py`: native TLS/IAM volumes, read/write grants, path conflicts, deterministic bindings, composed container mounts/secrets evaluated by Terraform, and Terraform validation/graphs.
 - `test_efs_eks_connections.py`: static claim manifests, supported CSI access modes, add-on ownership, node-role grants, claim conflicts, stable storage identity across workload path edits, and Terraform validation/graphs.
+
+`test_database_access_connections.py` covers user/resource-scoped IAM grants, unsupported engines and usernames, explicit credential-management opt-in, duplicate/multiple-user aggregation, runtime metadata, Terraform validation/graphs, and Terraform-evaluated ARN partition/Region/account/resource-ID correctness. Registry fixtures provide an explicit application database user and supported engine for all four login connections.

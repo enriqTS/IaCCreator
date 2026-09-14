@@ -974,6 +974,15 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
   ],
   "aurora": [
     {
+      "default": false,
+      "description": "Explicitly allow RDS to create and manage the master password in Secrets Manager",
+      "group": "General",
+      "label": "Manage master user password",
+      "name": "manage_master_user_password",
+      "required": false,
+      "type": "bool"
+    },
+    {
       "description": "Identifier for the Aurora cluster",
       "group": "General",
       "label": "Cluster identifier",
@@ -5767,6 +5776,15 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
     }
   ],
   "rds": [
+    {
+      "default": false,
+      "description": "Explicitly allow RDS to create and manage the master password in Secrets Manager",
+      "group": "General",
+      "label": "Manage master user password",
+      "name": "manage_master_user_password",
+      "required": false,
+      "type": "bool"
+    },
     {
       "description": "Identifier for the RDS instance",
       "group": "General",

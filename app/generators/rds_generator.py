@@ -1,5 +1,6 @@
 """RDS service generator — produces HCL for aws_db_instance resources."""
 
+from app.generators.database_auth import iam_database_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.rds_config import RdsConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -22,6 +23,12 @@ class RDSGenerator:
         """Generate resource.tf with aws_db_instance resource."""
         config = _resolve_config(instance)
         attrs: dict = {"identifier": Expr("var.db_identifier")}
+        if config._iam_database_access:
+            attrs.update(iam_database_attributes(instance.service_type))
+        if config.manage_master_user_password:
+            attrs["manage_master_user_password"] = Expr(
+                "var.manage_master_user_password"
+            )
         if config.engine is not None:
             attrs["engine"] = Expr("var.engine")
         if config.instance_class is not None:
@@ -75,6 +82,15 @@ class RDSGenerator:
                     "string",
                     "Master username for the database",
                     default=config.username,
+                )
+            )
+        if config.manage_master_user_password:
+            parts.append(
+                self._r.render_variable(
+                    "manage_master_user_password",
+                    "bool",
+                    "Manage master password in Secrets Manager",
+                    default=True,
                 )
             )
         return "\n".join(parts)
