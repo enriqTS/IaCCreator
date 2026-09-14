@@ -112,6 +112,9 @@ def _referenced_variables(service_type: ServiceType) -> set[str]:
 
 
 _SKIP_VAR_REF_FIELDS: dict[ServiceType, set[str]] = {
+    # Credential opt-in emits no argument when disabled; database tests cover both states.
+    ServiceType.RDS: {"manage_master_user_password"},
+    ServiceType.AURORA: {"manage_master_user_password"},
     # Paired fields — the generator only emits them when both halves are set
     ServiceType.LAMBDA: {"file_system_arn", "file_system_local_mount_path"},
     ServiceType.DYNAMODB: {"hash_key_type", "range_key_type"},
@@ -213,7 +216,7 @@ def resource_instance_with_populated_fields(draw):
     always_present = _ALWAYS_PRESENT_FIELDS.get(service_type, set())
 
     # Start with required base config values per service
-    from tests.generator_helpers import minimal_config_for
+    from tests.generator_helpers import DEPLOYABLE_EXTRAS, minimal_config_for
 
     minimal = minimal_config_for(service_type)
     config_kwargs: dict = {
@@ -280,7 +283,9 @@ def resource_instance_with_populated_fields(draw):
         # Field names match schema names directly (all services migrated)
         field_name = entry.name
         # Use options values when available for more realistic data
-        if entry.options:
+        if service_type == ServiceType.CODEPIPELINE and field_name == "stages_json":
+            value = DEPLOYABLE_EXTRAS[ServiceType.CODEPIPELINE]["stages_json"]
+        elif entry.options:
             value = draw(st.sampled_from([o.value for o in entry.options]))
             # A list-typed field still takes a list even when its members are options
             if entry.type == "list":
@@ -288,6 +293,12 @@ def resource_instance_with_populated_fields(draw):
         else:
             value = draw(_sample_value_for_type(entry.type))
         config_kwargs[field_name] = value
+
+    if (
+        service_type == ServiceType.CODEPIPELINE
+        and "artifact_kms_key_arn" in config_kwargs
+    ):
+        config_kwargs.setdefault("artifact_bucket_name", "pipeline-artifacts")
 
     if service_type == ServiceType.DYNAMODB:
         config = DynamoDBConfig(**config_kwargs)
