@@ -10,7 +10,7 @@ Current phase status:
 - [x] Phase 2 ingress, load balancing, and DNS.
 - [x] Phase 3 encryption and secrets: KMS references, shared service policies, and scoped grants cover the thirteen registered encryption targets and their existing consumers. Lambda/EC2/MWAA reads, ECS/CodeBuild/App Runner/Batch job-definition native injection, and Step Functions GetSecretValue tasks are implemented.
 - [x] Phase 4 storage and backup: S3 relationships, EBS attachments, EFS runtime mounts, and Backup selections are implemented. EKS configures the CSI add-on and exports storage manifests for the user to apply.
-- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB and Kinesis, RDS/Aurora IAM database login, and DMS network placement exist; the other database integrations and DMS endpoints remain.
+- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, RDS/Aurora IAM database login, and DMS network placement exist; the other database integrations and DMS endpoints remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
 - [ ] Phase 7 identity, certificates, and edge security.
 - [-] Phase 8 observability, governance, and security administration: Lambda-to-CloudWatch logging exists; the broader phase remains.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 118 Terraform-capable service types, while the connection registry contains 122 connection specifications involving 56 services.
+The generator registry contains 118 Terraform-capable service types, while the connection registry contains 130 connection specifications involving 58 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -245,8 +245,8 @@ Expand IAM and runtime access from execution-role-owning services to:
 - Neptune
 - ElastiCache
 - MemoryDB
-- Keyspaces
-- Timestream
+- [x] Keyspaces: Lambda/ECS read/write access to explicitly named existing tables, plus required system-metadata reads and runtime connection metadata.
+- [x] Timestream: Lambda/ECS read/write access to explicitly named existing LiveAnalytics tables, with separate endpoint discovery and runtime connection metadata. Table provisioning remains separate.
 - OpenSearch
 - [x] Kinesis: Lambda/ECS `reads_from` and `writes_to` grant stream-scoped SDK access and export runtime stream references. Enhanced fan-out, KCL coordination resources, event-source mappings, and customer-managed stream encryption are separate follow-up work.
 - MSK

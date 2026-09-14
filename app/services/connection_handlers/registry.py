@@ -41,6 +41,10 @@ from app.models.connection_configs.storage import (
     S3LocationConfig,
     S3NotificationConfig,
 )
+from app.models.connection_configs.table_access import (
+    KeyspacesTableAccessConfig,
+    TimestreamTableAccessConfig,
+)
 from app.models.connection_configs.workflows import StepFunctionsSecretConfig
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.accelerator_endpoint import (
@@ -83,6 +87,7 @@ from app.services.connection_handlers.eventbridge_targets import (
 from app.services.connection_handlers.firehose_s3 import FirehoseS3Handler
 from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.iam_grant import IamGrantHandler
+from app.services.connection_handlers.keyspaces_access import KeyspacesAccessHandler
 from app.services.connection_handlers.kinesis_access import KinesisAccessHandler
 from app.services.connection_handlers.kms_cloudtrail import KmsCloudTrailHandler
 from app.services.connection_handlers.kms_encryption import KmsEncryptionHandler
@@ -130,6 +135,7 @@ from app.services.connection_handlers.target_group_attachment import (
 from app.services.connection_handlers.target_group_lambda import (
     TargetGroupLambdaAttachmentHandler,
 )
+from app.services.connection_handlers.timestream_access import TimestreamAccessHandler
 from app.services.connection_handlers.vpc_membership import VpcMembershipHandler
 from app.services.connection_handlers.waf_association import (
     WafCloudFrontHandler,
@@ -157,6 +163,28 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=target,
+            connection_type=kind,
+            label=f"{source.value} → {target.value} table {access} access",
+            config_model=config,
+            handler=handler(access),
+            is_default=access == "read",
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+        for target, config, handler in (
+            (ServiceType.KEYSPACES, KeyspacesTableAccessConfig, KeyspacesAccessHandler),
+            (
+                ServiceType.TIMESTREAM,
+                TimestreamTableAccessConfig,
+                TimestreamAccessHandler,
+            ),
+        )
+        for kind, access in (("reads_from", "read"), ("writes_to", "write"))
+    ],
     *[
         ConnectionSpec(
             source=source,

@@ -233,6 +233,9 @@ def connection_architecture(spec) -> dict:
                 if spec.source == ServiceType.EFS and spec.target == ServiceType.EKS
                 else {"database_user": "app_user"}
                 if spec.connection_type == "authenticates_to"
+                else {"table_name": "application_data"}
+                if spec.target in {ServiceType.KEYSPACES, ServiceType.TIMESTREAM}
+                and spec.connection_type in {"reads_from", "writes_to"}
                 else {},
             }
         ],
