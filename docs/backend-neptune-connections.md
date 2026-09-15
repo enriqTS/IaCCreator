@@ -1,0 +1,13 @@
+# Neptune graph connections
+
+Lambda and ECS support `reads_from` and `writes_to` connections to Neptune clusters. The default connection is read-only. These connections enable native IAM authentication on the cluster and grant permissions to the Lambda execution role or ECS task role. Enabling IAM authentication affects every graph client: existing clients must also sign their requests.
+
+Read access grants only `neptune-db:ReadDataViaQuery`. Write access grants ReadDataViaQuery, WriteDataViaQuery, and DeleteDataViaQuery. Graph mutations can require a combination of these actions; write access therefore includes reads and query deletes. Reset, bulk loading, streams, query status/cancellation, and other administrative operations are not granted. See [AWS query-action requirements](https://docs.aws.amazon.com/neptune/latest/userguide/iam-data-access-policies.html).
+
+Each grant uses the target's actual partition, Region, account, and immutable `cluster_resource_id` in a `neptune-db` data ARN ending in `/*`. The editable cluster identifier and RDS control-plane ARN are not valid substitutes. The cluster module exports this reference, and the application module receives it through an input. This follows [AWS Neptune data-resource scoping](https://docs.aws.amazon.com/neptune/latest/userguide/iam-data-resources.html).
+
+Consumers export `neptune_<cluster-node-name>_host`, `_reader_host`, `_port`, `_region`, and `_data_arn`. Port is a string. Application code connects over TLS and signs requests with SigV4 for `neptune-db` in the exported Region. Use the writer host for mutations; the reader host is available for read traffic. The generator does not inject environment variables or create passwords.
+
+Scoped graph permissions require engine 1.2.0.0 or newer. The optional `engine_version` service field allows an explicit version. Unsupported configured versions fail generation; a Terraform precondition guards version overrides when that field is configured. A postcondition checks the actual cluster engine version, including when AWS chooses the default. The connection does not automatically upgrade an existing cluster, and an apply can fail the postcondition if its actual engine is still unsupported.
+
+The existing generator creates the cluster resource, not its database instances. Provision instances, VPC routing, subnet groups, and security groups separately before connecting. Cross-Region logical access is allowed, but does not create network reachability. Multiple consumers and read/write connections share cluster metadata; duplicates and reordered connections produce the same output.

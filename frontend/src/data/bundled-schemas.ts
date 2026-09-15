@@ -5568,6 +5568,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "cluster_identifier",
       "required": false,
       "type": "string"
+    },
+    {
+      "description": "Optional Neptune engine version; graph IAM connections require 1.2.0.0 or newer",
+      "group": "General",
+      "label": "Engine version",
+      "name": "engine_version",
+      "required": false,
+      "type": "string"
     }
   ],
   "network-firewall": [

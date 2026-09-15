@@ -100,6 +100,7 @@ from app.services.connection_handlers.load_balancer_listener import (
     LoadBalancerTargetGroupHandler,
 )
 from app.services.connection_handlers.mwaa_secret import MwaaSecretHandler
+from app.services.connection_handlers.neptune_access import NeptuneAccessHandler
 from app.services.connection_handlers.network_placement import (
     ListPlacementHandler,
     SecurityGroupListAssociationHandler,
@@ -163,6 +164,23 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.NEPTUNE,
+            connection_type=kind,
+            label=f"{source.value} → Neptune graph {label}",
+            config_model=EmptyConnectionConfig,
+            handler=NeptuneAccessHandler(access),
+            is_default=access == "read",
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+        for kind, access, label in (
+            ("reads_from", "read", "read access"),
+            ("writes_to", "write", "read/write/delete access"),
+        )
+    ],
     *[
         ConnectionSpec(
             source=source,
