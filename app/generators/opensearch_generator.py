@@ -21,7 +21,18 @@ class OpenSearchGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate resource.tf with aws_opensearch_domain resource."""
+        config = _resolve_config(instance)
         attrs: dict = {"domain_name": Expr("var.domain_name")}
+        if config._index_client_access:
+            attrs["advanced_options"] = Expr(
+                self._r.render_expression(
+                    {"rest.action.multi.allow_explicit_index": "false"}
+                )
+            )
+            attrs["domain_endpoint_options"] = {
+                "enforce_https": True,
+                "tls_security_policy": "Policy-Min-TLS-1-2-2019-07",
+            }
 
         return self._r.render_resource("aws_opensearch_domain", instance.name, attrs)
 

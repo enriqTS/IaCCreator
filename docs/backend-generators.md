@@ -99,3 +99,5 @@ RDS/Aurora generators use `database_auth.py` to enable IAM authentication and gu
 Connected Neptune clusters enable native IAM authentication and check engine compatibility with a Terraform postcondition. Explicit `engine_version` settings also receive a precondition to guard environment overrides. Unconnected clusters retain their existing authentication behavior. See [Neptune graph connections](backend-neptune-connections.md).
 
 `memorydb_iam.py` renders checks for TLS, explicit ACL selection, and engine compatibility, along with existing-user/ACL data sources. User postconditions validate IAM mode and membership without retrieving passwords. `MemoryDbGenerator` applies client checks only when connected and preserves unconnected configuration. See [MemoryDB connections](backend-memorydb-connections.md).
+
+Connected OpenSearch domains enforce HTTPS/TLS 1.2 and disable explicit request-body indexes through native advanced options. Endpoint and ARN references remain domain-owned and cross into application modules as inputs. See [OpenSearch connections](backend-opensearch-connections.md) for effects on other clients and Dashboards.

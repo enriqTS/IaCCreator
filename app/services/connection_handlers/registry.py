@@ -29,6 +29,7 @@ from app.models.connection_configs.efs import (
     EfsEksMountConfig,
 )
 from app.models.connection_configs.memorydb import MemoryDbIamConfig
+from app.models.connection_configs.opensearch import OpenSearchIndexAccessConfig
 from app.models.connection_configs.replication import S3ReplicationConfig
 from app.models.connection_configs.secrets import (
     AppRunnerSecretConfig,
@@ -108,6 +109,7 @@ from app.services.connection_handlers.network_placement import (
     SecurityGroupListAssociationHandler,
     SubnetListPlacementHandler,
 )
+from app.services.connection_handlers.opensearch_access import OpenSearchAccessHandler
 from app.services.connection_handlers.route53_vpc_association import (
     Route53VpcAssociationHandler,
 )
@@ -166,6 +168,23 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.OPENSEARCH,
+            connection_type=kind,
+            label=f"{source.value} → OpenSearch document {label}",
+            config_model=OpenSearchIndexAccessConfig,
+            handler=OpenSearchAccessHandler(access),
+            is_default=access == "read",
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+        for kind, access, label in (
+            ("reads_from", "read", "read/search access"),
+            ("writes_to", "write", "write/delete access"),
+        )
+    ],
     *[
         ConnectionSpec(
             source=source,
