@@ -1,0 +1,13 @@
+# MemoryDB IAM connections
+
+Lambda and ECS support `authenticates_to` connections to MemoryDB. The required `user_name` selects an existing MemoryDB user with IAM authentication. Names are normalized to lowercase, matching AWS behavior; wildcard and invalid names are rejected. No MemoryDB user, ACL, or password is created by a connection.
+
+The MemoryDB node must specify an external ACL other than `open-access`, with TLS enabled. Terraform reads that ACL and the selected user in the cluster's Region. Data-source postconditions require the user's authentication mode to be `iam` and its name to appear in the ACL's user list. These lookups read metadata, not password values. The Terraform deployment identity needs permission to describe the user and ACL; the application role does not receive those administrative permissions.
+
+The Lambda execution role or ECS task role receives `memorydb:Connect` on both the exact cluster ARN and the selected user's actual ARN from the data source. Command and key permissions remain governed by the user's external access string. Accordingly, these connections offer IAM login rather than a separate read/write selector. See [AWS MemoryDB IAM authentication](https://docs.aws.amazon.com/memorydb/latest/devguide/auth-iam.html).
+
+Consumers export a `memorydb_<cluster-node-name>_iam_user_<hash>` object containing `cluster_name`, `user_name`, `host`, `port`, and `region`. Port is exported as a string. Use the cluster name, user, and Region to sign an IAM token; use the hostname and port for a TLS connection. The application generates and refreshes tokens using its runtime role. Tokens last 15 minutes, and long-lived connections require reauthentication or reconnection before the 12-hour connection limit. No token is generated during Terraform execution. See the [AWS connection limitations](https://docs.aws.amazon.com/memorydb/latest/devguide/auth-iam.html#auth-iam-limitations).
+
+MemoryDB IAM login requires Valkey or Redis OSS engine version 7.0 or newer. The optional `engine_version` service field allows pinning a version. Unsupported explicit versions fail generation. Terraform guards TLS, ACL selection, configured version overrides, and the actual cluster engine version. The connection does not automatically upgrade an old cluster or change its TLS setting; an unsupported actual version can fail a postcondition during apply.
+
+Subnet placement, security groups, routing, and application client configuration remain separate. Multiple users or consumers share the ACL lookup and cluster metadata. Each distinct user has one lookup per cluster module, with stable naming; repeated or case-varied connections aggregate without duplicate grants.

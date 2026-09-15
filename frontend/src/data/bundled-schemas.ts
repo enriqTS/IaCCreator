@@ -5179,6 +5179,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
   ],
   "memorydb": [
     {
+      "description": "Optional engine version; IAM login requires version 7.0 or newer",
+      "group": "General",
+      "label": "Engine version",
+      "name": "engine_version",
+      "required": false,
+      "type": "string"
+    },
+    {
       "default": "memorydb-cluster",
       "description": "MemoryDB cluster name",
       "group": "General",

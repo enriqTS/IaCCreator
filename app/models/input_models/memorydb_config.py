@@ -2,13 +2,22 @@
 
 from typing import Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField, ValidationRule
 
+MEMORYDB_IAM_VERSION_PATTERN = r"^([7-9]|[1-9][0-9]+)\."
+
 
 class MemoryDbConfig(BaseServiceConfig):
     service_type: Literal[ServiceType.MEMORYDB] = ServiceType.MEMORYDB
+    _iam_client_access: bool = PrivateAttr(default=False)
+    engine_version: str | None = TerraformField(
+        None,
+        description="Optional engine version; IAM login requires version 7.0 or newer",
+    )
     cluster_name: str = TerraformField(
         "memorydb-cluster", description="MemoryDB cluster name"
     )

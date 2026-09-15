@@ -231,6 +231,9 @@ def connection_architecture(spec) -> dict:
                 or spec.connection_type == "replicates_to"
                 else {"node_role_arn": "arn:aws:iam::123456789012:role/eks/workers"}
                 if spec.source == ServiceType.EFS and spec.target == ServiceType.EKS
+                else {"user_name": "app-user"}
+                if spec.target == ServiceType.MEMORYDB
+                and spec.connection_type == "authenticates_to"
                 else {"database_user": "app_user"}
                 if spec.connection_type == "authenticates_to"
                 else {"table_name": "application_data"}

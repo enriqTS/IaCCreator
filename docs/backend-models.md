@@ -60,3 +60,5 @@ EFS runtime connections use `EfsEc2MountConfig`, `EfsEcsMountConfig`, and `EfsEk
 `KeyspacesTableAccessConfig` and `TimestreamTableAccessConfig` in `connection_configs/table_access.py` require an existing table name with service-specific syntax and no IAM wildcards. They are exposed through connection schemas without service-model or bundled-variable-schema changes. See [table connections](backend-table-connections.md).
 
 `NeptuneConfig` exposes optional `engine_version` and carries a private connection-derived `_iam_graph_access` flag. Graph connections use the typed empty config; shared version compatibility logic requires engine 1.2.0.0 or newer. See [Neptune graph connections](backend-neptune-connections.md).
+
+`MemoryDbIamConfig` requires an existing `user_name`, validates its syntax, and normalizes it to lowercase. `MemoryDbConfig` exposes optional `engine_version` and carries a private connection-derived flag for native IAM client checks. See [MemoryDB connections](backend-memorydb-connections.md).

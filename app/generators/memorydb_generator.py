@@ -2,6 +2,7 @@
 
 from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import Expr, HCLRenderer
+from app.generators.memorydb_iam import client_lifecycle
 from app.models.input_models.memorydb_config import MemoryDbConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -40,6 +41,10 @@ class MemoryDbGenerator:
             )
         if config.maintenance_window is not None:
             attrs["maintenance_window"] = Expr("var.maintenance_window")
+        if config.engine_version is not None:
+            attrs["engine_version"] = Expr("var.engine_version")
+        if config._iam_client_access:
+            attrs["lifecycle"] = client_lifecycle(config.engine_version is not None)
         parts.append(
             self._r.render_resource("aws_memorydb_cluster", instance.name, attrs)
         )
@@ -60,6 +65,8 @@ class MemoryDbGenerator:
         ]
         if config.maintenance_window is not None:
             fields.append(("maintenance_window", "string", "Weekly maintenance window"))
+        if config.engine_version is not None:
+            fields.append(("engine_version", "string", "MemoryDB engine version"))
         return "\n".join(self._r.render_variable(*field) for field in fields)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

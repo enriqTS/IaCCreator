@@ -28,6 +28,7 @@ from app.models.connection_configs.efs import (
     EfsEcsMountConfig,
     EfsEksMountConfig,
 )
+from app.models.connection_configs.memorydb import MemoryDbIamConfig
 from app.models.connection_configs.replication import S3ReplicationConfig
 from app.models.connection_configs.secrets import (
     AppRunnerSecretConfig,
@@ -99,6 +100,7 @@ from app.services.connection_handlers.launch_template import (
 from app.services.connection_handlers.load_balancer_listener import (
     LoadBalancerTargetGroupHandler,
 )
+from app.services.connection_handlers.memorydb_access import MemoryDbAccessHandler
 from app.services.connection_handlers.mwaa_secret import MwaaSecretHandler
 from app.services.connection_handlers.neptune_access import NeptuneAccessHandler
 from app.services.connection_handlers.network_placement import (
@@ -164,6 +166,18 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.MEMORYDB,
+            connection_type="authenticates_to",
+            label=f"{source.value} → MemoryDB IAM login",
+            config_model=MemoryDbIamConfig,
+            handler=MemoryDbAccessHandler(),
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+    ],
     *[
         ConnectionSpec(
             source=source,
