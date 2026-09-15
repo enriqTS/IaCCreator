@@ -78,6 +78,12 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.MSK: {
+        "kafka_version": "3.8.x",
+        "number_of_broker_nodes": 2,
+        "subnet_ids": ["subnet-12345678", "subnet-87654321"],
+        "security_group_ids": ["sg-12345678"],
+    },
     ServiceType.CODEPIPELINE: {
         "role_arn": "arn:aws:iam::123456789012:role/pipeline/execution",
         "stages_json": json.dumps(
@@ -248,6 +254,15 @@ def connection_architecture(spec) -> dict:
                 else {"index_name": "application-records"}
                 if spec.target == ServiceType.OPENSEARCH
                 and spec.connection_type in {"reads_from", "writes_to"}
+                else {
+                    "topic_name": "application-records",
+                    "consumer_group": "application-readers",
+                }
+                if spec.target == ServiceType.MSK
+                and spec.connection_type == "reads_from"
+                else {"topic_name": "application-records"}
+                if spec.target == ServiceType.MSK
+                and spec.connection_type == "writes_to"
                 else {},
             }
         ],

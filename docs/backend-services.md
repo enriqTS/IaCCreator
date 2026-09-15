@@ -1,5 +1,7 @@
 # Backend Services
 
+MSK topic handlers grant cluster authentication, exact-topic read/write actions, and exact-group consumer actions. IAM bootstrap endpoints and client settings travel through module outputs; see [MSK topic connections](backend-msk-connections.md).
+
 DocumentDB `authenticates_to` connections export MONGODB-AWS client settings and the consumer's IAM role identity, with explicit engine checks and ECS task-role attachment. Database users and authorization remain external; see [DocumentDB client connections](backend-documentdb-connections.md).
 
 The service layer turns validated requests into a Terraform file tree and owns connection, session, migration, and OpenAPI-import processing.

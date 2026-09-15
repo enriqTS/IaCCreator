@@ -1,5 +1,7 @@
 # Backend Generators
 
+MSK emits native broker placement from typed instance, subnet, and security-group fields. Topic connections enable IAM/TLS and add version and placement guards. See [MSK topic connections](backend-msk-connections.md).
+
 DocumentDB exposes optional `engine_version`; IAM client connections require explicit `5.0` and add Terraform version guards. ECS can attach its runtime role for identity-based database login without adding policy statements. See [DocumentDB client connections](backend-documentdb-connections.md).
 
 `app/generators/` renders Terraform/HCL from the IR. Every registered service has a dedicated config model and a generator registered in `GENERATOR_REGISTRY`.

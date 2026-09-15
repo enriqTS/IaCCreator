@@ -1,16 +1,14 @@
 """MSK service generator — produces HCL for aws_msk_cluster resources."""
 
-from app.generators.base import get_typed_config  # noqa: F401
+from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import Expr, HCLRenderer
-from app.models.input_models.msk_config import MskConfig
+from app.models.input_models.msk_config import MSK_IAM_VERSION_PATTERN, MskConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
 def _resolve_config(instance: ResourceInstanceIR) -> MskConfig:
     """Resolve typed MskConfig, falling back to instance.config during migration."""
-    if isinstance(instance.config, MskConfig):
-        return instance.config
-    return instance.config  # type: ignore[return-value]
+    return get_typed_config(instance, MskConfig)
 
 
 class MSKGenerator:
@@ -27,6 +25,39 @@ class MSKGenerator:
             attrs["kafka_version"] = Expr("var.kafka_version")
         if config.number_of_broker_nodes is not None:
             attrs["number_of_broker_nodes"] = Expr("var.number_of_broker_nodes")
+        attrs["broker_node_group_info"] = {
+            "instance_type": Expr("var.broker_instance_type"),
+            "client_subnets": Expr("var.subnet_ids"),
+            "security_groups": Expr("var.security_group_ids"),
+        }
+        if config._iam_client_access:
+            attrs["client_authentication"] = {
+                "sasl": {"iam": True},
+                "unauthenticated": False,
+            }
+            attrs["encryption_info"] = {
+                "encryption_in_transit": {"client_broker": "TLS", "in_cluster": True}
+            }
+            pattern = self._r.render_expression(MSK_IAM_VERSION_PATTERN)
+            message = "MSK IAM clients require Kafka 2.7.1 or newer."
+            attrs["lifecycle"] = {
+                "precondition": [
+                    {
+                        "condition": Expr(f"can(regex({pattern}, var.kafka_version))"),
+                        "error_message": message,
+                    },
+                    {
+                        "condition": Expr(
+                            "contains([2, 3], length(var.subnet_ids)) && length(distinct(var.subnet_ids)) == length(var.subnet_ids) && length(var.security_group_ids) > 0 && var.number_of_broker_nodes > 0 && var.number_of_broker_nodes % max(1, length(var.subnet_ids)) == 0"
+                        ),
+                        "error_message": "MSK requires two or three distinct broker subnets, security groups, and a positive broker count divisible by the subnet count.",
+                    },
+                ],
+                "postcondition": {
+                    "condition": Expr(f"can(regex({pattern}, self.kafka_version))"),
+                    "error_message": message,
+                },
+            }
 
         return self._r.render_resource("aws_msk_cluster", instance.name, attrs)
 
@@ -38,6 +69,16 @@ class MSKGenerator:
                 "cluster_name", "string", "Name of the MSK cluster"
             ),
         ]
+        for name, kind, description in (
+            ("broker_instance_type", "string", "MSK broker instance type"),
+            ("subnet_ids", "list(string)", "Broker subnets"),
+            ("security_group_ids", "list(string)", "Broker security groups"),
+        ):
+            parts.append(
+                self._r.render_variable(
+                    name, kind, description, default=getattr(config, name)
+                )
+            )
         if config.kafka_version is not None:
             parts.append(
                 self._r.render_variable(

@@ -5415,6 +5415,31 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "number_of_broker_nodes",
       "required": false,
       "type": "number"
+    },
+    {
+      "default": "kafka.m5.large",
+      "description": "MSK broker instance type",
+      "group": "General",
+      "label": "Broker instance type",
+      "name": "broker_instance_type",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Broker subnets in distinct availability zones",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "Broker security groups",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
     }
   ],
   "mwaa": [

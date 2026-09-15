@@ -29,6 +29,7 @@ from app.models.connection_configs.efs import (
     EfsEksMountConfig,
 )
 from app.models.connection_configs.memorydb import MemoryDbIamConfig
+from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
 from app.models.connection_configs.opensearch import OpenSearchIndexAccessConfig
 from app.models.connection_configs.replication import S3ReplicationConfig
 from app.models.connection_configs.secrets import (
@@ -103,6 +104,7 @@ from app.services.connection_handlers.load_balancer_listener import (
     LoadBalancerTargetGroupHandler,
 )
 from app.services.connection_handlers.memorydb_access import MemoryDbAccessHandler
+from app.services.connection_handlers.msk_access import MskAccessHandler
 from app.services.connection_handlers.mwaa_secret import MwaaSecretHandler
 from app.services.connection_handlers.neptune_access import NeptuneAccessHandler
 from app.services.connection_handlers.network_placement import (
@@ -169,6 +171,25 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.MSK,
+            connection_type=kind,
+            label=f"{source.value} → MSK topic {label}",
+            config_model=MskTopicReadConfig
+            if access == "read"
+            else MskTopicWriteConfig,
+            handler=MskAccessHandler(access),
+            is_default=access == "read",
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+        for kind, access, label in (
+            ("reads_from", "read", "consumer access"),
+            ("writes_to", "write", "producer access (non-idempotent)"),
+        )
+    ],
     *[
         ConnectionSpec(
             source=source,
