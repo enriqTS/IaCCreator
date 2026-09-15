@@ -29,6 +29,7 @@ from app.models.connection_configs.efs import (
     EfsEksMountConfig,
 )
 from app.models.connection_configs.memorydb import MemoryDbIamConfig
+from app.models.connection_configs.mq import MqClientConfig
 from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
 from app.models.connection_configs.opensearch import OpenSearchIndexAccessConfig
 from app.models.connection_configs.replication import S3ReplicationConfig
@@ -104,6 +105,7 @@ from app.services.connection_handlers.load_balancer_listener import (
     LoadBalancerTargetGroupHandler,
 )
 from app.services.connection_handlers.memorydb_access import MemoryDbAccessHandler
+from app.services.connection_handlers.mq_client import MqClientHandler
 from app.services.connection_handlers.msk_access import MskAccessHandler
 from app.services.connection_handlers.mwaa_secret import MwaaSecretHandler
 from app.services.connection_handlers.neptune_access import NeptuneAccessHandler
@@ -171,6 +173,18 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.MQ,
+            connection_type="connects_to",
+            label=f"{source.value} → ActiveMQ client endpoints",
+            config_model=MqClientConfig,
+            handler=MqClientHandler(),
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+    ],
     *[
         ConnectionSpec(
             source=source,

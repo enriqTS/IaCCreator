@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_mq_client_connections.py` evaluates protocol selection with Terraform, checks policy/credential isolation and Secrets Manager composition, exercises multi-broker aggregation, and validates generated client projects and dependency graphs.
+
 `tests/test_msk_access_connections.py` covers exact-topic/group permissions, invalid names, engine and broker-placement checks, deterministic aggregation, client metadata, and generated Terraform validation/graph checks.
 
 `tests/test_documentdb_access_connections.py` covers runtime role identity, policy preservation, engine rejection, deterministic aggregation, preview prerequisites, and Terraform validation/graph checks for Lambda/ECS DocumentDB clients.

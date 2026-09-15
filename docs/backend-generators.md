@@ -1,5 +1,7 @@
 # Backend Generators
 
+MQ client connections filter every native broker instance's endpoint list by protocol scheme, preserving active/standby endpoints and passing a typed list into the consumer module. See [ActiveMQ client connections](backend-mq-connections.md).
+
 MSK emits native broker placement from typed instance, subnet, and security-group fields. Topic connections enable IAM/TLS and add version and placement guards. See [MSK topic connections](backend-msk-connections.md).
 
 DocumentDB exposes optional `engine_version`; IAM client connections require explicit `5.0` and add Terraform version guards. ECS can attach its runtime role for identity-based database login without adding policy statements. See [DocumentDB client connections](backend-documentdb-connections.md).

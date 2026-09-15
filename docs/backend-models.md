@@ -1,5 +1,7 @@
 # Backend Models
 
+`MqClientConfig` exposes an AMQP-default TLS protocol selector for the current ActiveMQ node. Connections accept no username, password, or messaging-permission selector; see [ActiveMQ client connections](backend-mq-connections.md).
+
 `MskTopicWriteConfig` requires a concrete topic name; `MskTopicReadConfig` additionally requires a consumer group. `MskConfig` exposes broker placement fields. See [MSK topic connections](backend-msk-connections.md) for name constraints and runtime prerequisites.
 
 DocumentDB IAM client connections use the typed empty config; the service's `engine_version` selects the supported cluster version. No database password or IAM permission selector is exposed by this relationship. See [DocumentDB client connections](backend-documentdb-connections.md).
