@@ -297,6 +297,17 @@ def resource_instance_with_populated_fields(draw):
     if service_type == ServiceType.ECS and "assign_public_ip" in config_kwargs:
         config_kwargs.setdefault("subnet_ids", ["subnet-12345678"])
 
+    if service_type == ServiceType.KINESIS_FIREHOSE and {
+        "role_arn",
+        "bucket_arn",
+        "s3_prefix",
+    }.intersection(config_kwargs):
+        config_kwargs.setdefault("bucket_arn", "arn:aws:s3:::firehose-destination")
+        config_kwargs.setdefault(
+            "role_arn", DEPLOYABLE_EXTRAS[service_type]["role_arn"]
+        )
+        config_kwargs.setdefault("destination", "extended_s3")
+
     if (
         service_type == ServiceType.CODEPIPELINE
         and "artifact_kms_key_arn" in config_kwargs
