@@ -3747,6 +3747,38 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "num_cache_nodes",
       "required": false,
       "type": "number"
+    },
+    {
+      "description": "Existing parameter group compatible with the cache engine version",
+      "group": "General",
+      "label": "Parameter group name",
+      "name": "parameter_group_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Optional cache engine version",
+      "group": "General",
+      "label": "Engine version",
+      "name": "engine_version",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Existing cache subnet group",
+      "group": "General",
+      "label": "Subnet group name",
+      "name": "subnet_group_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Cache VPC security groups",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
     }
   ],
   "emr": [

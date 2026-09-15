@@ -78,6 +78,13 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.ELASTICACHE: {
+        "engine": "memcached",
+        "engine_version": "1.6.22",
+        "node_type": "cache.t3.micro",
+        "num_cache_nodes": 2,
+        "parameter_group_name": "default.memcached1.6",
+    },
     ServiceType.MSK: {
         "kafka_version": "3.8.x",
         "number_of_broker_nodes": 2,
@@ -190,8 +197,13 @@ def connection_architecture(spec) -> dict:
                     "name",
                     "db_identifier",
                     "cluster_identifier",
+                    "cluster_id",
                 } or key.endswith("_name"):
                     config[key] = name
+        if service_type == ServiceType.ELASTICACHE:
+            config["parameter_group_name"] = DEPLOYABLE_EXTRAS[service_type][
+                "parameter_group_name"
+            ]
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
             config.pop("bus_name", None)
         if spec.source == ServiceType.EFS and spec.target in {

@@ -1,5 +1,7 @@
 # Backend Services
 
+ElastiCache client bindings export typed native node endpoints, engine, TLS state, and Memcached discovery information without adding IAM grants. See [ElastiCache client connections](backend-elasticache-connections.md).
+
 MQ `connects_to` connections expose protocol-selected ActiveMQ TLS endpoints to Lambda/ECS through typed list inputs. Authentication, broker permissions, and secret delivery remain separate. See [ActiveMQ client connections](backend-mq-connections.md).
 
 MSK topic handlers grant cluster authentication, exact-topic read/write actions, and exact-group consumer actions. IAM bootstrap endpoints and client settings travel through module outputs; see [MSK topic connections](backend-msk-connections.md).

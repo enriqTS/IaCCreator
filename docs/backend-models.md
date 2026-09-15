@@ -1,5 +1,7 @@
 # Backend Models
 
+ElastiCache `connects_to` uses the typed empty connection config. Service fields select a standalone Redis or Memcached cluster and existing parameter/network resources; see [ElastiCache client connections](backend-elasticache-connections.md).
+
 `MqClientConfig` exposes an AMQP-default TLS protocol selector for the current ActiveMQ node. Connections accept no username, password, or messaging-permission selector; see [ActiveMQ client connections](backend-mq-connections.md).
 
 `MskTopicWriteConfig` requires a concrete topic name; `MskTopicReadConfig` additionally requires a consumer group. `MskConfig` exposes broker placement fields. See [MSK topic connections](backend-msk-connections.md) for name constraints and runtime prerequisites.

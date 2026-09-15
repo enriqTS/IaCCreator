@@ -1,5 +1,7 @@
 # Backend Generators
 
+ElastiCache exposes parameter-group, engine-version, and external VPC placement settings. Standalone cache connections add engine/count guards and native endpoint/TLS outputs. See [ElastiCache client connections](backend-elasticache-connections.md).
+
 MQ client connections filter every native broker instance's endpoint list by protocol scheme, preserving active/standby endpoints and passing a typed list into the consumer module. See [ActiveMQ client connections](backend-mq-connections.md).
 
 MSK emits native broker placement from typed instance, subnet, and security-group fields. Topic connections enable IAM/TLS and add version and placement guards. See [MSK topic connections](backend-msk-connections.md).

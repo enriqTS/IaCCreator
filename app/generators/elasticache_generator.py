@@ -28,6 +28,23 @@ class ElastiCacheGenerator:
             attrs["node_type"] = Expr("var.node_type")
         if config.num_cache_nodes is not None:
             attrs["num_cache_nodes"] = Expr("var.num_cache_nodes")
+        if config.parameter_group_name is not None:
+            attrs["parameter_group_name"] = Expr("var.parameter_group_name")
+        if config.engine_version is not None:
+            attrs["engine_version"] = Expr("var.engine_version")
+        if config.subnet_group_name is not None:
+            attrs["subnet_group_name"] = Expr("var.subnet_group_name")
+        if config.security_group_ids:
+            attrs["security_group_ids"] = Expr("var.security_group_ids")
+        if config._client_access:
+            attrs["lifecycle"] = {
+                "precondition": {
+                    "condition": Expr(
+                        'contains(["redis", "memcached"], var.engine) && var.num_cache_nodes >= 1 && var.num_cache_nodes <= 40 && (var.engine != "redis" || var.num_cache_nodes == 1)'
+                    ),
+                    "error_message": "Cache clients require standalone Redis with one node or Memcached with 1–40 nodes.",
+                },
+            }
 
         return self._r.render_resource("aws_elasticache_cluster", instance.name, attrs)
 
@@ -64,6 +81,25 @@ class ElastiCacheGenerator:
                     "number",
                     "Number of cache nodes in the cluster",
                     default=config.num_cache_nodes,
+                )
+            )
+        for name, description in (
+            ("parameter_group_name", "Existing cache parameter group"),
+            ("engine_version", "Cache engine version"),
+            ("subnet_group_name", "Existing cache subnet group"),
+        ):
+            value = getattr(config, name)
+            if value is not None:
+                parts.append(
+                    self._r.render_variable(name, "string", description, default=value)
+                )
+        if config.security_group_ids:
+            parts.append(
+                self._r.render_variable(
+                    "security_group_ids",
+                    "list(string)",
+                    "Cache VPC security groups",
+                    default=config.security_group_ids,
                 )
             )
         return "\n".join(parts)

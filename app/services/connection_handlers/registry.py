@@ -84,6 +84,7 @@ from app.services.connection_handlers.efs_ec2 import EfsEc2MountHandler
 from app.services.connection_handlers.efs_ecs import EfsEcsMountHandler
 from app.services.connection_handlers.efs_eks import EfsEksMountHandler
 from app.services.connection_handlers.efs_lambda import EfsLambdaMountHandler
+from app.services.connection_handlers.elasticache_client import ElastiCacheClientHandler
 from app.services.connection_handlers.environment_secret import EnvironmentSecretHandler
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
@@ -173,6 +174,18 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.ELASTICACHE,
+            connection_type="connects_to",
+            label=f"{source.value} → standalone cache client endpoints",
+            config_model=EmptyConnectionConfig,
+            handler=ElastiCacheClientHandler(),
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+    ],
     *[
         ConnectionSpec(
             source=source,
