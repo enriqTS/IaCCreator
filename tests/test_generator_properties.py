@@ -294,6 +294,9 @@ def resource_instance_with_populated_fields(draw):
             value = draw(_sample_value_for_type(entry.type))
         config_kwargs[field_name] = value
 
+    if service_type == ServiceType.ECS and "assign_public_ip" in config_kwargs:
+        config_kwargs.setdefault("subnet_ids", ["subnet-12345678"])
+
     if (
         service_type == ServiceType.CODEPIPELINE
         and "artifact_kms_key_arn" in config_kwargs
