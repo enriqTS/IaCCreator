@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_documentdb_access_connections.py` covers runtime role identity, policy preservation, engine rejection, deterministic aggregation, preview prerequisites, and Terraform validation/graph checks for Lambda/ECS DocumentDB clients.
+
 ## Commands
 
 From the repository root:

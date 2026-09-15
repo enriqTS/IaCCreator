@@ -13,6 +13,7 @@ class EcsConfig(BaseServiceConfig):
     """ECS-specific configuration — single source of truth."""
 
     _mounts_efs: bool = PrivateAttr(default=False)
+    _requires_task_role: bool = PrivateAttr(default=False)
     subnet_ids: list[str] = TerraformField([], description="Task subnets")
     security_group_ids: list[str] = TerraformField(
         [], description="Task security groups"

@@ -10,7 +10,7 @@ Current phase status:
 - [x] Phase 2 ingress, load balancing, and DNS.
 - [x] Phase 3 encryption and secrets: KMS references, shared service policies, and scoped grants cover the thirteen registered encryption targets and their existing consumers. Lambda/EC2/MWAA reads, ECS/CodeBuild/App Runner/Batch job-definition native injection, and Step Functions GetSecretValue tasks are implemented.
 - [x] Phase 4 storage and backup: S3 relationships, EBS attachments, EFS runtime mounts, and Backup selections are implemented. EKS configures the CSI add-on and exports storage manifests for the user to apply.
-- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, and DMS network placement exist. DocumentDB, ElastiCache, MSK, MQ, and DMS endpoints remain.
+- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, and DMS network placement exist. ElastiCache, MSK, MQ, and DMS endpoints remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
 - [ ] Phase 7 identity, certificates, and edge security.
 - [-] Phase 8 observability, governance, and security administration: Lambda-to-CloudWatch logging exists; the broader phase remains.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 118 Terraform-capable service types, while the connection registry contains 140 connection specifications involving 60 services.
+The generator registry contains 118 Terraform-capable service types, while the connection registry contains 142 connection specifications involving 61 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -241,7 +241,7 @@ Expand IAM and runtime access from execution-role-owning services to:
 
 - [x] RDS: Lambda/ECS IAM login for MySQL, MariaDB, and PostgreSQL with explicit database-user selection and runtime connection metadata.
 - [x] Aurora: Lambda/ECS IAM login for Aurora MySQL/PostgreSQL with cluster-resource-ID scoping. Database users, SQL grants, networking, and cluster instances remain separately managed.
-- DocumentDB
+- [x] DocumentDB: Lambda/ECS IAM client bindings for explicit engine 5.0, native endpoint references, exported runtime identity, ECS task-role attachment, and version guards. Database users and grants, administrator credentials, cluster instances, and networking remain separate prerequisites.
 - [x] Neptune: Lambda/ECS graph read and read/write/delete access, native IAM authentication, resource-ID-scoped grants, runtime endpoints, and guards for engine 1.2.0.0 or newer. Cluster instances and networking remain separate.
 - ElastiCache
 - [x] MemoryDB: Lambda/ECS IAM login with exact cluster/user grants, existing-user authentication and ACL-membership checks, native TLS/engine guards, and runtime connection metadata. Users, ACLs, command/key permissions, and networking remain separately managed.

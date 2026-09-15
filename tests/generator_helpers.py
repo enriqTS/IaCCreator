@@ -167,6 +167,11 @@ def connection_architecture(spec) -> dict:
         config = minimal_config_for(service_type).model_dump(exclude_none=True)
         config.update(DEPLOYABLE_EXTRAS.get(service_type, {}))
         if (
+            service_type == ServiceType.DOCUMENTDB
+            and spec.connection_type == "authenticates_to"
+        ):
+            config["engine_version"] = "5.0"
+        if (
             spec.connection_type == "authenticates_to"
             and service_type == ServiceType.RDS
         ):
@@ -236,6 +241,7 @@ def connection_architecture(spec) -> dict:
                 and spec.connection_type == "authenticates_to"
                 else {"database_user": "app_user"}
                 if spec.connection_type == "authenticates_to"
+                and spec.target in {ServiceType.RDS, ServiceType.AURORA}
                 else {"table_name": "application_data"}
                 if spec.target in {ServiceType.KEYSPACES, ServiceType.TIMESTREAM}
                 and spec.connection_type in {"reads_from", "writes_to"}

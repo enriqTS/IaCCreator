@@ -62,7 +62,7 @@ class ECSGenerator:
             task_attrs.update(secret_task_attributes(instance.name))
         if config._mounts_efs:
             add_efs_task_attributes(task_attrs)
-        if instance.iam_statements:
+        if instance.iam_statements or config._requires_task_role:
             task_attrs["task_role_arn"] = Expr(f"aws_iam_role.{instance.name}_role.arn")
             policies = [f"aws_iam_role_policy.{instance.name}_policy"]
             if config._inject_runtime_secrets:

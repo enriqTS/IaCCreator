@@ -68,6 +68,7 @@ from app.services.connection_handlers.database_access import DatabaseAccessHandl
 from app.services.connection_handlers.datasync_location import DataSyncLocationHandler
 from app.services.connection_handlers.datasync_s3 import DataSyncS3Handler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
+from app.services.connection_handlers.documentdb_access import DocumentDbAccessHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
 from app.services.connection_handlers.ebs_attachment import EbsAttachmentHandler
 from app.services.connection_handlers.ec2_placement import (
@@ -168,6 +169,18 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.DOCUMENTDB,
+            connection_type="authenticates_to",
+            label=f"{source.value} → DocumentDB IAM client configuration",
+            config_model=EmptyConnectionConfig,
+            handler=DocumentDbAccessHandler(),
+            region_policy="cross-region",
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+    ],
     *[
         ConnectionSpec(
             source=source,

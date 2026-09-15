@@ -24,6 +24,20 @@ class DocumentDBGenerator:
         attrs: dict = {"cluster_identifier": Expr("var.cluster_identifier")}
         if config.master_username is not None:
             attrs["master_username"] = Expr("var.master_username")
+        if config.engine_version is not None:
+            attrs["engine_version"] = Expr("var.engine_version")
+        if config._iam_client_access:
+            message = "DocumentDB IAM client connections require engine 5.0."
+            attrs["lifecycle"] = {
+                "precondition": {
+                    "condition": Expr('var.engine_version == "5.0"'),
+                    "error_message": message,
+                },
+                "postcondition": {
+                    "condition": Expr('self.engine_version == "5.0"'),
+                    "error_message": message,
+                },
+            }
 
         return self._r.render_resource("aws_docdb_cluster", instance.name, attrs)
 
@@ -42,6 +56,15 @@ class DocumentDBGenerator:
                     "string",
                     "Master username for the DocumentDB cluster",
                     default=config.master_username,
+                )
+            )
+        if config.engine_version is not None:
+            parts.append(
+                self._r.render_variable(
+                    "engine_version",
+                    "string",
+                    "DocumentDB engine version",
+                    default=config.engine_version,
                 )
             )
         return "\n".join(parts)

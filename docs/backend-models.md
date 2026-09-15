@@ -1,5 +1,7 @@
 # Backend Models
 
+DocumentDB IAM client connections use the typed empty config; the service's `engine_version` selects the supported cluster version. No database password or IAM permission selector is exposed by this relationship. See [DocumentDB client connections](backend-documentdb-connections.md).
+
 `app/models/` contains request models, typed service configuration, the generation IR, persistence models, and API response models.
 
 ## Input models

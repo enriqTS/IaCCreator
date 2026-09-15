@@ -2755,6 +2755,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "master_username",
       "required": false,
       "type": "string"
+    },
+    {
+      "description": "DocumentDB engine version; IAM client connections require explicit version 5.0",
+      "group": "General",
+      "label": "Engine version",
+      "name": "engine_version",
+      "required": false,
+      "type": "string"
     }
   ],
   "dynamodb": [
