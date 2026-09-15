@@ -2,7 +2,7 @@
 
 from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import Expr, HCLRenderer
-from app.models.input_models.dms_config import DmsConfig
+from app.models.input_models.dms_config import DMS_IAM_VERSION_PATTERN, DmsConfig
 from app.models.ir_models import ResourceInstanceIR
 
 
@@ -36,6 +36,21 @@ class DmsGenerator:
         }
         if config.engine_version is not None:
             attrs["engine_version"] = Expr("var.engine_version")
+        if config._iam_endpoints:
+            pattern = self._r.render_expression(DMS_IAM_VERSION_PATTERN)
+            message = (
+                "DMS IAM database endpoints require replication engine 3.6.1 or newer."
+            )
+            attrs["lifecycle"] = {
+                "precondition": {
+                    "condition": Expr(f"can(regex({pattern}, var.engine_version))"),
+                    "error_message": message,
+                },
+                "postcondition": {
+                    "condition": Expr(f"can(regex({pattern}, self.engine_version))"),
+                    "error_message": message,
+                },
+            }
         if config.subnet_ids:
             attrs["replication_subnet_group_id"] = Expr(
                 f"aws_dms_replication_subnet_group.{instance.name}.id"

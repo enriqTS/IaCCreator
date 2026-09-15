@@ -2,12 +2,17 @@
 
 from typing import Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField, ValidationRule
 
+DMS_IAM_VERSION_PATTERN = r"^(([4-9]|[1-9][0-9]+)\.[0-9]+\.[0-9]+|3\.([7-9]|[1-9][0-9]+)\.[0-9]+|3\.6\.[1-9][0-9]*)(\.[0-9]+)*$"
+
 
 class DmsConfig(BaseServiceConfig):
+    _iam_endpoints: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.DATABASE_MIGRATION_SERVICE] = (
         ServiceType.DATABASE_MIGRATION_SERVICE
     )

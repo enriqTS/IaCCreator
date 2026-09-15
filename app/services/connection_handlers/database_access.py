@@ -1,10 +1,9 @@
 """Relational IAM login grants and connection metadata without database credentials."""
 
 from app.exceptions import InvalidConnectionConfigError
-from app.generators.database_auth import IAM_DATABASE_ENGINES
+from app.generators.database_auth import IAM_DATABASE_ENGINES, iam_database_expressions
 from app.models.connection_configs.database import DatabaseIamAuthConfig
 from app.models.connection_previews import ConnectionIssue
-from app.models.input_models import ServiceType
 from app.models.ir_models import (
     ConnectionContribution,
     ConnectionIR,
@@ -45,16 +44,7 @@ class DatabaseAccessHandler(BaseConnectionHandler):
             )
         database.config._iam_database_access = True
         source, target = connection.source_name, connection.target_name
-        is_cluster = database.service_type == ServiceType.AURORA
-        resource = f"{'aws_rds_cluster' if is_cluster else 'aws_db_instance'}.{target}"
-        resource_id = "cluster_resource_id" if is_cluster else "resource_id"
-        arn = f"{resource}.arn"
-        expressions = {
-            "host": f"{resource}.{'endpoint' if is_cluster else 'address'}",
-            "port": f"tostring({resource}.port)",
-            "region": f'split(":", {arn})[3]',
-            "iam_resource_arn": f'format("arn:%s:rds-db:%s:%s:dbuser:%s", split(":", {arn})[1], split(":", {arn})[3], split(":", {arn})[4], {resource}.{resource_id})',
-        }
+        expressions = iam_database_expressions(database.service_type, target)
         result = ConnectionContribution()
         for field, expression in expressions.items():
             output = f"iam_database_{field}"

@@ -179,6 +179,11 @@ def connection_architecture(spec) -> dict:
     ):
         config = minimal_config_for(service_type).model_dump(exclude_none=True)
         config.update(DEPLOYABLE_EXTRAS.get(service_type, {}))
+        if spec.connection_type in {"source_endpoint", "target_endpoint"}:
+            if service_type == ServiceType.DATABASE_MIGRATION_SERVICE:
+                config["engine_version"] = "3.6.1"
+            elif service_type == ServiceType.RDS:
+                config["engine"] = "postgres"
         if (
             service_type == ServiceType.DOCUMENTDB
             and spec.connection_type == "authenticates_to"
@@ -260,6 +265,13 @@ def connection_architecture(spec) -> dict:
                 else {"database_user": "app_user"}
                 if spec.connection_type == "authenticates_to"
                 and spec.target in {ServiceType.RDS, ServiceType.AURORA}
+                else {
+                    "endpoint_id": f"app-{spec.connection_type.replace('_', '-')}",
+                    "database_user": "migration_user",
+                    "database_name": "application",
+                    "certificate_arn": "arn:aws:dms:us-east-1:123456789012:cert:database-ca",
+                }
+                if spec.connection_type in {"source_endpoint", "target_endpoint"}
                 else {"table_name": "application_data"}
                 if spec.target in {ServiceType.KEYSPACES, ServiceType.TIMESTREAM}
                 and spec.connection_type in {"reads_from", "writes_to"}

@@ -1,5 +1,7 @@
 # Backend Models
 
+`DmsIamEndpointConfig` requires an endpoint identifier, existing database user/name, and imported DMS CA certificate ARN. See [DMS relational IAM endpoints](backend-dms-connections.md).
+
 ElastiCache `connects_to` uses the typed empty connection config. Service fields select a standalone Redis or Memcached cluster and existing parameter/network resources; see [ElastiCache client connections](backend-elasticache-connections.md).
 
 `MqClientConfig` exposes an AMQP-default TLS protocol selector for the current ActiveMQ node. Connections accept no username, password, or messaging-permission selector; see [ActiveMQ client connections](backend-mq-connections.md).

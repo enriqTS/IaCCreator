@@ -1,5 +1,7 @@
 # Backend Generators
 
+DMS IAM endpoint connections add dedicated endpoint roles and engine-specific endpoint resources, with database identity references and DMS version guards. See [DMS relational IAM endpoints](backend-dms-connections.md).
+
 ElastiCache exposes parameter-group, engine-version, and external VPC placement settings. Standalone cache connections add engine/count guards and native endpoint/TLS outputs. See [ElastiCache client connections](backend-elasticache-connections.md).
 
 MQ client connections filter every native broker instance's endpoint list by protocol scheme, preserving active/standby endpoints and passing a typed list into the consumer module. See [ActiveMQ client connections](backend-mq-connections.md).

@@ -1,5 +1,7 @@
 # Backend Services
 
+DMS source/target endpoint handlers own endpoint resources in the replication module and consume native RDS/Aurora identities through module inputs. See [DMS relational IAM endpoints](backend-dms-connections.md).
+
 ElastiCache client bindings export typed native node endpoints, engine, TLS state, and Memcached discovery information without adding IAM grants. See [ElastiCache client connections](backend-elasticache-connections.md).
 
 MQ `connects_to` connections expose protocol-selected ActiveMQ TLS endpoints to Lambda/ECS through typed list inputs. Authentication, broker permissions, and secret delivery remain separate. See [ActiveMQ client connections](backend-mq-connections.md).

@@ -23,6 +23,7 @@ from app.models.connection_configs.configs import (
     TargetGroupAttachmentConfig,
 )
 from app.models.connection_configs.database import DatabaseIamAuthConfig
+from app.models.connection_configs.dms import DmsIamEndpointConfig
 from app.models.connection_configs.efs import (
     EfsEc2MountConfig,
     EfsEcsMountConfig,
@@ -69,6 +70,7 @@ from app.services.connection_handlers.codepipeline_s3 import CodePipelineS3Handl
 from app.services.connection_handlers.database_access import DatabaseAccessHandler
 from app.services.connection_handlers.datasync_location import DataSyncLocationHandler
 from app.services.connection_handlers.datasync_s3 import DataSyncS3Handler
+from app.services.connection_handlers.dms_database import DmsDatabaseEndpointHandler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.documentdb_access import DocumentDbAccessHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
@@ -174,6 +176,20 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=ServiceType.DATABASE_MIGRATION_SERVICE,
+            target=target,
+            connection_type=f"{endpoint_type}_endpoint",
+            label=f"DMS → {target.value} IAM {endpoint_type} endpoint",
+            config_model=DmsIamEndpointConfig,
+            handler=DmsDatabaseEndpointHandler(endpoint_type),
+            is_default=endpoint_type == "source",
+            region_policy="cross-region",
+        )
+        for target in (ServiceType.RDS, ServiceType.AURORA)
+        for endpoint_type in ("source", "target")
+    ],
     *[
         ConnectionSpec(
             source=source,

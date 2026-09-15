@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_dms_database_connections.py` covers IAM endpoint engine settings, scoped roles, version guards, identifier conflicts, deterministic aggregation, and Terraform validation/graph checks for all supported relational engines.
+
 `tests/test_elasticache_client_connections.py` checks engine/count validation, native endpoint/TLS projection, external placement preservation, aggregation, and Terraform validation/graph checks for both standalone engines.
 
 `tests/test_mq_client_connections.py` evaluates protocol selection with Terraform, checks policy/credential isolation and Secrets Manager composition, exercises multi-broker aggregation, and validates generated client projects and dependency graphs.
