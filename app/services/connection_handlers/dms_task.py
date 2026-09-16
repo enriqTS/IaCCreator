@@ -17,7 +17,7 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="Creates a stopped full-load task for explicitly selected tables. Target preparation is DO_NOTHING; prepare compatible target schemas and empty tables, verify SQL permissions, deploy and test both endpoint connections before applying the task, then start it separately. CDC, schema conversion, transformations, task logging, and automatic migration execution are not configured. Terraform manages start_replication_task=false; a later apply can stop a task started externally.",
+                message="Creates a stopped full-load task for explicitly selected tables. Target preparation is DO_NOTHING; prepare compatible target schemas and empty tables, verify SQL permissions, deploy and test both endpoint connections before applying the task, then start it separately. Optional schema renaming and table prefixes affect only selected tables; prepare the resulting destination names before loading. Changes to transformations require a task restart rather than resume. CDC, schema conversion, column transformations, task logging, and automatic migration execution are not configured. Terraform manages start_replication_task=false; a later apply can stop a task started externally.",
             )
         ]
 

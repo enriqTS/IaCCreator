@@ -2,7 +2,7 @@
 
 import re
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import ConnectionField
@@ -39,6 +39,33 @@ class DmsReplicationTaskConfig(BaseConnectionConfig):
         description="Explicit table names in the source schema; no wildcards",
         placeholder="customers,orders",
     )
+
+    target_schema: str | None = ConnectionField(
+        None,
+        label="Target schema (optional)",
+        description="Rename the selected source schema in the destination",
+        validation=ValidationRule(pattern=r"^[A-Za-z_][A-Za-z0-9_]{0,62}$"),
+    )
+    target_table_prefix: str | None = ConnectionField(
+        None,
+        label="Target table prefix (optional)",
+        description="Prefix applied to every selected destination table",
+        validation=ValidationRule(pattern=r"^[A-Za-z_][A-Za-z0-9_]{0,61}$"),
+    )
+
+    @field_validator("target_schema", "target_table_prefix", mode="before")
+    @classmethod
+    def normalize_optional_name(cls, value):
+        return None if value == "" else value
+
+    @model_validator(mode="after")
+    def validate_target_names(self):
+        prefix = self.target_table_prefix or ""
+        if any(len(prefix + table) > 63 for table in self.table_names.split(",")):
+            raise ValueError(
+                "Target table names including the prefix must not exceed 63 characters"
+            )
+        return self
 
     @field_validator("task_id", "source_endpoint_id", "target_endpoint_id")
     @classmethod

@@ -102,14 +102,17 @@ def test_invalid_task_config_is_rejected(field, value):
 
 def test_schema_exposes_required_fields_without_execution_or_secret_settings():
     fields = DmsReplicationTaskConfig.get_field_schema()
-    assert {field.key for field in fields} == {
+    assert {field.key for field in fields if field.required} == {
         "task_id",
         "source_endpoint_id",
         "target_endpoint_id",
         "table_schema",
         "table_names",
     }
-    assert all(field.required for field in fields)
+    assert {field.key for field in fields if not field.required} == {
+        "target_schema",
+        "target_table_prefix",
+    }
     config = task_config(architecture())
     for field in ("migration_type", "password", "start_replication_task"):
         with pytest.raises(ValidationError):

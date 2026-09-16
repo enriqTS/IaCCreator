@@ -1,26 +1,14 @@
 """Render stopped full-load tasks referencing managed DMS endpoints."""
 
 from app.generators.dms_identifiers import dms_identifier
+from app.generators.dms_table_mappings import table_mapping_rules
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.connection_configs.dms_task import DmsReplicationTaskConfig
 
 
 def render_replication_task(config: DmsReplicationTaskConfig, instance: str) -> str:
     renderer = HCLRenderer()
-    rules = [
-        {
-            "rule-type": "selection",
-            "rule-id": str(index),
-            "rule-name": str(index),
-            "rule-action": "explicit",
-            "object-locator": {
-                "schema-name": config.table_schema,
-                "table-name": table,
-                "table-type": "table",
-            },
-        }
-        for index, table in enumerate(config.table_names.split(","), start=1)
-    ]
+    rules = table_mapping_rules(config)
     return renderer.render_resource(
         "aws_dms_replication_task",
         dms_identifier("task", config.task_id),
