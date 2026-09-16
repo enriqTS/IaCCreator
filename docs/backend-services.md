@@ -1,6 +1,6 @@
 # Backend Services
 
-DMS endpoint handlers own endpoint resources in the replication module and consume native RDS/Aurora identities through module inputs. `DmsReplicationTaskHandler` resolves managed endpoint selectors and owns stopped full-load tasks in that same module, including optional destination schema and table-prefix transformations. See [DMS relational IAM endpoints](backend-dms-connections.md).
+DMS endpoint handlers own endpoint resources in the replication module and consume native RDS/Aurora identities through module inputs. `DmsReplicationTaskHandler` resolves managed endpoint selectors and owns stopped full-load or MySQL-source CDC tasks in that same module, including optional destination schema and table-prefix transformations. See [DMS relational IAM endpoints](backend-dms-connections.md).
 
 ElastiCache client bindings export typed native node endpoints, engine, TLS state, and Memcached discovery information without adding IAM grants. See [ElastiCache client connections](backend-elasticache-connections.md).
 

@@ -1,13 +1,14 @@
-"""Typed identifiers and explicit table selections for full-load tasks."""
+"""Typed migration modes, start positions, and explicit table selections."""
 
 import re
+from typing import Literal
 
 from pydantic import field_validator, model_validator
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import ConnectionField
 from app.models.connection_configs.dms import DmsIamEndpointConfig
-from app.models.input_models._metadata import ValidationRule
+from app.models.input_models._metadata import OptionEntry, ValidationRule, VisibleWhen
 
 
 class DmsReplicationTaskConfig(BaseConnectionConfig):
@@ -40,6 +41,29 @@ class DmsReplicationTaskConfig(BaseConnectionConfig):
         placeholder="customers,orders",
     )
 
+    migration_type: Literal["full-load", "full-load-and-cdc", "cdc"] = ConnectionField(
+        "full-load",
+        label="Migration mode",
+        type="select",
+        options=[
+            OptionEntry(value="full-load", label="Full load"),
+            OptionEntry(
+                value="full-load-and-cdc", label="Full load and ongoing changes"
+            ),
+            OptionEntry(value="cdc", label="Ongoing changes only"),
+        ],
+    )
+    cdc_start_position: str | None = ConnectionField(
+        None,
+        label="CDC binlog start position",
+        description="Required for CDC-only tasks; coordinate this position with the existing target snapshot",
+        placeholder="mysql-bin-changelog.000024:373",
+        visible_when=VisibleWhen(field="migration_type", equals="cdc"),
+        validation=ValidationRule(
+            pattern=r"^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,249}\.[0-9]+:[0-9]+$"
+        ),
+    )
+
     target_schema: str | None = ConnectionField(
         None,
         label="Target schema (optional)",
@@ -53,10 +77,22 @@ class DmsReplicationTaskConfig(BaseConnectionConfig):
         validation=ValidationRule(pattern=r"^[A-Za-z_][A-Za-z0-9_]{0,61}$"),
     )
 
-    @field_validator("target_schema", "target_table_prefix", mode="before")
+    @field_validator(
+        "target_schema", "target_table_prefix", "cdc_start_position", mode="before"
+    )
     @classmethod
     def normalize_optional_name(cls, value):
         return None if value == "" else value
+
+    @model_validator(mode="after")
+    def validate_cdc_position(self):
+        if self.migration_type == "cdc" and not self.cdc_start_position:
+            raise ValueError("CDC-only tasks require an explicit binlog start position")
+        if self.migration_type != "cdc" and self.cdc_start_position is not None:
+            raise ValueError(
+                "A binlog start position is only supported for CDC-only tasks"
+            )
+        return self
 
     @model_validator(mode="after")
     def validate_target_names(self):

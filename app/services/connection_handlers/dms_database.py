@@ -31,7 +31,7 @@ class DmsDatabaseEndpointHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="Creates an IAM-authenticated DMS endpoint and a dedicated database-login role. Requires DMS 3.6.1 or newer, an existing IAM-enabled database user with migration-specific SQL grants, and a CA certificate imported into DMS in the replication instance's account and Region. Enables native IAM authentication on the database and uses verify-ca TLS. Database provisioning, network access, DMS account roles, test-connection, and CDC prerequisites remain separate. Full-load tasks and table mappings can be added through a replication_task connection. Treat this endpoint as full-load configuration until CDC support is verified for the selected engines. No passwords or secret values are created or read; the deployment identity needs iam:PassRole for the endpoint role.",
+                message="Creates an IAM-authenticated DMS endpoint and a dedicated database-login role. Requires DMS 3.6.1 or newer, an existing IAM-enabled database user with migration-specific SQL grants, and a CA certificate imported into DMS in the replication instance's account and Region. Enables native IAM authentication on the database and uses verify-ca TLS. Database provisioning, network access, DMS account roles, test-connection, and CDC prerequisites remain separate. Tasks and table mappings can be added through a replication_task connection. IAM-authenticated CDC is supported here only with MySQL-compatible sources; PostgreSQL IAM sources remain full-load-only. No passwords or secret values are created or read; the deployment identity needs iam:PassRole for the endpoint role.",
             )
         ]
 

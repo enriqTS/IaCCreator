@@ -112,6 +112,8 @@ def test_schema_exposes_required_fields_without_execution_or_secret_settings():
     assert {field.key for field in fields if not field.required} == {
         "target_schema",
         "target_table_prefix",
+        "migration_type",
+        "cdc_start_position",
     }
     config = task_config(architecture())
     for field in ("migration_type", "password", "start_replication_task"):

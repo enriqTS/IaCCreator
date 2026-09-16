@@ -1,6 +1,6 @@
 # Backend Models
 
-`DmsIamEndpointConfig` requires an endpoint identifier, existing database user/name, and imported DMS CA certificate ARN. `DmsReplicationTaskConfig` requires a task ID, source/target endpoint IDs, source schema, and a comma-separated explicit table list; optional destination schema/prefix fields validate resulting identifier lengths. Normalization and validation remain backend-owned. See [DMS relational IAM endpoints](backend-dms-connections.md).
+`DmsIamEndpointConfig` requires an endpoint identifier, existing database user/name, and imported DMS CA certificate ARN. `DmsReplicationTaskConfig` requires a task ID, source/target endpoint IDs, source schema, and a comma-separated explicit table list; optional destination schema/prefix fields validate resulting identifier lengths. `migration_type` selects full load or CDC; CDC-only mode requires a native binlog position. Normalization and validation remain backend-owned. See [DMS relational IAM endpoints](backend-dms-connections.md).
 
 ElastiCache `connects_to` uses the typed empty connection config. Service fields select a standalone Redis or Memcached cluster and existing parameter/network resources; see [ElastiCache client connections](backend-elasticache-connections.md).
 

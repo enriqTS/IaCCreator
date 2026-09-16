@@ -10,7 +10,7 @@ Current phase status:
 - [x] Phase 2 ingress, load balancing, and DNS.
 - [x] Phase 3 encryption and secrets: KMS references, shared service policies, and scoped grants cover the thirteen registered encryption targets and their existing consumers. Lambda/EC2/MWAA reads, ECS/CodeBuild/App Runner/Batch job-definition native injection, and Step Functions GetSecretValue tasks are implemented.
 - [x] Phase 4 storage and backup: S3 relationships, EBS attachments, EFS runtime mounts, and Backup selections are implemented. EKS configures the CSI add-on and exports storage manifests for the user to apply.
-- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, MSK topic consumers/producers, ActiveMQ and standalone ElastiCache client endpoint bindings, and DMS network placement, RDS/Aurora IAM endpoints, and stopped full-load tasks with explicit table mappings and destination schema/prefix transformations exist. ElastiCache TLS/IAM resource support, additional DMS endpoint authentication/engines, and CDC task support remain.
+- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, MSK topic consumers/producers, ActiveMQ and standalone ElastiCache client endpoint bindings, and DMS network placement, RDS/Aurora IAM endpoints, and stopped full-load and MySQL-source CDC tasks with explicit table mappings and destination schema/prefix transformations exist. ElastiCache TLS/IAM resource support, additional DMS endpoint authentication/engines, and PostgreSQL-source CDC support remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
 - [ ] Phase 7 identity, certificates, and edge security.
 - [-] Phase 8 observability, governance, and security administration: Lambda-to-CloudWatch logging exists; the broader phase remains.
@@ -268,7 +268,7 @@ Add DMS connections for:
 - [x] DMS → Subnet.
 - [x] DMS → Security Group.
 
-See [DMS relational IAM endpoints](backend-dms-connections.md) for version, certificate, SQL grant, and CDC prerequisites. Endpoint and task ARNs are exported. Full-load tasks resolve managed source/target endpoints and map explicitly selected tables with optional destination schema renaming and table prefixes; CDC tasks, filters, and column transformations remain unimplemented.
+See [DMS relational IAM endpoints](backend-dms-connections.md) for version, certificate, SQL grant, and CDC prerequisites. Endpoint and task ARNs are exported. Full-load and MySQL-source CDC tasks resolve managed source/target endpoints and map explicitly selected tables with optional destination schema renaming and table prefixes; PostgreSQL-source CDC, filters, and column transformations remain unimplemented.
 
 Source and target endpoint configurations must be typed and engine-aware. Secrets should be referenced through Secrets Manager rather than embedded where the provider supports it.
 
