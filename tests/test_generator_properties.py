@@ -115,6 +115,8 @@ _SKIP_VAR_REF_FIELDS: dict[ServiceType, set[str]] = {
     # Credential opt-in emits no argument when disabled; database tests cover both states.
     ServiceType.RDS: {"manage_master_user_password"},
     ServiceType.AURORA: {"manage_master_user_password"},
+    # TLS opt-in requires engine/version/VPC settings covered by dedicated tests.
+    ServiceType.ELASTICACHE: {"transit_encryption_enabled"},
     # Paired fields — the generator only emits them when both halves are set
     ServiceType.LAMBDA: {"file_system_arn", "file_system_local_mount_path"},
     ServiceType.DYNAMODB: {"hash_key_type", "range_key_type"},

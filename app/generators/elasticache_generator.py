@@ -1,5 +1,6 @@
 """ElastiCache service generator — produces HCL for aws_elasticache_cluster resources."""
 
+from app.generators.elasticache_tls import tls_preconditions
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.elasticache_config import ElastiCacheConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -36,15 +37,21 @@ class ElastiCacheGenerator:
             attrs["subnet_group_name"] = Expr("var.subnet_group_name")
         if config.security_group_ids:
             attrs["security_group_ids"] = Expr("var.security_group_ids")
+        preconditions = []
         if config._client_access:
-            attrs["lifecycle"] = {
-                "precondition": {
+            preconditions.append(
+                {
                     "condition": Expr(
                         'contains(["redis", "memcached"], var.engine) && var.num_cache_nodes >= 1 && var.num_cache_nodes <= 40 && (var.engine != "redis" || var.num_cache_nodes == 1)'
                     ),
                     "error_message": "Cache clients require standalone Redis with one node or Memcached with 1–40 nodes.",
-                },
-            }
+                }
+            )
+        if config.transit_encryption_enabled:
+            attrs["transit_encryption_enabled"] = Expr("var.transit_encryption_enabled")
+            preconditions.extend(tls_preconditions())
+        if preconditions:
+            attrs["lifecycle"] = {"precondition": preconditions}
 
         return self._r.render_resource("aws_elasticache_cluster", instance.name, attrs)
 
@@ -56,6 +63,15 @@ class ElastiCacheGenerator:
                 "cluster_id", "string", "Identifier for the ElastiCache cluster"
             ),
         ]
+        if config.transit_encryption_enabled:
+            parts.append(
+                self._r.render_variable(
+                    "transit_encryption_enabled",
+                    "bool",
+                    "Enable Memcached TLS at cluster creation",
+                    default=True,
+                )
+            )
         if config.engine is not None:
             parts.append(
                 self._r.render_variable(

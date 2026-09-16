@@ -3765,6 +3765,15 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     },
     {
+      "default": false,
+      "description": "Enable TLS when creating a Memcached cluster; requires engine 1.6.12+, supported VPC nodes, and an existing subnet group",
+      "group": "General",
+      "label": "Transit encryption enabled",
+      "name": "transit_encryption_enabled",
+      "required": false,
+      "type": "bool"
+    },
+    {
       "description": "Existing cache subnet group",
       "group": "General",
       "label": "Subnet group name",

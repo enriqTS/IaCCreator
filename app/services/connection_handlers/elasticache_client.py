@@ -19,7 +19,7 @@ class ElastiCacheClientHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="Exports endpoint metadata for Memcached or standalone Redis. The existing cluster generator does not enable TLS or configure authentication; inspect the exported TLS setting and secure network access separately. No IAM data-access permissions or credentials are created. Memcached clients must distribute keys across nodes or use the configuration endpoint with an Auto Discovery-capable client. Static node lists must be refreshed after scaling. Valkey, Redis replication groups, serverless caches, IAM login, and failover are outside this connection.",
+                message="Exports endpoint metadata for Memcached or standalone Redis. Memcached TLS can be enabled explicitly in the cluster configuration at creation; changing it requires replacement. Configure TLS-capable clients from the exported native TLS setting and secure network access separately. Client authentication is not configured. No IAM data-access permissions or credentials are created. Memcached clients must distribute keys across nodes or use the configuration endpoint with an Auto Discovery-capable client. Static node lists must be refreshed after scaling. Valkey, Redis replication groups, serverless caches, IAM login, and failover are outside this connection.",
             )
         ]
 

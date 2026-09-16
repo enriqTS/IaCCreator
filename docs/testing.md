@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_elasticache_tls.py` checks Memcached TLS prerequisite validation, Terraform-evaluated override guards, legacy disabled output, native client TLS metadata, and Lambda/ECS project validation/graphs.
+
 `tests/test_dms_cdc_tasks.py` covers migration-mode validation, explicit binlog positions, PostgreSQL IAM source rejection, source-engine guards, preview prerequisites, and Terraform validation/graphs with naming transformations.
 
 `tests/test_dms_table_mappings.py` verifies destination identifier limits, unchanged legacy output, explicit selection preservation, deterministic transformation IDs, and Terraform-evaluated mapping JSON and dependency graphs.
