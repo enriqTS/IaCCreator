@@ -10,7 +10,7 @@ Current phase status:
 - [x] Phase 2 ingress, load balancing, and DNS.
 - [x] Phase 3 encryption and secrets: KMS references, shared service policies, and scoped grants cover the thirteen registered encryption targets and their existing consumers. Lambda/EC2/MWAA reads, ECS/CodeBuild/App Runner/Batch job-definition native injection, and Step Functions GetSecretValue tasks are implemented.
 - [x] Phase 4 storage and backup: S3 relationships, EBS attachments, EFS runtime mounts, and Backup selections are implemented. EKS configures the CSI add-on and exports storage manifests for the user to apply.
-- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, MSK topic consumers/producers, ActiveMQ and standalone ElastiCache client endpoint bindings, and DMS network placement plus RDS/Aurora IAM endpoints exist. ElastiCache TLS/IAM resource support, additional DMS endpoint authentication/engines, and replication tasks remain.
+- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, MSK topic consumers/producers, ActiveMQ and standalone ElastiCache client endpoint bindings, and DMS network placement, RDS/Aurora IAM endpoints, and stopped full-load tasks with explicit table mappings exist. ElastiCache TLS/IAM resource support, additional DMS endpoint authentication/engines, and CDC task support remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
 - [ ] Phase 7 identity, certificates, and edge security.
 - [-] Phase 8 observability, governance, and security administration: Lambda-to-CloudWatch logging exists; the broader phase remains.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 118 Terraform-capable service types, while the connection registry contains 154 connection specifications involving 63 services.
+The generator registry contains 118 Terraform-capable service types, while the connection registry contains 156 connection specifications involving 63 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -268,7 +268,7 @@ Add DMS connections for:
 - [x] DMS → Subnet.
 - [x] DMS → Security Group.
 
-See [DMS relational IAM endpoints](backend-dms-connections.md) for version, certificate, SQL grant, and CDC prerequisites. Endpoint ARNs are exported; replication tasks and table mappings remain unimplemented.
+See [DMS relational IAM endpoints](backend-dms-connections.md) for version, certificate, SQL grant, and CDC prerequisites. Endpoint and task ARNs are exported. Full-load tasks resolve managed source/target endpoints and map explicitly selected tables; CDC tasks and advanced mappings remain unimplemented.
 
 Source and target endpoint configurations must be typed and engine-aware. Secrets should be referenced through Secrets Manager rather than embedded where the provider supports it.
 
@@ -276,7 +276,7 @@ Source and target endpoint configurations must be typed and engine-aware. Secret
 
 - Application access grants are resource-scoped.
 - Network placement remains separate from logical data access.
-- A DMS task can reference managed source and target resources through Terraform expressions.
+- [x] A DMS full-load task can reference managed source and target resources through Terraform expressions.
 
 ## Phase 6 — Events, workflows, and APIs
 

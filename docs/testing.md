@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_dms_replication_task_connections.py` checks native endpoint references, explicit mapping normalization, invalid and missing selectors, task ID conflicts, stopped task behavior, previews, and Terraform validation/dependency graphs.
+
 `tests/test_dms_database_connections.py` covers IAM endpoint engine settings, scoped roles, version guards, identifier conflicts, deterministic aggregation, and Terraform validation/graph checks for all supported relational engines.
 
 `tests/test_elasticache_client_connections.py` checks engine/count validation, native endpoint/TLS projection, external placement preservation, aggregation, and Terraform validation/graph checks for both standalone engines.

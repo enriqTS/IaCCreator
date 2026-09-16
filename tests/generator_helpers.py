@@ -171,6 +171,36 @@ DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
 
 def connection_architecture(spec) -> dict:
     """Build the smallest two-resource architecture exercising one connection spec."""
+    if spec.connection_type == "replication_task":
+        from copy import deepcopy
+        from dataclasses import replace
+
+        payload = connection_architecture(
+            replace(spec, connection_type="target_endpoint")
+        )
+        database = deepcopy(payload["resources"][1])
+        database.update(id="origin", name="origin-database")
+        payload["resources"].append(database)
+        source = deepcopy(payload["connections"][0])
+        source.update(
+            target="origin-database",
+            target_id="origin",
+            connection_type="source_endpoint",
+        )
+        source["connection_config"]["endpoint_id"] = "app-source-endpoint"
+        task = deepcopy(payload["connections"][0])
+        task.update(
+            connection_type="replication_task",
+            connection_config={
+                "task_id": "app-full-load",
+                "source_endpoint_id": "app-source-endpoint",
+                "target_endpoint_id": "app-target-endpoint",
+                "table_schema": "public",
+                "table_names": "customers,orders",
+            },
+        )
+        payload["connections"].extend([source, task])
+        return payload
     models = get_service_config_models()
     resources = []
     for name, service_type, rid in (

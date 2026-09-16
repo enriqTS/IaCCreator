@@ -24,6 +24,7 @@ from app.models.connection_configs.configs import (
 )
 from app.models.connection_configs.database import DatabaseIamAuthConfig
 from app.models.connection_configs.dms import DmsIamEndpointConfig
+from app.models.connection_configs.dms_task import DmsReplicationTaskConfig
 from app.models.connection_configs.efs import (
     EfsEc2MountConfig,
     EfsEcsMountConfig,
@@ -71,6 +72,7 @@ from app.services.connection_handlers.database_access import DatabaseAccessHandl
 from app.services.connection_handlers.datasync_location import DataSyncLocationHandler
 from app.services.connection_handlers.datasync_s3 import DataSyncS3Handler
 from app.services.connection_handlers.dms_database import DmsDatabaseEndpointHandler
+from app.services.connection_handlers.dms_task import DmsReplicationTaskHandler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.documentdb_access import DocumentDbAccessHandler
 from app.services.connection_handlers.dynamodb_lambda import DynamoDBLambdaHandler
@@ -176,6 +178,19 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=ServiceType.DATABASE_MIGRATION_SERVICE,
+            target=target,
+            connection_type="replication_task",
+            label=f"DMS → {target.value} full-load task",
+            config_model=DmsReplicationTaskConfig,
+            handler=DmsReplicationTaskHandler(),
+            is_default=False,
+            region_policy="cross-region",
+        )
+        for target in (ServiceType.RDS, ServiceType.AURORA)
+    ],
     *[
         ConnectionSpec(
             source=ServiceType.DATABASE_MIGRATION_SERVICE,

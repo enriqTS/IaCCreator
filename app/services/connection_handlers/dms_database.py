@@ -1,12 +1,12 @@
 """DMS owns relational IAM endpoint resources while databases export native identities."""
 
-import hashlib
 import re
 from typing import Literal
 
 from app.exceptions import InvalidConnectionConfigError
 from app.generators.database_auth import IAM_DATABASE_ENGINES, iam_database_expressions
 from app.generators.dms_iam_endpoint import render_iam_endpoint
+from app.generators.dms_identifiers import dms_identifier
 from app.models.connection_configs.dms import DmsIamEndpointConfig
 from app.models.connection_previews import ConnectionIssue
 from app.models.input_models import ServiceType
@@ -31,7 +31,7 @@ class DmsDatabaseEndpointHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="Creates an IAM-authenticated DMS endpoint and a dedicated database-login role. Requires DMS 3.6.1 or newer, an existing IAM-enabled database user with migration-specific SQL grants, and a CA certificate imported into DMS in the replication instance's account and Region. Enables native IAM authentication on the database and uses verify-ca TLS. Database provisioning, network access, DMS account roles, test-connection, replication tasks, table mappings, and CDC prerequisites remain separate. Treat this endpoint as full-load configuration until CDC support is verified for the selected engines. No passwords or secret values are created or read; the deployment identity needs iam:PassRole for the endpoint role.",
+                message="Creates an IAM-authenticated DMS endpoint and a dedicated database-login role. Requires DMS 3.6.1 or newer, an existing IAM-enabled database user with migration-specific SQL grants, and a CA certificate imported into DMS in the replication instance's account and Region. Enables native IAM authentication on the database and uses verify-ca TLS. Database provisioning, network access, DMS account roles, test-connection, and CDC prerequisites remain separate. Full-load tasks and table mappings can be added through a replication_task connection. Treat this endpoint as full-load configuration until CDC support is verified for the selected engines. No passwords or secret values are created or read; the deployment identity needs iam:PassRole for the endpoint role.",
             )
         ]
 
@@ -78,9 +78,7 @@ class DmsDatabaseEndpointHandler(BaseConnectionHandler):
         database.config._iam_database_access = True
         instance.config._iam_endpoints = True
         source, target = connection.source_name, connection.target_name
-        identifier = (
-            "endpoint_" + hashlib.sha256(config.endpoint_id.encode()).hexdigest()[:16]
-        )
+        identifier = dms_identifier("endpoint", config.endpoint_id)
         resource = f"{'aws_rds_cluster' if database.service_type == ServiceType.AURORA else 'aws_db_instance'}.{target}"
         expressions = iam_database_expressions(database.service_type, target)
         expressions["engine"] = f"{resource}.engine"

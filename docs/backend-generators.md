@@ -1,6 +1,6 @@
 # Backend Generators
 
-DMS IAM endpoint connections add dedicated endpoint roles and engine-specific endpoint resources, with database identity references and DMS version guards. See [DMS relational IAM endpoints](backend-dms-connections.md).
+DMS IAM endpoint connections add dedicated endpoint roles and engine-specific endpoint resources, with database identity references and DMS version guards. Full-load task rendering references those endpoints and emits explicit table mappings, stopped execution, and DO_NOTHING table preparation. See [DMS relational IAM endpoints](backend-dms-connections.md).
 
 ElastiCache exposes parameter-group, engine-version, and external VPC placement settings. Standalone cache connections add engine/count guards and native endpoint/TLS outputs. See [ElastiCache client connections](backend-elasticache-connections.md).
 
