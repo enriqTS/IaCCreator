@@ -1,10 +1,10 @@
 # Backend Services
 
-`DmsSecretEndpointHandler` references externally prepared secrets/roles, shares identifier conflict checks with IAM endpoints, and composes with existing task endpoint resolution. RDS SQL Server Enterprise/Standard support full-load sources and migration targets; source CDC and IAM login remain unsupported by these connections.
+`DmsSecretEndpointHandler` references externally prepared secrets/roles, shares identifier conflict checks with IAM endpoints, and composes with existing task endpoint resolution. RDS SQL Server Enterprise/Standard support full-load/CDC sources and migration targets; IAM login remains unsupported by these connections. SQL Server CDC requires explicit DMS 3.5.3+ with native-version guards.
 
 ElastiCache Serverless supports Lambda/ECS IAM login and Subnet/Security Group placement. Grants reference the exact native cache and selected external user; client metadata includes TLS and token-signing context. See [serverless IAM clients](backend-elasticache-serverless.md).
 
-DMS endpoint handlers own endpoint resources in the replication module and consume native RDS/Aurora identities through module inputs. `DmsReplicationTaskHandler` resolves managed endpoint selectors and owns stopped full-load or MySQL/PostgreSQL-source CDC tasks in that same module, including optional destination schema and table-prefix transformations. See [DMS relational endpoints](backend-dms-connections.md).
+DMS endpoint handlers own endpoint resources in the replication module and consume native RDS/Aurora identities through module inputs. `DmsReplicationTaskHandler` resolves managed endpoint selectors and owns stopped full-load or MySQL/PostgreSQL/SQL Server-source CDC tasks in that same module, including optional destination schema and table-prefix transformations. See [DMS relational endpoints](backend-dms-connections.md).
 
 ElastiCache client bindings export typed native node endpoints, engine, TLS state, and Memcached discovery information without adding IAM grants. Preview guidance covers opt-in Memcached TLS and cluster replacement constraints. See [ElastiCache client connections](backend-elasticache-connections.md).
 

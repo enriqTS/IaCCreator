@@ -1,18 +1,17 @@
 """Validate source-specific CDC positions and exclusive named slot use."""
 
 import re
+from typing import NoReturn
 
 from app.exceptions import InvalidConnectionConfigError
-from app.models.connection_configs.dms_positions import (
-    MYSQL_POSITION_PATTERN,
-    POSTGRES_POSITION_PATTERN,
+from app.models.connection_configs.dms_cdc import (
+    CDC_SOURCE_POLICIES,
+    POSTGRES_CDC,
+    DmsCdcPolicy,
 )
 from app.models.connection_configs.dms_task import DmsReplicationTaskConfig
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionIR, ProjectIR
-
-MYSQL_ENGINES = ("mysql", "mariadb", "aurora-mysql")
-POSTGRES_ENGINES = ("postgres", "aurora-postgresql")
 
 
 def validate_cdc_source(
@@ -21,15 +20,36 @@ def validate_cdc_source(
     config: DmsReplicationTaskConfig,
     engine: str,
     project: ProjectIR,
-) -> tuple[str, ...]:
+    replication_version: str | None,
+) -> DmsCdcPolicy | None:
     if config.migration_type == "full-load":
-        return ()
-    if engine in POSTGRES_ENGINES:
-        if source.connection_type != "source_secret_endpoint":
-            _reject(
-                connection,
-                "PostgreSQL IAM replication is unsupported; use a Secrets Manager source endpoint",
-            )
+        return None
+    policy = CDC_SOURCE_POLICIES.get(engine)
+    if policy is None:
+        _reject(
+            connection,
+            "CDC sources must use supported MySQL, PostgreSQL, or SQL Server engines",
+        )
+    if policy.requires_secret and source.connection_type != "source_secret_endpoint":
+        _reject(
+            connection,
+            f"{policy.label} IAM replication is unsupported; use a Secrets Manager source endpoint",
+        )
+    if policy.version_pattern and (
+        replication_version is None
+        or not re.fullmatch(policy.version_pattern, replication_version)
+    ):
+        _reject(
+            connection,
+            f"Select DMS replication engine {policy.minimum_version} or newer for {policy.label} CDC",
+        )
+    if config.cdc_start_position and not re.fullmatch(
+        policy.position_pattern, config.cdc_start_position
+    ):
+        _reject(
+            connection, f"{policy.label} CDC requires {policy.position_description}"
+        )
+    if policy is POSTGRES_CDC:
         if (
             config.migration_type == "full-load-and-cdc"
             and source.connection_config.get("postgres_slot_name")
@@ -45,24 +65,8 @@ def validate_cdc_source(
                 connection,
                 "PostgreSQL CDC-only tasks require an existing logical replication slot on the source endpoint",
             )
-        if config.cdc_start_position and not re.fullmatch(
-            POSTGRES_POSITION_PATTERN, config.cdc_start_position
-        ):
-            _reject(
-                connection,
-                "PostgreSQL CDC requires a native WAL LSN such as 4AF/B00000D0",
-            )
         _validate_slot_consumers(connection, source, project)
-        return POSTGRES_ENGINES
-    if engine not in MYSQL_ENGINES:
-        _reject(
-            connection, "CDC sources must use supported MySQL or PostgreSQL engines"
-        )
-    if config.cdc_start_position and not re.fullmatch(
-        MYSQL_POSITION_PATTERN, config.cdc_start_position
-    ):
-        _reject(connection, "MySQL CDC requires a native binlog filename and position")
-    return MYSQL_ENGINES
+    return policy
 
 
 def _validate_slot_consumers(
@@ -100,7 +104,7 @@ def _validate_slot_consumers(
             )
 
 
-def _reject(connection: ConnectionIR, message: str) -> None:
+def _reject(connection: ConnectionIR, message: str) -> NoReturn:
     raise InvalidConnectionConfigError(
         connection.source_name,
         connection.target_name,

@@ -4,7 +4,7 @@ DMS Secrets Manager endpoints render secret/access-role references and TLS check
 
 ElastiCache Serverless has a separate Valkey/Redis generator with native TLS, external user-group attachment, placement inputs, and IAM version guards. See [serverless IAM clients](backend-elasticache-serverless.md).
 
-DMS IAM endpoint connections add dedicated endpoint roles and engine-specific endpoint resources, with database identity references and DMS version guards. Full-load and MySQL/PostgreSQL-source CDC task rendering references those endpoints and emits explicit table mappings with optional schema renaming and table prefixes, stopped execution, and DO_NOTHING table preparation. See [DMS relational endpoints](backend-dms-connections.md).
+DMS IAM endpoint connections add dedicated endpoint roles and engine-specific endpoint resources, with database identity references and DMS version guards. Full-load and MySQL/PostgreSQL/SQL Server-source CDC task rendering references those endpoints and emits explicit table mappings with optional schema renaming and table prefixes, stopped execution, and DO_NOTHING table preparation. See [DMS relational endpoints](backend-dms-connections.md).
 
 ElastiCache exposes parameter-group, engine-version, and external VPC placement settings. Standalone cache connections add engine/count guards and native endpoint/TLS outputs. Memcached supports opt-in TLS with version, VPC, and node-family guards. See [ElastiCache client connections](backend-elasticache-connections.md).
 

@@ -88,17 +88,6 @@ def sqlserver_migration(engine, source):
     return payload
 
 
-@pytest.mark.parametrize("engine", EDITIONS)
-@pytest.mark.parametrize("mode", ["cdc", "full-load-and-cdc"])
-def test_sqlserver_source_cdc_remains_rejected(engine, mode):
-    payload = sqlserver_migration(engine, True)
-    task_config(payload)["migration_type"] = mode
-    if mode == "cdc":
-        task_config(payload)["cdc_start_position"] = "mysql-bin.000001:4"
-    with pytest.raises(InvalidConnectionConfigError, match="CDC sources must use"):
-        generate(payload)
-
-
 def sqlserver_cdc_target(engine, postgres):
     payload = (
         postgres_architecture() if postgres else migration_payload(True, True, cdc=True)

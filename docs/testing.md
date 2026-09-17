@@ -1,6 +1,8 @@
 # Testing
 
-`tests/test_dms_sqlserver_connections.py` verifies SQL Server edition/TLS mapping, credential exclusion, IAM/source-CDC rejection, full-load source/target tasks, and Terraform validation/graphs for supported CDC sources targeting SQL Server.
+`tests/test_dms_sqlserver_cdc.py` covers native LSN bounds, cross-engine rejection, DMS version guards (including Terraform evaluation), stopped CDC modes, external prerequisites, and Terraform validation/graphs.
+
+`tests/test_dms_sqlserver_connections.py` verifies SQL Server edition/TLS mapping, credential exclusion, IAM rejection, full-load source/target tasks, and Terraform validation/graphs for supported CDC sources targeting SQL Server.
 
 `tests/test_dms_postgres_cdc.py` covers WAL position formats, source-only slot/plugin fields, named slot ownership, native engine guards, and Terraform validation/graphs for PostgreSQL CDC modes.
 

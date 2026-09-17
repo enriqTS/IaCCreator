@@ -11,6 +11,7 @@ from app.models.connection_configs.dms import DmsEndpointConfig
 from app.models.connection_configs.dms_positions import (
     MYSQL_POSITION_PATTERN,
     POSTGRES_POSITION_PATTERN,
+    SQLSERVER_POSITION_PATTERN,
 )
 from app.models.input_models._metadata import OptionEntry, ValidationRule, VisibleWhen
 
@@ -60,11 +61,11 @@ class DmsReplicationTaskConfig(BaseConnectionConfig):
     cdc_start_position: str | None = ConnectionField(
         None,
         label="CDC native start position",
-        description="Required for CDC-only tasks; use a MySQL binlog position or PostgreSQL LSN matching the existing target snapshot",
+        description="Required for CDC-only tasks; use the source engine's binlog position or PostgreSQL/SQL Server LSN matching the existing target snapshot",
         placeholder="mysql-bin-changelog.000024:373",
         visible_when=VisibleWhen(field="migration_type", equals="cdc"),
         validation=ValidationRule(
-            pattern=rf"^(?:{MYSQL_POSITION_PATTERN}|{POSTGRES_POSITION_PATTERN})$"
+            pattern=rf"^(?:{MYSQL_POSITION_PATTERN}|{POSTGRES_POSITION_PATTERN}|{SQLSERVER_POSITION_PATTERN})$"
         ),
     )
 

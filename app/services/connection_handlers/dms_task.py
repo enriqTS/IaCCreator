@@ -18,7 +18,7 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="Creates a stopped migration task for explicitly selected tables. Full-load modes use DO_NOTHING target preparation and need compatible target schemas and empty tables. Verify SQL permissions, deploy and test both endpoint connections before applying the task, then start it separately. Optional schema renaming and table prefixes affect only selected tables; prepare the resulting destination names before loading. Changes to transformations require a task restart rather than resume. For MySQL CDC, configure ROW binlogging with FULL row images, sufficient log retention/backups, and replication SQL grants on the source. CDC-only targets must already contain data consistent with the chosen binlog position. PostgreSQL CDC requires a Secrets Manager source, logical replication, sufficient WAL retention/slots/senders, and replication SQL grants. For PostgreSQL sources, CDC-only targets must match the selected LSN and inactive slot; select the slot plugin explicitly. Verify primary keys or replica identity and DDL capture prerequisites. Schema conversion, column transformations, task logging, and automatic migration execution are not configured. Terraform manages start_replication_task=false; a later apply can stop a task started externally.",
+                message="Creates a stopped migration task for explicitly selected tables. Full-load modes use DO_NOTHING target preparation and need compatible target schemas and empty tables. Verify SQL permissions, deploy and test both endpoint connections before applying the task, then start it separately. Optional schema renaming and table prefixes affect only selected tables; prepare the resulting destination names before loading. Changes to transformations require a task restart rather than resume. For MySQL CDC, configure ROW binlogging with FULL row images, sufficient log retention/backups, and replication SQL grants on the source. CDC-only targets must already contain data consistent with the chosen binlog position. PostgreSQL CDC requires a Secrets Manager source, logical replication, sufficient WAL retention/slots/senders, and replication SQL grants. For PostgreSQL sources, CDC-only targets must match the selected LSN and inactive slot; select the slot plugin explicitly. Verify primary keys or replica identity and DDL capture prerequisites. SQL Server CDC requires DMS 3.5.3 or newer, MS-CDC enabled on the RDS database and every selected table, transaction-log retention and backup access, and replication SQL grants. CDC-only targets must match the selected SQL Server LSN. Schema conversion, column transformations, task logging, and automatic migration execution are not configured. Terraform manages start_replication_task=false; a later apply can stop a task started externally.",
             )
         ]
 
@@ -48,8 +48,14 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
             endpoints.append(matches[0])
         source, target = endpoints
         database = self._find_instance(source.target_name, project)
-        cdc_engines = validate_cdc_source(
-            connection, source, config, database.config.engine, project
+        instance = self._find_instance(connection.source_name, project)
+        cdc_policy = validate_cdc_source(
+            connection,
+            source,
+            config,
+            database.config.engine,
+            project,
+            instance.config.engine_version,
         )
         if target.target_name != connection.target_name:
             self._reject(
@@ -89,7 +95,7 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
                     owner,
                     f"{identifier}.tf",
                     render_replication_task(
-                        config, owner, source.target_name, cdc_engines
+                        config, owner, source.target_name, cdc_policy
                     ),
                 )
             ],
