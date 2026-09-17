@@ -27,6 +27,7 @@ from app.models.connection_configs.dms import (
     DmsIamEndpointConfig,
     DmsSecretEndpointConfig,
 )
+from app.models.connection_configs.dms_source import DmsSecretSourceEndpointConfig
 from app.models.connection_configs.dms_task import DmsReplicationTaskConfig
 from app.models.connection_configs.efs import (
     EfsEc2MountConfig,
@@ -232,7 +233,9 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             target=target,
             connection_type=f"{endpoint_type}_secret_endpoint",
             label=f"DMS → {target.value} Secrets Manager {endpoint_type} endpoint",
-            config_model=DmsSecretEndpointConfig,
+            config_model=DmsSecretSourceEndpointConfig
+            if endpoint_type == "source"
+            else DmsSecretEndpointConfig,
             handler=DmsSecretEndpointHandler(endpoint_type),
             is_default=False,
             region_policy="cross-region",

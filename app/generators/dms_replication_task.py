@@ -7,7 +7,10 @@ from app.models.connection_configs.dms_task import DmsReplicationTaskConfig
 
 
 def render_replication_task(
-    config: DmsReplicationTaskConfig, instance: str, source_database: str
+    config: DmsReplicationTaskConfig,
+    instance: str,
+    source_database: str,
+    cdc_engines: tuple[str, ...],
 ) -> str:
     renderer = HCLRenderer()
     rules = table_mapping_rules(config)
@@ -33,12 +36,15 @@ def render_replication_task(
     if config.cdc_start_position is not None:
         attrs["cdc_start_position"] = config.cdc_start_position
     if config.migration_type != "full-load":
+        engines = ", ".join(
+            renderer.render_expression(engine) for engine in cdc_engines
+        )
         attrs["lifecycle"] = {
             "precondition": {
                 "condition": Expr(
-                    f'contains(["mysql", "mariadb", "aurora-mysql"], var.dms_database_{source_database}_engine)'
+                    f"contains([{engines}], var.dms_database_{source_database}_engine)"
                 ),
-                "error_message": "CDC sources must use MySQL, MariaDB, or Aurora MySQL.",
+                "error_message": "CDC source engine overrides must match the selected native start-position format and authentication method.",
             }
         }
     return renderer.render_resource(

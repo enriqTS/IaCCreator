@@ -7,7 +7,11 @@ from pydantic import field_validator, model_validator
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import ConnectionField
-from app.models.connection_configs.dms import DmsIamEndpointConfig
+from app.models.connection_configs.dms import DmsEndpointConfig
+from app.models.connection_configs.dms_positions import (
+    MYSQL_POSITION_PATTERN,
+    POSTGRES_POSITION_PATTERN,
+)
 from app.models.input_models._metadata import OptionEntry, ValidationRule, VisibleWhen
 
 
@@ -55,12 +59,12 @@ class DmsReplicationTaskConfig(BaseConnectionConfig):
     )
     cdc_start_position: str | None = ConnectionField(
         None,
-        label="CDC binlog start position",
-        description="Required for CDC-only tasks; coordinate this position with the existing target snapshot",
+        label="CDC native start position",
+        description="Required for CDC-only tasks; use a MySQL binlog position or PostgreSQL LSN matching the existing target snapshot",
         placeholder="mysql-bin-changelog.000024:373",
         visible_when=VisibleWhen(field="migration_type", equals="cdc"),
         validation=ValidationRule(
-            pattern=r"^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,249}\.[0-9]+:[0-9]+$"
+            pattern=rf"^(?:{MYSQL_POSITION_PATTERN}|{POSTGRES_POSITION_PATTERN})$"
         ),
     )
 
@@ -87,10 +91,10 @@ class DmsReplicationTaskConfig(BaseConnectionConfig):
     @model_validator(mode="after")
     def validate_cdc_position(self):
         if self.migration_type == "cdc" and not self.cdc_start_position:
-            raise ValueError("CDC-only tasks require an explicit binlog start position")
+            raise ValueError("CDC-only tasks require an explicit native start position")
         if self.migration_type != "cdc" and self.cdc_start_position is not None:
             raise ValueError(
-                "A binlog start position is only supported for CDC-only tasks"
+                "A native start position is only supported for CDC-only tasks"
             )
         return self
 
@@ -106,7 +110,7 @@ class DmsReplicationTaskConfig(BaseConnectionConfig):
     @field_validator("task_id", "source_endpoint_id", "target_endpoint_id")
     @classmethod
     def normalize_identifier(cls, value: str) -> str:
-        return DmsIamEndpointConfig.normalize_endpoint_id(value)
+        return DmsEndpointConfig.normalize_endpoint_id(value)
 
     @field_validator("table_names")
     @classmethod

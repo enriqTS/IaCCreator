@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_dms_postgres_cdc.py` covers WAL position formats, source-only slot/plugin fields, named slot ownership, native engine guards, and Terraform validation/graphs for PostgreSQL CDC modes.
+
 `tests/test_dms_secret_connections.py` covers secret ARN validation, credential exclusion, cross-authentication identifier conflicts, mixed-authentication full-load/CDC tasks, and Terraform validation/dependency graphs.
 
 `tests/test_elasticache_serverless_connections.py` checks exact IAM grants, external-group requirements, user validation, native endpoint types, ARN identity, deterministic aggregation, and Terraform validation/graphs for both engines and consumers.

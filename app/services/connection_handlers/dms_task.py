@@ -8,6 +8,7 @@ from app.models.connection_previews import ConnectionIssue
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.dms_cdc import validate_cdc_source
 
 
 class DmsReplicationTaskHandler(BaseConnectionHandler):
@@ -17,7 +18,7 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="Creates a stopped migration task for explicitly selected tables. Full-load modes use DO_NOTHING target preparation and need compatible target schemas and empty tables. Verify SQL permissions, deploy and test both endpoint connections before applying the task, then start it separately. Optional schema renaming and table prefixes affect only selected tables; prepare the resulting destination names before loading. Changes to transformations require a task restart rather than resume. For CDC, configure ROW binlogging with FULL row images, sufficient log retention/backups, and replication SQL grants on the source. CDC-only targets must already contain data consistent with the chosen binlog position. PostgreSQL sources currently only support full load. Schema conversion, column transformations, task logging, and automatic migration execution are not configured. Terraform manages start_replication_task=false; a later apply can stop a task started externally.",
+                message="Creates a stopped migration task for explicitly selected tables. Full-load modes use DO_NOTHING target preparation and need compatible target schemas and empty tables. Verify SQL permissions, deploy and test both endpoint connections before applying the task, then start it separately. Optional schema renaming and table prefixes affect only selected tables; prepare the resulting destination names before loading. Changes to transformations require a task restart rather than resume. For MySQL CDC, configure ROW binlogging with FULL row images, sufficient log retention/backups, and replication SQL grants on the source. CDC-only targets must already contain data consistent with the chosen binlog position. PostgreSQL CDC requires a Secrets Manager source, logical replication, sufficient WAL retention/slots/senders, and replication SQL grants. For PostgreSQL sources, CDC-only targets must match the selected LSN and inactive slot; select the slot plugin explicitly. Verify primary keys or replica identity and DDL capture prerequisites. Schema conversion, column transformations, task logging, and automatic migration execution are not configured. Terraform manages start_replication_task=false; a later apply can stop a task started externally.",
             )
         ]
 
@@ -46,13 +47,10 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
                 )
             endpoints.append(matches[0])
         source, target = endpoints
-        if config.migration_type != "full-load":
-            database = self._find_instance(source.target_name, project)
-            if database.config.engine not in {"mysql", "mariadb", "aurora-mysql"}:
-                self._reject(
-                    connection,
-                    "CDC sources must use MySQL, MariaDB, or Aurora MySQL; PostgreSQL IAM replication is unsupported and PostgreSQL secret CDC is not implemented",
-                )
+        database = self._find_instance(source.target_name, project)
+        cdc_engines = validate_cdc_source(
+            connection, source, config, database.config.engine, project
+        )
         if target.target_name != connection.target_name:
             self._reject(
                 connection,
@@ -90,7 +88,9 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
                 self._resource(
                     owner,
                     f"{identifier}.tf",
-                    render_replication_task(config, owner, source.target_name),
+                    render_replication_task(
+                        config, owner, source.target_name, cdc_engines
+                    ),
                 )
             ],
             outputs=[
