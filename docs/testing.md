@@ -1,8 +1,10 @@
 # Testing
 
+`tests/test_dms_oracle_binary_reader.py` covers typed reader options, engine/direction restrictions, required PDB reader selection, Oracle CDC identifier boundaries, property-based SCN preservation, and Terraform validation/graphs for all four Oracle editions in both CDC modes.
+
 `tests/test_dms_oracle_cdc.py` covers non-CDB LogMiner CDC, property-based SCN preservation, source guards, cross-engine position rejection, preview prerequisites, and Terraform validation/graphs for both CDC modes.
 
-`tests/test_dms_oracle_connections.py` covers edition/CDB mapping, wallet references and preview guidance, IAM/CDB-source-CDC rejection, case-preserving selections, and Terraform validation/graphs for Oracle full-load sources and migration targets.
+`tests/test_dms_oracle_connections.py` covers edition/CDB mapping, wallet references and preview guidance, IAM/missing-CDB-reader rejection, case-preserving selections, and Terraform validation/graphs for Oracle full-load sources and migration targets.
 
 `tests/test_dms_sqlserver_cdc.py` covers native LSN bounds, cross-engine rejection, DMS version guards (including Terraform evaluation), stopped CDC modes, external prerequisites, and Terraform validation/graphs.
 

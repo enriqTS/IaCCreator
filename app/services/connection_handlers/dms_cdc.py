@@ -24,16 +24,27 @@ def validate_cdc_source(
 ) -> DmsCdcPolicy | None:
     if config.migration_type == "full-load":
         return None
-    if engine in ("oracle-ee-cdb", "oracle-se2-cdb"):
-        _reject(
-            connection,
-            "Oracle CDB/PDB CDC requires Binary Reader, which is not implemented",
-        )
     policy = CDC_SOURCE_POLICIES.get(engine)
     if policy is None:
         _reject(
             connection,
-            "CDC sources must use supported MySQL, PostgreSQL, SQL Server, or non-CDB Oracle engines",
+            "CDC sources must use supported MySQL, PostgreSQL, SQL Server, or Oracle engines",
+        )
+    if (
+        policy.required_reader
+        and source.connection_config.get("oracle_cdc_reader") != policy.required_reader
+    ):
+        _reject(
+            connection,
+            "Oracle CDB/PDB CDC requires Binary Reader on the source endpoint",
+        )
+    if policy.max_source_identifier_length and any(
+        len(name) > policy.max_source_identifier_length
+        for name in (config.table_schema, *config.table_names.split(","))
+    ):
+        _reject(
+            connection,
+            f"{policy.label} CDC source schema and table identifiers must not exceed {policy.max_source_identifier_length} bytes",
         )
     if policy.requires_secret and source.connection_type != "source_secret_endpoint":
         _reject(

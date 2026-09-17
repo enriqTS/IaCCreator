@@ -17,6 +17,8 @@ class DmsCdcPolicy:
     position_pattern: str
     position_description: str
     requires_secret: bool = False
+    required_reader: str | None = None
+    max_source_identifier_length: int | None = None
     minimum_version: str | None = None
     version_pattern: str | None = None
 
@@ -49,9 +51,19 @@ ORACLE_CDC = DmsCdcPolicy(
     ORACLE_POSITION_PATTERN,
     "a native Oracle SCN expressed as a positive decimal integer",
     requires_secret=True,
+    max_source_identifier_length=30,
+)
+ORACLE_PDB_CDC = DmsCdcPolicy(
+    ("oracle-ee-cdb", "oracle-se2-cdb"),
+    "Oracle CDB/PDB",
+    ORACLE_POSITION_PATTERN,
+    "a native Oracle SCN expressed as a positive decimal integer",
+    requires_secret=True,
+    required_reader="binary-reader",
+    max_source_identifier_length=30,
 )
 CDC_SOURCE_POLICIES = {
     engine: policy
-    for policy in (MYSQL_CDC, POSTGRES_CDC, SQLSERVER_CDC, ORACLE_CDC)
+    for policy in (MYSQL_CDC, POSTGRES_CDC, SQLSERVER_CDC, ORACLE_CDC, ORACLE_PDB_CDC)
     for engine in policy.engines
 }

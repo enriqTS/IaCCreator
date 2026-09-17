@@ -1,4 +1,4 @@
-"""PostgreSQL source settings select externally prepared logical replication slots."""
+"""Source settings select database-specific CDC readers and replication slots."""
 
 from typing import Literal
 
@@ -10,6 +10,18 @@ from app.models.input_models._metadata import OptionEntry, ValidationRule
 
 
 class DmsSecretSourceEndpointConfig(DmsSecretEndpointConfig):
+    oracle_cdc_reader: Literal["logminer", "binary-reader"] | None = ConnectionField(
+        None,
+        label="Oracle CDC reader (optional)",
+        description="Binary Reader is required for PDB CDC; this profile requires RDS Oracle 12.2, 18, or 19 with prepared log directories and grants",
+        type="select",
+        options=[
+            OptionEntry(value="logminer", label="LogMiner (non-CDB only)"),
+            OptionEntry(
+                value="binary-reader", label="Binary Reader (modern RDS Oracle)"
+            ),
+        ],
+    )
     postgres_slot_name: str | None = ConnectionField(
         None,
         label="PostgreSQL replication slot (optional)",
@@ -29,7 +41,9 @@ class DmsSecretSourceEndpointConfig(DmsSecretEndpointConfig):
         )
     )
 
-    @field_validator("postgres_slot_name", "postgres_plugin_name", mode="before")
+    @field_validator(
+        "postgres_slot_name", "postgres_plugin_name", "oracle_cdc_reader", mode="before"
+    )
     @classmethod
     def normalize_optional_settings(cls, value):
         return None if value == "" else value

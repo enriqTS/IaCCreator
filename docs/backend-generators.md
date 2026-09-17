@@ -1,10 +1,10 @@
 # Backend Generators
 
-DMS Secrets Manager endpoints render secret/access-role references and TLS checks without reading credential values or generating clear-text connection fields. `dms_secret_engines.py` owns the engine/TLS mapping independently of IAM support; RDS SQL Server Enterprise/Standard use `sqlserver` with `verify-full`. RDS Oracle EE/SE2 and CDB variants use `oracle` with `verify-ca` and an externally imported wallet.
+DMS Secrets Manager endpoints render secret/access-role references and TLS checks without reading credential values or generating clear-text connection fields. `dms_secret_engines.py` owns the engine/TLS mapping independently of IAM support; RDS SQL Server Enterprise/Standard use `sqlserver` with `verify-full`. RDS Oracle EE/SE2 and CDB variants use `oracle` with `verify-ca` and an externally imported wallet. Explicit Oracle reader choices render fixed extra connection attributes; arbitrary attribute strings are not accepted.
 
 ElastiCache Serverless has a separate Valkey/Redis generator with native TLS, external user-group attachment, placement inputs, and IAM version guards. See [serverless IAM clients](backend-elasticache-serverless.md).
 
-DMS IAM endpoint connections add dedicated endpoint roles and engine-specific endpoint resources, with database identity references and DMS version guards. Full-load and MySQL/PostgreSQL/SQL Server/non-CDB Oracle-source CDC task rendering references those endpoints and emits explicit table mappings with optional schema renaming and table prefixes, stopped execution, and DO_NOTHING table preparation. See [DMS relational endpoints](backend-dms-connections.md).
+DMS IAM endpoint connections add dedicated endpoint roles and engine-specific endpoint resources, with database identity references and DMS version guards. Full-load and MySQL/PostgreSQL/SQL Server/Oracle-source CDC task rendering references those endpoints and emits explicit table mappings with optional schema renaming and table prefixes, stopped execution, and DO_NOTHING table preparation. See [DMS relational endpoints](backend-dms-connections.md).
 
 ElastiCache exposes parameter-group, engine-version, and external VPC placement settings. Standalone cache connections add engine/count guards and native endpoint/TLS outputs. Memcached supports opt-in TLS with version, VPC, and node-family guards. See [ElastiCache client connections](backend-elasticache-connections.md).
 

@@ -46,6 +46,12 @@ def render_secret_endpoint(
         },
     }
     if isinstance(config, DmsSecretSourceEndpointConfig):
+        if config.oracle_cdc_reader:
+            attrs["extra_connection_attributes"] = (
+                "useLogminerReader=N;useBfile=Y;"
+                if config.oracle_cdc_reader == "binary-reader"
+                else "useLogminerReader=Y;useBfile=N;"
+            )
         settings = {
             key: value
             for key, value in {

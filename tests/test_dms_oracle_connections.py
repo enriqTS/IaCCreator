@@ -123,7 +123,7 @@ def test_oracle_preview_explains_wallet_and_service_prerequisites():
         "auto-login wallet",
         "TLS listener port",
         "service or PDB",
-        "CDB/PDB CDC requires Binary Reader",
+        "CDB/PDB CDC requires selecting Binary Reader",
     ):
         assert text in messages
 

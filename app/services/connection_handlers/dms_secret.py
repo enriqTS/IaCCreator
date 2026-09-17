@@ -31,7 +31,7 @@ class DmsSecretEndpointHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="References an existing database secret and DMS-trusted access role. The secret must contain host, port, username and password for the selected database; secret contents and role permissions are not verified. Prepare GetSecretValue and any customer-key decryption permissions, SQL migration grants, network access, and an imported DMS CA certificate. Uses verify-full TLS for SQL Server and verify-ca for other supported engines, without reading credentials into Terraform. SQL Server requires SQL authentication and a secret hostname matching the certificate; Windows authentication is unsupported. SQL Server CDC requires DMS 3.5.3 or newer, externally enabled MS-CDC for the database and selected tables, and transaction-log backup access. Oracle requires an auto-login wallet imported into DMS, a secret using the TLS listener port, and database_name selecting the Oracle service or PDB. Non-CDB Oracle CDC uses LogMiner and requires supplemental logging, retained archive logs, and SQL grants; CDB/PDB CDC requires Binary Reader and is not implemented. Test endpoint connectivity before starting a separate replication_task. PostgreSQL CDC requires logical replication and SQL replication grants; CDC-only also needs an inactive slot, its matching plugin, and a retained WAL start position. The deployment identity needs iam:GetRole, iam:PassRole and secretsmanager:DescribeSecret.",
+                message="References an existing database secret and DMS-trusted access role. The secret must contain host, port, username and password for the selected database; secret contents and role permissions are not verified. Prepare GetSecretValue and any customer-key decryption permissions, SQL migration grants, network access, and an imported DMS CA certificate. Uses verify-full TLS for SQL Server and verify-ca for other supported engines, without reading credentials into Terraform. SQL Server requires SQL authentication and a secret hostname matching the certificate; Windows authentication is unsupported. SQL Server CDC requires DMS 3.5.3 or newer, externally enabled MS-CDC for the database and selected tables, and transaction-log backup access. Oracle requires an auto-login wallet imported into DMS, a secret using the TLS listener port, and database_name selecting the Oracle service or PDB. Non-CDB Oracle CDC defaults to LogMiner and requires supplemental logging, retained archive logs, and SQL grants; CDB/PDB CDC requires selecting Binary Reader on the source endpoint. Binary Reader requires a supported modern RDS Oracle version, prepared ONLINELOG_DIR and ARCHIVELOG_DIR directories with read grants, and DBA_DIRECTORIES access; RDS TDE-encrypted tablespaces are unsupported with Binary Reader. Verify all Oracle CDC object identifiers, including columns and constraints, fit 30 bytes. Test endpoint connectivity before starting a separate replication_task. PostgreSQL CDC requires logical replication and SQL replication grants; CDC-only also needs an inactive slot, its matching plugin, and a retained WAL start position. The deployment identity needs iam:GetRole, iam:PassRole and secretsmanager:DescribeSecret.",
             )
         ]
 
@@ -73,6 +73,22 @@ class DmsSecretEndpointHandler(BaseConnectionHandler):
                     {
                         "loc": ("dms",),
                         "msg": "PostgreSQL slot and plugin settings require a PostgreSQL source",
+                    }
+                ],
+            )
+        if (
+            isinstance(config, DmsSecretSourceEndpointConfig)
+            and config.oracle_cdc_reader
+            and engine_settings.engine_name != "oracle"
+        ):
+            raise InvalidConnectionConfigError(
+                connection.source_name,
+                connection.target_name,
+                connection.connection_type,
+                [
+                    {
+                        "loc": ("oracle_cdc_reader",),
+                        "msg": "Oracle CDC reader settings require an Oracle source",
                     }
                 ],
             )
