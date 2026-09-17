@@ -1,5 +1,7 @@
 # Backend Models
 
+`SqsDeadLetterConfig` provides an integer `max_receive_count` from 1–1,000, defaulting to 5. See [SQS dead-letter connections](backend-sqs-dead-letter-connections.md).
+
 SQS → ECS `consumed_by` uses `EmptyConnectionConfig`; polling behavior stays in application code. See [SQS to ECS polling](backend-sqs-ecs-connections.md).
 
 `DmsSecretEndpointConfig` shares endpoint identity fields and requires full secret and external access-role ARNs; clear-text credential fields are rejected. The shared `certificate_arn` field references an imported Oracle auto-login wallet for Oracle endpoints.

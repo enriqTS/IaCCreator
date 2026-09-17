@@ -308,7 +308,7 @@ class TestIRBuilderRejectsUnsupportedPairs:
             IRBuilder().build(desc)
         assert "Incompatible connection" in str(exc_info.value)
 
-    def test_sqs_to_sqs_rejected(self):
+    def test_sqs_to_sqs_legacy_kind_resolves_dead_letter(self):
         desc = _make_input(
             resources=[
                 _sqs_resource("queue-a"),
@@ -320,9 +320,8 @@ class TestIRBuilderRejectsUnsupportedPairs:
                 )
             ],
         )
-        with pytest.raises(IncompatibleConnectionError) as exc_info:
-            IRBuilder().build(desc)
-        assert "Incompatible connection" in str(exc_info.value)
+        project = IRBuilder().build(desc)
+        assert project.connections[0].connection_type == "dead_letters_to"
 
     def test_sns_to_s3_rejected(self):
         desc = _make_input(

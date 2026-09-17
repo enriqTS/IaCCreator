@@ -1,5 +1,7 @@
 # Backend Generators
 
+`sqs_redrive.py` renders standalone queue redrive policies with native FIFO/account/region guards; source references enter the destination module through typed inputs. See [SQS dead-letter connections](backend-sqs-dead-letter-connections.md).
+
 DMS Secrets Manager endpoints render secret/access-role references and TLS checks without reading credential values or generating clear-text connection fields. `dms_secret_engines.py` owns the engine/TLS mapping independently of IAM support; RDS SQL Server Enterprise/Standard use `sqlserver` with `verify-full`. RDS Oracle EE/SE2 and CDB variants use `oracle` with `verify-ca` and an externally imported wallet. Explicit Oracle reader choices render fixed extra connection attributes; arbitrary attribute strings are not accepted.
 
 ElastiCache Serverless has a separate Valkey/Redis generator with native TLS, external user-group attachment, placement inputs, and IAM version guards. See [serverless IAM clients](backend-elasticache-serverless.md).

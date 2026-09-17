@@ -11,7 +11,7 @@ Current phase status:
 - [x] Phase 3 encryption and secrets: KMS references, shared service policies, and scoped grants cover the thirteen registered encryption targets and their existing consumers. Lambda/EC2/MWAA reads, ECS/CodeBuild/App Runner/Batch job-definition native injection, and Step Functions GetSecretValue tasks are implemented.
 - [x] Phase 4 storage and backup: S3 relationships, EBS attachments, EFS runtime mounts, and Backup selections are implemented. EKS configures the CSI add-on and exports storage manifests for the user to apply.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, MSK topic consumers/producers, ActiveMQ and standalone ElastiCache client endpoint bindings, serverless Valkey/Redis IAM access and placement, and DMS network placement, RDS/Aurora IAM and Secrets Manager endpoints, and stopped full-load and MySQL/PostgreSQL/SQL Server/Oracle-source CDC tasks with explicit table mappings and destination schema/prefix transformations exist. RDS SQL Server Enterprise/Standard secret endpoints support full-load and CDC sources with native LSNs and DMS version guards, plus migration targets. RDS Oracle EE/SE2 secret endpoints (including CDB variants) support full-load sources and migration targets; Oracle sources support native-SCN CDC through LogMiner (non-CDB) or an explicit Binary Reader selection (including CDB/PDB); additional endpoint engines remain.
-- [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring plus SQS-to-ECS polling access exist; workflow and API expansion remains.
+- [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring plus SQS-to-ECS polling access and SQS dead-letter relationships exist; workflow and API expansion remains.
 - [ ] Phase 7 identity, certificates, and edge security.
 - [-] Phase 8 observability, governance, and security administration: Lambda-to-CloudWatch logging exists; the broader phase remains.
 - [ ] Phase 9 CI/CD and container delivery.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 119 Terraform-capable service types, while the connection registry contains 165 connection specifications involving 64 services.
+The generator registry contains 119 Terraform-capable service types, while the connection registry contains 166 connection specifications involving 64 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -301,7 +301,7 @@ Implement:
 
 - SNS → Kinesis Firehose.
 - [x] SQS → ECS polling access: task-role grants scoped to native queue ARNs, URL/region exports, managed/external key decrypt permissions, and application polling guidance.
-- SQS → SQS dead-letter queue.
+- [x] SQS → SQS dead-letter queue: bounded receive counts, one destination per source, FIFO/account/region guards, scoped allow policies for up to ten sources, and cycle-free shared/chained Terraform wiring.
 - Lambda → SQS dead-letter queue.
 - Lambda → SNS dead-letter topic.
 

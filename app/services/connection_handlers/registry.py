@@ -19,6 +19,7 @@ from app.models.connection_configs.configs import (
     LambdaS3Config,
     LoadBalancerListenerConfig,
     S3LambdaConfig,
+    SqsDeadLetterConfig,
     SqsLambdaConfig,
     TargetGroupAttachmentConfig,
 )
@@ -150,6 +151,7 @@ from app.services.connection_handlers.s3_replication import S3ReplicationHandler
 from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
+from app.services.connection_handlers.sqs_dead_letter import SQSDeadLetterHandler
 from app.services.connection_handlers.sqs_ecs import SQSECSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
 from app.services.connection_handlers.step_functions_secret import (
@@ -190,6 +192,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.SQS,
+        target=ServiceType.SQS,
+        connection_type="dead_letters_to",
+        label="SQS → SQS dead-letter queue",
+        config_model=SqsDeadLetterConfig,
+        handler=SQSDeadLetterHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.SQS,
         target=ServiceType.ECS,

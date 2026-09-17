@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import Field, field_validator
+from pydantic import Field, StrictInt, field_validator
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import (
@@ -25,6 +25,15 @@ def _access_pattern_options(read: str, write: str) -> list[OptionEntry]:
         OptionEntry(value="write", label=f"Write Only ({write})"),
         OptionEntry(value="full", label="Full Access (Read + Write)"),
     ]
+
+
+class SqsDeadLetterConfig(BaseConnectionConfig):
+    max_receive_count: StrictInt = ConnectionField(
+        5,
+        label="Maximum receives before dead-lettering",
+        type="number",
+        validation=ValidationRule(min=1, max=1000),
+    )
 
 
 class EmptyConnectionConfig(BaseConnectionConfig):
