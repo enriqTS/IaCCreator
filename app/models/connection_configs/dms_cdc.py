@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from app.models.connection_configs.dms_positions import (
     MYSQL_POSITION_PATTERN,
+    ORACLE_POSITION_PATTERN,
     POSTGRES_POSITION_PATTERN,
     SQLSERVER_POSITION_PATTERN,
 )
@@ -42,8 +43,15 @@ SQLSERVER_CDC = DmsCdcPolicy(
     minimum_version="3.5.3",
     version_pattern=r"^(([4-9]|[1-9][0-9]+)\.[0-9]+\.[0-9]+|3\.([6-9]|[1-9][0-9]+)\.[0-9]+|3\.5\.([3-9]|[1-9][0-9]+))(\.[0-9]+)*$",
 )
+ORACLE_CDC = DmsCdcPolicy(
+    ("oracle-ee", "oracle-se2"),
+    "Oracle",
+    ORACLE_POSITION_PATTERN,
+    "a native Oracle SCN expressed as a positive decimal integer",
+    requires_secret=True,
+)
 CDC_SOURCE_POLICIES = {
     engine: policy
-    for policy in (MYSQL_CDC, POSTGRES_CDC, SQLSERVER_CDC)
+    for policy in (MYSQL_CDC, POSTGRES_CDC, SQLSERVER_CDC, ORACLE_CDC)
     for engine in policy.engines
 }

@@ -93,14 +93,14 @@ def oracle_migration(engine, source):
     return payload
 
 
-@pytest.mark.parametrize("engine", ENGINES)
+@pytest.mark.parametrize("engine", ["oracle-ee-cdb", "oracle-se2-cdb"])
 @pytest.mark.parametrize("mode", ["cdc", "full-load-and-cdc"])
-def test_oracle_source_cdc_remains_rejected(engine, mode):
+def test_oracle_cdb_source_cdc_remains_rejected(engine, mode):
     payload = oracle_migration(engine, True)
     task_config(payload)["migration_type"] = mode
     if mode == "cdc":
-        task_config(payload)["cdc_start_position"] = "mysql-bin.000001:4"
-    with pytest.raises(InvalidConnectionConfigError, match="CDC sources must use"):
+        task_config(payload)["cdc_start_position"] = "123456"
+    with pytest.raises(InvalidConnectionConfigError, match="requires Binary Reader"):
         generate(payload)
 
 
@@ -123,7 +123,7 @@ def test_oracle_preview_explains_wallet_and_service_prerequisites():
         "auto-login wallet",
         "TLS listener port",
         "service or PDB",
-        "Oracle-source CDC is not implemented",
+        "CDB/PDB CDC requires Binary Reader",
     ):
         assert text in messages
 

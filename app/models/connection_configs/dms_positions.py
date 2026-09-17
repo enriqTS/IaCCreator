@@ -3,3 +3,4 @@
 MYSQL_POSITION_PATTERN = r"[A-Za-z0-9_-][A-Za-z0-9_.-]{0,249}\.[0-9]+:[0-9]+"
 POSTGRES_POSITION_PATTERN = r"[0-9A-Fa-f]{1,8}/[0-9A-Fa-f]{1,8}"
 SQLSERVER_POSITION_PATTERN = r"[0-9A-Fa-f]{8}:[0-9A-Fa-f]{8}:[0-9A-Fa-f]{4}"
+ORACLE_POSITION_PATTERN = r"[1-9][0-9]*"
