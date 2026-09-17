@@ -1,5 +1,7 @@
 # Backend Models
 
+SQS → ECS `consumed_by` uses `EmptyConnectionConfig`; polling behavior stays in application code. See [SQS to ECS polling](backend-sqs-ecs-connections.md).
+
 `DmsSecretEndpointConfig` shares endpoint identity fields and requires full secret and external access-role ARNs; clear-text credential fields are rejected. The shared `certificate_arn` field references an imported Oracle auto-login wallet for Oracle endpoints.
 
 `ElastiCacheServerlessConfig` models the separate Valkey/Redis cache; `ServerlessCacheIamConfig` selects an existing IAM user ID. See [serverless IAM clients](backend-elasticache-serverless.md).

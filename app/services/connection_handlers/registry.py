@@ -150,6 +150,7 @@ from app.services.connection_handlers.s3_replication import S3ReplicationHandler
 from app.services.connection_handlers.secret_access import SecretAccessHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
+from app.services.connection_handlers.sqs_ecs import SQSECSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
 from app.services.connection_handlers.step_functions_secret import (
     StepFunctionsSecretHandler,
@@ -189,6 +190,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.SQS,
+        target=ServiceType.ECS,
+        connection_type="consumed_by",
+        label="SQS → ECS polling access",
+        config_model=EmptyConnectionConfig,
+        handler=SQSECSHandler(),
+    ),
     *[
         ConnectionSpec(
             source=source,

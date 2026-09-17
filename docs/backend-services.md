@@ -1,5 +1,7 @@
 # Backend Services
 
+`SQSECSHandler` owns queue-scoped polling grants on the ECS task role, exports queue client references, and composes with KMS consumer grants. See [SQS to ECS polling](backend-sqs-ecs-connections.md).
+
 `DmsSecretEndpointHandler` references externally prepared secrets/roles, shares identifier conflict checks with IAM endpoints, and composes with existing task endpoint resolution. RDS SQL Server Enterprise/Standard support full-load/CDC sources and migration targets; IAM login remains unsupported by these connections. SQL Server CDC requires explicit DMS 3.5.3+ with native-version guards. RDS Oracle EE/SE2 and CDB variants support full-load sources and migration targets with imported-wallet prerequisites; Oracle sources support CDC with native SCNs; non-CDB sources default to LogMiner and CDB/PDB sources require an explicit Binary Reader selection.
 
 ElastiCache Serverless supports Lambda/ECS IAM login and Subnet/Security Group placement. Grants reference the exact native cache and selected external user; client metadata includes TLS and token-signing context. See [serverless IAM clients](backend-elasticache-serverless.md).

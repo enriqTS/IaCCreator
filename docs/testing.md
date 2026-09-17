@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_sqs_ecs_connections.py` covers queue-scoped task-role polling permissions, native client references, managed/external KMS decrypt grants, multiple queues, duplicate/order independence, and Terraform validation/graphs.
+
 `tests/test_dms_oracle_binary_reader.py` covers typed reader options, engine/direction restrictions, required PDB reader selection, Oracle CDC identifier boundaries, property-based SCN preservation, and Terraform validation/graphs for all four Oracle editions in both CDC modes.
 
 `tests/test_dms_oracle_cdc.py` covers non-CDB LogMiner CDC, property-based SCN preservation, source guards, cross-engine position rejection, preview prerequisites, and Terraform validation/graphs for both CDC modes.
