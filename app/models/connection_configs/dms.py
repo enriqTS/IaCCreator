@@ -1,13 +1,14 @@
-"""DMS IAM endpoints select an existing database user and imported CA certificate."""
+"""Typed DMS endpoint identity and authentication settings."""
 
 from pydantic import field_validator
 
+from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import ConnectionField
 from app.models.connection_configs.database import DatabaseIamAuthConfig
 from app.models.input_models._metadata import ValidationRule
 
 
-class DmsIamEndpointConfig(DatabaseIamAuthConfig):
+class DmsEndpointConfig(BaseConnectionConfig):
     endpoint_id: str = ConnectionField(
         ...,
         label="Endpoint identifier",
@@ -37,3 +38,26 @@ class DmsIamEndpointConfig(DatabaseIamAuthConfig):
                 "Endpoint identifiers cannot contain consecutive or trailing hyphens"
             )
         return value.lower()
+
+
+class DmsIamEndpointConfig(DmsEndpointConfig, DatabaseIamAuthConfig):
+    pass
+
+
+class DmsSecretEndpointConfig(DmsEndpointConfig):
+    secrets_manager_arn: str = ConnectionField(
+        ...,
+        label="Database secret ARN",
+        description="Existing secret containing host, port, username and password for the selected database",
+        validation=ValidationRule(
+            pattern=r"^arn:aws(?:-[a-z-]+)?:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+-[A-Za-z0-9]{6}$"
+        ),
+    )
+    secrets_manager_access_role_arn: str = ConnectionField(
+        ...,
+        label="DMS secret access role ARN",
+        description="Existing DMS-trusted role with access to the secret and its encryption key",
+        validation=ValidationRule(
+            pattern=r"^arn:aws(?:-[a-z-]+)?:iam::[0-9]{12}:role/[A-Za-z0-9/+=,.@_-]+$"
+        ),
+    )

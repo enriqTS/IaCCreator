@@ -1,8 +1,8 @@
-# DMS relational IAM endpoints
+# DMS relational endpoints
 
 DMS supports `source_endpoint` (the default) and `target_endpoint` connections to RDS and Aurora. These four connection specifications create IAM-authenticated `aws_dms_endpoint` resources in the replication instance module and export their endpoint ARNs. Add a separate `replication_task` connection to configure a stopped migration using these endpoints.
 
-Select a DMS replication engine version of **3.6.1 or newer** explicitly. Supported database engines are RDS MySQL, MariaDB, and PostgreSQL, and Aurora MySQL and PostgreSQL. Generation rejects incompatible engines and older or unspecified DMS versions. Terraform checks also guard engine/version overrides. AWS availability and database version/instance support must be verified for the deployment. See [DMS IAM endpoint requirements](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Endpoints.Creating.IAMRDS.html).
+For IAM endpoints, select a DMS replication engine version of **3.6.1 or newer** explicitly. Supported database engines are RDS MySQL, MariaDB, and PostgreSQL, and Aurora MySQL and PostgreSQL. Generation rejects incompatible engines and older or unspecified DMS versions. Terraform checks also guard engine/version overrides. AWS availability and database version/instance support must be verified for the deployment. See [DMS IAM endpoint requirements](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Endpoints.Creating.IAMRDS.html).
 
 The typed connection configuration contains:
 
@@ -19,11 +19,21 @@ Each endpoint gets a dedicated DMS-trusted IAM role with `rds-db:connect` scoped
 
 Provision the database user and its engine-specific IAM login and migration SQL permissions separately. The deployment identity needs permission to pass the endpoint role to DMS. Network paths, security-group rules, standard DMS account roles, database instances, and test-connection remain deployment responsibilities. Existing DMS Subnet and Security Group connections can supply placement, but do not establish database reachability by themselves.
 
-These connections do not create or read passwords, secret values, database users, or SQL grants. Managed database credentials are not automatically usable as DMS endpoint secrets: DMS secrets need host and port, and Aurora-managed master secrets omit those fields. Secrets Manager endpoint authentication and additional database engines remain follow-up work. See [DMS Secrets Manager requirements](https://docs.aws.amazon.com/dms/latest/userguide/security_iam_secretsmanager.html).
+These connections do not create or read passwords, secret values, database users, or SQL grants. Managed database credentials are not automatically usable as DMS endpoint secrets: DMS secrets need host and port, and Aurora-managed master secrets omit those fields. Additional database engines remain follow-up work. See [DMS Secrets Manager requirements](https://docs.aws.amazon.com/dms/latest/userguide/security_iam_secretsmanager.html).
 
 IAM-authenticated PostgreSQL sources are restricted to full load; MySQL-compatible sources also support the CDC task modes described below. Source logging, SQL privileges, and target schema preparation remain deployment prerequisites. See the AWS [MySQL source](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.MySQL.html), [PostgreSQL source](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.PostgreSQL.html), [MySQL target](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.MySQL.html), and [PostgreSQL target](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.PostgreSQL.html) prerequisites.
 
 Tests cover scoped grants, engine-specific settings, configuration rejection, identifier normalization and conflicts, deterministic aggregation, and generated Terraform validation and dependency graphs. They do not perform live endpoint connectivity or migration operations.
+
+## Secrets Manager endpoints
+
+Use `source_secret_endpoint` or `target_secret_endpoint` for RDS MySQL, MariaDB, PostgreSQL, or Aurora MySQL/PostgreSQL. These four additional specifications use the same endpoint identifier, database name, and imported certificate fields. Instead of `database_user`, supply `secrets_manager_arn` (a full secret ARN) and `secrets_manager_access_role_arn` (an existing IAM role ARN). Secret endpoints do not enable database IAM authentication or impose the IAM-specific DMS 3.6.1 minimum.
+
+Prepare a secret with `host`, `port`, `username`, and `password` matching the selected database. The generator does not read its contents, verify its database identity, or create credentials. It exports the native database engine for an override guard; host and port come exclusively from the secret. Terraform emits neither clear-text connection arguments nor secret-value data sources. Aurora-managed master secrets lack the required host/port fields and cannot be used directly.
+
+The access role must trust DMS and allow `secretsmanager:GetSecretValue` on the selected secret, with customer-managed key permissions where required. Cross-account secrets additionally require the appropriate resource policy and `DescribeSecret` permission. The deployment identity needs `iam:GetRole`, `iam:PassRole`, and `secretsmanager:DescribeSecret`. Follow the [AWS secret and role setup instructions](https://docs.aws.amazon.com/dms/latest/userguide/security_iam_secretsmanager.html), including the applicable DMS service principal. Role setup, secret population/rotation, database SQL grants, network reachability, and live endpoint tests remain external prerequisites.
+
+Endpoints retain `verify-ca` TLS and certificate account/Region checks. Identifiers are unique across both authentication methods. Tasks can combine IAM and secret endpoints; MySQL-family sources support the existing CDC modes, while PostgreSQL secret-source CDC remains unimplemented. Since external secret contents are not inspected, verify that they match diagram database identities before running a task.
 
 ## Replication tasks
 
@@ -32,8 +42,8 @@ A DMS → RDS/Aurora `replication_task` connection selects a managed source endp
 | Field | Meaning |
 | --- | --- |
 | `task_id` | Project-wide unique task identifier, normalized to lowercase |
-| `source_endpoint_id` | Identifier on a `source_endpoint` connection from this DMS instance |
-| `target_endpoint_id` | Identifier on a `target_endpoint` connection to the task's target database |
+| `source_endpoint_id` | Identifier on a `source_endpoint` or `source_secret_endpoint` connection from this DMS instance |
+| `target_endpoint_id` | Identifier on a `target_endpoint` or `target_secret_endpoint` connection to the task's target database |
 | `table_schema` | Explicit source schema name |
 | `table_names` | Comma-separated list of 1–100 explicit table names |
 | `target_schema` | Optional destination schema name |
@@ -59,7 +69,7 @@ Prepare destination schemas, tables, and SQL permissions for the transformed nam
 
 ## Ongoing replication (CDC)
 
-`full-load-and-cdc` loads existing rows and then replicates ongoing changes. `cdc` replicates changes into an already prepared target. This integration permits both modes with IAM-authenticated RDS MySQL, RDS MariaDB, and Aurora MySQL sources. Generation rejects PostgreSQL IAM sources, and a Terraform precondition checks the native source engine to guard variable overrides. PostgreSQL and Aurora PostgreSQL remain supported as targets. AWS prohibits IAM authentication for PostgreSQL replication connections; see [RDS IAM limitations](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html).
+`full-load-and-cdc` loads existing rows and then replicates ongoing changes. `cdc` replicates changes into an already prepared target. This integration permits both modes with IAM- or Secrets Manager-authenticated RDS MySQL, RDS MariaDB, and Aurora MySQL sources. Generation currently rejects all PostgreSQL sources for CDC, and a Terraform precondition checks the native source engine to guard variable overrides. PostgreSQL and Aurora PostgreSQL remain supported as targets. AWS prohibits IAM authentication for PostgreSQL replication connections; see [RDS IAM limitations](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html).
 
 CDC-only tasks require `cdc_start_position` in native binlog form, for example `mysql-bin-changelog.000024:373`. The backend validates the format but cannot verify log availability or consistency with target data. Coordinate that position with the target's initial snapshot. It is rejected for both full-load modes; timestamp starts, DMS recovery checkpoints, and automatic start-position discovery are not exposed. The start point is fixed when DMS creates the task; use a new task ID when selecting another point. See [AWS CDC start points](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html).
 

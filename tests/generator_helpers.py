@@ -210,7 +210,12 @@ def connection_architecture(spec) -> dict:
     ):
         config = minimal_config_for(service_type).model_dump(exclude_none=True)
         config.update(DEPLOYABLE_EXTRAS.get(service_type, {}))
-        if spec.connection_type in {"source_endpoint", "target_endpoint"}:
+        if spec.connection_type in {
+            "source_endpoint",
+            "target_endpoint",
+            "source_secret_endpoint",
+            "target_secret_endpoint",
+        }:
             if service_type == ServiceType.DATABASE_MIGRATION_SERVICE:
                 config["engine_version"] = "3.6.1"
             elif service_type == ServiceType.RDS:
@@ -306,6 +311,15 @@ def connection_architecture(spec) -> dict:
                     "certificate_arn": "arn:aws:dms:us-east-1:123456789012:cert:database-ca",
                 }
                 if spec.connection_type in {"source_endpoint", "target_endpoint"}
+                else {
+                    "endpoint_id": f"app-{spec.connection_type.replace('_', '-')}",
+                    "database_name": "application",
+                    "certificate_arn": "arn:aws:dms:us-east-1:123456789012:cert:database-ca",
+                    "secrets_manager_arn": "arn:aws:secretsmanager:us-east-1:123456789012:secret:database-Ab12Cd",
+                    "secrets_manager_access_role_arn": "arn:aws:iam::123456789012:role/dms/secrets",
+                }
+                if spec.connection_type
+                in {"source_secret_endpoint", "target_secret_endpoint"}
                 else {"table_name": "application_data"}
                 if spec.target in {ServiceType.KEYSPACES, ServiceType.TIMESTREAM}
                 and spec.connection_type in {"reads_from", "writes_to"}

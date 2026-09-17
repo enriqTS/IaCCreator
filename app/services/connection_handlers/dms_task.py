@@ -17,7 +17,7 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="Creates a stopped migration task for explicitly selected tables. Full-load modes use DO_NOTHING target preparation and need compatible target schemas and empty tables. Verify SQL permissions, deploy and test both endpoint connections before applying the task, then start it separately. Optional schema renaming and table prefixes affect only selected tables; prepare the resulting destination names before loading. Changes to transformations require a task restart rather than resume. For CDC, configure ROW binlogging with FULL row images, sufficient log retention/backups, and replication SQL grants on the source. CDC-only targets must already contain data consistent with the chosen binlog position. PostgreSQL IAM sources only support full load. Schema conversion, column transformations, task logging, and automatic migration execution are not configured. Terraform manages start_replication_task=false; a later apply can stop a task started externally.",
+                message="Creates a stopped migration task for explicitly selected tables. Full-load modes use DO_NOTHING target preparation and need compatible target schemas and empty tables. Verify SQL permissions, deploy and test both endpoint connections before applying the task, then start it separately. Optional schema renaming and table prefixes affect only selected tables; prepare the resulting destination names before loading. Changes to transformations require a task restart rather than resume. For CDC, configure ROW binlogging with FULL row images, sufficient log retention/backups, and replication SQL grants on the source. CDC-only targets must already contain data consistent with the chosen binlog position. PostgreSQL sources currently only support full load. Schema conversion, column transformations, task logging, and automatic migration execution are not configured. Terraform manages start_replication_task=false; a later apply can stop a task started externally.",
             )
         ]
 
@@ -35,7 +35,8 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
                 for other in project.connections
                 if other.source_service == ServiceType.DATABASE_MIGRATION_SERVICE
                 and other.source_name == connection.source_name
-                and other.connection_type == kind
+                and other.connection_type
+                in {kind, kind.replace("_endpoint", "_secret_endpoint")}
                 and other.connection_config.get("endpoint_id") == endpoint_id
             ]
             if not matches:
@@ -50,7 +51,7 @@ class DmsReplicationTaskHandler(BaseConnectionHandler):
             if database.config.engine not in {"mysql", "mariadb", "aurora-mysql"}:
                 self._reject(
                     connection,
-                    "IAM-authenticated CDC sources must use MySQL, MariaDB, or Aurora MySQL; PostgreSQL IAM replication is unsupported",
+                    "CDC sources must use MySQL, MariaDB, or Aurora MySQL; PostgreSQL IAM replication is unsupported and PostgreSQL secret CDC is not implemented",
                 )
         if target.target_name != connection.target_name:
             self._reject(

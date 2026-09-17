@@ -18,6 +18,7 @@ from app.models.ir_models import (
     ProjectIR,
 )
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.dms_endpoints import validate_endpoint_identity
 
 
 class DmsDatabaseEndpointHandler(BaseConnectionHandler):
@@ -53,28 +54,7 @@ class DmsDatabaseEndpointHandler(BaseConnectionHandler):
                 connection,
                 "Select DMS replication engine 3.6.1 or newer for IAM endpoints",
             )
-        for other in project.connections:
-            if (
-                other.source_service == ServiceType.DATABASE_MIGRATION_SERVICE
-                and other.connection_type in {"source_endpoint", "target_endpoint"}
-                and other.connection_config.get("endpoint_id") == config.endpoint_id
-                and (
-                    other.source_name,
-                    other.target_name,
-                    other.connection_type,
-                    other.connection_config,
-                )
-                != (
-                    connection.source_name,
-                    connection.target_name,
-                    connection.connection_type,
-                    connection.connection_config,
-                )
-            ):
-                self._reject(
-                    connection,
-                    "DMS endpoint identifiers must be unique across this project",
-                )
+        validate_endpoint_identity(connection, project, config.endpoint_id)
         database.config._iam_database_access = True
         instance.config._iam_endpoints = True
         source, target = connection.source_name, connection.target_name

@@ -23,7 +23,10 @@ from app.models.connection_configs.configs import (
     TargetGroupAttachmentConfig,
 )
 from app.models.connection_configs.database import DatabaseIamAuthConfig
-from app.models.connection_configs.dms import DmsIamEndpointConfig
+from app.models.connection_configs.dms import (
+    DmsIamEndpointConfig,
+    DmsSecretEndpointConfig,
+)
 from app.models.connection_configs.dms_task import DmsReplicationTaskConfig
 from app.models.connection_configs.efs import (
     EfsEc2MountConfig,
@@ -75,6 +78,7 @@ from app.services.connection_handlers.database_access import DatabaseAccessHandl
 from app.services.connection_handlers.datasync_location import DataSyncLocationHandler
 from app.services.connection_handlers.datasync_s3 import DataSyncS3Handler
 from app.services.connection_handlers.dms_database import DmsDatabaseEndpointHandler
+from app.services.connection_handlers.dms_secret import DmsSecretEndpointHandler
 from app.services.connection_handlers.dms_task import DmsReplicationTaskHandler
 from app.services.connection_handlers.dns_alias import DnsAliasHandler
 from app.services.connection_handlers.documentdb_access import DocumentDbAccessHandler
@@ -217,6 +221,20 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             config_model=DmsIamEndpointConfig,
             handler=DmsDatabaseEndpointHandler(endpoint_type),
             is_default=endpoint_type == "source",
+            region_policy="cross-region",
+        )
+        for target in (ServiceType.RDS, ServiceType.AURORA)
+        for endpoint_type in ("source", "target")
+    ],
+    *[
+        ConnectionSpec(
+            source=ServiceType.DATABASE_MIGRATION_SERVICE,
+            target=target,
+            connection_type=f"{endpoint_type}_secret_endpoint",
+            label=f"DMS → {target.value} Secrets Manager {endpoint_type} endpoint",
+            config_model=DmsSecretEndpointConfig,
+            handler=DmsSecretEndpointHandler(endpoint_type),
+            is_default=False,
             region_policy="cross-region",
         )
         for target in (ServiceType.RDS, ServiceType.AURORA)

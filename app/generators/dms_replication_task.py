@@ -38,7 +38,7 @@ def render_replication_task(
                 "condition": Expr(
                     f'contains(["mysql", "mariadb", "aurora-mysql"], var.dms_database_{source_database}_engine)'
                 ),
-                "error_message": "IAM-authenticated CDC sources must use MySQL, MariaDB, or Aurora MySQL.",
+                "error_message": "CDC sources must use MySQL, MariaDB, or Aurora MySQL.",
             }
         }
     return renderer.render_resource(
