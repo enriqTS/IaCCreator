@@ -144,6 +144,7 @@ DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
     ServiceType.STEP_FUNCTIONS: {
         "role_arn": "arn:aws:iam::123456789012:role/workflows/execution"
     },
+    ServiceType.ELASTICACHE_SERVERLESS: {"user_group_id": "application-users"},
     ServiceType.EC2_LAUNCH_TEMPLATE: {"image_id": "ami-12345678"},
     ServiceType.MWAA: {
         "execution_role_arn": "arn:aws:iam::123456789012:role/airflow/execution-role",
@@ -289,6 +290,9 @@ def connection_architecture(spec) -> dict:
                 or spec.connection_type == "replicates_to"
                 else {"node_role_arn": "arn:aws:iam::123456789012:role/eks/workers"}
                 if spec.source == ServiceType.EFS and spec.target == ServiceType.EKS
+                else {"user_id": "app-user"}
+                if spec.target == ServiceType.ELASTICACHE_SERVERLESS
+                and spec.connection_type == "authenticates_to"
                 else {"user_name": "app-user"}
                 if spec.target == ServiceType.MEMORYDB
                 and spec.connection_type == "authenticates_to"

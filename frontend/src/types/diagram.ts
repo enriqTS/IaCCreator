@@ -149,6 +149,7 @@ export type ServiceType =
   | 'aurora'
   | 'documentdb'
   | 'elasticache'
+  | 'elasticache-serverless'
   | 'neptune'
   | 'rds'
   | 'timestream'

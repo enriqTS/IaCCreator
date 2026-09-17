@@ -54,6 +54,9 @@ from app.models.input_models.ecs_config import EcsConfig
 from app.models.input_models.eks_config import EksConfig
 from app.models.input_models.elastic_beanstalk_config import ElasticBeanstalkConfig
 from app.models.input_models.elasticache_config import ElastiCacheConfig
+from app.models.input_models.elasticache_serverless_config import (
+    ElastiCacheServerlessConfig,
+)
 from app.models.input_models.emr_config import EmrConfig
 from app.models.input_models.gamelift_config import GameLiftConfig
 from app.models.input_models.glue_config import GlueConfig
@@ -109,6 +112,7 @@ SERVICE_CONFIG_MODELS: dict = {
     ServiceType.AURORA: AuroraConfig,
     ServiceType.DOCUMENTDB: DocumentDbConfig,
     ServiceType.ELASTICACHE: ElastiCacheConfig,
+    ServiceType.ELASTICACHE_SERVERLESS: ElastiCacheServerlessConfig,
     ServiceType.NEPTUNE: NeptuneConfig,
     ServiceType.RDS: RdsConfig,
     ServiceType.TIMESTREAM: TimestreamConfig,
@@ -180,6 +184,7 @@ __all__ = [
     "EksConfig",
     "ElasticBeanstalkConfig",
     "ElastiCacheConfig",
+    "ElastiCacheServerlessConfig",
     "EmrConfig",
     "GameLiftConfig",
     "GlueConfig",

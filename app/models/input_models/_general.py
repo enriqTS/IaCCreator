@@ -134,6 +134,7 @@ class ServiceType(StrEnum):
     AURORA = "aurora"
     DOCUMENTDB = "documentdb"
     ELASTICACHE = "elasticache"
+    ELASTICACHE_SERVERLESS = "elasticache-serverless"
     NEPTUNE = "neptune"
     RDS = "rds"
     TIMESTREAM = "timestream"
@@ -503,6 +504,9 @@ def _build_service_config_models() -> dict:
     from app.models.input_models.eks_config import EksConfig
     from app.models.input_models.elastic_beanstalk_config import ElasticBeanstalkConfig
     from app.models.input_models.elasticache_config import ElastiCacheConfig
+    from app.models.input_models.elasticache_serverless_config import (
+        ElastiCacheServerlessConfig,
+    )
     from app.models.input_models.emr_config import EmrConfig
     from app.models.input_models.eventbridge_config import EventBridgeConfig
     from app.models.input_models.fault_injection_simulator_config import (
@@ -652,6 +656,7 @@ def _build_service_config_models() -> dict:
         ServiceType.AURORA: AuroraConfig,
         ServiceType.DOCUMENTDB: DocumentDbConfig,
         ServiceType.ELASTICACHE: ElastiCacheConfig,
+        ServiceType.ELASTICACHE_SERVERLESS: ElastiCacheServerlessConfig,
         ServiceType.NEPTUNE: NeptuneConfig,
         ServiceType.RDS: RdsConfig,
         ServiceType.TIMESTREAM: TimestreamConfig,

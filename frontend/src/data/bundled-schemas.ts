@@ -3790,6 +3790,66 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "list"
     }
   ],
+  "elasticache-serverless": [
+    {
+      "default": "serverless-cache",
+      "description": "Serverless cache name",
+      "group": "General",
+      "label": "Cache name",
+      "name": "cache_name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "default": "valkey",
+      "description": "Cache engine",
+      "group": "General",
+      "label": "Engine",
+      "name": "engine",
+      "options": [
+        {
+          "label": "Valkey",
+          "value": "valkey"
+        },
+        {
+          "label": "Redis OSS",
+          "value": "redis"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "valkey",
+          "redis"
+        ]
+      }
+    },
+    {
+      "description": "Existing user group containing the selected IAM users",
+      "group": "General",
+      "label": "User group ID",
+      "name": "user_group_id",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Existing VPC subnets for cache endpoints",
+      "group": "General",
+      "label": "Subnet IDs",
+      "name": "subnet_ids",
+      "required": false,
+      "type": "list"
+    },
+    {
+      "description": "VPC security groups for cache endpoints",
+      "group": "General",
+      "label": "Security group IDs",
+      "name": "security_group_ids",
+      "required": false,
+      "type": "list"
+    }
+  ],
   "emr": [
     {
       "description": "Name of the EMR cluster",

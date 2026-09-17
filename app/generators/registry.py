@@ -69,6 +69,9 @@ from app.generators.efs_generator import EfsGenerator
 from app.generators.eks_generator import EKSGenerator
 from app.generators.elastic_beanstalk_generator import ElasticBeanstalkGenerator
 from app.generators.elasticache_generator import ElastiCacheGenerator
+from app.generators.elasticache_serverless_generator import (
+    ElastiCacheServerlessGenerator,
+)
 from app.generators.emr_generator import EMRGenerator
 from app.generators.eventbridge_generator import EventBridgeGenerator
 
@@ -218,6 +221,7 @@ GENERATOR_REGISTRY: dict[ServiceType, ServiceGenerator] = {
     ServiceType.AURORA: AuroraGenerator(),
     ServiceType.DOCUMENTDB: DocumentDBGenerator(),
     ServiceType.ELASTICACHE: ElastiCacheGenerator(),
+    ServiceType.ELASTICACHE_SERVERLESS: ElastiCacheServerlessGenerator(),
     ServiceType.NEPTUNE: NeptuneGenerator(),
     ServiceType.RDS: RDSGenerator(),
     ServiceType.TIMESTREAM: TimestreamGenerator(),

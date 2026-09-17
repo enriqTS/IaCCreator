@@ -30,6 +30,9 @@ from app.models.connection_configs.efs import (
     EfsEcsMountConfig,
     EfsEksMountConfig,
 )
+from app.models.connection_configs.elasticache_serverless import (
+    ServerlessCacheIamConfig,
+)
 from app.models.connection_configs.memorydb import MemoryDbIamConfig
 from app.models.connection_configs.mq import MqClientConfig
 from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
@@ -89,6 +92,9 @@ from app.services.connection_handlers.efs_ecs import EfsEcsMountHandler
 from app.services.connection_handlers.efs_eks import EfsEksMountHandler
 from app.services.connection_handlers.efs_lambda import EfsLambdaMountHandler
 from app.services.connection_handlers.elasticache_client import ElastiCacheClientHandler
+from app.services.connection_handlers.elasticache_serverless import (
+    ServerlessCacheIamHandler,
+)
 from app.services.connection_handlers.environment_secret import EnvironmentSecretHandler
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
@@ -178,6 +184,17 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=source,
+            target=ServiceType.ELASTICACHE_SERVERLESS,
+            connection_type="authenticates_to",
+            label=f"{source.value} → serverless cache IAM login",
+            config_model=ServerlessCacheIamConfig,
+            handler=ServerlessCacheIamHandler(),
+        )
+        for source in (ServiceType.LAMBDA, ServiceType.ECS)
+    ],
     *[
         ConnectionSpec(
             source=ServiceType.DATABASE_MIGRATION_SERVICE,
@@ -729,6 +746,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.LOAD_BALANCER,
             ServiceType.EFS,
             ServiceType.MEMORYDB,
+            ServiceType.ELASTICACHE_SERVERLESS,
             ServiceType.DATABASE_MIGRATION_SERVICE,
             ServiceType.MQ,
             ServiceType.MWAA,
@@ -758,6 +776,7 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             ServiceType.LOAD_BALANCER,
             ServiceType.EFS,
             ServiceType.MEMORYDB,
+            ServiceType.ELASTICACHE_SERVERLESS,
             ServiceType.DATABASE_MIGRATION_SERVICE,
             ServiceType.MQ,
             ServiceType.MWAA,

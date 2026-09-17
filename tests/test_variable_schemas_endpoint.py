@@ -116,6 +116,7 @@ EXPECTED_SERVICE_TYPES = {
     "aurora",
     "documentdb",
     "elasticache",
+    "elasticache-serverless",
     "neptune",
     "rds",
     "timestream",

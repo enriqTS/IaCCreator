@@ -23,6 +23,7 @@ SERVICE_CATEGORY_MAP: dict[ServiceType, str] = {
     ServiceType.AURORA: "database",
     ServiceType.DOCUMENTDB: "database",
     ServiceType.ELASTICACHE: "database",
+    ServiceType.ELASTICACHE_SERVERLESS: "database",
     ServiceType.NEPTUNE: "database",
     ServiceType.RDS: "database",
     ServiceType.TIMESTREAM: "database",

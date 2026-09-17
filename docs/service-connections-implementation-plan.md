@@ -10,7 +10,7 @@ Current phase status:
 - [x] Phase 2 ingress, load balancing, and DNS.
 - [x] Phase 3 encryption and secrets: KMS references, shared service policies, and scoped grants cover the thirteen registered encryption targets and their existing consumers. Lambda/EC2/MWAA reads, ECS/CodeBuild/App Runner/Batch job-definition native injection, and Step Functions GetSecretValue tasks are implemented.
 - [x] Phase 4 storage and backup: S3 relationships, EBS attachments, EFS runtime mounts, and Backup selections are implemented. EKS configures the CSI add-on and exports storage manifests for the user to apply.
-- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, MSK topic consumers/producers, ActiveMQ and standalone ElastiCache client endpoint bindings, and DMS network placement, RDS/Aurora IAM endpoints, and stopped full-load and MySQL-source CDC tasks with explicit table mappings and destination schema/prefix transformations exist. ElastiCache Redis/Valkey TLS/IAM resource support, additional DMS endpoint authentication/engines, and PostgreSQL-source CDC support remain.
+- [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, MSK topic consumers/producers, ActiveMQ and standalone ElastiCache client endpoint bindings, serverless Valkey/Redis IAM access and placement, and DMS network placement, RDS/Aurora IAM endpoints, and stopped full-load and MySQL-source CDC tasks with explicit table mappings and destination schema/prefix transformations exist. Additional DMS endpoint authentication/engines and PostgreSQL-source CDC support remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring exists; workflow and API expansion remains.
 - [ ] Phase 7 identity, certificates, and edge security.
 - [-] Phase 8 observability, governance, and security administration: Lambda-to-CloudWatch logging exists; the broader phase remains.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 118 Terraform-capable service types, while the connection registry contains 156 connection specifications involving 63 services.
+The generator registry contains 119 Terraform-capable service types, while the connection registry contains 160 connection specifications involving 64 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -243,7 +243,7 @@ Expand IAM and runtime access from execution-role-owning services to:
 - [x] Aurora: Lambda/ECS IAM login for Aurora MySQL/PostgreSQL with cluster-resource-ID scoping. Database users, SQL grants, networking, and cluster instances remain separately managed.
 - [x] DocumentDB: Lambda/ECS IAM client bindings for explicit engine 5.0, native endpoint references, exported runtime identity, ECS task-role attachment, and version guards. Database users and grants, administrator credentials, cluster instances, and networking remain separate prerequisites.
 - [x] Neptune: Lambda/ECS graph read and read/write/delete access, native IAM authentication, resource-ID-scoped grants, runtime endpoints, and guards for engine 1.2.0.0 or newer. Cluster instances and networking remain separate.
-- [-] ElastiCache: Lambda/ECS standalone Redis and Memcached endpoint bindings, native transport-state metadata, Memcached discovery, engine/count guards, and opt-in Memcached TLS with version/VPC/node checks. Redis/Valkey TLS and IAM login still require replication-group or serverless-cache resource types.
+- [x] ElastiCache: Lambda/ECS standalone Redis and Memcached endpoint bindings, native transport-state metadata, Memcached discovery, engine/count guards, and opt-in Memcached TLS with version/VPC/node checks. A separate serverless Valkey/Redis node provides native TLS, Lambda/ECS IAM login, and Subnet/Security Group placement; external IAM users and user groups remain deployment prerequisites. Node-based replication groups remain follow-up work.
 - [x] MemoryDB: Lambda/ECS IAM login with exact cluster/user grants, existing-user authentication and ACL-membership checks, native TLS/engine guards, and runtime connection metadata. Users, ACLs, command/key permissions, and networking remain separately managed.
 - [x] Keyspaces: Lambda/ECS read/write access to explicitly named existing tables, plus required system-metadata reads and runtime connection metadata.
 - [x] Timestream: Lambda/ECS read/write access to explicitly named existing LiveAnalytics tables, with separate endpoint discovery and runtime connection metadata. Table provisioning remains separate.
@@ -507,7 +507,7 @@ Implement:
 Some desired relationships cannot be modeled cleanly with the current service inventory. Add focused resource types before implementing the corresponding connections:
 
 - DataSync locations;
-- ElastiCache replication groups or serverless caches for Valkey/Redis IAM authentication;
+- ElastiCache node-based replication groups; serverless Valkey/Redis IAM support is implemented;
 - Batch job queues for scheduling and submission relationships;
 - customer gateways;
 - Network Firewall policies;

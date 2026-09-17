@@ -130,6 +130,7 @@ _CATEGORY_MEMBERS: dict[str, set[ServiceType]] = {
         ServiceType.AURORA,
         ServiceType.DOCUMENTDB,
         ServiceType.ELASTICACHE,
+        ServiceType.ELASTICACHE_SERVERLESS,
         ServiceType.NEPTUNE,
         ServiceType.RDS,
         ServiceType.TIMESTREAM,

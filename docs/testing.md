@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_elasticache_serverless_connections.py` checks exact IAM grants, external-group requirements, user validation, native endpoint types, ARN identity, deterministic aggregation, and Terraform validation/graphs for both engines and consumers.
+
 `tests/test_elasticache_tls.py` checks Memcached TLS prerequisite validation, Terraform-evaluated override guards, legacy disabled output, native client TLS metadata, and Lambda/ECS project validation/graphs.
 
 `tests/test_dms_cdc_tasks.py` covers migration-mode validation, explicit binlog positions, PostgreSQL IAM source rejection, source-engine guards, preview prerequisites, and Terraform validation/graphs with naming transformations.

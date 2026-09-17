@@ -174,6 +174,7 @@ export const AWS_ICON_REGISTRY: AWSServiceCategory[] = [
       { name: 'Database Migration Service', iconPath: '/aws-icons/Database/Database-Migration-Service.svg', serviceType: 'database-migration-service' },
       { name: 'DocumentDB', iconPath: '/aws-icons/Database/DocumentDB.svg', serviceType: 'documentdb' },
       { name: 'DynamoDB', iconPath: '/aws-icons/Database/DynamoDB.svg', serviceType: 'dynamodb' },
+      { name: 'ElastiCache Serverless', iconPath: '/aws-icons/Database/ElastiCache.svg', serviceType: 'elasticache-serverless' },
       { name: 'ElastiCache', iconPath: '/aws-icons/Database/ElastiCache.svg', serviceType: 'elasticache' },
       { name: 'Keyspaces', iconPath: '/aws-icons/Database/Keyspaces.svg', serviceType: 'keyspaces' },
       { name: 'MemoryDB for Redis', iconPath: '/aws-icons/Database/MemoryDB-for-Redis.svg', serviceType: 'memorydb' },
