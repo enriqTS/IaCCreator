@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from app.generators.dms_iam_endpoint import DMS_IAM_ENGINES
+from app.generators.dms_secret_engines import DmsSecretEngine
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.connection_configs.dms import DmsSecretEndpointConfig
 from app.models.connection_configs.dms_source import DmsSecretSourceEndpointConfig
@@ -15,17 +15,18 @@ def render_secret_endpoint(
     identifier: str,
     instance_name: str,
     database_module: str,
+    engine_settings: DmsSecretEngine,
 ) -> str:
     renderer = HCLRenderer()
     certificate = renderer.render_expression(config.certificate_arn)
     attrs = {
         "endpoint_id": config.endpoint_id,
         "endpoint_type": endpoint_type,
-        "engine_name": DMS_IAM_ENGINES[engine][0],
+        "engine_name": engine_settings.engine_name,
         "database_name": config.database_name,
         "secrets_manager_arn": config.secrets_manager_arn,
         "secrets_manager_access_role_arn": config.secrets_manager_access_role_arn,
-        "ssl_mode": "verify-ca",
+        "ssl_mode": engine_settings.ssl_mode,
         "certificate_arn": config.certificate_arn,
         "lifecycle": {
             "precondition": [

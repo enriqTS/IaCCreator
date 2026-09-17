@@ -1,6 +1,6 @@
 # Backend Generators
 
-DMS Secrets Manager endpoints render secret/access-role references and TLS checks without reading credential values or generating clear-text connection fields.
+DMS Secrets Manager endpoints render secret/access-role references and TLS checks without reading credential values or generating clear-text connection fields. `dms_secret_engines.py` owns the engine/TLS mapping independently of IAM support; RDS SQL Server Enterprise/Standard use `sqlserver` with `verify-full`.
 
 ElastiCache Serverless has a separate Valkey/Redis generator with native TLS, external user-group attachment, placement inputs, and IAM version guards. See [serverless IAM clients](backend-elasticache-serverless.md).
 

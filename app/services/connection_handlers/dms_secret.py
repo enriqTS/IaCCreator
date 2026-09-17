@@ -3,9 +3,9 @@
 from typing import Literal
 
 from app.exceptions import InvalidConnectionConfigError
-from app.generators.database_auth import IAM_DATABASE_ENGINES
 from app.generators.dms_identifiers import dms_identifier
 from app.generators.dms_secret_endpoint import render_secret_endpoint
+from app.generators.dms_secret_engines import DMS_SECRET_ENGINES
 from app.models.connection_configs.dms import DmsSecretEndpointConfig
 from app.models.connection_configs.dms_source import DmsSecretSourceEndpointConfig
 from app.models.connection_previews import ConnectionIssue
@@ -31,7 +31,7 @@ class DmsSecretEndpointHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="References an existing database secret and DMS-trusted access role. The secret must contain host, port, username and password for the selected database; secret contents and role permissions are not verified. Prepare GetSecretValue and any customer-key decryption permissions, SQL migration grants, network access, and an imported DMS CA certificate. Uses verify-ca TLS without reading credentials into Terraform. Test endpoint connectivity before starting a separate replication_task. PostgreSQL CDC requires logical replication and SQL replication grants; CDC-only also needs an inactive slot, its matching plugin, and a retained WAL start position. The deployment identity needs iam:GetRole, iam:PassRole and secretsmanager:DescribeSecret.",
+                message="References an existing database secret and DMS-trusted access role. The secret must contain host, port, username and password for the selected database; secret contents and role permissions are not verified. Prepare GetSecretValue and any customer-key decryption permissions, SQL migration grants, network access, and an imported DMS CA certificate. Uses verify-full TLS for SQL Server and verify-ca for other supported engines, without reading credentials into Terraform. SQL Server requires SQL authentication and a secret hostname matching the certificate; Windows authentication is unsupported. SQL Server source CDC is not implemented. Test endpoint connectivity before starting a separate replication_task. PostgreSQL CDC requires logical replication and SQL replication grants; CDC-only also needs an inactive slot, its matching plugin, and a retained WAL start position. The deployment identity needs iam:GetRole, iam:PassRole and secretsmanager:DescribeSecret.",
             )
         ]
 
@@ -45,7 +45,10 @@ class DmsSecretEndpointHandler(BaseConnectionHandler):
         )
         config = model.model_validate(connection.connection_config)
         database = self._find_instance(connection.target_name, project)
-        if database.config.engine not in IAM_DATABASE_ENGINES[database.service_type]:
+        engine_settings = DMS_SECRET_ENGINES[database.service_type].get(
+            database.config.engine
+        )
+        if engine_settings is None:
             raise InvalidConnectionConfigError(
                 connection.source_name,
                 connection.target_name,
@@ -53,7 +56,7 @@ class DmsSecretEndpointHandler(BaseConnectionHandler):
                 [
                     {
                         "loc": ("dms",),
-                        "msg": "DMS secret endpoints require supported RDS/Aurora MySQL, MariaDB, or PostgreSQL engines",
+                        "msg": "DMS secret endpoints require supported RDS/Aurora MySQL, MariaDB, PostgreSQL, or RDS SQL Server Enterprise/Standard engines",
                     }
                 ],
             )
@@ -105,6 +108,7 @@ class DmsSecretEndpointHandler(BaseConnectionHandler):
                         identifier,
                         source,
                         target,
+                        engine_settings,
                     ),
                 )
             ],

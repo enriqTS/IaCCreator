@@ -1,6 +1,6 @@
 # Backend Services
 
-`DmsSecretEndpointHandler` references externally prepared secrets/roles, shares identifier conflict checks with IAM endpoints, and composes with existing task endpoint resolution.
+`DmsSecretEndpointHandler` references externally prepared secrets/roles, shares identifier conflict checks with IAM endpoints, and composes with existing task endpoint resolution. RDS SQL Server Enterprise/Standard support full-load sources and migration targets; source CDC and IAM login remain unsupported by these connections.
 
 ElastiCache Serverless supports Lambda/ECS IAM login and Subnet/Security Group placement. Grants reference the exact native cache and selected external user; client metadata includes TLS and token-signing context. See [serverless IAM clients](backend-elasticache-serverless.md).
 

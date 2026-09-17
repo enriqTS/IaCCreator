@@ -101,7 +101,7 @@ def test_endpoint_ids_are_unique_across_authentication_methods(reverse):
         generate(payload)
 
 
-@pytest.mark.parametrize("engine", ["oracle-ee", "sqlserver-se"])
+@pytest.mark.parametrize("engine", ["oracle-ee", "sqlserver-ex", "sqlserver-web"])
 def test_unsupported_engines_rejected(engine):
     payload = architecture(kind="source_secret_endpoint")
     payload["resources"][1]["config"]["engine"] = engine
