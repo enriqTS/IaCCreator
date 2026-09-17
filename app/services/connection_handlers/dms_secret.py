@@ -31,7 +31,7 @@ class DmsSecretEndpointHandler(BaseConnectionHandler):
         return [
             ConnectionIssue(
                 severity="warning",
-                message="References an existing database secret and DMS-trusted access role. The secret must contain host, port, username and password for the selected database; secret contents and role permissions are not verified. Prepare GetSecretValue and any customer-key decryption permissions, SQL migration grants, network access, and an imported DMS CA certificate. Uses verify-full TLS for SQL Server and verify-ca for other supported engines, without reading credentials into Terraform. SQL Server requires SQL authentication and a secret hostname matching the certificate; Windows authentication is unsupported. SQL Server CDC requires DMS 3.5.3 or newer, externally enabled MS-CDC for the database and selected tables, and transaction-log backup access. Test endpoint connectivity before starting a separate replication_task. PostgreSQL CDC requires logical replication and SQL replication grants; CDC-only also needs an inactive slot, its matching plugin, and a retained WAL start position. The deployment identity needs iam:GetRole, iam:PassRole and secretsmanager:DescribeSecret.",
+                message="References an existing database secret and DMS-trusted access role. The secret must contain host, port, username and password for the selected database; secret contents and role permissions are not verified. Prepare GetSecretValue and any customer-key decryption permissions, SQL migration grants, network access, and an imported DMS CA certificate. Uses verify-full TLS for SQL Server and verify-ca for other supported engines, without reading credentials into Terraform. SQL Server requires SQL authentication and a secret hostname matching the certificate; Windows authentication is unsupported. SQL Server CDC requires DMS 3.5.3 or newer, externally enabled MS-CDC for the database and selected tables, and transaction-log backup access. Oracle requires an auto-login wallet imported into DMS, a secret using the TLS listener port, and database_name selecting the Oracle service or PDB. Oracle-source CDC is not implemented. Test endpoint connectivity before starting a separate replication_task. PostgreSQL CDC requires logical replication and SQL replication grants; CDC-only also needs an inactive slot, its matching plugin, and a retained WAL start position. The deployment identity needs iam:GetRole, iam:PassRole and secretsmanager:DescribeSecret.",
             )
         ]
 
@@ -56,7 +56,7 @@ class DmsSecretEndpointHandler(BaseConnectionHandler):
                 [
                     {
                         "loc": ("dms",),
-                        "msg": "DMS secret endpoints require supported RDS/Aurora MySQL, MariaDB, PostgreSQL, or RDS SQL Server Enterprise/Standard engines",
+                        "msg": "DMS secret endpoints require supported RDS/Aurora MySQL, MariaDB, PostgreSQL, or RDS SQL Server Enterprise/Standard, or RDS Oracle Enterprise/Standard Edition 2 engines",
                     }
                 ],
             )

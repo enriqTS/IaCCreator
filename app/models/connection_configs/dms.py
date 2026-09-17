@@ -23,8 +23,8 @@ class DmsEndpointConfig(BaseConnectionConfig):
     )
     certificate_arn: str = ConnectionField(
         ...,
-        label="Imported DMS CA certificate ARN",
-        description="DMS-imported database CA certificate in the replication instance's account and Region",
+        label="Imported DMS certificate / Oracle wallet ARN",
+        description="DMS-imported database CA certificate (Oracle: auto-login wallet) in the replication instance's account and Region",
         validation=ValidationRule(
             pattern=r"^arn:aws(?:-[a-z-]+)?:dms:[a-z0-9-]+:[0-9]{12}:cert:[A-Za-z0-9_-]+$"
         ),

@@ -19,6 +19,10 @@ DMS_SECRET_ENGINES = {
         "postgres": DmsSecretEngine("postgres"),
         "sqlserver-ee": DmsSecretEngine("sqlserver", "verify-full"),
         "sqlserver-se": DmsSecretEngine("sqlserver", "verify-full"),
+        "oracle-ee": DmsSecretEngine("oracle"),
+        "oracle-se2": DmsSecretEngine("oracle"),
+        "oracle-ee-cdb": DmsSecretEngine("oracle"),
+        "oracle-se2-cdb": DmsSecretEngine("oracle"),
     },
     ServiceType.AURORA: {
         "aurora-mysql": DmsSecretEngine("aurora"),
