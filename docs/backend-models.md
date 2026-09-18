@@ -1,5 +1,7 @@
 # Backend Models
 
+Lambda → SQS/SNS `dead_letters_to` uses `EmptyConnectionConfig`; retry and retention settings remain separate. See [Lambda dead-letter connections](backend-lambda-dead-letter-connections.md).
+
 `SqsDeadLetterConfig` provides an integer `max_receive_count` from 1–1,000, defaulting to 5. See [SQS dead-letter connections](backend-sqs-dead-letter-connections.md).
 
 SQS → ECS `consumed_by` uses `EmptyConnectionConfig`; polling behavior stays in application code. See [SQS to ECS polling](backend-sqs-ecs-connections.md).

@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_lambda_dead_letter_connections.py` covers native SQS/SNS bindings, scoped role/key grants, destination conflicts, FIFO restrictions, unchanged defaults, order/duplicate independence, and Terraform validation/graphs across encryption modes.
+
 `tests/test_sqs_dead_letter_connections.py` covers receive-count bounds, native references, FIFO restrictions, conflicts/cycles, shared-destination limits, duplicate/order independence, and Terraform validation/graphs for single/shared/chained queues.
 
 `tests/test_sqs_ecs_connections.py` covers queue-scoped task-role polling permissions, native client references, managed/external KMS decrypt grants, multiple queues, duplicate/order independence, and Terraform validation/graphs.

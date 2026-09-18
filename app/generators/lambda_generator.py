@@ -127,8 +127,23 @@ class LambdaGenerator:
         if config.tracing_mode is not None:
             attrs["tracing_config"] = {"mode": Expr("var.tracing_mode")}
 
-        # Dead letter config block
-        if config.dead_letter_target_arn is not None:
+        managed_dead_letter = any(
+            connection.source_name == instance.name
+            and connection.connection_type == "dead_letters_to"
+            for connection in instance.connections
+        )
+        if managed_dead_letter:
+            attrs["lifecycle"] = {
+                "precondition": [
+                    {
+                        "condition": Expr(
+                            '!endswith(var.dead_letter_target_arn, ".fifo")'
+                        ),
+                        "error_message": "Lambda dead-letter destinations must be standard queues or topics.",
+                    }
+                ]
+            }
+        if config.dead_letter_target_arn is not None or managed_dead_letter:
             attrs["dead_letter_config"] = {
                 "target_arn": Expr("var.dead_letter_target_arn"),
             }

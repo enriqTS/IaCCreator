@@ -1,5 +1,7 @@
 # Backend Services
 
+`LambdaDeadLetterHandler` validates one standard SQS/SNS destination and adds native ARN inputs plus scoped execution-role and KMS grants. See [Lambda dead-letter connections](backend-lambda-dead-letter-connections.md).
+
 `SQSDeadLetterHandler` validates queue topology and aggregates destination-owned redrive attachments and scoped allow policies. See [SQS dead-letter connections](backend-sqs-dead-letter-connections.md).
 
 `SQSECSHandler` owns queue-scoped polling grants on the ECS task role, exports queue client references, and composes with KMS consumer grants. See [SQS to ECS polling](backend-sqs-ecs-connections.md).

@@ -1,5 +1,7 @@
 # Backend Generators
 
+Lambda renders `dead_letter_config` for connected destinations without mutating external service configuration; a native ARN precondition excludes FIFO destinations. See [Lambda dead-letter connections](backend-lambda-dead-letter-connections.md).
+
 `sqs_redrive.py` renders standalone queue redrive policies with native FIFO/account/region guards; source references enter the destination module through typed inputs. See [SQS dead-letter connections](backend-sqs-dead-letter-connections.md).
 
 DMS Secrets Manager endpoints render secret/access-role references and TLS checks without reading credential values or generating clear-text connection fields. `dms_secret_engines.py` owns the engine/TLS mapping independently of IAM support; RDS SQL Server Enterprise/Standard use `sqlserver` with `verify-full`. RDS Oracle EE/SE2 and CDB variants use `oracle` with `verify-ca` and an externally imported wallet. Explicit Oracle reader choices render fixed extra connection attributes; arbitrary attribute strings are not accepted.

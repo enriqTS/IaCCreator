@@ -115,6 +115,7 @@ from app.services.connection_handlers.kms_cloudtrail import KmsCloudTrailHandler
 from app.services.connection_handlers.kms_encryption import KmsEncryptionHandler
 from app.services.connection_handlers.kms_references import KMS_INPUTS
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
+from app.services.connection_handlers.lambda_dead_letter import LambdaDeadLetterHandler
 from app.services.connection_handlers.launch_template import (
     LaunchTemplateAutoScalingHandler,
 )
@@ -192,6 +193,18 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=ServiceType.LAMBDA,
+            target=target,
+            connection_type="dead_letters_to",
+            label=f"Lambda → {target.value.upper()} dead-letter destination",
+            config_model=EmptyConnectionConfig,
+            handler=LambdaDeadLetterHandler(),
+            is_default=False,
+        )
+        for target in (ServiceType.SQS, ServiceType.SNS)
+    ],
     ConnectionSpec(
         source=ServiceType.SQS,
         target=ServiceType.SQS,
