@@ -1,5 +1,7 @@
 # Backend Models
 
+`EventBridgeKinesisConfig` adds optional bounded dot-notation partition-key paths to the shared invocation config. See [EventBridge Kinesis connections](backend-eventbridge-kinesis-connections.md).
+
 `EventBridgeInvocationConfig` shares target identifiers and bounded JSON input validation between SNS and Step Functions targets. See [EventBridge workflow connections](backend-eventbridge-workflow-connections.md).
 
 Lambda → SQS/SNS `dead_letters_to` uses `EmptyConnectionConfig`; retry and retention settings remain separate. See [Lambda dead-letter connections](backend-lambda-dead-letter-connections.md).

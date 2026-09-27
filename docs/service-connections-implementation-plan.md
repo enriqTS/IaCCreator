@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 119 Terraform-capable service types, while the connection registry contains 170 connection specifications involving 64 services.
+The generator registry contains 119 Terraform-capable service types, while the connection registry contains 171 connection specifications involving 64 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -286,7 +286,7 @@ Add targets for:
 
 - [x] Step Functions: native target ARN, dedicated rule-scoped invocation role, validated constant input, and identifier conflict checks.
 - [x] SNS: standard-topic targets with dedicated publish roles, scoped managed/external KMS access, and validated input.
-- Kinesis
+- [x] Kinesis: stream-scoped PutRecord roles, optional validated partition-key paths, constant input, and target-setting conflict checks.
 - API Gateway
 - ECS
 - Batch

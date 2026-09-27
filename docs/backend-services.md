@@ -1,5 +1,7 @@
 # Backend Services
 
+`EventBridgeKinesisHandler` reuses rule-owned invocation roles and adds partition-key target attributes. Target-ID validation compares all connection settings. See [EventBridge Kinesis connections](backend-eventbridge-kinesis-connections.md).
+
 `EventBridgeRoleTargetHandler` shares rule-owned invocation roles and targets for Step Functions and SNS. SNS key grants attach to its dedicated publish role without replacing topic policies. See [EventBridge SNS connections](backend-eventbridge-sns-connections.md).
 
 `EventBridgeWorkflowHandler` owns workflow targets and invocation roles in the rule module, with scoped trust/access and target-ID conflict validation. See [EventBridge workflow connections](backend-eventbridge-workflow-connections.md).

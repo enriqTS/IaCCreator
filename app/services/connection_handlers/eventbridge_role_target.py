@@ -20,6 +20,8 @@ from app.services.connection_handlers.kms_consumer import KmsConsumerGrants
 
 
 class EventBridgeRoleTargetHandler(BaseConnectionHandler):
+    config_model = EventBridgeInvocationConfig
+
     def __init__(
         self,
         prefix: str,
@@ -48,9 +50,7 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
     def handle(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> ConnectionContribution:
-        config = EventBridgeInvocationConfig.model_validate(
-            connection.connection_config
-        )
+        config = self.config_model.model_validate(connection.connection_config)
         rule, destination = connection.source_name, connection.target_name
         target = self._find_instance(destination, project)
         if self._reject_fifo and getattr(target.config, "fifo_topic", False):
@@ -74,7 +74,10 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
             )
             if peer_id == target_id and (
                 peer.target_name != destination
-                or (peer.connection_config.get("input") or None) != config.input
+                or self.config_model.model_validate(peer.connection_config).model_dump(
+                    exclude={"target_id"}
+                )
+                != config.model_dump(exclude={"target_id"})
             ):
                 raise InvalidConnectionConfigError(
                     rule,
@@ -83,7 +86,7 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
                     [
                         {
                             "loc": ("target_id",),
-                            "msg": "Target identifiers must uniquely select a destination and input within a rule",
+                            "msg": "Target identifiers must uniquely select a destination and settings within a rule",
                         }
                     ],
                 )
@@ -180,6 +183,7 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
             }
         if config.input is not None:
             attrs["input"] = config.input
+        attrs.update(self.target_attributes(config))
         resources.append(
             self._renderer.render_resource(
                 "aws_cloudwatch_event_target", identifier, attrs
@@ -198,3 +202,6 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
 
         result.merge(grants)
         return result
+
+    def target_attributes(self, config: EventBridgeInvocationConfig) -> dict:
+        return {}

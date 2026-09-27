@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_eventbridge_kinesis_connections.py` covers stream-scoped roles, partition-path generation/bounds, conflicting settings, multiple target IDs, duplicate/order independence, and Terraform validation/graphs.
+
 `tests/test_eventbridge_sns_connections.py` covers dedicated publish-role scopes, managed/external encryption, FIFO and cross-service target-ID conflicts, idempotence, and Terraform validation/graphs.
 
 `tests/test_eventbridge_workflow_connections.py` covers native workflow targets, scoped invocation roles, constant-input validation, identifier conflicts, duplicate/order independence, and Standard/Express Terraform validation and graphs.

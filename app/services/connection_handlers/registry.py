@@ -41,6 +41,7 @@ from app.models.connection_configs.elasticache_serverless import (
 from app.models.connection_configs.eventbridge_invocation import (
     EventBridgeInvocationConfig,
 )
+from app.models.connection_configs.eventbridge_kinesis import EventBridgeKinesisConfig
 from app.models.connection_configs.memorydb import MemoryDbIamConfig
 from app.models.connection_configs.mq import MqClientConfig
 from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
@@ -105,6 +106,9 @@ from app.services.connection_handlers.elasticache_serverless import (
     ServerlessCacheIamHandler,
 )
 from app.services.connection_handlers.environment_secret import EnvironmentSecretHandler
+from app.services.connection_handlers.eventbridge_kinesis import (
+    EventBridgeKinesisHandler,
+)
 from app.services.connection_handlers.eventbridge_sns import EventBridgeSNSHandler
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
@@ -200,6 +204,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EVENTBRIDGE,
+        target=ServiceType.KINESIS,
+        connection_type="targets",
+        label="EventBridge → Kinesis stream",
+        config_model=EventBridgeKinesisConfig,
+        handler=EventBridgeKinesisHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,
         target=ServiceType.SNS,
