@@ -1,5 +1,7 @@
 # Backend Models
 
+`EventBridgeWorkflowConfig` extends target identifiers and constant input with bounded JSON validation. See [EventBridge workflow connections](backend-eventbridge-workflow-connections.md).
+
 Lambda → SQS/SNS `dead_letters_to` uses `EmptyConnectionConfig`; retry and retention settings remain separate. See [Lambda dead-letter connections](backend-lambda-dead-letter-connections.md).
 
 `SqsDeadLetterConfig` provides an integer `max_receive_count` from 1–1,000, defaulting to 5. See [SQS dead-letter connections](backend-sqs-dead-letter-connections.md).

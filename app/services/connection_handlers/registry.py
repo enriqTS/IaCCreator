@@ -38,6 +38,7 @@ from app.models.connection_configs.efs import (
 from app.models.connection_configs.elasticache_serverless import (
     ServerlessCacheIamConfig,
 )
+from app.models.connection_configs.eventbridge_workflow import EventBridgeWorkflowConfig
 from app.models.connection_configs.memorydb import MemoryDbIamConfig
 from app.models.connection_configs.mq import MqClientConfig
 from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
@@ -105,6 +106,9 @@ from app.services.connection_handlers.environment_secret import EnvironmentSecre
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
     EventBridgeSQSHandler,
+)
+from app.services.connection_handlers.eventbridge_workflow import (
+    EventBridgeWorkflowHandler,
 )
 from app.services.connection_handlers.firehose_s3 import FirehoseS3Handler
 from app.services.connection_handlers.gateway_route import GatewayRouteHandler
@@ -193,6 +197,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EVENTBRIDGE,
+        target=ServiceType.STEP_FUNCTIONS,
+        connection_type="targets",
+        label="EventBridge → Step Functions",
+        config_model=EventBridgeWorkflowConfig,
+        handler=EventBridgeWorkflowHandler(),
+    ),
     *[
         ConnectionSpec(
             source=ServiceType.LAMBDA,

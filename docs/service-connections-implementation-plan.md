@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 119 Terraform-capable service types, while the connection registry contains 168 connection specifications involving 64 services.
+The generator registry contains 119 Terraform-capable service types, while the connection registry contains 169 connection specifications involving 64 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -284,7 +284,7 @@ Source and target endpoint configurations must be typed and engine-aware. Secret
 
 Add targets for:
 
-- Step Functions
+- [x] Step Functions: native target ARN, dedicated rule-scoped invocation role, validated constant input, and identifier conflict checks.
 - SNS
 - Kinesis
 - API Gateway
@@ -314,7 +314,7 @@ Secrets Manager GetSecretValue tasks are implemented in Phase 3 using selected P
 Implement:
 
 - API Gateway → Step Functions.
-- EventBridge → Step Functions.
+- [x] EventBridge → Step Functions: asynchronous StartExecution targets with scoped invocation roles.
 - Step Functions → Lambda.
 - Step Functions → ECS.
 - Step Functions → Batch.
