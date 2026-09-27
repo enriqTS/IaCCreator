@@ -8,7 +8,9 @@ from hypothesis import strategies as st
 from pydantic import ValidationError
 
 from app.exceptions import InvalidConnectionConfigError
-from app.models.connection_configs.eventbridge_workflow import EventBridgeWorkflowConfig
+from app.models.connection_configs.eventbridge_invocation import (
+    EventBridgeInvocationConfig,
+)
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.registry import resolve_spec
 from tests.generator_helpers import connection_architecture
@@ -60,7 +62,7 @@ def test_scoped_role_and_input(target_id, constant):
 )
 def test_invalid_constant_input_rejected(value):
     with pytest.raises(ValidationError):
-        EventBridgeWorkflowConfig(input=value)
+        EventBridgeInvocationConfig(input=value)
 
 
 def test_conflicting_target_input_rejected():

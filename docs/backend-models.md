@@ -1,6 +1,6 @@
 # Backend Models
 
-`EventBridgeWorkflowConfig` extends target identifiers and constant input with bounded JSON validation. See [EventBridge workflow connections](backend-eventbridge-workflow-connections.md).
+`EventBridgeInvocationConfig` shares target identifiers and bounded JSON input validation between SNS and Step Functions targets. See [EventBridge workflow connections](backend-eventbridge-workflow-connections.md).
 
 Lambda → SQS/SNS `dead_letters_to` uses `EmptyConnectionConfig`; retry and retention settings remain separate. See [Lambda dead-letter connections](backend-lambda-dead-letter-connections.md).
 

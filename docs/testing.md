@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_eventbridge_sns_connections.py` covers dedicated publish-role scopes, managed/external encryption, FIFO and cross-service target-ID conflicts, idempotence, and Terraform validation/graphs.
+
 `tests/test_eventbridge_workflow_connections.py` covers native workflow targets, scoped invocation roles, constant-input validation, identifier conflicts, duplicate/order independence, and Standard/Express Terraform validation and graphs.
 
 `tests/test_lambda_dead_letter_connections.py` covers native SQS/SNS bindings, scoped role/key grants, destination conflicts, FIFO restrictions, unchanged defaults, order/duplicate independence, and Terraform validation/graphs across encryption modes.

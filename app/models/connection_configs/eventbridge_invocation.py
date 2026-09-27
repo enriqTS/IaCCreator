@@ -1,4 +1,4 @@
-"""EventBridge workflow targets accept bounded, valid constant JSON."""
+"""EventBridge invocation targets accept bounded, valid constant JSON."""
 
 import json
 
@@ -7,7 +7,7 @@ from pydantic import field_validator
 from app.models.connection_configs.configs import EventBridgeTargetConfig
 
 
-class EventBridgeWorkflowConfig(EventBridgeTargetConfig):
+class EventBridgeInvocationConfig(EventBridgeTargetConfig):
     @field_validator("input")
     @classmethod
     def validate_input(cls, value: str | None) -> str | None:

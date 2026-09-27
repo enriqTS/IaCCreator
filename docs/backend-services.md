@@ -1,5 +1,7 @@
 # Backend Services
 
+`EventBridgeRoleTargetHandler` shares rule-owned invocation roles and targets for Step Functions and SNS. SNS key grants attach to its dedicated publish role without replacing topic policies. See [EventBridge SNS connections](backend-eventbridge-sns-connections.md).
+
 `EventBridgeWorkflowHandler` owns workflow targets and invocation roles in the rule module, with scoped trust/access and target-ID conflict validation. See [EventBridge workflow connections](backend-eventbridge-workflow-connections.md).
 
 `LambdaDeadLetterHandler` validates one standard SQS/SNS destination and adds native ARN inputs plus scoped execution-role and KMS grants. See [Lambda dead-letter connections](backend-lambda-dead-letter-connections.md).
