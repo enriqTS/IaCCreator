@@ -318,7 +318,7 @@ Implement:
 - [x] Step Functions → Lambda: selected JSONPath Pass placeholders become Lambda Task states with scoped InvokeFunction grants on the existing execution role.
 - [x] Step Functions → ECS: synchronous Fargate RunTask states with managed network references, scoped RunTask/PassRole grants, and task-monitoring permissions.
 - [x] Step Functions → Batch: synchronous SubmitJob states using selected generated queues and job definitions, scoped submission and completion-rule grants, and job monitoring permissions.
-- Step Functions → SNS.
+- [x] Step Functions → SNS: Publish Task states send input or constant messages to generated standard/FIFO topics with topic-scoped publish, FIFO group/deduplication settings, and scoped KMS grants.
 - Step Functions → SQS.
 - Step Functions → DynamoDB.
 - Step Functions → EventBridge.

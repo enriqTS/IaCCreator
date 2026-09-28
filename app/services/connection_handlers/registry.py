@@ -81,6 +81,7 @@ from app.models.connection_configs.workflows import (
     StepFunctionsEcsConfig,
     StepFunctionsLambdaConfig,
     StepFunctionsSecretConfig,
+    StepFunctionsSnsConfig,
 )
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.accelerator_endpoint import (
@@ -207,6 +208,7 @@ from app.services.connection_handlers.step_functions_lambda import (
 from app.services.connection_handlers.step_functions_secret import (
     StepFunctionsSecretHandler,
 )
+from app.services.connection_handlers.step_functions_sns import StepFunctionsSnsHandler
 from app.services.connection_handlers.subnet_membership import SubnetMembershipHandler
 from app.services.connection_handlers.target_group_attachment import (
     TargetGroupEC2AttachmentHandler,
@@ -730,6 +732,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Step Functions → Batch job queue",
         config_model=StepFunctionsBatchConfig,
         handler=StepFunctionsBatchHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.STEP_FUNCTIONS,
+        target=ServiceType.SNS,
+        connection_type="publishes",
+        label="Step Functions → SNS topic",
+        config_model=StepFunctionsSnsConfig,
+        handler=StepFunctionsSnsHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.STEP_FUNCTIONS,

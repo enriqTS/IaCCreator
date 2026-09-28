@@ -6,6 +6,7 @@ from app.generators.step_functions_batch import batch_workflow_attributes
 from app.generators.step_functions_ecs import ecs_workflow_attributes
 from app.generators.step_functions_lambda import lambda_workflow_attributes
 from app.generators.step_functions_secrets import secret_workflow_attributes
+from app.generators.step_functions_sns import sns_workflow_attributes
 from app.models.input_models.step_functions_config import StepFunctionsConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -23,7 +24,16 @@ class StepFunctionsGenerator:
             "type": Expr("var.state_machine_type"),
             "publish": Expr("var.publish"),
         }
-        if config._submits_batch_jobs:
+        if config._publishes_sns_messages:
+            attrs.update(
+                sns_workflow_attributes(
+                    config._submits_batch_jobs,
+                    config._runs_ecs_tasks,
+                    config._invokes_lambdas,
+                    config._reads_runtime_secrets,
+                )
+            )
+        elif config._submits_batch_jobs:
             attrs.update(
                 batch_workflow_attributes(
                     config._runs_ecs_tasks,

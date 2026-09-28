@@ -89,6 +89,8 @@ Key coverage areas include:
 
 `tests/test_step_functions_batch_connections.py` covers synchronous jobs, scoped submission and monitoring permissions, invalid targets and settings, mixed-task conflicts, deterministic composition, Terraform console state evaluation, and generated-project validation/graphs.
 
+`tests/test_step_functions_sns_connections.py` covers Publish states, standard/FIFO settings, scoped topic and KMS permissions, state conflicts, deterministic composition, Terraform console evaluation, and generated-project validation/graphs.
+
 `tests/test_batch_secret_connections.py` covers job/execution-role separation, native settings and reserved-name validation, external bindings, catalog/schema exposure, and unchanged compute-environment compatibility. Terraform console tests evaluate container properties, resource requirement types, plaintext-variable replacement, and managed/external secret merging. Shared tests cover aggregation and encrypted-project validation.
 
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.
