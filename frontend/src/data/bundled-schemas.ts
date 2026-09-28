@@ -1143,6 +1143,54 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "service_role_arn",
       "required": false,
       "type": "string"
+    },
+    {
+      "description": "Batch compute environment type; unmanaged capacity must be supplied separately",
+      "group": "General",
+      "label": "Batch compute environment type",
+      "name": "batch_compute_environment_type",
+      "options": [
+        {
+          "label": "Unmanaged",
+          "value": "UNMANAGED"
+        },
+        {
+          "label": "Managed",
+          "value": "MANAGED"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "UNMANAGED",
+          "MANAGED"
+        ]
+      }
+    },
+    {
+      "description": "Name of an optional job queue backed by this compute environment",
+      "group": "Job Queue",
+      "label": "Job queue name",
+      "name": "job_queue_name",
+      "required": false,
+      "type": "string",
+      "validation": {
+        "pattern": "^[A-Za-z0-9_-]{1,128}$"
+      }
+    },
+    {
+      "default": 1,
+      "description": "Priority of the optional job queue",
+      "group": "Job Queue",
+      "label": "Job queue priority",
+      "name": "job_queue_priority",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 1000,
+        "min": 0
+      }
     }
   ],
   "batch-job-definition": [

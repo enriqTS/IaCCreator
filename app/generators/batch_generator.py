@@ -24,7 +24,7 @@ class BatchGenerator:
         config = _resolve_config(instance)
 
         attrs: dict = {
-            "compute_environment_name": Expr("var.compute_environment_name"),
+            "name": Expr("var.compute_environment_name"),
             "service_role": Expr("var.service_role_arn"),
         }
         if config.batch_compute_environment_type is not None:
@@ -32,9 +32,26 @@ class BatchGenerator:
         if config.batch_max_vcpus is not None:
             attrs["compute_resources"] = {"max_vcpus": Expr("var.batch_max_vcpus")}
 
-        return self._r.render_resource(
+        result = self._r.render_resource(
             "aws_batch_compute_environment", instance.name, attrs
         )
+        if config.job_queue_name:
+            result += "\n" + self._r.render_resource(
+                "aws_batch_job_queue",
+                f"{instance.name}_queue",
+                {
+                    "name": Expr("var.job_queue_name"),
+                    "state": "ENABLED",
+                    "priority": Expr("var.job_queue_priority"),
+                    "compute_environment_order": {
+                        "order": 1,
+                        "compute_environment": Expr(
+                            f"aws_batch_compute_environment.{instance.name}.arn"
+                        ),
+                    },
+                },
+            )
+        return result
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for a Batch compute environment."""
@@ -68,6 +85,23 @@ class BatchGenerator:
                     default=config.batch_max_vcpus,
                 )
             )
+        if config.job_queue_name:
+            parts.extend(
+                [
+                    self._r.render_variable(
+                        "job_queue_name",
+                        "string",
+                        "Name of the Batch job queue",
+                        default=config.job_queue_name,
+                    ),
+                    self._r.render_variable(
+                        "job_queue_priority",
+                        "number",
+                        "Priority of the Batch job queue",
+                        default=config.job_queue_priority,
+                    ),
+                ]
+            )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
@@ -80,8 +114,16 @@ class BatchGenerator:
             ),
             self._r.render_output(
                 "compute_environment_name",
-                f"aws_batch_compute_environment.{instance.name}.compute_environment_name",
+                f"aws_batch_compute_environment.{instance.name}.name",
                 "Name of the Batch compute environment",
             ),
         ]
+        if _resolve_config(instance).job_queue_name:
+            parts.append(
+                self._r.render_output(
+                    "job_queue_arn",
+                    f"aws_batch_job_queue.{instance.name}_queue.arn",
+                    "ARN of the Batch job queue",
+                )
+            )
         return "\n".join(parts)

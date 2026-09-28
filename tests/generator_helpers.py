@@ -250,6 +250,9 @@ def connection_architecture(spec) -> dict:
         if spec.source == ServiceType.EVENTBRIDGE and service_type == ServiceType.ECS:
             config["subnet_ids"] = ["subnet-12345678"]
             config["security_group_ids"] = ["sg-12345678"]
+        if spec.source == ServiceType.EVENTBRIDGE and service_type == ServiceType.BATCH:
+            config["batch_compute_environment_type"] = "UNMANAGED"
+            config["service_role_arn"] = "arn:aws:iam::123456789012:role/batch/service"
         if spec.source == ServiceType.EFS and spec.target in {
             ServiceType.LAMBDA,
             ServiceType.ECS,
@@ -371,4 +374,22 @@ def connection_architecture(spec) -> dict:
             ],
         )
         payload["connections"][0]["connection_config"] = {"path": "/events"}
+    if spec.source == ServiceType.EVENTBRIDGE and spec.target == ServiceType.BATCH:
+        definition = minimal_config_for(ServiceType.BATCH_JOB_DEFINITION).model_dump(
+            exclude_none=True
+        )
+        definition.update(DEPLOYABLE_EXTRAS[ServiceType.BATCH_JOB_DEFINITION])
+        definition["service_type"] = ServiceType.BATCH_JOB_DEFINITION.value
+        payload["resources"].append(
+            {
+                "id": "jobdef",
+                "name": "batch-job",
+                "service_type": ServiceType.BATCH_JOB_DEFINITION.value,
+                "config": definition,
+                "terraform_variables": {},
+            }
+        )
+        payload["connections"][0]["connection_config"] = {
+            "job_definition_name": "batch-job"
+        }
     return payload

@@ -289,7 +289,7 @@ Add targets for:
 - [x] Kinesis: stream-scoped PutRecord roles, optional validated partition-key paths, constant input, and target-setting conflict checks.
 - [x] API Gateway: static IAM-authorized HTTP POST routes with stage selection and route-scoped invocation roles.
 - [x] ECS: Fargate task targets with native task and network references, cluster-scoped RunTask, and task-role PassRole permissions.
-- Batch
+- [x] Batch: unmanaged compute-environment queues submit selected generated EC2 job definitions with queue- and definition-scoped roles.
 - CodeBuild
 - Systems Manager documents
 

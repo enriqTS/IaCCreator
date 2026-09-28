@@ -28,6 +28,8 @@ The registry currently covers core services (including EventBridge), compute, an
 
 API Gateway is split across `app/generators/api_gateway/`: API, routes, integrations, stages, authorizers, domains, VPC links, API keys, and outputs each have focused renderers. `api_gateway_generator.py` remains the registry-facing facade.
 
+The Batch generator can add an optional job queue backed by its compute environment and export its ARN. EventBridge Batch connections create that queue when absent and require an unmanaged compute environment with separately registered EC2 capacity.
+
 ## Rendering and schemas
 
 `HCLRenderer` produces Terraform resources, variables, outputs, modules, and providers with two-space indentation. It formats Terraform references rather than quoting them and renders nested values as HCL blocks or collections where appropriate.

@@ -43,6 +43,8 @@ Resource names are validated for Terraform-safe syntax and uniqueness. Stable ID
 
 `BatchJobDefinitionConfig` models EC2 single-container job settings independently of `BatchConfig` compute environments. It exposes native external-secret and plaintext environment maps, rejects reserved names and unsupported fields, and requires an execution role when external secret bindings are configured. Managed injection uses the typed `BatchSecretConfig` environment-name selector and a private generation flag.
 
+`BatchConfig` can now name an optional job queue backed by its compute environment. Its queue name and priority are validated by the backend; the EventBridge Batch target fills a deterministic queue name when the user leaves it unset.
+
 ## Connection and response models
 
 `app/models/connection_configs/` defines editable connection configuration and schema response models. The connection-handler registry is the source of truth for valid service pairs and connection types.

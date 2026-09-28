@@ -41,6 +41,7 @@ from app.models.connection_configs.elasticache_serverless import (
 from app.models.connection_configs.eventbridge_api_gateway import (
     EventBridgeApiGatewayConfig,
 )
+from app.models.connection_configs.eventbridge_batch import EventBridgeBatchConfig
 from app.models.connection_configs.eventbridge_ecs import EventBridgeEcsConfig
 from app.models.connection_configs.eventbridge_invocation import (
     EventBridgeInvocationConfig,
@@ -113,6 +114,7 @@ from app.services.connection_handlers.environment_secret import EnvironmentSecre
 from app.services.connection_handlers.eventbridge_api_gateway import (
     EventBridgeApiGatewayHandler,
 )
+from app.services.connection_handlers.eventbridge_batch import EventBridgeBatchHandler
 from app.services.connection_handlers.eventbridge_ecs import EventBridgeEcsHandler
 from app.services.connection_handlers.eventbridge_kinesis import (
     EventBridgeKinesisHandler,
@@ -212,6 +214,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EVENTBRIDGE,
+        target=ServiceType.BATCH,
+        connection_type="targets",
+        label="EventBridge → Batch job queue",
+        config_model=EventBridgeBatchConfig,
+        handler=EventBridgeBatchHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,
         target=ServiceType.ECS,
