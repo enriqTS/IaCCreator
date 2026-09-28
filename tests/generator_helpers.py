@@ -254,6 +254,19 @@ def connection_architecture(spec) -> dict:
             config["batch_compute_environment_type"] = "UNMANAGED"
             config["service_role_arn"] = "arn:aws:iam::123456789012:role/batch/service"
         if (
+            spec.source == ServiceType.API_GATEWAY
+            and spec.target == ServiceType.STEP_FUNCTIONS
+            and service_type == ServiceType.API_GATEWAY
+        ):
+            config["routes"] = [
+                {
+                    "path": "/start",
+                    "methods": ["POST"],
+                    "integration_name": "target-resource",
+                    "integration_id": "tgt",
+                }
+            ]
+        if (
             spec.source == ServiceType.SNS
             and service_type == ServiceType.KINESIS_FIREHOSE
         ):

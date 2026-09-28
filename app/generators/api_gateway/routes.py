@@ -183,6 +183,8 @@ def render_routes(
 
                 for method in methods:
                     route_key = f"{method} {path}"
+                    if (method, path) in config._managed_connection_routes:
+                        continue
                     route_name = sanitize_route_name(f"{method}_{path}")
                     resource_name = f"{instance.name}_{route_name}_route"
 

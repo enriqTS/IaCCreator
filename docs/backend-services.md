@@ -10,6 +10,8 @@
 
 SNS → Firehose subscriptions live in the stream module with a stream-scoped SNS delivery role. See [SNS Firehose connections](backend-sns-firehose-connections.md).
 
+API Gateway → Step Functions binds selected HTTP POST routes to a native StartExecution integration and a workflow-scoped invocation role. See [API Gateway Step Functions connections](backend-apigw-step-functions-connections.md).
+
 EventBridge Run Command connections target generated Systems Manager Command documents and explicit managed EC2 instance IDs. The rule owns a scoped invocation role and checks the document type at Terraform validation. See [EventBridge Systems Manager connections](backend-eventbridge-ssm-connections.md).
 
 `EventBridgeKinesisHandler` reuses rule-owned invocation roles and adds partition-key target attributes. Target-ID validation compares all connection settings. See [EventBridge Kinesis connections](backend-eventbridge-kinesis-connections.md).

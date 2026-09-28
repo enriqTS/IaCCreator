@@ -4,6 +4,9 @@ from dataclasses import dataclass
 from typing import Literal
 
 from app.models.connection_configs._base import BaseConnectionConfig
+from app.models.connection_configs.apigw_step_functions import (
+    ApiGatewayStepFunctionsConfig,
+)
 from app.models.connection_configs.backup import BackupSelectionConfig
 from app.models.connection_configs.configs import (
     AcceleratorEndpointConfig,
@@ -79,6 +82,9 @@ from app.services.connection_handlers.accelerator_endpoint import (
     AcceleratorLoadBalancerHandler,
 )
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
+from app.services.connection_handlers.apigw_step_functions import (
+    ApiGatewayStepFunctionsHandler,
+)
 from app.services.connection_handlers.backup_selection import (
     BACKUP_OUTPUTS,
     BackupSelectionHandler,
@@ -1052,6 +1058,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
             "target_group_arn",
             "Target groups attached to this Auto Scaling group",
         ),
+    ),
+    ConnectionSpec(
+        source=ServiceType.API_GATEWAY,
+        target=ServiceType.STEP_FUNCTIONS,
+        connection_type="starts_execution",
+        label="API Gateway → Step Functions (POST route)",
+        config_model=ApiGatewayStepFunctionsConfig,
+        handler=ApiGatewayStepFunctionsHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.API_GATEWAY,

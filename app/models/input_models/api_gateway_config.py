@@ -2,6 +2,8 @@
 
 from typing import ClassVar, Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import (
@@ -17,6 +19,7 @@ class ApiGatewayConfig(BaseServiceConfig):
     """API Gateway-specific configuration — single source of truth."""
 
     service_type: Literal[ServiceType.API_GATEWAY] = ServiceType.API_GATEWAY
+    _managed_connection_routes: set[tuple[str, str]] = PrivateAttr(default_factory=set)
 
     # ─── General ───────────────────────────────────────────────────────────
     api_name: str = TerraformField(

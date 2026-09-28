@@ -165,9 +165,9 @@ class IRBuilder:
             self._validate_connection_regions(source_resource, target_resource, spec)
             connection_config = conn.connection_config
 
-            # Derive routes from API Gateway config for route_handler connections
-            if spec.connection_type == "route_handler":
-                connection_config = self._derive_apigw_lambda_routes(
+            # Bind routes selected on the gateway to their connected integration.
+            if spec.connection_type in {"route_handler", "starts_execution"}:
+                connection_config = self._derive_apigw_bound_routes(
                     conn, source_resource, target_resource
                 )
 
@@ -240,21 +240,13 @@ class IRBuilder:
                 "stream_view_type", "NEW_AND_OLD_IMAGES"
             )
 
-    def _derive_apigw_lambda_routes(
+    def _derive_apigw_bound_routes(
         self,
         conn: Connection,
         source_resource,
         target_resource,
     ) -> dict:
-        """Derive routes array from API Gateway config for route_handler connections.
-
-        For API_GATEWAY -> LAMBDA connections with role 'route_handler' (default),
-        derives connection_config['routes'] from the gateway's config.routes
-        entries whose integration_id (or integration_name) matches the target lambda.
-
-        Preserves explicit connection_config['routes'] if already present
-        (direct API/back-compat use).
-        """
+        """Find gateway routes bound to the target node by ID or name."""
         config = conn.connection_config or {}
 
         # Skip if routes already explicitly provided (direct API/back-compat)

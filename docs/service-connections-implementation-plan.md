@@ -313,7 +313,7 @@ Secrets Manager GetSecretValue tasks are implemented in Phase 3 using selected P
 
 Implement:
 
-- API Gateway → Step Functions.
+- [x] API Gateway → Step Functions: IAM-authorized HTTP POST routes with native asynchronous StartExecution integration and workflow-scoped invocation roles.
 - [x] EventBridge → Step Functions: asynchronous StartExecution targets with scoped invocation roles.
 - Step Functions → Lambda.
 - Step Functions → ECS.
