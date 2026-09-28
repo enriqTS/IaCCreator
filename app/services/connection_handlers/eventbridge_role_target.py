@@ -123,6 +123,7 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
         grants.iam.clear()
         policy = self._renderer.render_json_policy
         resources = [
+            *self.data_sources(identifier, config),
             self._renderer.render_resource(
                 "aws_iam_role",
                 identifier,
@@ -206,6 +207,11 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
         self, config: EventBridgeInvocationConfig, identifier: str
     ) -> dict:
         return {}
+
+    def data_sources(
+        self, identifier: str, config: EventBridgeInvocationConfig
+    ) -> list[str]:
+        return []
 
     def additional_inputs(
         self,

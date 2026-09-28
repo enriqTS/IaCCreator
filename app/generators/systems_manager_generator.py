@@ -37,5 +37,8 @@ class SystemsManagerGenerator:
             [
                 self._r.render_output("document_arn", f"{ref}.arn", "Document ARN"),
                 self._r.render_output("document_name", f"{ref}.name", "Document name"),
+                self._r.render_output(
+                    "document_type", "var.document_type", "Document type"
+                ),
             ]
         )

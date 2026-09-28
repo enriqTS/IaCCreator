@@ -291,7 +291,7 @@ Add targets for:
 - [x] ECS: Fargate task targets with native task and network references, cluster-scoped RunTask, and task-role PassRole permissions.
 - [x] Batch: unmanaged compute-environment queues submit selected generated EC2 job definitions with queue- and definition-scoped roles.
 - [x] CodeBuild: standard builds through project-scoped StartBuild roles and native project ARNs.
-- Systems Manager documents
+- [x] Systems Manager Command documents: Run Command targets for explicit managed EC2 instance IDs, with document- and instance-scoped SendCommand roles.
 
 Each target handler must own its target resource and create the required invoke role or resource policy.
 

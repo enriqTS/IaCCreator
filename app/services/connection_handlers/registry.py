@@ -50,6 +50,7 @@ from app.models.connection_configs.eventbridge_invocation import (
     EventBridgeInvocationConfig,
 )
 from app.models.connection_configs.eventbridge_kinesis import EventBridgeKinesisConfig
+from app.models.connection_configs.eventbridge_ssm import EventBridgeSsmConfig
 from app.models.connection_configs.memorydb import MemoryDbIamConfig
 from app.models.connection_configs.mq import MqClientConfig
 from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
@@ -126,6 +127,7 @@ from app.services.connection_handlers.eventbridge_kinesis import (
     EventBridgeKinesisHandler,
 )
 from app.services.connection_handlers.eventbridge_sns import EventBridgeSNSHandler
+from app.services.connection_handlers.eventbridge_ssm import EventBridgeSsmHandler
 from app.services.connection_handlers.eventbridge_targets import (
     EventBridgeLambdaHandler,
     EventBridgeSQSHandler,
@@ -220,6 +222,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EVENTBRIDGE,
+        target=ServiceType.SYSTEMS_MANAGER,
+        connection_type="targets",
+        label="EventBridge → Systems Manager Command document",
+        config_model=EventBridgeSsmConfig,
+        handler=EventBridgeSsmHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,
         target=ServiceType.CODEBUILD,

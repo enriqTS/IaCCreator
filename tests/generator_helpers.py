@@ -294,9 +294,10 @@ def connection_architecture(spec) -> dict:
                 "source_id": "src",
                 "target_id": "tgt",
                 "connection_type": spec.connection_type,
-                "connection_config": {
-                    "role_arn": "arn:aws:iam::123456789012:role/service-role/backup"
-                }
+                "connection_config": {"instance_id": "i-0123456789abcdef0"}
+                if spec.source == ServiceType.EVENTBRIDGE
+                and spec.target == ServiceType.SYSTEMS_MANAGER
+                else {"role_arn": "arn:aws:iam::123456789012:role/service-role/backup"}
                 if spec.source == ServiceType.BACKUP
                 or spec.connection_type == "replicates_to"
                 else {"node_role_arn": "arn:aws:iam::123456789012:role/eks/workers"}
