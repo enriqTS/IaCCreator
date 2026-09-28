@@ -62,6 +62,7 @@ from app.models.connection_configs.secrets import (
     CodeBuildSecretConfig,
     EcsSecretConfig,
 )
+from app.models.connection_configs.sns_firehose import SnsFirehoseConfig
 from app.models.connection_configs.storage import (
     EbsAttachmentConfig,
     EfsLambdaMountConfig,
@@ -179,6 +180,7 @@ from app.services.connection_handlers.s3_log_delivery import S3LogDeliveryHandle
 from app.services.connection_handlers.s3_read_source import S3ReadSourceHandler
 from app.services.connection_handlers.s3_replication import S3ReplicationHandler
 from app.services.connection_handlers.secret_access import SecretAccessHandler
+from app.services.connection_handlers.sns_firehose import SnsFirehoseHandler
 from app.services.connection_handlers.sns_lambda import SNSLambdaHandler
 from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_dead_letter import SQSDeadLetterHandler
@@ -1169,6 +1171,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="SQS → Lambda",
         config_model=SqsLambdaConfig,
         handler=SQSLambdaHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.SNS,
+        target=ServiceType.KINESIS_FIREHOSE,
+        connection_type="delivers_to",
+        label="SNS → Firehose delivery stream",
+        config_model=SnsFirehoseConfig,
+        handler=SnsFirehoseHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.SNS,

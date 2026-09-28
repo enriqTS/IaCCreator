@@ -299,7 +299,7 @@ Each target handler must own its target resource and create the required invoke 
 
 Implement:
 
-- SNS → Kinesis Firehose.
+- [x] SNS → Kinesis Firehose: standard-topic subscriptions with stream-scoped delivery roles and optional raw messages.
 - [x] SQS → ECS polling access: task-role grants scoped to native queue ARNs, URL/region exports, managed/external key decrypt permissions, and application polling guidance.
 - [x] SQS → SQS dead-letter queue: bounded receive counts, one destination per source, FIFO/account/region guards, scoped allow policies for up to ten sources, and cycle-free shared/chained Terraform wiring.
 - [x] Lambda → SQS dead-letter queue: native destination binding, scoped execution-role send/KMS permissions, conflict and FIFO checks.

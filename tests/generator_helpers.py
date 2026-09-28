@@ -253,6 +253,13 @@ def connection_architecture(spec) -> dict:
         if spec.source == ServiceType.EVENTBRIDGE and service_type == ServiceType.BATCH:
             config["batch_compute_environment_type"] = "UNMANAGED"
             config["service_role_arn"] = "arn:aws:iam::123456789012:role/batch/service"
+        if (
+            spec.source == ServiceType.SNS
+            and service_type == ServiceType.KINESIS_FIREHOSE
+        ):
+            config["destination"] = "extended_s3"
+            config["bucket_arn"] = "arn:aws:s3:::external-firehose-destination"
+            config["s3_prefix"] = "events/"
         if spec.source == ServiceType.EFS and spec.target in {
             ServiceType.LAMBDA,
             ServiceType.ECS,
