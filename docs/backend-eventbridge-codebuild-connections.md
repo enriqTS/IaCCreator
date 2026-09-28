@@ -1,0 +1,5 @@
+# EventBridge → CodeBuild
+
+The `targets` connection starts a standard build in the connected generated CodeBuild project when an EventBridge rule matches. It uses the project's native ARN and a dedicated rule-owned invocation role. The role trusts `events.amazonaws.com` for that rule and grants only `codebuild:StartBuild` on that project ARN. A custom `target_id` can distinguish multiple independent targets on the same rule; duplicate connections remain idempotent.
+
+The connection uses the project's configured source, buildspec, environment, artifacts, and CodeBuild service role. It does not provide per-event build overrides or batch builds. Configure source access, build commands, artifact storage, retry and dead-letter handling, and monitoring separately. See [EventBridge CodeBuild targets](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-targets.html#eb-targets-codebuild) and the [CodeBuild StartBuild API](https://docs.aws.amazon.com/codebuild/latest/APIReference/API_StartBuild.html).

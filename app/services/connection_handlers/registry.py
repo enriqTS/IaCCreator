@@ -42,6 +42,9 @@ from app.models.connection_configs.eventbridge_api_gateway import (
     EventBridgeApiGatewayConfig,
 )
 from app.models.connection_configs.eventbridge_batch import EventBridgeBatchConfig
+from app.models.connection_configs.eventbridge_codebuild import (
+    EventBridgeCodeBuildConfig,
+)
 from app.models.connection_configs.eventbridge_ecs import EventBridgeEcsConfig
 from app.models.connection_configs.eventbridge_invocation import (
     EventBridgeInvocationConfig,
@@ -115,6 +118,9 @@ from app.services.connection_handlers.eventbridge_api_gateway import (
     EventBridgeApiGatewayHandler,
 )
 from app.services.connection_handlers.eventbridge_batch import EventBridgeBatchHandler
+from app.services.connection_handlers.eventbridge_codebuild import (
+    EventBridgeCodeBuildHandler,
+)
 from app.services.connection_handlers.eventbridge_ecs import EventBridgeEcsHandler
 from app.services.connection_handlers.eventbridge_kinesis import (
     EventBridgeKinesisHandler,
@@ -214,6 +220,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EVENTBRIDGE,
+        target=ServiceType.CODEBUILD,
+        connection_type="targets",
+        label="EventBridge → CodeBuild project",
+        config_model=EventBridgeCodeBuildConfig,
+        handler=EventBridgeCodeBuildHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,
         target=ServiceType.BATCH,

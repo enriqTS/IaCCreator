@@ -290,7 +290,7 @@ Add targets for:
 - [x] API Gateway: static IAM-authorized HTTP POST routes with stage selection and route-scoped invocation roles.
 - [x] ECS: Fargate task targets with native task and network references, cluster-scoped RunTask, and task-role PassRole permissions.
 - [x] Batch: unmanaged compute-environment queues submit selected generated EC2 job definitions with queue- and definition-scoped roles.
-- CodeBuild
+- [x] CodeBuild: standard builds through project-scoped StartBuild roles and native project ARNs.
 - Systems Manager documents
 
 Each target handler must own its target resource and create the required invoke role or resource policy.

@@ -6,6 +6,8 @@
 
 `EventBridgeBatchHandler` submits a generated Batch job definition to the connected queue with a queue- and definition-scoped rule role. See [EventBridge Batch connections](backend-eventbridge-batch-connections.md).
 
+`EventBridgeCodeBuildHandler` starts a standard build with a project-scoped rule role. See [EventBridge CodeBuild connections](backend-eventbridge-codebuild-connections.md).
+
 `EventBridgeKinesisHandler` reuses rule-owned invocation roles and adds partition-key target attributes. Target-ID validation compares all connection settings. See [EventBridge Kinesis connections](backend-eventbridge-kinesis-connections.md).
 
 `EventBridgeRoleTargetHandler` shares rule-owned invocation roles and targets for Step Functions and SNS. SNS key grants attach to its dedicated publish role without replacing topic policies. See [EventBridge SNS connections](backend-eventbridge-sns-connections.md).
