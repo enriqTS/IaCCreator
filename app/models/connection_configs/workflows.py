@@ -39,3 +39,37 @@ class StepFunctionsEcsConfig(BaseConnectionConfig):
         type="number",
         validation=ValidationRule(min=1, max=10),
     )
+
+
+class StepFunctionsBatchConfig(BaseConnectionConfig):
+    state_name: str = ConnectionField(
+        "Pass",
+        label="Pass state to replace",
+        description="Existing top-level JSONPath Pass state; its transition and data paths are preserved",
+        validation=ValidationRule(pattern=r"^[A-Za-z][A-Za-z0-9 _-]{0,79}$"),
+    )
+    job_definition_name: str = ConnectionField(
+        ...,
+        label="Job definition",
+        description="Name of a Batch job definition node in this diagram",
+    )
+    job_name: str = ConnectionField(
+        "workflow-job",
+        label="Job name",
+        description="Name assigned to submitted Batch jobs",
+        validation=ValidationRule(pattern=r"^[A-Za-z0-9_-]{1,128}$"),
+    )
+    array_size: StrictInt | None = ConnectionField(
+        None,
+        label="Array size",
+        description="Number of child jobs for an array job",
+        type="number",
+        validation=ValidationRule(min=2, max=10000),
+    )
+    job_attempts: StrictInt | None = ConnectionField(
+        None,
+        label="Job attempts",
+        description="Maximum attempts for a failed job",
+        type="number",
+        validation=ValidationRule(min=1, max=10),
+    )

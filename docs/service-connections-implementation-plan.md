@@ -317,7 +317,7 @@ Implement:
 - [x] EventBridge → Step Functions: asynchronous StartExecution targets with scoped invocation roles.
 - [x] Step Functions → Lambda: selected JSONPath Pass placeholders become Lambda Task states with scoped InvokeFunction grants on the existing execution role.
 - [x] Step Functions → ECS: synchronous Fargate RunTask states with managed network references, scoped RunTask/PassRole grants, and task-monitoring permissions.
-- Step Functions → Batch.
+- [x] Step Functions → Batch: synchronous SubmitJob states using selected generated queues and job definitions, scoped submission and completion-rule grants, and job monitoring permissions.
 - Step Functions → SNS.
 - Step Functions → SQS.
 - Step Functions → DynamoDB.

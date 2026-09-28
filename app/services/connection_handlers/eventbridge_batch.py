@@ -1,15 +1,14 @@
 """EventBridge submits a generated Batch job to the connected queue."""
 
-from app.exceptions import InvalidConnectionConfigError
 from app.generators.hcl_renderer import Expr
 from app.models.connection_configs.eventbridge_batch import EventBridgeBatchConfig
-from app.models.input_models import ServiceType
 from app.models.ir_models import (
     ConnectionContribution,
     ConnectionIR,
     ModuleInput,
     ProjectIR,
 )
+from app.services.connection_handlers.batch_task_target import prepare_batch_target
 from app.services.connection_handlers.eventbridge_role_target import (
     EventBridgeRoleTargetHandler,
 )
@@ -30,44 +29,8 @@ class EventBridgeBatchHandler(EventBridgeRoleTargetHandler):
         self, connection: ConnectionIR, project: ProjectIR
     ) -> ConnectionContribution:
         config = self.config_model.model_validate(connection.connection_config)
-        definition = self._find_instance(config.job_definition_name, project)
         target = self._find_instance(connection.target_name, project)
-        if (
-            definition is None
-            or definition.service_type != ServiceType.BATCH_JOB_DEFINITION
-        ):
-            raise InvalidConnectionConfigError(
-                connection.source_name,
-                connection.target_name,
-                connection.connection_type,
-                [
-                    {
-                        "loc": ("job_definition_name",),
-                        "msg": "Select a Batch job definition node in this diagram",
-                    }
-                ],
-            )
-        if (
-            target.config.batch_compute_environment_type != "UNMANAGED"
-            or not target.config.service_role_arn
-        ):
-            raise InvalidConnectionConfigError(
-                connection.source_name,
-                connection.target_name,
-                connection.connection_type,
-                [
-                    {
-                        "loc": ("batch_compute_environment_type",),
-                        "msg": "Batch rule targets require an unmanaged compute environment, a service role, and external capacity",
-                    }
-                ],
-            )
-        if not target.config.compute_environment_name:
-            target.config.compute_environment_name = connection.target_name.replace(
-                "-", "_"
-            )
-        if not target.config.job_queue_name:
-            target.config.job_queue_name = f"{connection.target_name}-queue"
+        prepare_batch_target(connection, project, target, config.job_definition_name)
         return super().handle(connection, project)
 
     def additional_inputs(

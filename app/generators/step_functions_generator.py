@@ -2,6 +2,7 @@
 
 from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import Expr, HCLRenderer
+from app.generators.step_functions_batch import batch_workflow_attributes
 from app.generators.step_functions_ecs import ecs_workflow_attributes
 from app.generators.step_functions_lambda import lambda_workflow_attributes
 from app.generators.step_functions_secrets import secret_workflow_attributes
@@ -22,7 +23,15 @@ class StepFunctionsGenerator:
             "type": Expr("var.state_machine_type"),
             "publish": Expr("var.publish"),
         }
-        if config._runs_ecs_tasks:
+        if config._submits_batch_jobs:
+            attrs.update(
+                batch_workflow_attributes(
+                    config._runs_ecs_tasks,
+                    config._invokes_lambdas,
+                    config._reads_runtime_secrets,
+                )
+            )
+        elif config._runs_ecs_tasks:
             attrs.update(
                 ecs_workflow_attributes(
                     config._invokes_lambdas, config._reads_runtime_secrets

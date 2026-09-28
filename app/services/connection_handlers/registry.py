@@ -77,6 +77,7 @@ from app.models.connection_configs.table_access import (
     TimestreamTableAccessConfig,
 )
 from app.models.connection_configs.workflows import (
+    StepFunctionsBatchConfig,
     StepFunctionsEcsConfig,
     StepFunctionsLambdaConfig,
     StepFunctionsSecretConfig,
@@ -196,6 +197,9 @@ from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_dead_letter import SQSDeadLetterHandler
 from app.services.connection_handlers.sqs_ecs import SQSECSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
+from app.services.connection_handlers.step_functions_batch import (
+    StepFunctionsBatchHandler,
+)
 from app.services.connection_handlers.step_functions_ecs import StepFunctionsEcsHandler
 from app.services.connection_handlers.step_functions_lambda import (
     StepFunctionsLambdaHandler,
@@ -718,6 +722,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         handler=EnvironmentSecretHandler(
             BatchSecretConfig, "execution_role_arn", "Batch job definition"
         ),
+    ),
+    ConnectionSpec(
+        source=ServiceType.STEP_FUNCTIONS,
+        target=ServiceType.BATCH,
+        connection_type="submits_job",
+        label="Step Functions → Batch job queue",
+        config_model=StepFunctionsBatchConfig,
+        handler=StepFunctionsBatchHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.STEP_FUNCTIONS,
