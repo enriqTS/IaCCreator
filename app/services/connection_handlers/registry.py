@@ -76,7 +76,10 @@ from app.models.connection_configs.table_access import (
     KeyspacesTableAccessConfig,
     TimestreamTableAccessConfig,
 )
-from app.models.connection_configs.workflows import StepFunctionsSecretConfig
+from app.models.connection_configs.workflows import (
+    StepFunctionsLambdaConfig,
+    StepFunctionsSecretConfig,
+)
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.accelerator_endpoint import (
     AcceleratorLoadBalancerHandler,
@@ -192,6 +195,9 @@ from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_dead_letter import SQSDeadLetterHandler
 from app.services.connection_handlers.sqs_ecs import SQSECSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
+from app.services.connection_handlers.step_functions_lambda import (
+    StepFunctionsLambdaHandler,
+)
 from app.services.connection_handlers.step_functions_secret import (
     StepFunctionsSecretHandler,
 )
@@ -710,6 +716,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         handler=EnvironmentSecretHandler(
             BatchSecretConfig, "execution_role_arn", "Batch job definition"
         ),
+    ),
+    ConnectionSpec(
+        source=ServiceType.STEP_FUNCTIONS,
+        target=ServiceType.LAMBDA,
+        connection_type="invokes",
+        label="Step Functions → Lambda (Task state)",
+        config_model=StepFunctionsLambdaConfig,
+        handler=StepFunctionsLambdaHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.STEP_FUNCTIONS,

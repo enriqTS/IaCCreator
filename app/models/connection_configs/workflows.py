@@ -12,3 +12,12 @@ class StepFunctionsSecretConfig(BaseConnectionConfig):
         description="Existing top-level JSONPath Pass state; its transition and data paths are preserved",
         validation=ValidationRule(pattern=r"^[A-Za-z][A-Za-z0-9 _-]{0,79}$"),
     )
+
+
+class StepFunctionsLambdaConfig(BaseConnectionConfig):
+    state_name: str = ConnectionField(
+        "Pass",
+        label="Pass state to replace",
+        description="Existing top-level JSONPath Pass state; its transition and data paths are preserved",
+        validation=ValidationRule(pattern=r"^[A-Za-z][A-Za-z0-9 _-]{0,79}$"),
+    )

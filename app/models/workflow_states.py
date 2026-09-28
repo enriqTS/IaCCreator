@@ -29,7 +29,7 @@ def placeholder_errors(definition: str, names: set[str]) -> list[str]:
     ):
         return ["StartAt must identify an existing state"]
     if workflow.get("QueryLanguage", "JSONPath") != "JSONPath":
-        return ["Secret tasks currently support JSONPath workflows only"]
+        return ["Connected tasks support JSONPath workflows only"]
     errors = []
     for name in sorted(names):
         state = states.get(name)
