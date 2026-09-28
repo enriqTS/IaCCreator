@@ -2,6 +2,8 @@
 
 `EventBridgeApiGatewayHandler` targets an existing IAM-authorized HTTP POST route using its API execution ARN and a route-scoped rule role. See [EventBridge API Gateway connections](backend-eventbridge-api-gateway-connections.md).
 
+`EventBridgeEcsHandler` launches a generated ECS Fargate task with rule-owned invocation permissions and native network references. See [EventBridge ECS connections](backend-eventbridge-ecs-connections.md).
+
 `EventBridgeKinesisHandler` reuses rule-owned invocation roles and adds partition-key target attributes. Target-ID validation compares all connection settings. See [EventBridge Kinesis connections](backend-eventbridge-kinesis-connections.md).
 
 `EventBridgeRoleTargetHandler` shares rule-owned invocation roles and targets for Step Functions and SNS. SNS key grants attach to its dedicated publish role without replacing topic policies. See [EventBridge SNS connections](backend-eventbridge-sns-connections.md).

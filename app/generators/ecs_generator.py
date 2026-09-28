@@ -187,6 +187,7 @@ class ECSGenerator:
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate outputs.tf for an ECS instance."""
+        config = _resolve_config(instance)
         parts = [
             self._r.render_output(
                 "cluster_arn",
@@ -194,9 +195,40 @@ class ECSGenerator:
                 "ARN of the ECS cluster",
             ),
             self._r.render_output(
+                "task_definition_arn",
+                f"aws_ecs_task_definition.{instance.name}_task.arn",
+                "ARN of the ECS task definition",
+            ),
+            self._r.render_output(
                 "service_name",
                 f"aws_ecs_service.{instance.name}_service.name",
                 "Name of the ECS service",
             ),
         ]
+        if instance.iam_statements or config._requires_task_role:
+            parts.append(
+                self._r.render_output(
+                    "task_role_arn",
+                    f"aws_iam_role.{instance.name}_role.arn",
+                    "ARN of the attached task role",
+                )
+            )
+        if config.subnet_ids:
+            parts.extend(
+                [
+                    self._r.render_output(
+                        "subnet_ids", "var.subnet_ids", "Task subnets"
+                    ),
+                    self._r.render_output(
+                        "security_group_ids",
+                        "var.security_group_ids",
+                        "Task security groups",
+                    ),
+                    self._r.render_output(
+                        "assign_public_ip",
+                        "var.assign_public_ip",
+                        "Task public IP setting",
+                    ),
+                ]
+            )
         return "\n".join(parts)

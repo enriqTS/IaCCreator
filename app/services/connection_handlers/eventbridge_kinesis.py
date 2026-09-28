@@ -17,7 +17,9 @@ class EventBridgeKinesisHandler(EventBridgeRoleTargetHandler):
             "Writes matching events to the connected Kinesis stream. An optional partition key path reads a single field from the original event; it must resolve to a valid Kinesis partition key. Omit the path to use the event ID. Configure capacity, consumers, delivery retries, dead-letter handling, and monitoring separately. Consumers must tolerate duplicates. Permissions for externally configured stream encryption remain external prerequisites.",
         )
 
-    def target_attributes(self, config: EventBridgeKinesisConfig) -> dict:
+    def target_attributes(
+        self, config: EventBridgeKinesisConfig, identifier: str
+    ) -> dict:
         if config.partition_key_path is None:
             return {}
         return {"kinesis_target": {"partition_key_path": config.partition_key_path}}

@@ -41,6 +41,7 @@ from app.models.connection_configs.elasticache_serverless import (
 from app.models.connection_configs.eventbridge_api_gateway import (
     EventBridgeApiGatewayConfig,
 )
+from app.models.connection_configs.eventbridge_ecs import EventBridgeEcsConfig
 from app.models.connection_configs.eventbridge_invocation import (
     EventBridgeInvocationConfig,
 )
@@ -112,6 +113,7 @@ from app.services.connection_handlers.environment_secret import EnvironmentSecre
 from app.services.connection_handlers.eventbridge_api_gateway import (
     EventBridgeApiGatewayHandler,
 )
+from app.services.connection_handlers.eventbridge_ecs import EventBridgeEcsHandler
 from app.services.connection_handlers.eventbridge_kinesis import (
     EventBridgeKinesisHandler,
 )
@@ -210,6 +212,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EVENTBRIDGE,
+        target=ServiceType.ECS,
+        connection_type="targets",
+        label="EventBridge → ECS Fargate task",
+        config_model=EventBridgeEcsConfig,
+        handler=EventBridgeEcsHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,
         target=ServiceType.API_GATEWAY,

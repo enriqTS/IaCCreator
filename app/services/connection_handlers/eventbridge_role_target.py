@@ -119,6 +119,7 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
             }
             for grant in grants.iam
         ]
+        statements = self.policy_statements(statements, variable, identifier, config)
         grants.iam.clear()
         policy = self._renderer.render_json_policy
         resources = [
@@ -178,9 +179,9 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
                     }
                 ]
             }
-        if config.input is not None:
+        if getattr(config, "input", None) is not None:
             attrs["input"] = config.input
-        attrs.update(self.target_attributes(config))
+        attrs.update(self.target_attributes(config, identifier))
         resources.append(
             self._renderer.render_resource(
                 "aws_cloudwatch_event_target", identifier, attrs
@@ -192,7 +193,8 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
                     module=rule,
                     name=variable,
                     value=f"module.{destination}.{self.output_name(destination)}",
-                )
+                ),
+                *self.additional_inputs(rule, destination, identifier, config),
             ],
             resources=[self._resource(rule, f"{identifier}.tf", "\n".join(resources))],
         )
@@ -200,8 +202,28 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
         result.merge(grants)
         return result
 
-    def target_attributes(self, config: EventBridgeInvocationConfig) -> dict:
+    def target_attributes(
+        self, config: EventBridgeInvocationConfig, identifier: str
+    ) -> dict:
         return {}
+
+    def additional_inputs(
+        self,
+        rule: str,
+        destination: str,
+        identifier: str,
+        config: EventBridgeInvocationConfig,
+    ) -> list[ModuleInput]:
+        return []
+
+    def policy_statements(
+        self,
+        statements: list[dict],
+        variable: str,
+        identifier: str,
+        config: EventBridgeInvocationConfig,
+    ) -> list[dict]:
+        return statements
 
     def grant_resource(self, variable: str, config: EventBridgeInvocationConfig) -> str:
         return "${var." + variable + "}"

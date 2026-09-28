@@ -247,6 +247,9 @@ def connection_architecture(spec) -> dict:
             ]
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
             config.pop("bus_name", None)
+        if spec.source == ServiceType.EVENTBRIDGE and service_type == ServiceType.ECS:
+            config["subnet_ids"] = ["subnet-12345678"]
+            config["security_group_ids"] = ["sg-12345678"]
         if spec.source == ServiceType.EFS and spec.target in {
             ServiceType.LAMBDA,
             ServiceType.ECS,

@@ -288,7 +288,7 @@ Add targets for:
 - [x] SNS: standard-topic targets with dedicated publish roles, scoped managed/external KMS access, and validated input.
 - [x] Kinesis: stream-scoped PutRecord roles, optional validated partition-key paths, constant input, and target-setting conflict checks.
 - [x] API Gateway: static IAM-authorized HTTP POST routes with stage selection and route-scoped invocation roles.
-- ECS
+- [x] ECS: Fargate task targets with native task and network references, cluster-scoped RunTask, and task-role PassRole permissions.
 - Batch
 - CodeBuild
 - Systems Manager documents
