@@ -14,6 +14,7 @@ _DEFAULT_DEFINITION = '{"StartAt":"Pass","States":{"Pass":{"Type":"Pass","End":t
 class StepFunctionsConfig(BaseServiceConfig):
     _reads_runtime_secrets: bool = PrivateAttr(default=False)
     _invokes_lambdas: bool = PrivateAttr(default=False)
+    _runs_ecs_tasks: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.STEP_FUNCTIONS] = ServiceType.STEP_FUNCTIONS
     role_arn: str = TerraformField("", description="IAM execution role ARN")
     definition: str = TerraformField(

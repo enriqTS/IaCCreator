@@ -316,7 +316,7 @@ Implement:
 - [x] API Gateway → Step Functions: IAM-authorized HTTP POST routes with native asynchronous StartExecution integration and workflow-scoped invocation roles.
 - [x] EventBridge → Step Functions: asynchronous StartExecution targets with scoped invocation roles.
 - [x] Step Functions → Lambda: selected JSONPath Pass placeholders become Lambda Task states with scoped InvokeFunction grants on the existing execution role.
-- Step Functions → ECS.
+- [x] Step Functions → ECS: synchronous Fargate RunTask states with managed network references, scoped RunTask/PassRole grants, and task-monitoring permissions.
 - Step Functions → Batch.
 - Step Functions → SNS.
 - Step Functions → SQS.

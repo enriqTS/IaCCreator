@@ -250,6 +250,12 @@ def connection_architecture(spec) -> dict:
         if spec.source == ServiceType.EVENTBRIDGE and service_type == ServiceType.ECS:
             config["subnet_ids"] = ["subnet-12345678"]
             config["security_group_ids"] = ["sg-12345678"]
+        if (
+            spec.source == ServiceType.STEP_FUNCTIONS
+            and service_type == ServiceType.ECS
+        ):
+            config["subnet_ids"] = ["subnet-12345678"]
+            config["security_group_ids"] = ["sg-12345678"]
         if spec.source == ServiceType.EVENTBRIDGE and service_type == ServiceType.BATCH:
             config["batch_compute_environment_type"] = "UNMANAGED"
             config["service_role_arn"] = "arn:aws:iam::123456789012:role/batch/service"

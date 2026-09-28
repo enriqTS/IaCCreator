@@ -1,15 +1,14 @@
 """EventBridge runs the connected ECS Fargate task with scoped permissions."""
 
-from app.exceptions import InvalidConnectionConfigError
 from app.generators.hcl_renderer import Expr
 from app.models.connection_configs.eventbridge_ecs import EventBridgeEcsConfig
-from app.models.input_models import ServiceType
 from app.models.ir_models import (
     ConnectionContribution,
     ConnectionIR,
     ModuleInput,
     ProjectIR,
 )
+from app.services.connection_handlers.ecs_task_target import prepare_fargate_target
 from app.services.connection_handlers.eventbridge_role_target import (
     EventBridgeRoleTargetHandler,
 )
@@ -29,34 +28,9 @@ class EventBridgeEcsHandler(EventBridgeRoleTargetHandler):
     def handle(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> ConnectionContribution:
-        target = self._find_instance(connection.target_name, project)
-        config = target.config
-        managed_subnets = any(
-            peer.source_service == ServiceType.SUBNET
-            and peer.target_name == connection.target_name
-            and peer.connection_type == "places"
-            for peer in project.connections
+        prepare_fargate_target(
+            connection, project, self._find_instance(connection.target_name, project)
         )
-        external_subnets = any(
-            value != "managed-by-connection" for value in config.subnet_ids
-        )
-        if config.ecs_launch_type not in (None, "FARGATE") or not (
-            external_subnets or managed_subnets
-        ):
-            raise InvalidConnectionConfigError(
-                connection.source_name,
-                connection.target_name,
-                connection.connection_type,
-                [
-                    {
-                        "loc": ("subnet_ids",),
-                        "msg": "EventBridge ECS targets require Fargate and at least one task subnet",
-                    }
-                ],
-            )
-        if managed_subnets and not config.subnet_ids:
-            config.subnet_ids = ["managed-by-connection"]
-        config._requires_task_role = True
         return super().handle(connection, project)
 
     def grant_resource(self, variable: str, config: EventBridgeEcsConfig) -> str:
