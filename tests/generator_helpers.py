@@ -277,7 +277,7 @@ def connection_architecture(spec) -> dict:
             }
         )
 
-    return {
+    payload = {
         "project_name": "connection-check",
         "environments": [{"name": "dev", "variables": {}}],
         "resources": resources,
@@ -344,3 +344,28 @@ def connection_architecture(spec) -> dict:
             "provider_region": "us-east-1",
         },
     }
+    if (
+        spec.source == ServiceType.EVENTBRIDGE
+        and spec.target == ServiceType.API_GATEWAY
+    ):
+        payload["resources"][1]["config"].update(
+            protocol_type="HTTP",
+            routes=[
+                {
+                    "path": "/events",
+                    "methods": ["POST"],
+                    "authorization_type": "AWS_IAM",
+                    "integration_name": "backend",
+                }
+            ],
+            integrations=[
+                {
+                    "name": "backend",
+                    "type": "HTTP_PROXY",
+                    "uri": "https://example.com/events",
+                    "method": "POST",
+                }
+            ],
+        )
+        payload["connections"][0]["connection_config"] = {"path": "/events"}
+    return payload

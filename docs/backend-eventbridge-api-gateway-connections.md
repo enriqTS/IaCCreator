@@ -1,0 +1,7 @@
+# EventBridge → API Gateway
+
+The `targets` connection invokes a static POST route on a generated HTTP API. Set `path` to the route path and `stage` to its deployed stage (`$default` when stages are omitted). The route must have `AWS_IAM` authorization and a named, generated integration. The execute-api endpoint must remain enabled. WebSocket APIs, routes with path parameters, and API Gateway routes without a generated integration are not supported by this connection.
+
+The rule module owns the EventBridge target, an invocation role trusted by `events.amazonaws.com` for that rule, and an inline `execute-api:Invoke` policy limited to the selected stage, method, and path. It receives the API module's execution ARN as an input. A valid constant JSON `input` can replace the event body, and `target_id` permits multiple independently configured targets. Reusing a target ID for different settings is rejected.
+
+EventBridge sends one HTTP request per matched event. Configure the API integration, stage deployment, retry and dead-letter behavior, and monitoring separately. EventBridge rule API Gateway requests time out after five seconds and retry HTTP 429 and 5xx responses; design the route to tolerate duplicate requests. See [AWS API Gateway targets](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-api-gateway-target.html) and [HTTP API IAM authorization](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-access-control-iam.html).

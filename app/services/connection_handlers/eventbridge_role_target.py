@@ -101,7 +101,7 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
                         rule,
                         IAMStatement(
                             actions=[self._action],
-                            resources=["${var." + variable + "}"],
+                            resources=[self.grant_resource(variable, config)],
                         ),
                     )
                 ]
@@ -114,10 +114,7 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
                 "Effect": grant.statement.effect,
                 "Action": grant.statement.actions,
                 "Resource": [
-                    Expr(value[2:-1])
-                    if value.startswith("${") and value.endswith("}")
-                    else value
-                    for value in grant.statement.resources
+                    self.policy_resource(value) for value in grant.statement.resources
                 ],
             }
             for grant in grants.iam
@@ -168,7 +165,7 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
         attrs = {
             "rule": Expr(f"aws_cloudwatch_event_rule.{rule}.name"),
             "target_id": target_id,
-            "arn": Expr(f"var.{variable}"),
+            "arn": self.target_arn(variable, config),
             "role_arn": Expr(f"aws_iam_role.{identifier}.arn"),
             "depends_on": Expr(f"[aws_iam_role_policy.{identifier}]"),
         }
@@ -194,7 +191,7 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
                 ModuleInput(
                     module=rule,
                     name=variable,
-                    value=f"module.{destination}.{self._output_name}",
+                    value=f"module.{destination}.{self.output_name(destination)}",
                 )
             ],
             resources=[self._resource(rule, f"{identifier}.tf", "\n".join(resources))],
@@ -205,3 +202,19 @@ class EventBridgeRoleTargetHandler(BaseConnectionHandler):
 
     def target_attributes(self, config: EventBridgeInvocationConfig) -> dict:
         return {}
+
+    def grant_resource(self, variable: str, config: EventBridgeInvocationConfig) -> str:
+        return "${var." + variable + "}"
+
+    def target_arn(self, variable: str, config: EventBridgeInvocationConfig) -> Expr:
+        return Expr(f"var.{variable}")
+
+    def policy_resource(self, value: str) -> Expr | str:
+        if value.startswith("${") and value.endswith("}"):
+            return Expr(value[2:-1])
+        if value.startswith("${") and "}" in value:
+            return Expr(f'"{value}"')
+        return value
+
+    def output_name(self, destination: str) -> str:
+        return self._output_name

@@ -287,7 +287,7 @@ Add targets for:
 - [x] Step Functions: native target ARN, dedicated rule-scoped invocation role, validated constant input, and identifier conflict checks.
 - [x] SNS: standard-topic targets with dedicated publish roles, scoped managed/external KMS access, and validated input.
 - [x] Kinesis: stream-scoped PutRecord roles, optional validated partition-key paths, constant input, and target-setting conflict checks.
-- API Gateway
+- [x] API Gateway: static IAM-authorized HTTP POST routes with stage selection and route-scoped invocation roles.
 - ECS
 - Batch
 - CodeBuild

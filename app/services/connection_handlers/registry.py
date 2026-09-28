@@ -38,6 +38,9 @@ from app.models.connection_configs.efs import (
 from app.models.connection_configs.elasticache_serverless import (
     ServerlessCacheIamConfig,
 )
+from app.models.connection_configs.eventbridge_api_gateway import (
+    EventBridgeApiGatewayConfig,
+)
 from app.models.connection_configs.eventbridge_invocation import (
     EventBridgeInvocationConfig,
 )
@@ -106,6 +109,9 @@ from app.services.connection_handlers.elasticache_serverless import (
     ServerlessCacheIamHandler,
 )
 from app.services.connection_handlers.environment_secret import EnvironmentSecretHandler
+from app.services.connection_handlers.eventbridge_api_gateway import (
+    EventBridgeApiGatewayHandler,
+)
 from app.services.connection_handlers.eventbridge_kinesis import (
     EventBridgeKinesisHandler,
 )
@@ -204,6 +210,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.EVENTBRIDGE,
+        target=ServiceType.API_GATEWAY,
+        connection_type="targets",
+        label="EventBridge → API Gateway HTTP route",
+        config_model=EventBridgeApiGatewayConfig,
+        handler=EventBridgeApiGatewayHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,
         target=ServiceType.KINESIS,
