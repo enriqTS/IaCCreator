@@ -28,6 +28,10 @@ class EventBridgeGenerator:
                     {"name": Expr("var.bus_name")},
                 )
             )
+        else:
+            parts.append(
+                'data "aws_cloudwatch_event_bus" "default" {\n  name = "default"\n}\n'
+            )
 
         attrs: dict = {"name": Expr("var.rule_name")}
         if config.bus_name is not None:
@@ -98,4 +102,13 @@ class EventBridgeGenerator:
                 "Name of the EventBridge rule",
             ),
         ]
+        config = _resolve_config(instance)
+        bus = (
+            f"aws_cloudwatch_event_bus.{instance.name}_bus"
+            if config.bus_name is not None
+            else "data.aws_cloudwatch_event_bus.default"
+        )
+        parts.append(
+            self._r.render_output("event_bus_arn", f"{bus}.arn", "ARN of the event bus")
+        )
         return "\n".join(parts)

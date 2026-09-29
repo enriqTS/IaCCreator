@@ -5,6 +5,7 @@ from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.generators.step_functions_batch import batch_workflow_attributes
 from app.generators.step_functions_dynamodb import dynamodb_workflow_attributes
 from app.generators.step_functions_ecs import ecs_workflow_attributes
+from app.generators.step_functions_eventbridge import eventbridge_workflow_attributes
 from app.generators.step_functions_lambda import lambda_workflow_attributes
 from app.generators.step_functions_secrets import secret_workflow_attributes
 from app.generators.step_functions_sns import sns_workflow_attributes
@@ -26,7 +27,19 @@ class StepFunctionsGenerator:
             "type": Expr("var.state_machine_type"),
             "publish": Expr("var.publish"),
         }
-        if config._uses_dynamodb_items:
+        if config._puts_eventbridge_events:
+            attrs.update(
+                eventbridge_workflow_attributes(
+                    config._uses_dynamodb_items,
+                    config._sends_sqs_messages,
+                    config._publishes_sns_messages,
+                    config._submits_batch_jobs,
+                    config._runs_ecs_tasks,
+                    config._invokes_lambdas,
+                    config._reads_runtime_secrets,
+                )
+            )
+        elif config._uses_dynamodb_items:
             attrs.update(
                 dynamodb_workflow_attributes(
                     config._sends_sqs_messages,

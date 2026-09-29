@@ -321,7 +321,7 @@ Implement:
 - [x] Step Functions → SNS: Publish Task states send input or constant messages to generated standard/FIFO topics with topic-scoped publish, FIFO group/deduplication settings, and scoped KMS grants.
 - [x] Step Functions → SQS: SendMessage Task states use generated queue URLs, queue-scoped send permissions, standard/FIFO message settings, and scoped KMS grants.
 - [x] Step Functions → DynamoDB: optimized GetItem, PutItem, UpdateItem, and DeleteItem Task states use generated table names and operation-scoped table IAM grants.
-- Step Functions → EventBridge.
+- [x] Step Functions → EventBridge: optimized PutEvents Task states target generated custom or default buses, with bus-scoped IAM grants and JSON detail from state input or a constant object.
 
 A Step Functions connection must mutate or contribute a state-machine state and grant the corresponding IAM access; permission alone is insufficient.
 

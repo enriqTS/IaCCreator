@@ -49,11 +49,12 @@ class TestRuleGeneration:
         assert 'resource "aws_cloudwatch_event_bus" "nightly_bus"' in hcl
         assert "event_bus_name = aws_cloudwatch_event_bus.nightly_bus.name" in hcl
 
-    def test_the_default_bus_is_left_implicit(self):
+    def test_the_default_bus_is_looked_up_for_its_arn(self):
         hcl = EventBridgeGenerator().generate_resource_tf(
             _instance(rule_name="nightly")
         )
-        assert "aws_cloudwatch_event_bus" not in hcl
+        assert 'data "aws_cloudwatch_event_bus" "default"' in hcl
+        assert 'resource "aws_cloudwatch_event_bus"' not in hcl
 
     def test_rule_name_defaults_to_the_instance_name(self):
         variables = EventBridgeGenerator().generate_variables_tf(_instance())
@@ -65,6 +66,15 @@ class TestRuleGeneration:
         )
         assert 'output "rule_arn"' in outputs
         assert 'output "rule_name"' in outputs
+        assert "value       = data.aws_cloudwatch_event_bus.default.arn" in outputs
+
+    def test_outputs_expose_custom_bus_arn(self):
+        outputs = EventBridgeGenerator().generate_outputs_tf(
+            _instance(
+                bus_name="ops", event_pattern='{"source":["iaccreator.workflow"]}'
+            )
+        )
+        assert "value       = aws_cloudwatch_event_bus.nightly_bus.arn" in outputs
 
 
 class TestTargetsAreOwnedByTheRule:
