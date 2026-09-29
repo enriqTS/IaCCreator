@@ -1,7 +1,5 @@
 """AppSync-owned Lambda data sources and direct resolvers."""
 
-from hashlib import sha256
-
 from app.exceptions import InvalidConnectionConfigError
 from app.generators.hcl_renderer import Expr
 from app.models.connection_configs.appsync_lambda import AppSyncLambdaConfig
@@ -13,17 +11,12 @@ from app.models.ir_models import (
     ModuleInput,
     ProjectIR,
 )
-from app.services.connection_handlers.base import BaseConnectionHandler, safe_identifier
-
-
-def _data_source_name(function: str) -> str:
-    suffix = sha256(function.encode()).hexdigest()[:8]
-    return f"lambda_{safe_identifier(function)[:40]}_{suffix}"
-
-
-def _resolver_name(type_name: str, field_name: str) -> str:
-    suffix = sha256(f"{type_name}.{field_name}".encode()).hexdigest()[:8]
-    return f"resolver_{type_name[:24]}_{field_name[:24]}_{suffix}"
+from app.services.connection_handlers.appsync_common import (
+    assume_role_policy,
+    data_source_name,
+    resolver_name,
+)
+from app.services.connection_handlers.base import BaseConnectionHandler
 
 
 class AppSyncLambdaHandler(BaseConnectionHandler):
@@ -87,23 +80,7 @@ class AppSyncLambdaHandler(BaseConnectionHandler):
                 f"{resource_name}_role",
                 {
                     "name_prefix": "iac-appsync-",
-                    "assume_role_policy": self._renderer.render_json_policy(
-                        {
-                            "Version": "2012-10-17",
-                            "Statement": [
-                                {
-                                    "Effect": "Allow",
-                                    "Principal": {"Service": "appsync.amazonaws.com"},
-                                    "Action": "sts:AssumeRole",
-                                    "Condition": {
-                                        "ArnEquals": {
-                                            "aws:SourceArn": Expr(f"{api_ref}.arn")
-                                        }
-                                    },
-                                }
-                            ],
-                        }
-                    ),
+                    "assume_role_policy": assume_role_policy(self._renderer, api),
                 },
             )
             policy = self._renderer.render_resource(
@@ -133,7 +110,7 @@ class AppSyncLambdaHandler(BaseConnectionHandler):
                 resource_name,
                 {
                     "api_id": Expr(f"{api_ref}.id"),
-                    "name": _data_source_name(function),
+                    "name": data_source_name("lambda", function),
                     "type": "AWS_LAMBDA",
                     "service_role_arn": Expr(f"aws_iam_role.{resource_name}_role.arn"),
                     "lambda_config": {
@@ -150,7 +127,7 @@ class AppSyncLambdaHandler(BaseConnectionHandler):
                 )
             )
         for (type_name, field_name), function in sorted(fields.items()):
-            name = _resolver_name(type_name, field_name)
+            name = resolver_name(type_name, field_name)
             resolver = self._renderer.render_resource(
                 "aws_appsync_resolver",
                 name,

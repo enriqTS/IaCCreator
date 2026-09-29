@@ -246,7 +246,12 @@ def connection_architecture(spec) -> dict:
                 "parameter_group_name"
             ]
         if spec.source == ServiceType.APPSYNC and service_type == ServiceType.APPSYNC:
-            config["schema_definition"] = "type Query { probe: String }"
+            config["schema_definition"] = (
+                "type Item { id: ID!, title: String } "
+                "type Query { probe(id: ID!): Item }"
+                if spec.target == ServiceType.DYNAMODB
+                else "type Query { probe: String }"
+            )
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
             config.pop("bus_name", None)
         if (
@@ -392,7 +397,10 @@ def connection_architecture(spec) -> dict:
             "provider_region": "us-east-1",
         },
     }
-    if spec.source == ServiceType.APPSYNC and spec.target == ServiceType.LAMBDA:
+    if spec.source == ServiceType.APPSYNC and spec.target in {
+        ServiceType.LAMBDA,
+        ServiceType.DYNAMODB,
+    }:
         payload["connections"][0]["connection_config"] = {"field_name": "probe"}
     if (
         spec.source == ServiceType.EVENTBRIDGE

@@ -330,7 +330,7 @@ A Step Functions connection must mutate or contribute a state-machine state and 
 Implement:
 
 - [x] AppSync → Lambda: direct Lambda resolvers attach selected GraphQL fields to generated AppSync-owned data sources with API-scoped trust and function-scoped invocation roles.
-- AppSync → DynamoDB.
+- [x] AppSync → DynamoDB: AppSync JavaScript GetItem, PutItem, UpdateItem, and DeleteItem resolvers use generated table data sources, table-scoped IAM, and key-scoped KMS grants.
 - AppSync → OpenSearch.
 - AppSync → EventBridge.
 - AppSync → RDS or Aurora where supported.

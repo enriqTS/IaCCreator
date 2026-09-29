@@ -90,6 +90,8 @@ Step Functions EventBridge connections append optimized PutEvents tasks after ot
 
 AppSync Lambda connections leave the GraphQL API generator focused on API configuration. The AppSync-owned connection handler adds a direct Lambda data source, its API-scoped service role, an invocation policy, and one resolver per selected schema field. Lambda ARNs enter through module inputs.
 
+AppSync DynamoDB connections use the same API-owned data-source pattern, with JavaScript unit resolver code generated per selected item operation and native table name/ARN module inputs. Table key names and optional sort keys come from the DynamoDB config; KMS key references cross the module boundary as inputs.
+
 `batch-job-definition` emits `aws_batch_job_definition` for EC2 single-container jobs, with typed image, integer vCPU count, memory, command, environment maps, and separate execution/application role references. Container properties use `jsonencode` and resource requirements use string values as required by AWS. Native secret connections make definition creation wait for their access policy. The generator exposes revision-qualified ARN, name, and revision outputs. Job queues, Fargate/EKS properties, scheduling connections, image-pull permissions, and compute-environment management remain separate concerns. The existing `batch` node continues to generate only a compute environment. Execution hosts must run an ECS agent version supporting native Secrets Manager injection; values must exist before jobs start.
 
 The S3 generator defers notification generation to the shared connection aggregator when a `notifies` connector exists. Managed Lambda destinations and external notification settings are emitted together, with one permission dependency per managed function.

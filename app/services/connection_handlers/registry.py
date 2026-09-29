@@ -7,6 +7,7 @@ from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs.apigw_step_functions import (
     ApiGatewayStepFunctionsConfig,
 )
+from app.models.connection_configs.appsync_dynamodb import AppSyncDynamoDbConfig
 from app.models.connection_configs.appsync_lambda import AppSyncLambdaConfig
 from app.models.connection_configs.backup import BackupSelectionConfig
 from app.models.connection_configs.configs import (
@@ -99,6 +100,7 @@ from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandle
 from app.services.connection_handlers.apigw_step_functions import (
     ApiGatewayStepFunctionsHandler,
 )
+from app.services.connection_handlers.appsync_dynamodb import AppSyncDynamoDbHandler
 from app.services.connection_handlers.appsync_lambda import AppSyncLambdaHandler
 from app.services.connection_handlers.backup_selection import (
     BACKUP_OUTPUTS,
@@ -260,6 +262,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.APPSYNC,
+        target=ServiceType.DYNAMODB,
+        connection_type="resolves_with",
+        label="AppSync → DynamoDB item resolver",
+        config_model=AppSyncDynamoDbConfig,
+        handler=AppSyncDynamoDbHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.APPSYNC,
         target=ServiceType.LAMBDA,

@@ -99,6 +99,8 @@ Key coverage areas include:
 
 `tests/test_appsync_lambda_connections.py` covers direct resolvers, API-scoped role trust, function-scoped invocation policy, data-source sharing, deterministic multi-function output, conflicting field selection, name collisions, schema requirements, and Terraform validation/graphs.
 
+`tests/test_appsync_dynamodb_connections.py` covers four item operations, JavaScript key mapping, operation-scoped IAM, managed/external KMS references, data-source sharing, duplicate and cross-service field conflicts, invalid config, and Terraform validation/graphs.
+
 `tests/test_batch_secret_connections.py` covers job/execution-role separation, native settings and reserved-name validation, external bindings, catalog/schema exposure, and unchanged compute-environment compatibility. Terraform console tests evaluate container properties, resource requirement types, plaintext-variable replacement, and managed/external secret merging. Shared tests cover aggregation and encrypted-project validation.
 
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.
