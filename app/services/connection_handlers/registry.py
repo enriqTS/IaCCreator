@@ -8,6 +8,7 @@ from app.models.connection_configs.apigw_step_functions import (
     ApiGatewayStepFunctionsConfig,
 )
 from app.models.connection_configs.appsync_dynamodb import AppSyncDynamoDbConfig
+from app.models.connection_configs.appsync_eventbridge import AppSyncEventBridgeConfig
 from app.models.connection_configs.appsync_lambda import AppSyncLambdaConfig
 from app.models.connection_configs.appsync_opensearch import AppSyncOpenSearchConfig
 from app.models.connection_configs.backup import BackupSelectionConfig
@@ -102,6 +103,9 @@ from app.services.connection_handlers.apigw_step_functions import (
     ApiGatewayStepFunctionsHandler,
 )
 from app.services.connection_handlers.appsync_dynamodb import AppSyncDynamoDbHandler
+from app.services.connection_handlers.appsync_eventbridge import (
+    AppSyncEventBridgeHandler,
+)
 from app.services.connection_handlers.appsync_lambda import AppSyncLambdaHandler
 from app.services.connection_handlers.appsync_opensearch import AppSyncOpenSearchHandler
 from app.services.connection_handlers.backup_selection import (
@@ -287,6 +291,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="AppSync → OpenSearch document resolver",
         config_model=AppSyncOpenSearchConfig,
         handler=AppSyncOpenSearchHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.APPSYNC,
+        target=ServiceType.EVENTBRIDGE,
+        connection_type="resolves_with",
+        label="AppSync → EventBridge publisher resolver",
+        config_model=AppSyncEventBridgeConfig,
+        handler=AppSyncEventBridgeHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,

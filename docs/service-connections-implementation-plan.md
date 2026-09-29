@@ -332,7 +332,7 @@ Implement:
 - [x] AppSync → Lambda: direct Lambda resolvers attach selected GraphQL fields to generated AppSync-owned data sources with API-scoped trust and function-scoped invocation roles.
 - [x] AppSync → DynamoDB: AppSync JavaScript GetItem, PutItem, UpdateItem, and DeleteItem resolvers use generated table data sources, table-scoped IAM, and key-scoped KMS grants.
 - [x] AppSync → OpenSearch: AppSync JavaScript document lookup, search, index, and delete resolvers use an AppSync-owned domain data source and index/path-scoped HTTP grants.
-- AppSync → EventBridge.
+- [x] AppSync → EventBridge: API-owned EventBridge data sources publish one event per selected GraphQL field with bus-scoped IAM and explicit source/detail type.
 - AppSync → RDS or Aurora where supported.
 - Cognito → AppSync authentication.
 

@@ -250,12 +250,21 @@ def connection_architecture(spec) -> dict:
                 "type Item { id: ID!, title: String } "
                 "type Query { probe(id: ID!): Item }"
                 if spec.target == ServiceType.DYNAMODB
+                else "type Query { _noop: String } "
+                "type Mutation { probe(input: EventDetailInput!): ID } "
+                "input EventDetailInput { message: String }"
+                if spec.target == ServiceType.EVENTBRIDGE
                 else "type Item { id: ID!, title: String } "
                 "type Query { probe(query: String!): [Item] }"
                 if spec.target == ServiceType.OPENSEARCH
                 else "type Query { probe: String }"
             )
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
+            config.pop("bus_name", None)
+        if (
+            spec.source == ServiceType.APPSYNC
+            and service_type == ServiceType.EVENTBRIDGE
+        ):
             config.pop("bus_name", None)
         if (
             spec.source == ServiceType.STEP_FUNCTIONS
@@ -404,12 +413,18 @@ def connection_architecture(spec) -> dict:
         ServiceType.LAMBDA,
         ServiceType.DYNAMODB,
         ServiceType.OPENSEARCH,
+        ServiceType.EVENTBRIDGE,
     }:
         payload["connections"][0]["connection_config"] = {
             "field_name": "probe",
             **(
                 {"index_name": "application-records"}
                 if spec.target == ServiceType.OPENSEARCH
+                else {}
+            ),
+            **(
+                {"event_source": "com.example.app", "detail_type": "ApplicationEvent"}
+                if spec.target == ServiceType.EVENTBRIDGE
                 else {}
             ),
         }
