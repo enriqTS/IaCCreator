@@ -7,6 +7,7 @@ from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs.apigw_step_functions import (
     ApiGatewayStepFunctionsConfig,
 )
+from app.models.connection_configs.appsync_lambda import AppSyncLambdaConfig
 from app.models.connection_configs.backup import BackupSelectionConfig
 from app.models.connection_configs.configs import (
     AcceleratorEndpointConfig,
@@ -98,6 +99,7 @@ from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandle
 from app.services.connection_handlers.apigw_step_functions import (
     ApiGatewayStepFunctionsHandler,
 )
+from app.services.connection_handlers.appsync_lambda import AppSyncLambdaHandler
 from app.services.connection_handlers.backup_selection import (
     BACKUP_OUTPUTS,
     BackupSelectionHandler,
@@ -258,6 +260,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.APPSYNC,
+        target=ServiceType.LAMBDA,
+        connection_type="resolves_with",
+        label="AppSync → Lambda resolver",
+        config_model=AppSyncLambdaConfig,
+        handler=AppSyncLambdaHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,
         target=ServiceType.SYSTEMS_MANAGER,
