@@ -1,4 +1,4 @@
-"""KMS references for workflow roles that publish to generated SNS or SQS targets."""
+"""KMS references for workflow roles using generated encrypted targets."""
 
 from app.generators.hcl_renderer import Expr
 from app.models.input_models import ServiceType
@@ -12,7 +12,7 @@ from app.services.connection_handlers.base import BaseConnectionHandler
 from app.services.connection_handlers.kms_references import KMS_INPUTS, managed_key
 
 
-def workflow_message_keys(
+def workflow_key_references(
     workflow: str,
     targets: list[str],
     service: ServiceType,

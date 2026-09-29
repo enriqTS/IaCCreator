@@ -22,7 +22,9 @@ from app.models.ir_models import (
 )
 from app.models.workflow_states import placeholder_errors
 from app.services.connection_handlers.base import BaseConnectionHandler
-from app.services.connection_handlers.workflow_message_keys import workflow_message_keys
+from app.services.connection_handlers.workflow_key_references import (
+    workflow_key_references,
+)
 
 
 class StepFunctionsSqsHandler(BaseConnectionHandler):
@@ -193,7 +195,7 @@ class StepFunctionsSqsHandler(BaseConnectionHandler):
     def _policy(
         self, workflow: str, queues: list[str], project: ProjectIR
     ) -> tuple[str, ConnectionContribution]:
-        result, key_resources, data_sources = workflow_message_keys(
+        result, key_resources, data_sources = workflow_key_references(
             workflow, queues, ServiceType.SQS, project
         )
         statements = [

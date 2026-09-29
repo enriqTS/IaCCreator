@@ -66,6 +66,9 @@ from app.models.connection_configs.secrets import (
     EcsSecretConfig,
 )
 from app.models.connection_configs.sns_firehose import SnsFirehoseConfig
+from app.models.connection_configs.step_functions_dynamodb import (
+    StepFunctionsDynamoDbConfig,
+)
 from app.models.connection_configs.storage import (
     EbsAttachmentConfig,
     EfsLambdaMountConfig,
@@ -201,6 +204,9 @@ from app.services.connection_handlers.sqs_ecs import SQSECSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
 from app.services.connection_handlers.step_functions_batch import (
     StepFunctionsBatchHandler,
+)
+from app.services.connection_handlers.step_functions_dynamodb import (
+    StepFunctionsDynamoDbHandler,
 )
 from app.services.connection_handlers.step_functions_ecs import StepFunctionsEcsHandler
 from app.services.connection_handlers.step_functions_lambda import (
@@ -750,6 +756,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Step Functions → SQS queue",
         config_model=StepFunctionsSqsConfig,
         handler=StepFunctionsSqsHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.STEP_FUNCTIONS,
+        target=ServiceType.DYNAMODB,
+        connection_type="accesses_item",
+        label="Step Functions → DynamoDB item",
+        config_model=StepFunctionsDynamoDbConfig,
+        handler=StepFunctionsDynamoDbHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.STEP_FUNCTIONS,

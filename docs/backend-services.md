@@ -108,7 +108,9 @@ Step Functions → Batch (`submits_job`) replaces selected Pass states with sync
 
 Step Functions → SNS (`publishes`) replaces selected Pass states with Publish tasks. It references generated topic ARNs, supports standard and FIFO delivery settings, and grants topic-scoped publish and applicable KMS access to the workflow role. See [Step Functions SNS connections](backend-step-functions-sns-connections.md).
 
-Step Functions → SQS (`sends_message`) replaces selected Pass states with SendMessage tasks. It uses generated queue URLs for delivery, queue ARNs for scoped IAM, and shared SNS/SQS key-reference handling for encrypted destinations. See [Step Functions SQS connections](backend-step-functions-sqs-connections.md).
+Step Functions → SQS (`sends_message`) replaces selected Pass states with SendMessage tasks. It uses generated queue URLs for delivery, queue ARNs for scoped IAM, and shared workflow key-reference handling for encrypted destinations. See [Step Functions SQS connections](backend-step-functions-sqs-connections.md).
+
+Step Functions → DynamoDB (`accesses_item`) replaces selected Pass states with optimized GetItem, PutItem, UpdateItem, or DeleteItem tasks. It references generated table names, grants only each selected operation on its selected table ARN, and adds key-scoped decrypt access when needed. See [Step Functions DynamoDB connections](backend-step-functions-dynamodb-connections.md).
 
 Batch Job Definition → Secrets Manager (`injects_secret`) reuses the environment-binding collaborator to populate `container_properties.secrets` for EC2 single-container jobs. `execution_role_arn` must reference a role trusted by `ecs-tasks.amazonaws.com`; the connection's secret/KMS policy attaches to that role, never `job_role_arn`. Managed bindings override matching external secrets and plaintext environment variables, preserving unrelated entries. `AWS_BATCH`-prefixed names and conflicting managed bindings are rejected. External secret bindings retain externally managed permissions. The existing Batch compute-environment node does not accept secret connections, and no queue, compute environment, or job submission is created implicitly.
 

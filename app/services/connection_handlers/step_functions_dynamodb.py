@@ -1,14 +1,18 @@
-"""Workflow-owned SNS Publish tasks and topic-scoped permissions."""
+"""Workflow-owned DynamoDB item tasks with operation-scoped table grants."""
 
 from app.exceptions import InvalidConnectionConfigError
 from app.generators.hcl_renderer import Expr
-from app.generators.step_functions_sns import sns_workflow_locals
+from app.generators.step_functions_dynamodb import dynamodb_workflow_locals
+from app.models.connection_configs.step_functions_dynamodb import (
+    StepFunctionsDynamoDbConfig,
+)
 from app.models.connection_configs.workflows import (
     StepFunctionsBatchConfig,
     StepFunctionsEcsConfig,
     StepFunctionsLambdaConfig,
     StepFunctionsSecretConfig,
     StepFunctionsSnsConfig,
+    StepFunctionsSqsConfig,
 )
 from app.models.connection_previews import ConnectionIssue
 from app.models.input_models import ServiceType
@@ -17,23 +21,27 @@ from app.models.ir_models import (
     ConnectionIR,
     ModuleInput,
     ProjectIR,
-    ResourceInstanceIR,
 )
 from app.models.workflow_states import placeholder_errors
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.kms_references import managed_key
+from app.services.connection_handlers.step_functions_dynamodb_parameters import (
+    OPERATIONS,
+    dynamodb_task_parameters,
+)
 from app.services.connection_handlers.workflow_key_references import (
     workflow_key_references,
 )
 
 
-class StepFunctionsSnsHandler(BaseConnectionHandler):
+class StepFunctionsDynamoDbHandler(BaseConnectionHandler):
     def validate(
         self, connection: ConnectionIR, project: ProjectIR
     ) -> list[ConnectionIssue]:
         return [
             ConnectionIssue(
                 severity="warning",
-                message="Publish tasks send the state input unless a constant message is set. Configure subscribers, delivery monitoring, and KMS key policy access separately. FIFO topics require a message group; generated deduplication IDs allow separate executions to publish identical payloads.",
+                message="DynamoDB task input paths must resolve to low-level AttributeValue maps containing the table's key attributes. PutItem replaces an existing item unless you supply a condition expression; configure retries and error handling separately.",
             )
         ]
 
@@ -45,8 +53,8 @@ class StepFunctionsSnsHandler(BaseConnectionHandler):
             item
             for item in project.connections
             if item.source_name == workflow
-            and item.target_service == ServiceType.SNS
-            and item.connection_type == "publishes"
+            and item.target_service == ServiceType.DYNAMODB
+            and item.connection_type == "accesses_item"
         ]
         if connection is not peers[0]:
             return ConnectionContribution()
@@ -55,24 +63,17 @@ class StepFunctionsSnsHandler(BaseConnectionHandler):
             self._reject(
                 connection,
                 "role_arn",
-                "Workflow SNS tasks require an execution role ARN",
+                "Workflow DynamoDB tasks require an execution role ARN",
             )
         bindings = {}
         for item in peers:
-            config = StepFunctionsSnsConfig.model_validate(item.connection_config)
-            target = self._find_instance(item.target_name, project)
-            self._validate_topic(item, config, target)
-            binding = (
-                item.target_name,
-                config.message,
-                config.message_group_id,
-                config.message_deduplication_id,
-            )
+            config = StepFunctionsDynamoDbConfig.model_validate(item.connection_config)
+            binding = (item.target_name, config)
             if config.state_name in bindings and bindings[config.state_name] != binding:
                 self._reject(
                     item,
                     "state_name",
-                    "Conflicting SNS topics cannot replace the same workflow state",
+                    "Conflicting DynamoDB operations cannot replace the same workflow state",
                 )
             bindings[config.state_name] = binding
         related = (
@@ -80,6 +81,8 @@ class StepFunctionsSnsHandler(BaseConnectionHandler):
             (ServiceType.LAMBDA, "invokes", StepFunctionsLambdaConfig),
             (ServiceType.ECS, "runs_task", StepFunctionsEcsConfig),
             (ServiceType.BATCH, "submits_job", StepFunctionsBatchConfig),
+            (ServiceType.SNS, "publishes", StepFunctionsSnsConfig),
+            (ServiceType.SQS, "sends_message", StepFunctionsSqsConfig),
         )
         occupied = set()
         present = {}
@@ -110,40 +113,56 @@ class StepFunctionsSnsHandler(BaseConnectionHandler):
                 connection.connection_type,
                 [{"loc": ("definition",), "msg": error} for error in errors],
             )
-        instance.config._publishes_sns_messages = True
-        topics = sorted({binding[0] for binding in bindings.values()})
-        result = ConnectionContribution()
-        for index, name in enumerate(topics):
-            result.inputs.append(
-                ModuleInput(
-                    module=workflow,
-                    name=f"workflow_sns_topic_{index}_arn",
-                    value=f"module.{name}.topic_arn",
+        instance.config._uses_dynamodb_items = True
+        tables = sorted({target for target, _ in bindings.values()})
+        for name in tables:
+            target = self._find_instance(name, project)
+            if (
+                target.config.server_side_encryption_kms_key_arn
+                and not target.config.server_side_encryption_enabled
+                and not managed_key(name, project)
+            ):
+                self._reject(
+                    connection,
+                    "server_side_encryption_enabled",
+                    "An external DynamoDB KMS key requires server-side encryption to be enabled",
                 )
+        result = ConnectionContribution()
+        for index, name in enumerate(tables):
+            result.inputs.extend(
+                [
+                    ModuleInput(
+                        module=workflow,
+                        name=f"workflow_dynamodb_table_{index}_name",
+                        value=f"module.{name}.table_name",
+                    ),
+                    ModuleInput(
+                        module=workflow,
+                        name=f"workflow_dynamodb_table_{index}_arn",
+                        value=f"module.{name}.table_arn",
+                    ),
+                ]
             )
         task_bindings = {}
-        for state, (topic, message, group, deduplication) in sorted(bindings.items()):
-            target = self._find_instance(topic, project)
-            parameters = {
-                "TopicArn": Expr(f"var.workflow_sns_topic_{topics.index(topic)}_arn")
+        actions_to_tables = {}
+        for state, (table, config) in sorted(bindings.items()):
+            action = OPERATIONS[config.operation]
+            index = tables.index(table)
+            task_bindings[state] = {
+                "operation": action,
+                "parameters": dynamodb_task_parameters(
+                    config, f"workflow_dynamodb_table_{index}_name"
+                ),
             }
-            if message is None:
-                parameters["Message.$"] = "States.JsonToString($)"
-            else:
-                parameters["Message"] = message
-            if target.config.fifo_topic:
-                parameters["MessageGroupId"] = group
-                if deduplication:
-                    parameters["MessageDeduplicationId"] = deduplication
-                elif not target.config.content_based_deduplication:
-                    parameters["MessageDeduplicationId.$"] = "States.UUID()"
-            task_bindings[state] = parameters
+            actions_to_tables.setdefault(action, set()).add(index)
         result.resources.append(
             self._resource(
                 workflow,
-                "sns_tasks.tf",
-                sns_workflow_locals(
+                "dynamodb_tasks.tf",
+                dynamodb_workflow_locals(
                     task_bindings,
+                    present[ServiceType.SQS],
+                    present[ServiceType.SNS],
                     present[ServiceType.BATCH],
                     present[ServiceType.ECS],
                     present[ServiceType.LAMBDA],
@@ -151,66 +170,53 @@ class StepFunctionsSnsHandler(BaseConnectionHandler):
                 ),
             )
         )
-        policy, key_contribution = self._policy(workflow, topics, project)
+        policy, key_contribution = self._policy(
+            workflow, tables, actions_to_tables, project
+        )
         result.merge(key_contribution)
-        result.resources.append(self._resource(workflow, "sns_tasks_policy.tf", policy))
+        result.resources.append(
+            self._resource(
+                workflow,
+                "dynamodb_tasks_policy.tf",
+                policy,
+            )
+        )
         return result
 
-    def _validate_topic(
-        self,
-        connection: ConnectionIR,
-        config: StepFunctionsSnsConfig,
-        target: ResourceInstanceIR,
-    ) -> None:
-        if config.message is not None and (
-            not config.message or len(config.message.encode("utf-8")) > 262144
-        ):
-            self._reject(
-                connection, "message", "SNS messages must contain 1–262144 UTF-8 bytes"
-            )
-        fifo = bool(target.config.fifo_topic)
-        if fifo and not (target.config.topic_name or "").endswith(".fifo"):
-            self._reject(connection, "topic_name", "FIFO topic names must end in .fifo")
-        if fifo and not config.message_group_id:
-            self._reject(
-                connection, "message_group_id", "FIFO topics require a message group ID"
-            )
-        if not fifo and (config.message_group_id or config.message_deduplication_id):
-            self._reject(
-                connection,
-                "message_group_id",
-                "FIFO message settings require a FIFO topic",
-            )
-
     def _policy(
-        self, workflow: str, topics: list[str], project: ProjectIR
+        self,
+        workflow: str,
+        tables: list[str],
+        actions_to_tables: dict[str, set[int]],
+        project: ProjectIR,
     ) -> tuple[str, ConnectionContribution]:
         result, key_resources, data_sources = workflow_key_references(
-            workflow, topics, ServiceType.SNS, project
+            workflow, tables, ServiceType.DYNAMODB, project
         )
         statements = [
             {
                 "Effect": "Allow",
-                "Action": ["sns:Publish"],
+                "Action": [f"dynamodb:{action[0].upper()}{action[1:]}"],
                 "Resource": [
-                    Expr(f"var.workflow_sns_topic_{index}_arn")
-                    for index in range(len(topics))
+                    Expr(f"var.workflow_dynamodb_table_{index}_arn")
+                    for index in sorted(actions_to_tables[action])
                 ],
             }
+            for action in sorted(actions_to_tables)
         ]
         if key_resources:
             statements.append(
                 {
                     "Effect": "Allow",
-                    "Action": ["kms:Decrypt", "kms:GenerateDataKey*"],
+                    "Action": ["kms:Decrypt"],
                     "Resource": key_resources,
                 }
             )
         policy = self._renderer.render_resource(
             "aws_iam_role_policy",
-            "sns_tasks",
+            "dynamodb_tasks",
             {
-                "name": f"{workflow}-sns-tasks",
+                "name": f"{workflow}-dynamodb-tasks",
                 "role": Expr('element(reverse(split("/", var.role_arn)), 0)'),
                 "policy": self._renderer.render_json_policy(
                     {"Version": "2012-10-17", "Statement": statements}
