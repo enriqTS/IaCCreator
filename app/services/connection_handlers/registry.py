@@ -9,6 +9,7 @@ from app.models.connection_configs.apigw_step_functions import (
 )
 from app.models.connection_configs.appsync_dynamodb import AppSyncDynamoDbConfig
 from app.models.connection_configs.appsync_lambda import AppSyncLambdaConfig
+from app.models.connection_configs.appsync_opensearch import AppSyncOpenSearchConfig
 from app.models.connection_configs.backup import BackupSelectionConfig
 from app.models.connection_configs.configs import (
     AcceleratorEndpointConfig,
@@ -102,6 +103,7 @@ from app.services.connection_handlers.apigw_step_functions import (
 )
 from app.services.connection_handlers.appsync_dynamodb import AppSyncDynamoDbHandler
 from app.services.connection_handlers.appsync_lambda import AppSyncLambdaHandler
+from app.services.connection_handlers.appsync_opensearch import AppSyncOpenSearchHandler
 from app.services.connection_handlers.backup_selection import (
     BACKUP_OUTPUTS,
     BackupSelectionHandler,
@@ -277,6 +279,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="AppSync → Lambda resolver",
         config_model=AppSyncLambdaConfig,
         handler=AppSyncLambdaHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.APPSYNC,
+        target=ServiceType.OPENSEARCH,
+        connection_type="resolves_with",
+        label="AppSync → OpenSearch document resolver",
+        config_model=AppSyncOpenSearchConfig,
+        handler=AppSyncOpenSearchHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,

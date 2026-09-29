@@ -250,6 +250,9 @@ def connection_architecture(spec) -> dict:
                 "type Item { id: ID!, title: String } "
                 "type Query { probe(id: ID!): Item }"
                 if spec.target == ServiceType.DYNAMODB
+                else "type Item { id: ID!, title: String } "
+                "type Query { probe(query: String!): [Item] }"
+                if spec.target == ServiceType.OPENSEARCH
                 else "type Query { probe: String }"
             )
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
@@ -400,8 +403,16 @@ def connection_architecture(spec) -> dict:
     if spec.source == ServiceType.APPSYNC and spec.target in {
         ServiceType.LAMBDA,
         ServiceType.DYNAMODB,
+        ServiceType.OPENSEARCH,
     }:
-        payload["connections"][0]["connection_config"] = {"field_name": "probe"}
+        payload["connections"][0]["connection_config"] = {
+            "field_name": "probe",
+            **(
+                {"index_name": "application-records"}
+                if spec.target == ServiceType.OPENSEARCH
+                else {}
+            ),
+        }
     if (
         spec.source == ServiceType.EVENTBRIDGE
         and spec.target == ServiceType.API_GATEWAY

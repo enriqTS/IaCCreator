@@ -1,0 +1,16 @@
+# AppSync → OpenSearch
+
+The `resolves_with` connection binds a GraphQL field to a generated OpenSearch Service data source and AppSync JavaScript unit resolver. Set an explicit lowercase `index_name` and a `field_name`. `type_name` defaults to `Query` for reads and `Mutation` for writes. The API node must include a GraphQL schema with the selected field and suitable arguments and return type; AppSync validates the schema binding on deployment.
+
+| Operation | Method and path | Input | Returned value |
+|---|---|---|---|
+| `get_document` | GET `/<index>/_doc/<id>` | `id` argument, or `id_argument` override | Document `_source` |
+| `search` | POST `/<index>/_search` | `query` string argument, or `query_argument` override | Up to 50 matching document `_source` values |
+| `index_document` | PUT `/<index>/_doc/<id>` | `id` and `input` object arguments, overridable with `id_argument` and `document_argument` | OpenSearch write metadata |
+| `delete_document` | DELETE `/<index>/_doc/<id>` | `id` argument, or `id_argument` override | OpenSearch delete metadata |
+
+Search uses a `simple_query_string` query across the index's default search fields. Document IDs accept only letters, digits, underscores, and hyphens; the resolver validates and URL-encodes them before building a path. The `input` argument should be a GraphQL input object whose fields match the index mapping. Search and document reads should return GraphQL types matching the stored `_source` objects. Write operations return OpenSearch metadata, so their GraphQL return types should match that response. Index mappings, settings, and initial index creation remain external; service-side automatic index creation can still occur on writes.
+
+One API-owned OpenSearch data source and role serve all fields targeting the same domain. The role trusts AppSync only for the generated API ARN. Its policy grants only the HTTP method and index path used by each selected resolver. The domain ARN and endpoint enter the API module as Terraform inputs. Connected domains enforce HTTPS/TLS 1.2 and disable explicit indexes in multi-index request bodies across the domain, affecting other clients and potentially Dashboards. A GraphQL field can have only one generated resolver, including across Lambda and DynamoDB connections.
+
+The domain must be reachable from AppSync; [AWS's OpenSearch resolver guide](https://docs.aws.amazon.com/appsync/latest/devguide/tutorial-elasticsearch-resolvers-js.html) excludes domains inside a VPC. The connection does not create or change domain access policies or fine-grained security role mappings. Those policies can still block or broaden the generated role's access. See [OpenSearch index connections](backend-opensearch-connections.md) for the domain-wide setting and access-policy considerations. Terraform follows the [AppSync data-source](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) and [resolver](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_resolver) references; request and response shapes follow the [AppSync OpenSearch JavaScript reference](https://docs.aws.amazon.com/appsync/latest/devguide/resolver-reference-elasticsearch-js.html).
