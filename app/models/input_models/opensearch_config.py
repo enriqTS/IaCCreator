@@ -14,6 +14,7 @@ class OpenSearchConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.OPENSEARCH] = ServiceType.OPENSEARCH
     _index_client_access: bool = PrivateAttr(default=False)
+    _grafana_query_access: bool = PrivateAttr(default=False)
 
     _schema_field_order: ClassVar[tuple[str, ...]] = ("domain_name",)
 

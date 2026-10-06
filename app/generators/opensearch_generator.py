@@ -23,10 +23,14 @@ class OpenSearchGenerator:
         """Generate resource.tf with aws_opensearch_domain resource."""
         config = _resolve_config(instance)
         attrs: dict = {"domain_name": Expr("var.domain_name")}
-        if config._index_client_access:
+        if config._index_client_access or config._grafana_query_access:
             attrs["advanced_options"] = Expr(
                 self._r.render_expression(
-                    {"rest.action.multi.allow_explicit_index": "false"}
+                    {
+                        "rest.action.multi.allow_explicit_index": "false"
+                        if config._index_client_access
+                        else "true"
+                    }
                 )
             )
             attrs["domain_endpoint_options"] = {

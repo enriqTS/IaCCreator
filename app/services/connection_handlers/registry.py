@@ -71,6 +71,7 @@ from app.models.connection_configs.eventbridge_invocation import (
 )
 from app.models.connection_configs.eventbridge_kinesis import EventBridgeKinesisConfig
 from app.models.connection_configs.eventbridge_ssm import EventBridgeSsmConfig
+from app.models.connection_configs.grafana_opensearch import GrafanaOpenSearchConfig
 from app.models.connection_configs.memorydb import MemoryDbIamConfig
 from app.models.connection_configs.mq import MqClientConfig
 from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
@@ -807,6 +808,15 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         connection_type="queries",
         label="Managed Grafana → Timestream table queries",
         config_model=TimestreamTableAccessConfig,
+        handler=GrafanaDataSourcesHandler(),
+        region_policy="cross-region",
+    ),
+    ConnectionSpec(
+        source=ServiceType.MANAGED_GRAFANA,
+        target=ServiceType.OPENSEARCH,
+        connection_type="queries",
+        label="Managed Grafana → OpenSearch domain queries",
+        config_model=GrafanaOpenSearchConfig,
         handler=GrafanaDataSourcesHandler(),
         region_policy="cross-region",
     ),

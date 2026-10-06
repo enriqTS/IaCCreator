@@ -424,7 +424,7 @@ def connection_architecture(spec) -> dict:
                 and spec.connection_type in {"reads_from", "writes_to", "queries"}
                 else {"index_name": "application-records"}
                 if spec.target == ServiceType.OPENSEARCH
-                and spec.connection_type in {"reads_from", "writes_to"}
+                and spec.connection_type in {"reads_from", "writes_to", "queries"}
                 else {
                     "topic_name": "application-records",
                     "consumer_group": "application-readers",

@@ -336,3 +336,22 @@ def test_s3_notification_events_have_typed_defaults(connection_schemas, target):
         "s3:ObjectRemoved:*",
         "s3:ObjectRestore:*",
     }
+
+
+def test_grafana_opensearch_default_index_and_time_field_are_discoverable(
+    connection_schemas,
+):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "managed-grafana" and item["target"] == "opensearch"
+    )
+    assert entry["connection_type"] == "queries"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert fields["index_name"]["required"] is True
+    assert fields["index_name"]["label"] == "Default index name"
+    assert (
+        fields["index_name"]["validation"]["pattern"] == r"^[a-z0-9][a-z0-9_.-]{0,254}$"
+    )
+    assert fields["time_field"]["default"] == "@timestamp"
+    assert fields["time_field"]["required"] is False
