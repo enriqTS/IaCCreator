@@ -20,7 +20,7 @@ DocumentDB exposes optional `engine_version`; IAM client connections require exp
 
 `app/generators/` renders Terraform/HCL from the IR. Every registered service has a dedicated config model and a generator registered in `GENERATOR_REGISTRY`.
 
-Managed Grafana data-source connections add a workspace-owned role reference and policy dependency plus native customer-managed/current-account guards. `grafana_data_sources.py` renders shared role trust and policy resources; `grafana_prometheus.py` renders native workspace scope checks and credential-free data-source API payloads for the dedicated Amazon Prometheus plugin. Unconnected workspace rendering stays unchanged. See [Grafana Prometheus connections](backend-grafana-prometheus-connections.md).
+Managed Grafana data-source connections add a workspace-owned role reference and policy dependency plus native customer-managed/current-account guards. `grafana_data_sources.py` renders shared role trust and policy resources, flattening conditional statement lists into IAM objects. `grafana_prometheus.py` renders native workspace scope checks and credential-free data-source API payloads for the dedicated Amazon Prometheus plugin. `grafana_cloudwatch.py` renders log-group/class/KMS guards, Logs Insights and conditional decrypt permissions, and regional CloudWatch Logs API payloads. Unconnected workspace rendering stays unchanged. See [Grafana Prometheus connections](backend-grafana-prometheus-connections.md) and [Grafana CloudWatch Logs connections](backend-grafana-cloudwatch-connections.md).
 
 ## Generator contract and registry
 

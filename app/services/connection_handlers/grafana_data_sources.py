@@ -5,6 +5,7 @@ from app.generators.grafana_data_sources import render_grafana_role
 from app.models.connection_previews import ConnectionIssue
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.grafana_cloudwatch import GrafanaCloudWatchSource
 from app.services.connection_handlers.grafana_prometheus import GrafanaPrometheusSource
 from app.services.connection_handlers.grafana_source import GrafanaDataSource
 
@@ -12,7 +13,10 @@ from app.services.connection_handlers.grafana_source import GrafanaDataSource
 class GrafanaDataSourcesHandler(BaseConnectionHandler):
     def __init__(self) -> None:
         super().__init__()
-        self._sources: tuple[GrafanaDataSource, ...] = (GrafanaPrometheusSource(),)
+        self._sources: tuple[GrafanaDataSource, ...] = (
+            GrafanaPrometheusSource(),
+            GrafanaCloudWatchSource(),
+        )
 
     def _check_workspace(self, connection: ConnectionIR, project: ProjectIR) -> None:
         source = self._find_instance(connection.source_name, project)
@@ -65,9 +69,12 @@ class GrafanaDataSourcesHandler(BaseConnectionHandler):
         self, connection: ConnectionIR, project: ProjectIR
     ) -> list[ConnectionIssue]:
         self._check_workspace(connection, project)
-        return [
+        issues = [
             ConnectionIssue(
                 severity="warning",
-                message="The workspace uses a generated customer-managed role scoped to connected data sources. Apply each prometheus_data_sources output through Grafana's data-source API or UI with an authorized Grafana identity; install the Amazon Prometheus plugin if needed. Other configured AWS data sources require their own grants. Identity Center/SAML setup, user access, metrics ingestion, dashboards, and private network connectivity remain separately configured.",
+                message="The workspace uses a generated customer-managed role scoped to connected data sources. Apply the exported data-source settings through Grafana's data-source API or UI with an authorized Grafana identity; install the required plugins if needed. Other configured AWS data sources require their own grants. Identity Center/SAML setup, user access, metrics ingestion, dashboards, and private network connectivity remain separately configured.",
             )
         ]
+        for builder in self._sources:
+            issues.extend(builder.build(connection.source_name, project).issues)
+        return issues

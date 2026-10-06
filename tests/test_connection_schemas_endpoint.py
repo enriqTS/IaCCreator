@@ -117,6 +117,15 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_grafana_cloudwatch_queries_are_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "managed-grafana" and item["target"] == "cloudwatch"
+        )
+        assert entry["connection_type"] == "queries"
+        assert entry["fields"] == []
+
     def test_grafana_prometheus_queries_are_served(self, connection_schemas):
         entry = next(
             item

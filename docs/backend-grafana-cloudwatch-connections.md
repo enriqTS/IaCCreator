@@ -1,0 +1,22 @@
+# Managed Grafana CloudWatch Logs connections
+
+Managed Grafana → CloudWatch (`queries`) uses `EmptyConnectionConfig` and is exposed by `/api/connection-schemas`. The CloudWatch node represents a log group, so this connection grants Logs Insights and log-event reads. It supports multiple groups across Regions in the same account and partition. Organization role chaining and cross-account log queries remain outside the modeled connection.
+
+`GrafanaCloudWatchSource` contributes to the same workspace-owned customer-managed IAM role as [Managed Prometheus](backend-grafana-prometheus-connections.md). One role and inline policy aggregate both source types, including repeated or reordered connections. Workspace creation waits for that policy. Log-group modules export their native name, ARN, ARN-derived Region, class, and KMS key ARN through typed module inputs; they contain no Grafana role references. Terraform preconditions check native group identity, matching account/partition, Region/name consistency, supported Logs Insights classes (`STANDARD` and `INFREQUENT_ACCESS`), and regional KMS key identity.
+
+The query policy scopes `logs:StartQuery`, `logs:GetQueryResults`, `logs:GetLogGroupFields`, `logs:GetLogRecord`, and `logs:FilterLogEvents` to the connected groups. `logs:GetLogEvents` is restricted to their log streams. Both bare group ARNs and the group-specific `:*` form are emitted where relevant. `logs:DescribeLogGroups` and `logs:StopQuery` require wildcard resources; an `aws:RequestedRegion` condition restricts them to the connected Regions. Discovery can reveal other group names, and cancellation can affect other queries in those Regions. Preview explicitly describes these limits. See the [CloudWatch Logs IAM action reference](https://docs.aws.amazon.com/service-authorization/latest/reference/list_logs.html).
+
+For each encrypted group, the role receives `kms:Decrypt` on the group's native KMS key, constrained by the regional Logs `kms:ViaService` value and the group's bare ARN encryption context. Unencrypted groups produce no KMS grant. Connected KMS nodes retain ownership of their key policy and Logs service permissions; the read role does not receive encryption or key-management actions. An external key's owner must authorize the regional Logs service and the Grafana principal, and historical keys or account-level query-result encryption keys need separate grants. See [CloudWatch Logs KMS encryption](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html).
+
+The Grafana module exports `cloudwatch_data_sources`, keyed by native Region. Each payload uses the built-in `cloudwatch` plugin, proxy access, `authType = "default"`, the native default Region, and typed `jsonData.logGroups` defaults containing each connected group's name, bare ARN, and account ID. One payload aggregates all connected groups in its Region. UIDs derive from the account and Region, so changing diagram resource names or adding a group preserves the data-source identity. No keys or Grafana tokens are generated.
+
+Apply each exported payload in Grafana using an authorized Grafana identity. For a workspace resource named `grafana`, extract the settings from the generated environment directory:
+
+```sh
+terraform output -json grafana > grafana-outputs.json
+jq '.cloudwatch_data_sources["us-east-1"]' grafana-outputs.json > logs-data-source.json
+```
+
+Submit the JSON body to `POST https://<workspace_endpoint>/api/datasources`, or update it with `PUT /api/datasources/uid/<uid>`. The generator exports settings and manages AWS resources; Grafana object lifecycle and credentials remain externally managed. See the [Grafana data-source API](https://grafana.com/docs/grafana/latest/developer-resources/api-reference/http-api/api-legacy/data_source/).
+
+Use Logs query mode with the exported default groups. This role does not grant CloudWatch metrics, tag or Region discovery, or log-data-source selector APIs. Grafana's combined metrics/logs Save & test can report a metrics permission error with this logs-only role; validate a Logs Insights query against a connected group. Additional query modes and discovery workflows need their own grants. User authentication, dashboards, ingestion, and network connectivity remain separately configured. See [Grafana CloudWatch configuration](https://grafana.com/docs/grafana/latest/datasources/aws-cloudwatch/configure/) and the [plugin's typed settings](https://github.com/grafana/grafana/blob/main/public/app/plugins/datasource/cloudwatch/types.ts).

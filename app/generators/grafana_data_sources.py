@@ -23,7 +23,10 @@ def grafana_workspace_attributes(name: str) -> dict:
 
 
 def render_grafana_role(
-    name: str, statements: list[dict], preconditions: list[dict], renderer: HCLRenderer
+    name: str,
+    statements: list[dict | Expr],
+    preconditions: list[dict],
+    renderer: HCLRenderer,
 ) -> str:
     resource = f"{name}_data_sources"
     content = 'data "aws_partition" "grafana_sources" {}\ndata "aws_region" "grafana_sources" {}\ndata "aws_caller_identity" "grafana_sources" {}\n\n'
@@ -66,7 +69,10 @@ def render_grafana_role(
         "name_prefix": "grafana-data-sources-",
         "role": Expr(f"aws_iam_role.{resource}.id"),
         "policy": renderer.render_json_policy(
-            {"Version": "2012-10-17", "Statement": statements}
+            {
+                "Version": "2012-10-17",
+                "Statement": Expr(f"flatten({renderer.render_expression(statements)})"),
+            }
         ),
     }
     if preconditions:
