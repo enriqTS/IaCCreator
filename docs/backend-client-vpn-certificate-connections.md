@@ -1,0 +1,21 @@
+# Certificate Manager → Client VPN
+
+The `secures` connection supplies native ACM references to the existing mutual-TLS Client VPN endpoint. Its `certificate_role` setting selects `server` (default), `client_trust`, or `both`. Managed connections override the corresponding endpoint ARN input; an unconnected role retains its manually configured external ARN.
+
+| Role | Endpoint input | Supported managed certificate |
+|---|---|---|
+| `server` | `server_certificate_arn` | Public ACM request or Private CA-issued ACM certificate |
+| `client_trust` | `root_certificate_chain_arn` | Private CA-issued ACM certificate |
+| `both` | Both inputs | Private CA-issued ACM certificate whose issuer also signs the clients |
+
+The client CA input references an ACM leaf certificate and its issuing chain, not the root CA ARN or PEM. AWS permits using the server certificate ARN for both inputs when server and clients share an issuer. To use different issuers, connect separate certificate nodes with the two individual roles. Newly requested public ACM certificates cannot serve as client-authentication certificates; use a managed private certificate for client trust, or configure an externally imported client certificate ARN on the endpoint.
+
+Connect Private CA → Certificate Manager (`issues_certificate`) before or after the VPN connection; resolution does not depend on connector order. Managed private leaves must use RSA 2048, selected explicitly or automatically from an RSA CA. RSA 2048/3072/4096 issuing CA keys are supported; the CA key size does not set the leaf key size. ECDSA leaves are rejected for every VPN role. Native endpoint preconditions also check each connected leaf's reported key algorithm and ARN Region, so Terraform variable overrides cannot silently select an unsupported key or a different Region.
+
+The certificate module exports `client_vpn_certificate_arn` and `client_vpn_certificate_key_algorithm`. Public requests additionally own one shared `aws_acm_certificate_validation` waiter in `client_vpn_certificate.tf`; the ready ARN output references that waiter. Complete the existing certificate's DNS or email validation before the VPN endpoint can be created. This connection does not create validation records. Private issuance already waits for certificate details in the AWS provider and needs no public validation waiter.
+
+The endpoint keeps its native server and client CA variables and receives an additional key-algorithm input for each connected role. Guards live on the endpoint's lifecycle, alongside one endpoint-module Region data source. No certificate resources are written into the VPN module, no cross-module references appear inside module resources, and no workload IAM grants are added. Repeated identical connections share outputs and waiters; converging connections cannot assign different certificates to the same role. Effective Regions include inherited defaults and environment overrides.
+
+Client identities remain an operational prerequisite. Issue individual client certificates with a Common Name and client-authentication usage from the selected client CA, protect their private keys, install the server CA root certificate in client trust stores, and distribute VPN profiles. The connection does not issue client credentials, export private keys, generate profiles, or configure revocation lists. Subnet associations, endpoint authorization rules, and routes are also required for usable access. Preview reports these prerequisites, public-validation requirements, and any missing certificate role.
+
+The implementation follows [AWS mutual-authentication requirements](https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/mutual.html), [Client VPN endpoint certificate requirements](https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/cvpn-working-endpoint-create.html), [ACM certificate usage definitions](https://docs.aws.amazon.com/acm/latest/userguide/acm-concepts.html), the [Client VPN Terraform schema](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_client_vpn_endpoint), and the [ACM issuance waiter schema](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate_validation).

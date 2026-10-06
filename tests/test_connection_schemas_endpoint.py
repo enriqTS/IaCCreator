@@ -117,6 +117,23 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_client_vpn_certificate_roles_are_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "certificate-manager"
+            and item["target"] == "client-vpn"
+        )
+        assert entry["connection_type"] == "secures"
+        field = entry["fields"][0]
+        assert field["key"] == "certificate_role"
+        assert field["default"] == "server"
+        assert [option["value"] for option in field["options"]] == [
+            "server",
+            "client_trust",
+            "both",
+        ]
+
     def test_private_certificate_key_choices_are_served(self, connection_schemas):
         entry = next(
             item

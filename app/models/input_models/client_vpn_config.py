@@ -1,11 +1,14 @@
 from typing import Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField
 
 
 class ClientVpnConfig(BaseServiceConfig):
+    _managed_certificate_fields: tuple[str, ...] = PrivateAttr(default=())
     service_type: Literal[ServiceType.CLIENT_VPN] = ServiceType.CLIENT_VPN
     description: str = TerraformField(
         "Managed client VPN", description="Client VPN endpoint description"

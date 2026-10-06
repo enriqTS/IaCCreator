@@ -13,6 +13,9 @@ from app.models.connection_configs.appsync_eventbridge import AppSyncEventBridge
 from app.models.connection_configs.appsync_lambda import AppSyncLambdaConfig
 from app.models.connection_configs.appsync_opensearch import AppSyncOpenSearchConfig
 from app.models.connection_configs.backup import BackupSelectionConfig
+from app.models.connection_configs.client_vpn_certificate import (
+    ClientVpnCertificateConfig,
+)
 from app.models.connection_configs.cognito_api_gateway import CognitoApiGatewayConfig
 from app.models.connection_configs.cognito_appsync import CognitoAppSyncConfig
 from app.models.connection_configs.cognito_load_balancer import (
@@ -124,6 +127,9 @@ from app.services.connection_handlers.base import ConnectionHandler
 from app.services.connection_handlers.certificate import (
     CertificateCloudFrontHandler,
     CertificateLoadBalancerHandler,
+)
+from app.services.connection_handlers.client_vpn_certificate import (
+    ClientVpnCertificateHandler,
 )
 from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
 from app.services.connection_handlers.codepipeline_s3 import CodePipelineS3Handler
@@ -1159,6 +1165,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         config_model=EmptyConnectionConfig,
         handler=CertificateCloudFrontHandler(),
         region_policy="cross-region",
+    ),
+    ConnectionSpec(
+        source=ServiceType.CERTIFICATE_MANAGER,
+        target=ServiceType.CLIENT_VPN,
+        connection_type="secures",
+        label="Certificate Manager → Client VPN",
+        config_model=ClientVpnCertificateConfig,
+        handler=ClientVpnCertificateHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.WAF,

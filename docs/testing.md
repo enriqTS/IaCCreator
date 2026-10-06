@@ -115,6 +115,8 @@ Key coverage areas include:
 
 `tests/test_private_certificate_connections.py` covers root signing/activation, account-scoped ACM renewal permissions, dependency-ready outputs, native private issuance, public validation suppression, algorithm compatibility, property-based CA sharing/order/deduplication, issuer conflicts, effective Regions, listener composition, CloudFront trust rejection, and previews. Terraform console evaluates passing/failing usage, signing, key, and Region guards; generated RSA/ECDSA projects pass validation/graphs. Connection-schema tests verify the key choices served to the editor.
 
+`tests/test_client_vpn_certificate_connections.py` covers server/client CA/combined roles, private CA composition, public issuance readiness, external role preservation, property-based waiter/input sharing, separate issuer references and naming collisions, conflicting assignments, unsupported keys/client trust, effective Regions, schema defaults, and previews. Terraform console checks native key/Region guards; generated projects pass validation and dependency graphs. Connection-schema endpoint tests verify role choices.
+
 `tests/test_batch_secret_connections.py` covers job/execution-role separation, native settings and reserved-name validation, external bindings, catalog/schema exposure, and unchanged compute-environment compatibility. Terraform console tests evaluate container properties, resource requirement types, plaintext-variable replacement, and managed/external secret merging. Shared tests cover aggregation and encrypted-project validation.
 
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.

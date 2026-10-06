@@ -210,6 +210,13 @@ def connection_architecture(spec) -> dict:
     ):
         config = minimal_config_for(service_type).model_dump(exclude_none=True)
         config.update(DEPLOYABLE_EXTRAS.get(service_type, {}))
+        if (
+            spec.source == ServiceType.CERTIFICATE_MANAGER
+            and service_type == ServiceType.CLIENT_VPN
+        ):
+            config["root_certificate_chain_arn"] = (
+                "arn:aws:acm:us-east-1:123456789012:certificate/external-client-ca"
+            )
         if spec.connection_type in {
             "source_endpoint",
             "target_endpoint",

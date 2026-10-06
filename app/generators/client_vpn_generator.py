@@ -1,4 +1,5 @@
 from app.generators.base import get_typed_config
+from app.generators.client_vpn_certificate import certificate_preconditions
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.client_vpn_config import ClientVpnConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -10,25 +11,30 @@ class ClientVpnGenerator:
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
         config = get_typed_config(instance, ClientVpnConfig)
-        endpoint = self._r.render_resource(
-            "aws_ec2_client_vpn_endpoint",
-            instance.name,
-            {
-                "description": Expr("var.description"),
-                "client_cidr_block": Expr("var.client_cidr_block"),
-                "server_certificate_arn": Expr("var.server_certificate_arn"),
-                "authentication_options": {
-                    "type": "certificate-authentication",
-                    "root_certificate_chain_arn": Expr(
-                        "var.root_certificate_chain_arn"
-                    ),
-                },
-                "connection_log_options": {"enabled": Expr("false")},
-                "split_tunnel": Expr("var.split_tunnel"),
-                "transport_protocol": Expr("var.transport_protocol"),
-                "security_group_ids": Expr("var.security_group_ids"),
-                "tags": Expr("var.tags"),
+        attrs = {
+            "description": Expr("var.description"),
+            "client_cidr_block": Expr("var.client_cidr_block"),
+            "server_certificate_arn": Expr("var.server_certificate_arn"),
+            "authentication_options": {
+                "type": "certificate-authentication",
+                "root_certificate_chain_arn": Expr("var.root_certificate_chain_arn"),
             },
+            "connection_log_options": {"enabled": Expr("false")},
+            "split_tunnel": Expr("var.split_tunnel"),
+            "transport_protocol": Expr("var.transport_protocol"),
+            "security_group_ids": Expr("var.security_group_ids"),
+            "tags": Expr("var.tags"),
+        }
+        prefix = ""
+        if config._managed_certificate_fields:
+            attrs["lifecycle"] = {
+                "precondition": certificate_preconditions(
+                    config._managed_certificate_fields
+                )
+            }
+            prefix = 'data "aws_region" "client_vpn_certificate" {}\n\n'
+        endpoint = prefix + self._r.render_resource(
+            "aws_ec2_client_vpn_endpoint", instance.name, attrs
         )
         if not config.subnet_ids:
             return endpoint
