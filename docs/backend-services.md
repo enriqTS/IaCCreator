@@ -1,5 +1,7 @@
 # Backend Services
 
+`CloudTrailLogsHandler` supplies native CloudWatch destination references and owns one trail delivery role/policy. Effective Region checks and native ARN guards constrain destinations; `KmsConsumerGrants` supplies selected-key access with regional Logs service conditions. It composes with existing S3/KMS policy ownership. See [CloudTrail logging connections](backend-cloudtrail-logs-connections.md).
+
 `CertificateDnsHandler` resolves public hosted-zone coverage across primary/SAN certificate names and aggregates shared validation CNAMEs in their zones. Certificate-owned issuance waiters consume record FQDNs independently of native validation-option exports, preserving acyclic consumer/alias dependencies. See [ACM DNS-validation connections](backend-certificate-dns-connections.md).
 
 `EventBridgeApiGatewayHandler` targets an existing IAM-authorized HTTP POST route using its API execution ARN and a route-scoped rule role. See [EventBridge API Gateway connections](backend-eventbridge-api-gateway-connections.md).

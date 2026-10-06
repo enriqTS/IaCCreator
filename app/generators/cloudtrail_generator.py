@@ -1,4 +1,5 @@
 from app.generators.base import get_typed_config
+from app.generators.cloudtrail_logs import cloudtrail_logs_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.cloudtrail_config import CloudTrailConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -18,6 +19,11 @@ class CloudtrailGenerator:
             instance.name,
             {
                 **encryption,
+                **(
+                    cloudtrail_logs_attributes(instance.name)
+                    if config._cloudwatch_logs
+                    else {}
+                ),
                 "name": Expr("var.trail_name"),
                 "s3_bucket_name": Expr("var.s3_bucket_name"),
                 "include_global_service_events": Expr(

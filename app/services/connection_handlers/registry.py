@@ -140,6 +140,7 @@ from app.services.connection_handlers.client_vpn_certificate import (
     ClientVpnCertificateHandler,
 )
 from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
+from app.services.connection_handlers.cloudtrail_logs import CloudTrailLogsHandler
 from app.services.connection_handlers.codepipeline_s3 import CodePipelineS3Handler
 from app.services.connection_handlers.cognito_api_gateway import (
     CognitoApiGatewayHandler,
@@ -1334,6 +1335,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Lambda → CloudWatch",
         config_model=EmptyConnectionConfig,
         handler=LambdaCloudWatchHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.CLOUDTRAIL,
+        target=ServiceType.CLOUDWATCH,
+        connection_type="logs_to",
+        label="CloudTrail → CloudWatch Logs",
+        config_model=EmptyConnectionConfig,
+        handler=CloudTrailLogsHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,

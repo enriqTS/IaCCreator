@@ -104,3 +104,5 @@ EFS runtime connections use `EfsEc2MountConfig`, `EfsEcsMountConfig`, and `EfsEk
 `ApiGatewayCertificateConfig` requires a normalized `domain_name` and optionally selects `stage_name` and `api_mapping_key`. Frozen `ApiGatewayDomainBinding` records hold resolved certificate/stage/path selections and deterministic resource identifiers. Service schemas stay unchanged; connection schemas expose the settings. See [API custom-domain connections](backend-api-gateway-certificate-connections.md).
 
 `CertificateDnsConfig.ttl` supplies bounded validation-record TTLs. Frozen `CertificateDnsBinding` and `CertificateDnsRecord` values resolve canonical domains, zone selection, and shared certificate ownership. `AcmConfig` privately tracks managed DNS validation without changing service schemas. See [ACM DNS-validation connections](backend-certificate-dns-connections.md).
+
+CloudTrail `logs_to` uses `EmptyConnectionConfig`. `CloudTrailConfig` privately tracks managed CloudWatch delivery for generator rendering; no new editable service fields or bundled-schema changes are required. See [CloudTrail logging connections](backend-cloudtrail-logs-connections.md).

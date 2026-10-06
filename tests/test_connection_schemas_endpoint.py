@@ -117,6 +117,15 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_cloudtrail_log_delivery_is_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "cloudtrail" and item["target"] == "cloudwatch"
+        )
+        assert entry["connection_type"] == "logs_to"
+        assert entry["fields"] == []
+
     def test_api_gateway_certificate_mapping_fields_are_served(
         self, connection_schemas
     ):

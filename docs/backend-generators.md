@@ -74,6 +74,8 @@ KMS consumer IAM grants and service policies are covered in [KMS connection inte
 
 CloudTrail accepts an optional external `kms_key_id` ARN. Managed KMS connections override it with a policy-ready key output. The connection owns `aws_kms_key_policy` in the key module; the KMS generator leaves its inline policy unset so Terraform has one policy owner. Log-reader decrypt grants and the S3 delivery bucket policy remain separate concerns.
 
+Managed CloudTrail logging adds native CloudWatch destination arguments and waits for its trail-owned delivery policy. `cloudtrail_logs.py` renders role/policy resources, stream scopes, wildcard normalization, and native destination guards. See [CloudTrail logging connections](backend-cloudtrail-logs-connections.md).
+
 ECS secret connections merge native `secrets` entries into `container_definitions`, preserving unrelated settings and external bindings. Managed bindings replace matching environment variables or secret names. A precondition rejects missing containers, and task creation depends on the secret-access policy. Defaults target the ECS node’s container and use `SECRET_<SECRET_NODE_NAME>` as the environment name. Secrets Manager nodes provision secret metadata; secret values must be populated separately before workloads use them.
 
 EC2 secret connections attach the connection-owned instance profile and make instance creation depend on the secret-access policy. Unconnected instances create no secret role or profile. IAM role and profile names use provider-generated suffixes to avoid account-level naming collisions between generated environments.

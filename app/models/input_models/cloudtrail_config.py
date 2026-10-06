@@ -1,11 +1,14 @@
 from typing import Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField
 
 
 class CloudTrailConfig(BaseServiceConfig):
+    _cloudwatch_logs: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.CLOUDTRAIL] = ServiceType.CLOUDTRAIL
     trail_name: str = TerraformField("audit-trail", description="CloudTrail trail name")
     s3_bucket_name: str = TerraformField(
