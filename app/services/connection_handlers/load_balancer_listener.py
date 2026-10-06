@@ -5,6 +5,9 @@ from app.models.connection_previews import ConnectionIssue
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler, safe_identifier
+from app.services.connection_handlers.cognito_load_balancer_bindings import (
+    resolve_cognito_listener_bindings,
+)
 
 
 class LoadBalancerTargetGroupHandler(BaseConnectionHandler):
@@ -33,6 +36,32 @@ class LoadBalancerTargetGroupHandler(BaseConnectionHandler):
                 }
             ],
         }
+        binding = resolve_cognito_listener_bindings(
+            connection.source_name, project
+        ).get(config.get("port", 80))
+        if binding is not None:
+            prefix = f"cognito_{binding.pool_name}"
+            attrs["default_action"][0]["order"] = 2
+            attrs["default_action"].insert(
+                0,
+                {
+                    "type": "authenticate-cognito",
+                    "order": 1,
+                    "authenticate_cognito": {
+                        "user_pool_arn": Expr(f"var.{prefix}_user_pool_arn"),
+                        "user_pool_client_id": Expr(
+                            f"aws_cognito_user_pool_client.{binding.client_resource}.id"
+                        ),
+                        "user_pool_domain": Expr(f"var.{prefix}_user_pool_domain"),
+                        "scope": binding.config.scopes,
+                        "on_unauthenticated_request": binding.config.on_unauthenticated_request,
+                        "session_timeout": binding.config.session_timeout,
+                        "session_cookie_name": binding.cookie_name(
+                            connection.source_name
+                        ),
+                    },
+                },
+            )
         if protocol in {"HTTPS", "TLS"} and certificates:
             certificate = safe_identifier(certificates[0])
             attrs["certificate_arn"] = Expr(f"var.{certificate}_certificate_arn")

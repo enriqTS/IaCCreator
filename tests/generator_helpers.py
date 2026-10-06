@@ -425,6 +425,49 @@ def connection_architecture(spec) -> dict:
             "path": "/private",
             "method": "GET",
         }
+    if spec.source == ServiceType.COGNITO and spec.target == ServiceType.LOAD_BALANCER:
+        payload["resources"][0]["config"]["domain_prefix"] = "connection-check-login"
+        payload["connections"][0]["connection_config"] = {
+            "application_hostname": "app.example.com"
+        }
+        payload["resources"].extend(
+            [
+                {
+                    "id": "group",
+                    "name": "app-group",
+                    "service_type": "target-group",
+                    "config": {"vpc_id": "vpc-12345678"},
+                    "terraform_variables": {},
+                },
+                {
+                    "id": "cert",
+                    "name": "app-cert",
+                    "service_type": "certificate-manager",
+                    "config": {"domain_name": "app.example.com"},
+                    "terraform_variables": {},
+                },
+            ]
+        )
+        payload["connections"].extend(
+            [
+                {
+                    "source": "target-resource",
+                    "source_id": "tgt",
+                    "target": "app-group",
+                    "target_id": "group",
+                    "connection_type": "forwards_to",
+                    "connection_config": {"port": 443, "protocol": "HTTPS"},
+                },
+                {
+                    "source": "app-cert",
+                    "source_id": "cert",
+                    "target": "target-resource",
+                    "target_id": "tgt",
+                    "connection_type": "secures",
+                    "connection_config": {},
+                },
+            ]
+        )
     if spec.source == ServiceType.APPSYNC and spec.target in {
         ServiceType.LAMBDA,
         ServiceType.DYNAMODB,

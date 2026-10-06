@@ -2450,6 +2450,17 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "create_client",
       "required": false,
       "type": "bool"
+    },
+    {
+      "description": "Optional hosted sign-in domain prefix; unique within the AWS Region",
+      "group": "General",
+      "label": "Domain prefix",
+      "name": "domain_prefix",
+      "required": false,
+      "type": "string",
+      "validation": {
+        "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+      }
     }
   ],
   "comprehend": [

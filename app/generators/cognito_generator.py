@@ -34,24 +34,42 @@ class CognitoGenerator:
                     },
                 )
             )
+        if config.domain_prefix:
+            parts.append(
+                self._r.render_resource(
+                    "aws_cognito_user_pool_domain",
+                    instance.name,
+                    {
+                        "domain": Expr("var.domain_prefix"),
+                        "user_pool_id": Expr(
+                            f"aws_cognito_user_pool.{instance.name}.id"
+                        ),
+                    },
+                )
+            )
         return "\n".join(parts)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, CognitoConfig)
-        return "\n".join(
-            [
+        config = get_typed_config(instance, CognitoConfig)
+        parts = [
+            self._r.render_variable(
+                "username_attributes", "string", "Username attribute"
+            ),
+            self._r.render_variable(
+                "auto_verified_attributes", "bool", "Automatically verify usernames"
+            ),
+            self._r.render_variable("mfa_configuration", "string", "MFA mode"),
+            self._r.render_variable(
+                "create_client", "bool", "Create an application client"
+            ),
+        ]
+        if config.domain_prefix:
+            parts.append(
                 self._r.render_variable(
-                    "username_attributes", "string", "Username attribute"
-                ),
-                self._r.render_variable(
-                    "auto_verified_attributes", "bool", "Automatically verify usernames"
-                ),
-                self._r.render_variable("mfa_configuration", "string", "MFA mode"),
-                self._r.render_variable(
-                    "create_client", "bool", "Create an application client"
-                ),
-            ]
-        )
+                    "domain_prefix", "string", "Hosted sign-in domain prefix"
+                )
+            )
+        return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:
         config = get_typed_config(instance, CognitoConfig)
@@ -67,6 +85,14 @@ class CognitoGenerator:
                     "client_id",
                     f"aws_cognito_user_pool_client.{instance.name}.id",
                     "Application client ID",
+                )
+            )
+        if config.domain_prefix:
+            parts.append(
+                self._r.render_output(
+                    "user_pool_domain",
+                    f"aws_cognito_user_pool_domain.{instance.name}.domain",
+                    "Hosted sign-in domain prefix",
                 )
             )
         return "\n".join(parts)

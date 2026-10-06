@@ -2,9 +2,15 @@
 
 from typing import Literal
 
+from pydantic import field_validator
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
-from app.models.input_models._metadata import OptionEntry, TerraformField
+from app.models.input_models._metadata import (
+    OptionEntry,
+    TerraformField,
+    ValidationRule,
+)
 
 
 class CognitoConfig(BaseServiceConfig):
@@ -31,3 +37,22 @@ class CognitoConfig(BaseServiceConfig):
     create_client: bool = TerraformField(
         True, description="Create an application client"
     )
+    domain_prefix: str | None = TerraformField(
+        None,
+        description="Optional hosted sign-in domain prefix; unique within the AWS Region",
+        validation=ValidationRule(pattern=r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"),
+        min_length=1,
+        max_length=63,
+        pattern=r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$",
+    )
+
+    @field_validator("domain_prefix")
+    @classmethod
+    def validate_domain_prefix(cls, value: str | None) -> str | None:
+        if value and any(
+            reserved in value for reserved in ("aws", "amazon", "cognito")
+        ):
+            raise ValueError(
+                "Cognito domain prefixes cannot contain aws, amazon, or cognito"
+            )
+        return value

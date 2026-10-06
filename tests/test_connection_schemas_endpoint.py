@@ -117,6 +117,22 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_cognito_load_balancer_settings_are_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "cognito" and item["target"] == "load-balancer"
+        )
+        assert entry["connection_type"] == "authenticates"
+        fields = {field["key"]: field for field in entry["fields"]}
+        assert fields["application_hostname"]["required"] is True
+        assert fields["listener_port"]["default"] == 443
+        assert fields["scopes"]["default"] == "openid"
+        assert fields["session_timeout"]["validation"]["max"] == 604800
+        assert [
+            item["value"] for item in fields["on_unauthenticated_request"]["options"]
+        ] == ["authenticate", "deny", "allow"]
+
     def test_cognito_api_gateway_route_settings_are_served(self, connection_schemas):
         entry = next(
             item

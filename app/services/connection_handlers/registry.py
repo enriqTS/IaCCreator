@@ -15,6 +15,9 @@ from app.models.connection_configs.appsync_opensearch import AppSyncOpenSearchCo
 from app.models.connection_configs.backup import BackupSelectionConfig
 from app.models.connection_configs.cognito_api_gateway import CognitoApiGatewayConfig
 from app.models.connection_configs.cognito_appsync import CognitoAppSyncConfig
+from app.models.connection_configs.cognito_load_balancer import (
+    CognitoLoadBalancerConfig,
+)
 from app.models.connection_configs.configs import (
     AcceleratorEndpointConfig,
     ApiGatewayAuthorizerConfig,
@@ -127,6 +130,9 @@ from app.services.connection_handlers.cognito_api_gateway import (
     CognitoApiGatewayHandler,
 )
 from app.services.connection_handlers.cognito_appsync import CognitoAppSyncHandler
+from app.services.connection_handlers.cognito_load_balancer import (
+    CognitoLoadBalancerHandler,
+)
 from app.services.connection_handlers.database_access import DatabaseAccessHandler
 from app.services.connection_handlers.datasync_location import DataSyncLocationHandler
 from app.services.connection_handlers.datasync_s3 import DataSyncS3Handler
@@ -276,6 +282,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.COGNITO,
+        target=ServiceType.LOAD_BALANCER,
+        connection_type="authenticates",
+        label="Cognito → HTTPS load-balancer authentication",
+        config_model=CognitoLoadBalancerConfig,
+        handler=CognitoLoadBalancerHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.COGNITO,
         target=ServiceType.API_GATEWAY,
