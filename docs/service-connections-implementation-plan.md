@@ -334,7 +334,7 @@ Implement:
 - [x] AppSync → OpenSearch: AppSync JavaScript document lookup, search, index, and delete resolvers use an AppSync-owned domain data source and index/path-scoped HTTP grants.
 - [x] AppSync → EventBridge: API-owned EventBridge data sources publish one event per selected GraphQL field with bus-scoped IAM and explicit source/detail type.
 - [x] AppSync → Aurora PostgreSQL where supported: Data API-backed row resolvers and an API-owned data source use a least-privilege external database-user secret. Standalone RDS instances and Aurora MySQL are not supported by this connection.
-- Cognito → AppSync authentication.
+- [x] Cognito → AppSync authentication: default or additional user-pool providers consume managed pool/client references, restrict tokens to the generated client by default, and validate conflicting providers.
 
 AppSync owns generated data sources and resolver resources.
 
@@ -349,7 +349,7 @@ AppSync owns generated data sources and resolver resources.
 Implement:
 
 - Cognito → API Gateway: configure a JWT authorizer.
-- Cognito → AppSync: configure user-pool authentication.
+- [x] Cognito → AppSync: default/additional user-pool authentication with native pool Region and client filtering; see Phase 6.
 - Cognito → Load Balancer: configure listener authentication where modeled.
 - Private CA → Certificate Manager: issue a private certificate.
 - Certificate Manager → Client VPN: supply server and client certificate references.

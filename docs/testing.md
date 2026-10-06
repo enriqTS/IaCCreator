@@ -107,6 +107,8 @@ Key coverage areas include:
 
 `tests/test_appsync_aurora_connections.py` covers Data API cluster wiring, scoped database-user secrets, row operations, field conflicts, invalid config, and Terraform validation/graphs.
 
+`tests/test_cognito_appsync_connections.py` covers default/additional providers, client filtering, API-key behavior, provider conflicts, property-based aggregation/deduplication, cross-Region references, preview guidance, resolver composition, and Terraform validation/graphs. The connection-schema endpoint tests verify the editor receives the typed authentication settings.
+
 `tests/test_batch_secret_connections.py` covers job/execution-role separation, native settings and reserved-name validation, external bindings, catalog/schema exposure, and unchanged compute-environment compatibility. Terraform console tests evaluate container properties, resource requirement types, plaintext-variable replacement, and managed/external secret merging. Shared tests cover aggregation and encrypted-project validation.
 
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.

@@ -117,6 +117,27 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_cognito_appsync_authentication_options_are_served(
+        self, connection_schemas
+    ):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "cognito" and item["target"] == "appsync"
+        )
+        assert entry["connection_type"] == "authenticates"
+        fields = {field["key"]: field for field in entry["fields"]}
+        assert fields["mode"]["default"] == "default"
+        assert [option["value"] for option in fields["mode"]["options"]] == [
+            "default",
+            "additional",
+        ]
+        assert fields["restrict_to_client"]["default"] is True
+        assert fields["default_action"]["visible_when"] == {
+            "field": "mode",
+            "equals": "default",
+        }
+
     def test_returns_every_spec(self, connection_schemas):
         assert len(connection_schemas["connections"]) == len(CONNECTION_SPECS)
 

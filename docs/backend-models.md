@@ -90,3 +90,5 @@ EFS runtime connections use `EfsEc2MountConfig`, `EfsEcsMountConfig`, and `EfsEk
 `MemoryDbIamConfig` requires an existing `user_name`, validates its syntax, and normalizes it to lowercase. `MemoryDbConfig` exposes optional `engine_version` and carries a private connection-derived flag for native IAM client checks. See [MemoryDB connections](backend-memorydb-connections.md).
 
 `OpenSearchIndexAccessConfig` requires a concrete lowercase index name without path, wildcard, or list syntax. `OpenSearchConfig` carries a private connection-derived flag for native index-client settings; connection fields are exposed dynamically without bundled-variable-schema changes. See [OpenSearch connections](backend-opensearch-connections.md).
+
+`CognitoAppSyncConfig` selects default/additional authentication, generated-client filtering, and default field access. `AppSyncConfig` carries private typed `CognitoUserPoolBinding` values for generation; these do not add editable service fields. See [Cognito AppSync authentication](backend-cognito-appsync-connections.md).

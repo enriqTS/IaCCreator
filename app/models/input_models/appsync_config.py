@@ -2,6 +2,9 @@
 
 from typing import Literal
 
+from pydantic import PrivateAttr
+
+from app.models.appsync_authentication import CognitoUserPoolBinding
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import OptionEntry, TerraformField, VisibleWhen
@@ -9,6 +12,9 @@ from app.models.input_models._metadata import OptionEntry, TerraformField, Visib
 
 class AppSyncConfig(BaseServiceConfig):
     service_type: Literal[ServiceType.APPSYNC] = ServiceType.APPSYNC
+    _cognito_authentication: list[CognitoUserPoolBinding] = PrivateAttr(
+        default_factory=list
+    )
     authentication_type: str = TerraformField(
         "API_KEY",
         description="Default API authentication type",

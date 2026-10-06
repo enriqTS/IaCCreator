@@ -263,6 +263,8 @@ def connection_architecture(spec) -> dict:
                 if spec.target == ServiceType.OPENSEARCH
                 else "type Query { probe: String }"
             )
+        if spec.source == ServiceType.COGNITO and service_type == ServiceType.APPSYNC:
+            config["schema_definition"] = "type Query { probe: String }"
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
             config.pop("bus_name", None)
         if (
