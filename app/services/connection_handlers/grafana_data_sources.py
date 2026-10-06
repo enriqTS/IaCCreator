@@ -8,6 +8,7 @@ from app.services.connection_handlers.base import BaseConnectionHandler
 from app.services.connection_handlers.grafana_cloudwatch import GrafanaCloudWatchSource
 from app.services.connection_handlers.grafana_prometheus import GrafanaPrometheusSource
 from app.services.connection_handlers.grafana_source import GrafanaDataSource
+from app.services.connection_handlers.grafana_timestream import GrafanaTimestreamSource
 
 
 class GrafanaDataSourcesHandler(BaseConnectionHandler):
@@ -16,6 +17,7 @@ class GrafanaDataSourcesHandler(BaseConnectionHandler):
         self._sources: tuple[GrafanaDataSource, ...] = (
             GrafanaPrometheusSource(),
             GrafanaCloudWatchSource(),
+            GrafanaTimestreamSource(),
         )
 
     def _check_workspace(self, connection: ConnectionIR, project: ProjectIR) -> None:

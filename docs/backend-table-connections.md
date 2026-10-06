@@ -16,6 +16,8 @@ Use a Cassandra driver with the AWS SigV4 authentication plugin and the workload
 
 These connections target Timestream for LiveAnalytics. Read access grants `timestream:Select` and `timestream:DescribeTable`; write access grants `timestream:WriteRecords` and `timestream:DescribeTable`. Each data grant is limited to the selected table ARN. Queries that read several tables require access connections for each table.
 
-A separate `timestream:DescribeEndpoints` grant uses `Resource: "*"`, since AWS does not support resource-level permissions for this action. The SDK discovers endpoints in the exported Region. Query cancellation, table-independent queries, scheduled queries, unloads, and table administration are not included. See the [Timestream authorization reference](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazontimestream.html).
+A separate `timestream:DescribeEndpoints` grant uses `Resource: "*"`, since AWS does not support resource-level permissions for this action. The SDK discovers endpoints in the exported Region. Query cancellation, table-independent queries, scheduled queries, unloads, and table administration are not included. See the [Timestream authorization reference](https://docs.aws.amazon.com/service-authorization/latest/reference/list_timestream.html).
+
+[Managed Grafana Timestream queries](backend-grafana-timestream-connections.md) reuse the same table selector with a workspace-owned role. That integration adds regional discovery, cancellation, and table-independent health-check permissions required by the Grafana plugin.
 
 LiveAnalytics is closed to new customers as of June 20, 2025; eligible existing payer accounts can continue using it. These connections do not target Timestream for InfluxDB. See [AWS's availability notice](https://docs.aws.amazon.com/timestream/latest/developerguide/AmazonTimestreamForLiveAnalytics-availability-change.html).

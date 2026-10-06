@@ -117,6 +117,18 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_grafana_timestream_table_selector_is_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "managed-grafana" and item["target"] == "timestream"
+        )
+        assert entry["connection_type"] == "queries"
+        assert len(entry["fields"]) == 1
+        field = entry["fields"][0]
+        assert field["key"] == "table_name" and field["required"]
+        assert field["validation"]["pattern"] == r"^[A-Za-z0-9_.-]{3,256}$"
+
     def test_grafana_cloudwatch_queries_are_served(self, connection_schemas):
         entry = next(
             item

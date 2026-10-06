@@ -421,7 +421,7 @@ def connection_architecture(spec) -> dict:
                 in {"source_secret_endpoint", "target_secret_endpoint"}
                 else {"table_name": "application_data"}
                 if spec.target in {ServiceType.KEYSPACES, ServiceType.TIMESTREAM}
-                and spec.connection_type in {"reads_from", "writes_to"}
+                and spec.connection_type in {"reads_from", "writes_to", "queries"}
                 else {"index_name": "application-records"}
                 if spec.target == ServiceType.OPENSEARCH
                 and spec.connection_type in {"reads_from", "writes_to"}
