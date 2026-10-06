@@ -17,12 +17,14 @@ class PrivateCertificateAuthorityGenerator:
             instance.name,
             {
                 "type": "ROOT",
-                "key_algorithm": Expr("var.key_algorithm"),
-                "signing_algorithm": Expr("var.signing_algorithm"),
                 "usage_mode": Expr("var.usage_mode"),
-                "subject": {
-                    "common_name": Expr("var.common_name"),
-                    "organization": Expr("var.organization"),
+                "certificate_authority_configuration": {
+                    "key_algorithm": Expr("var.key_algorithm"),
+                    "signing_algorithm": Expr("var.signing_algorithm"),
+                    "subject": {
+                        "common_name": Expr("var.common_name"),
+                        "organization": Expr("var.organization"),
+                    },
                 },
                 "permanent_deletion_time_in_days": Expr(
                     "var.permanent_deletion_time_in_days"

@@ -117,6 +117,23 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_private_certificate_key_choices_are_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "private-certificate-authority"
+            and item["target"] == "certificate-manager"
+        )
+        assert entry["connection_type"] == "issues_certificate"
+        fields = {item["key"]: item for item in entry["fields"]}
+        assert fields["key_algorithm"]["default"] == "AUTO"
+        assert [item["value"] for item in fields["key_algorithm"]["options"]] == [
+            "AUTO",
+            "RSA_2048",
+            "EC_prime256v1",
+            "EC_secp384r1",
+        ]
+
     def test_cognito_load_balancer_settings_are_served(self, connection_schemas):
         entry = next(
             item

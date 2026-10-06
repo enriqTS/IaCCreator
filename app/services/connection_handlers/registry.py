@@ -68,6 +68,7 @@ from app.models.connection_configs.memorydb import MemoryDbIamConfig
 from app.models.connection_configs.mq import MqClientConfig
 from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
 from app.models.connection_configs.opensearch import OpenSearchIndexAccessConfig
+from app.models.connection_configs.private_certificate import PrivateCertificateConfig
 from app.models.connection_configs.replication import S3ReplicationConfig
 from app.models.connection_configs.secrets import (
     AppRunnerSecretConfig,
@@ -206,6 +207,9 @@ from app.services.connection_handlers.network_placement import (
     SubnetListPlacementHandler,
 )
 from app.services.connection_handlers.opensearch_access import OpenSearchAccessHandler
+from app.services.connection_handlers.private_certificate import (
+    PrivateCertificateHandler,
+)
 from app.services.connection_handlers.route53_vpc_association import (
     Route53VpcAssociationHandler,
 )
@@ -282,6 +286,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.PRIVATE_CERTIFICATE_AUTHORITY,
+        target=ServiceType.CERTIFICATE_MANAGER,
+        connection_type="issues_certificate",
+        label="Private CA → ACM private certificate",
+        config_model=PrivateCertificateConfig,
+        handler=PrivateCertificateHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.COGNITO,
         target=ServiceType.LOAD_BALANCER,

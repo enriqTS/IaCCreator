@@ -1,0 +1,23 @@
+# Private CA → Certificate Manager
+
+The `issues_certificate` connection makes a Certificate Manager node request a private certificate from the connected Private CA. Configure the certificate's domain and subject alternative names on its node, then connect the CA to it. The existing CA generator models root authorities; this connection signs and activates that root so the generated project can issue certificates without a separate manual activation step.
+
+The connection exposes one setting, `key_algorithm`: `AUTO` (default), `RSA_2048`, `EC_prime256v1`, or `EC_secp384r1`. Automatic selection uses RSA 2048 for an RSA CA and follows the native P-256/P-384 curve for an ECDSA CA. Explicit certificate keys must match the issuer's RSA or ECDSA family. This implementation supports CA keys RSA 2048/3072/4096 and ECDSA P-256/P-384 with compatible SHA-256/384/512 signing algorithms. Short-lived CA mode and other CA algorithms are rejected for this connection.
+
+The CA module owns three relationship resources:
+
+- `aws_acmpca_certificate` signs the CA's native CSR with a ten-year validity and the partition-aware `RootCACertificate/V1` template.
+- `aws_acmpca_certificate_authority_certificate` installs the signed root certificate, activating the CA. Root activation omits a certificate chain.
+- `aws_acmpca_permission` grants `IssueCertificate`, `GetCertificate`, and `ListPermissions` to `acm.amazonaws.com`, restricted to the CA's native account ID and created after activation.
+
+The CA exports `acm_issuer_arn` with dependencies on activation and permission creation, `acm_issuer_key_algorithm` from the native CA configuration, and a public `root_certificate` PEM for client trust stores. The target ACM module receives the first two through inputs and configures its existing `aws_acm_certificate` with `certificate_authority_arn` and the selected key algorithm. The CA generator now places key, signing, and subject arguments inside the provider-required `certificate_authority_configuration` block.
+
+Private certificates omit DNS/email validation arguments, the unused validation-method module variable, and DNS-validation outputs. The node's public `validation_method` setting has no effect while this connection exists. Certificate domain/SAN inputs, the standard certificate ARN output, and `create_before_destroy` remain available. No private keys, TLS provider resources, copied ARNs, or workload IAM grants are generated. Public ACM certificates and unconnected pending root CAs retain their existing behavior.
+
+One root activation and renewal permission serve every certificate connected to that CA. Identical duplicate connections are idempotent. A certificate can have one issuer and one key configuration; conflicts are rejected independently of connection order. CA and ACM effective Regions must match, including inherited defaults and environment overrides. Native preconditions check Region, usage mode, supported CA algorithms, signing compatibility, and explicit leaf-key family at Terraform apply when variables are overridden.
+
+The resulting certificate composes with existing ACM → Load Balancer connections. It cannot serve as a CloudFront viewer certificate because this generated self-signed root is not publicly trusted; that combination is rejected. Subordinate/external CA activation, cross-account sharing, root rollover, revocation configuration, and client trust-store installation are outside this connection's current scope.
+
+Clients must trust the exported root. ACM-managed renewal depends on the CA remaining active, its certificate remaining valid, the ACM permission remaining present, and the leaf certificate being associated with a supported AWS service or exported. The ten-year root certificate is not automatically renewed by ACM; monitor its expiry and plan trust rollover. Preview reports activation, client trust, and renewal requirements.
+
+The implementation follows the [Terraform root activation schema](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acmpca_certificate_authority_certificate), [ACM renewal permission schema](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acmpca_permission), [private certificate schema](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate), [AWS private certificate guide](https://docs.aws.amazon.com/acm/latest/userguide/private-certificates.title.html), [CA lifecycle guidance](https://docs.aws.amazon.com/privateca/latest/userguide/ca-lifecycle.html), and [CloudFront certificate trust requirements](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-and-https-requirements.html).

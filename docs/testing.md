@@ -113,6 +113,8 @@ Key coverage areas include:
 
 `tests/test_cognito_load_balancer_connections.py` covers ordered HTTPS authentication/forwarding, native references, confidential/public client separation, domain generation, property-based order/deduplication, selected listeners, callback normalization, isolated cookies, invalid/conflicting bindings, inherited/overridden Regions, previews, and Terraform validation/graphs. Connection-schema tests verify the editor's typed authentication settings.
 
+`tests/test_private_certificate_connections.py` covers root signing/activation, account-scoped ACM renewal permissions, dependency-ready outputs, native private issuance, public validation suppression, algorithm compatibility, property-based CA sharing/order/deduplication, issuer conflicts, effective Regions, listener composition, CloudFront trust rejection, and previews. Terraform console evaluates passing/failing usage, signing, key, and Region guards; generated RSA/ECDSA projects pass validation/graphs. Connection-schema tests verify the key choices served to the editor.
+
 `tests/test_batch_secret_connections.py` covers job/execution-role separation, native settings and reserved-name validation, external bindings, catalog/schema exposure, and unchanged compute-environment compatibility. Terraform console tests evaluate container properties, resource requirement types, plaintext-variable replacement, and managed/external secret merging. Shared tests cover aggregation and encrypted-project validation.
 
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.
