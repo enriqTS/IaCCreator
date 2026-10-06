@@ -29,6 +29,7 @@ COMPATIBLE_CONNECTIONS = {
 # ---------------------------------------------------------------------------
 
 resource_name_st = st.from_regex(r"[a-z][a-z0-9\-]{0,14}", fullmatch=True)
+dns_label_st = resource_name_st.map(lambda name: f"{name}a")
 
 project_name_st = st.from_regex(r"[a-z][a-z0-9\-]{2,14}", fullmatch=True)
 

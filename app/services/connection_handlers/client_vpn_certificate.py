@@ -1,6 +1,5 @@
 """Wire issued ACM certificates into native Client VPN authentication inputs."""
 
-from app.generators.hcl_renderer import Expr
 from app.models.connection_configs.client_vpn_certificate import (
     ClientVpnCertificateConfig,
 )
@@ -12,6 +11,7 @@ from app.models.ir_models import (
     ProjectIR,
 )
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.certificate_readiness import issued_certificate
 from app.services.connection_handlers.client_vpn_certificate_bindings import (
     ROLE_FIELDS,
     resolve_client_vpn_certificates,
@@ -34,7 +34,6 @@ class ClientVpnCertificateHandler(BaseConnectionHandler):
         )
         name = connection.source_name
         certificate = f"aws_acm_certificate.{name}"
-        private = resolve_private_certificate_binding(name, project)
         contribution = ConnectionContribution(
             inputs=[
                 ModuleInput(
@@ -63,20 +62,8 @@ class ClientVpnCertificateHandler(BaseConnectionHandler):
                 )
             ],
         )
-        ready = f"{certificate}.arn"
-        if private is None:
-            ready = f"aws_acm_certificate_validation.{name}_client_vpn.certificate_arn"
-            contribution.resources.append(
-                self._resource(
-                    name,
-                    "client_vpn_certificate.tf",
-                    self._renderer.render_resource(
-                        "aws_acm_certificate_validation",
-                        f"{name}_client_vpn",
-                        {"certificate_arn": Expr(f"{certificate}.arn")},
-                    ),
-                )
-            )
+        ready, issuance = issued_certificate(name, project, self._renderer)
+        contribution.merge(issuance)
         contribution.outputs.append(
             self._output(
                 name,

@@ -12,7 +12,7 @@ Current phase status:
 - [x] Phase 4 storage and backup: S3 relationships, EBS attachments, EFS runtime mounts, and Backup selections are implemented. EKS configures the CSI add-on and exports storage manifests for the user to apply.
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, MSK topic consumers/producers, ActiveMQ and standalone ElastiCache client endpoint bindings, serverless Valkey/Redis IAM access and placement, and DMS network placement, RDS/Aurora IAM and Secrets Manager endpoints, and stopped full-load and MySQL/PostgreSQL/SQL Server/Oracle-source CDC tasks with explicit table mappings and destination schema/prefix transformations exist. RDS SQL Server Enterprise/Standard secret endpoints support full-load and CDC sources with native LSNs and DMS version guards, plus migration targets. RDS Oracle EE/SE2 secret endpoints (including CDB variants) support full-load sources and migration targets; Oracle sources support native-SCN CDC through LogMiner (non-CDB) or an explicit Binary Reader selection (including CDB/PDB); additional endpoint engines remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring plus SQS-to-ECS polling access and SQS/Lambda dead-letter relationships exist; workflow and API expansion remains.
-- [-] Phase 7 identity, certificates, and edge security: Cognito authentication for HTTP APIs, AppSync, and HTTPS Application Load Balancer listeners, Private CA activation and ACM private-certificate issuance/renewal permissions, and Client VPN certificate roles are implemented; custom-domain and DNS-validation certificate relationships remain.
+- [-] Phase 7 identity, certificates, and edge security: Cognito authentication for HTTP APIs, AppSync, and HTTPS Application Load Balancer listeners, Private CA activation and ACM private-certificate issuance/renewal permissions, Client VPN certificate roles, and Regional API Gateway custom-domain mappings are implemented; DNS-validation certificate relationships remain.
 - [-] Phase 8 observability, governance, and security administration: Lambda-to-CloudWatch logging exists; the broader phase remains.
 - [ ] Phase 9 CI/CD and container delivery.
 - [ ] Phase 10 analytics and streaming.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 119 Terraform-capable service types, while the connection registry contains 195 connection specifications involving 69 services.
+The generator registry contains 119 Terraform-capable service types, while the connection registry contains 196 connection specifications involving 69 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -353,7 +353,7 @@ Implement:
 - [x] Cognito → Load Balancer: HTTPS Application Load Balancer listeners authenticate through a managed pool domain and dedicated confidential OAuth client before forwarding, with explicit callback hostnames, isolated sessions, and conflict/Region validation.
 - [x] Private CA → Certificate Manager: activate the modeled root CA, grant account-scoped ACM renewal permissions, and issue managed private certificates with native CA references, supported key selection, and conflict/Region validation.
 - [x] Certificate Manager → Client VPN: supply managed server and client CA certificate references, validate roles/keys/Regions, and wait for public issuance. Client credentials and profiles remain operational prerequisites.
-- Certificate Manager → API Gateway: configure a custom domain certificate.
+- [x] Certificate Manager → API Gateway: create Regional TLS 1.2 domains and stage/path mappings with ready managed certificate references, hostname/Region/account guards, deterministic aggregation, and ownership/conflict validation. WebSocket stage deployment and DNS remain explicit prerequisites.
 - Route 53 → Certificate Manager: create DNS validation records.
 
 ### Completion criteria

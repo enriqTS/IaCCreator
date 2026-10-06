@@ -4,6 +4,9 @@ from dataclasses import dataclass
 from typing import Literal
 
 from app.models.connection_configs._base import BaseConnectionConfig
+from app.models.connection_configs.api_gateway_certificate import (
+    ApiGatewayCertificateConfig,
+)
 from app.models.connection_configs.apigw_step_functions import (
     ApiGatewayStepFunctionsConfig,
 )
@@ -107,6 +110,9 @@ from app.models.connection_configs.workflows import (
 from app.models.input_models import ServiceType
 from app.services.connection_handlers.accelerator_endpoint import (
     AcceleratorLoadBalancerHandler,
+)
+from app.services.connection_handlers.api_gateway_certificate import (
+    ApiGatewayCertificateHandler,
 )
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
 from app.services.connection_handlers.apigw_step_functions import (
@@ -1173,6 +1179,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Certificate Manager → Client VPN",
         config_model=ClientVpnCertificateConfig,
         handler=ClientVpnCertificateHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.CERTIFICATE_MANAGER,
+        target=ServiceType.API_GATEWAY,
+        connection_type="secures",
+        label="Certificate Manager → API Gateway custom domain",
+        config_model=ApiGatewayCertificateConfig,
+        handler=ApiGatewayCertificateHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.WAF,

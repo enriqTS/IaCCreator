@@ -217,6 +217,12 @@ def connection_architecture(spec) -> dict:
             config["root_certificate_chain_arn"] = (
                 "arn:aws:acm:us-east-1:123456789012:certificate/external-client-ca"
             )
+        if (
+            spec.source == ServiceType.CERTIFICATE_MANAGER
+            and spec.target == ServiceType.API_GATEWAY
+            and service_type == ServiceType.API_GATEWAY
+        ):
+            config["protocol_type"] = "HTTP"
         if spec.connection_type in {
             "source_endpoint",
             "target_endpoint",
@@ -250,6 +256,12 @@ def connection_architecture(spec) -> dict:
                     "cluster_id",
                 } or key.endswith("_name"):
                     config[key] = name
+        if (
+            spec.source == ServiceType.CERTIFICATE_MANAGER
+            and spec.target == ServiceType.API_GATEWAY
+            and service_type == ServiceType.CERTIFICATE_MANAGER
+        ):
+            config["domain_name"] = "api.example.com"
         if spec.source == ServiceType.APPSYNC and service_type == ServiceType.AURORA:
             config["database_name"] = "appdb"
         if service_type == ServiceType.ELASTICACHE:
@@ -547,5 +559,12 @@ def connection_architecture(spec) -> dict:
         )
         payload["connections"][0]["connection_config"] = {
             "job_definition_name": "batch-job"
+        }
+    if (
+        spec.source == ServiceType.CERTIFICATE_MANAGER
+        and spec.target == ServiceType.API_GATEWAY
+    ):
+        payload["connections"][0]["connection_config"] = {
+            "domain_name": "api.example.com"
         }
     return payload

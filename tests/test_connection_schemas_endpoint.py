@@ -117,6 +117,21 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_api_gateway_certificate_mapping_fields_are_served(
+        self, connection_schemas
+    ):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "certificate-manager"
+            and item["target"] == "api-gateway"
+        )
+        assert entry["connection_type"] == "secures"
+        fields = {item["key"]: item for item in entry["fields"]}
+        assert fields["domain_name"]["required"] is True
+        assert fields["stage_name"]["default"] == ""
+        assert fields["api_mapping_key"]["default"] == ""
+
     def test_client_vpn_certificate_roles_are_served(self, connection_schemas):
         entry = next(
             item

@@ -115,11 +115,11 @@ def test_public_server_waits_for_issuance_and_preserves_external_client_trust(me
     assert waiter["certificate_arn"] == "${aws_acm_certificate.source-resource.arn}"
     assert "validation_record_fqdns" not in waiter
     assert (
-        "aws_acm_certificate_validation.source-resource_client_vpn.certificate_arn"
+        "aws_acm_certificate_validation.source-resource_issuance.certificate_arn"
         in file_with(tree, "/certificate-manager/source-resource/outputs.tf")
     )
     assert "aws_acm_certificate_validation" in file_with(
-        tree, "/certificate-manager/source-resource/client_vpn_certificate.tf"
+        tree, "/certificate-manager/source-resource/certificate_issuance.tf"
     )
     assert not resources(tree, "aws_route53_record")
 
@@ -146,7 +146,7 @@ def test_shared_public_certificate_waiter_and_endpoint_inputs_deduplicate(
     assert len(resources(tree, "aws_acm_certificate_validation")) == 1
     contribution = ConnectionProcessor().process_all(project(payload))
     assert len(contribution.inputs) == len(names) * 2
-    assert len(contribution.outputs) == 2
+    assert len(contribution.outputs) == 3
     assert len(contribution.resources) == 1
     payload["connections"].reverse()
     assert generate(payload) == tree

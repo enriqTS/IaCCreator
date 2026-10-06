@@ -117,6 +117,8 @@ Key coverage areas include:
 
 `tests/test_client_vpn_certificate_connections.py` covers server/client CA/combined roles, private CA composition, public issuance readiness, external role preservation, property-based waiter/input sharing, separate issuer references and naming collisions, conflicting assignments, unsupported keys/client trust, effective Regions, schema defaults, and previews. Terraform console checks native key/Region guards; generated projects pass validation and dependency graphs. Connection-schema endpoint tests verify role choices.
 
+`tests/test_api_gateway_certificate_connections.py` covers domains/stage/path mappings, public/private readiness, shared Client VPN issuance, property-based aggregation and identifier collisions using the shared DNS-label strategy, certificate SAN/wildcard coverage, ownership/mapping conflicts, existing manual domains, HTTP/WebSocket stages, mutual TLS prerequisites, effective Regions, and previews. Terraform console evaluates native hostname/Region/account guards; API projects compose with Cognito/Lambda and pass validation/graphs. Connection-schema tests verify the editor's mapping settings.
+
 `tests/test_batch_secret_connections.py` covers job/execution-role separation, native settings and reserved-name validation, external bindings, catalog/schema exposure, and unchanged compute-environment compatibility. Terraform console tests evaluate container properties, resource requirement types, plaintext-variable replacement, and managed/external secret merging. Shared tests cover aggregation and encrypted-project validation.
 
 `conftest.py` provides Hypothesis strategies and shared helpers. New generator or serialization tests should extend those strategies where possible.
