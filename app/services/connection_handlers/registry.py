@@ -7,6 +7,7 @@ from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs.apigw_step_functions import (
     ApiGatewayStepFunctionsConfig,
 )
+from app.models.connection_configs.appsync_aurora import AppSyncAuroraConfig
 from app.models.connection_configs.appsync_dynamodb import AppSyncDynamoDbConfig
 from app.models.connection_configs.appsync_eventbridge import AppSyncEventBridgeConfig
 from app.models.connection_configs.appsync_lambda import AppSyncLambdaConfig
@@ -102,6 +103,7 @@ from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandle
 from app.services.connection_handlers.apigw_step_functions import (
     ApiGatewayStepFunctionsHandler,
 )
+from app.services.connection_handlers.appsync_aurora import AppSyncAuroraHandler
 from app.services.connection_handlers.appsync_dynamodb import AppSyncDynamoDbHandler
 from app.services.connection_handlers.appsync_eventbridge import (
     AppSyncEventBridgeHandler,
@@ -268,6 +270,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.APPSYNC,
+        target=ServiceType.AURORA,
+        connection_type="resolves_with",
+        label="AppSync → Aurora PostgreSQL row resolver",
+        config_model=AppSyncAuroraConfig,
+        handler=AppSyncAuroraHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.APPSYNC,
         target=ServiceType.DYNAMODB,

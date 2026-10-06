@@ -333,7 +333,7 @@ Implement:
 - [x] AppSync → DynamoDB: AppSync JavaScript GetItem, PutItem, UpdateItem, and DeleteItem resolvers use generated table data sources, table-scoped IAM, and key-scoped KMS grants.
 - [x] AppSync → OpenSearch: AppSync JavaScript document lookup, search, index, and delete resolvers use an AppSync-owned domain data source and index/path-scoped HTTP grants.
 - [x] AppSync → EventBridge: API-owned EventBridge data sources publish one event per selected GraphQL field with bus-scoped IAM and explicit source/detail type.
-- AppSync → RDS or Aurora where supported.
+- [x] AppSync → Aurora PostgreSQL where supported: Data API-backed row resolvers and an API-owned data source use a least-privilege external database-user secret. Standalone RDS instances and Aurora MySQL are not supported by this connection.
 - Cognito → AppSync authentication.
 
 AppSync owns generated data sources and resolver resources.

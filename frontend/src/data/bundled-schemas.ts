@@ -999,6 +999,22 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     },
     {
+      "description": "Aurora engine version",
+      "group": "General",
+      "label": "Engine version",
+      "name": "engine_version",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Initial logical database name",
+      "group": "General",
+      "label": "Database name",
+      "name": "database_name",
+      "required": false,
+      "type": "string"
+    },
+    {
       "description": "Master username for the Aurora cluster",
       "group": "General",
       "label": "Master username",

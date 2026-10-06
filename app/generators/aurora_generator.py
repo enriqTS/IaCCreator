@@ -25,16 +25,46 @@ class AuroraGenerator:
         attrs: dict = {"cluster_identifier": Expr("var.cluster_identifier")}
         if config._iam_database_access:
             attrs.update(iam_database_attributes(instance.service_type))
-        if config.manage_master_user_password:
+        if config._appsync_data_api:
+            attrs.update(
+                {
+                    "engine_mode": "provisioned",
+                    "enable_http_endpoint": True,
+                    "storage_encrypted": True,
+                    "manage_master_user_password": True,
+                    "serverlessv2_scaling_configuration": {
+                        "min_capacity": 0.5,
+                        "max_capacity": 2.0,
+                    },
+                    "database_name": Expr("var.database_name"),
+                    "master_username": Expr("var.master_username"),
+                }
+            )
+        elif config.manage_master_user_password:
             attrs["manage_master_user_password"] = Expr(
                 "var.manage_master_user_password"
             )
         if config.engine is not None:
             attrs["engine"] = Expr("var.engine")
-        if config.master_username is not None:
+        if config.engine_version is not None:
+            attrs["engine_version"] = Expr("var.engine_version")
+        if config.master_username is not None and not config._appsync_data_api:
             attrs["master_username"] = Expr("var.master_username")
-
-        return self._r.render_resource("aws_rds_cluster", instance.name, attrs)
+        cluster = self._r.render_resource("aws_rds_cluster", instance.name, attrs)
+        if not config._appsync_data_api:
+            return cluster
+        writer = self._r.render_resource(
+            "aws_rds_cluster_instance",
+            f"{instance.name}_writer",
+            {
+                "identifier": f"{instance.name}-writer",
+                "cluster_identifier": Expr(f"aws_rds_cluster.{instance.name}.id"),
+                "instance_class": "db.serverless",
+                "engine": Expr(f"aws_rds_cluster.{instance.name}.engine"),
+                "publicly_accessible": False,
+            },
+        )
+        return cluster + writer
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
         """Generate variables.tf for an Aurora cluster."""
@@ -53,16 +83,31 @@ class AuroraGenerator:
                     default=config.engine,
                 )
             )
-        if config.master_username is not None:
+        if config.engine_version is not None:
+            parts.append(
+                self._r.render_variable(
+                    "engine_version",
+                    "string",
+                    "Aurora engine version",
+                    default=config.engine_version,
+                )
+            )
+        if config.database_name is not None:
+            parts.append(
+                self._r.render_variable(
+                    "database_name", "string", "Initial logical database name"
+                )
+            )
+        if config.master_username is not None or config._appsync_data_api:
             parts.append(
                 self._r.render_variable(
                     "master_username",
                     "string",
                     "Master username for the Aurora cluster",
-                    default=config.master_username,
+                    default=config.master_username or "dbadmin",
                 )
             )
-        if config.manage_master_user_password:
+        if config.manage_master_user_password and not config._appsync_data_api:
             parts.append(
                 self._r.render_variable(
                     "manage_master_user_password",
@@ -87,4 +132,25 @@ class AuroraGenerator:
                 "Endpoint of the Aurora cluster",
             ),
         ]
+        if _resolve_config(instance)._appsync_data_api:
+            parts.extend(
+                [
+                    self._r.render_output(
+                        "data_api_cluster_arn",
+                        f"aws_rds_cluster.{instance.name}.arn",
+                        "Data API cluster ARN after the writer is ready",
+                        depends_on=[f"aws_rds_cluster_instance.{instance.name}_writer"],
+                    ),
+                    self._r.render_output(
+                        "database_name",
+                        f"aws_rds_cluster.{instance.name}.database_name",
+                        "Initial logical database name",
+                    ),
+                    self._r.render_output(
+                        "master_secret_arn",
+                        f"aws_rds_cluster.{instance.name}.master_user_secret[0].secret_arn",
+                        "Administrator secret ARN for database bootstrap",
+                    ),
+                ]
+            )
         return "\n".join(parts)

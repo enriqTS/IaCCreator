@@ -15,11 +15,14 @@ class AuroraConfig(BaseServiceConfig):
     service_type: Literal[ServiceType.AURORA] = ServiceType.AURORA
 
     _iam_database_access: bool = PrivateAttr(default=False)
+    _appsync_data_api: bool = PrivateAttr(default=False)
 
     _schema_field_order: ClassVar[tuple[str, ...]] = (
         "manage_master_user_password",
         "cluster_identifier",
         "engine",
+        "engine_version",
+        "database_name",
         "master_username",
     )
 
@@ -33,6 +36,16 @@ class AuroraConfig(BaseServiceConfig):
         None,
         group="General",
         description="Database engine for the Aurora cluster",
+    )
+    engine_version: str | None = TerraformField(
+        None,
+        group="General",
+        description="Aurora engine version",
+    )
+    database_name: str | None = TerraformField(
+        None,
+        group="General",
+        description="Initial logical database name",
     )
     master_username: str | None = TerraformField(
         None,

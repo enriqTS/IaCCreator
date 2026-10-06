@@ -230,6 +230,8 @@ def connection_architecture(spec) -> dict:
             and service_type == ServiceType.RDS
         ):
             config["engine"] = "postgres"
+        if spec.source == ServiceType.APPSYNC and service_type == ServiceType.AURORA:
+            config.update(engine_version="16.6", database_name="appdb")
         model = models.get(service_type)
         if model is not None:
             # Name every name-ish field so the module gets its required arguments
@@ -241,6 +243,8 @@ def connection_architecture(spec) -> dict:
                     "cluster_id",
                 } or key.endswith("_name"):
                     config[key] = name
+        if spec.source == ServiceType.APPSYNC and service_type == ServiceType.AURORA:
+            config["database_name"] = "appdb"
         if service_type == ServiceType.ELASTICACHE:
             config["parameter_group_name"] = DEPLOYABLE_EXTRAS[service_type][
                 "parameter_group_name"
@@ -249,7 +253,7 @@ def connection_architecture(spec) -> dict:
             config["schema_definition"] = (
                 "type Item { id: ID!, title: String } "
                 "type Query { probe(id: ID!): Item }"
-                if spec.target == ServiceType.DYNAMODB
+                if spec.target in {ServiceType.DYNAMODB, ServiceType.AURORA}
                 else "type Query { _noop: String } "
                 "type Mutation { probe(input: EventDetailInput!): ID } "
                 "input EventDetailInput { message: String }"
@@ -414,6 +418,7 @@ def connection_architecture(spec) -> dict:
         ServiceType.DYNAMODB,
         ServiceType.OPENSEARCH,
         ServiceType.EVENTBRIDGE,
+        ServiceType.AURORA,
     }:
         payload["connections"][0]["connection_config"] = {
             "field_name": "probe",
@@ -425,6 +430,14 @@ def connection_architecture(spec) -> dict:
             **(
                 {"event_source": "com.example.app", "detail_type": "ApplicationEvent"}
                 if spec.target == ServiceType.EVENTBRIDGE
+                else {}
+            ),
+            **(
+                {
+                    "table_name": "items",
+                    "credential_secret_arn": "arn:aws:secretsmanager:us-east-1:123456789012:secret:app-user-Ab12Cd",
+                }
+                if spec.target == ServiceType.AURORA
                 else {}
             ),
         }
