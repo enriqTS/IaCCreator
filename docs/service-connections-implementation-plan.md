@@ -348,7 +348,7 @@ AppSync owns generated data sources and resolver resources.
 
 Implement:
 
-- Cognito → API Gateway: configure a JWT authorizer.
+- [x] Cognito → API Gateway: API-owned JWT authorizers use native pool endpoints and generated client audiences, bind selected existing HTTP routes, share across routes, and validate scopes/authentication conflicts.
 - [x] Cognito → AppSync: default/additional user-pool authentication with native pool Region and client filtering; see Phase 6.
 - Cognito → Load Balancer: configure listener authentication where modeled.
 - Private CA → Certificate Manager: issue a private certificate.

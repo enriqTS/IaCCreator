@@ -7,6 +7,7 @@ from app.generators.api_gateway._route_rules import (
     find_ws_route_integration,
 )
 from app.generators.api_gateway._support import sanitize_route_name
+from app.generators.api_gateway.jwt_routes import apply_cognito_jwt_authorization
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.input_models.api_gateway_route import route_dicts
@@ -221,6 +222,9 @@ def render_routes(
                     # New optional route fields from TerraformField config
                     apply_route_optional_fields(
                         attrs, route_cfg, routes, route_key, config
+                    )
+                    apply_cognito_jwt_authorization(
+                        attrs, config._cognito_jwt_routes, method, path
                     )
 
                     parts.append(

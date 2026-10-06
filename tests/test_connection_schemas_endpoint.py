@@ -117,6 +117,21 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_cognito_api_gateway_route_settings_are_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "cognito" and item["target"] == "api-gateway"
+        )
+        assert entry["connection_type"] == "authenticates"
+        fields = {field["key"]: field for field in entry["fields"]}
+        assert fields["path"]["required"] is True
+        assert fields["method"]["default"] == "ANY"
+        assert [option["value"] for option in fields["method"]["options"]] == list(
+            HTTP_METHODS
+        )
+        assert fields["authorization_scopes"]["default"] is None
+
     def test_cognito_appsync_authentication_options_are_served(
         self, connection_schemas
     ):

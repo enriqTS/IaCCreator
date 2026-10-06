@@ -92,3 +92,5 @@ EFS runtime connections use `EfsEc2MountConfig`, `EfsEcsMountConfig`, and `EfsEk
 `OpenSearchIndexAccessConfig` requires a concrete lowercase index name without path, wildcard, or list syntax. `OpenSearchConfig` carries a private connection-derived flag for native index-client settings; connection fields are exposed dynamically without bundled-variable-schema changes. See [OpenSearch connections](backend-opensearch-connections.md).
 
 `CognitoAppSyncConfig` selects default/additional authentication, generated-client filtering, and default field access. `AppSyncConfig` carries private typed `CognitoUserPoolBinding` values for generation; these do not add editable service fields. See [Cognito AppSync authentication](backend-cognito-appsync-connections.md).
+
+`CognitoApiGatewayConfig` selects an existing route by method/path and optionally supplies comma-separated OAuth scopes. `ApiGatewayConfig` holds private typed `CognitoJwtRouteBinding` values for generation. Omitted scopes inherit API route settings; empty scopes explicitly permit tokens without scopes. See [Cognito API Gateway authorization](backend-cognito-api-gateway-connections.md).

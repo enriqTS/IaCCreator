@@ -265,6 +265,11 @@ def connection_architecture(spec) -> dict:
             )
         if spec.source == ServiceType.COGNITO and service_type == ServiceType.APPSYNC:
             config["schema_definition"] = "type Query { probe: String }"
+        if (
+            spec.source == ServiceType.COGNITO
+            and service_type == ServiceType.API_GATEWAY
+        ):
+            config["routes"] = [{"path": "/private", "methods": ["GET"]}]
         if spec.source == ServiceType.S3 and service_type == ServiceType.EVENTBRIDGE:
             config.pop("bus_name", None)
         if (
@@ -415,6 +420,11 @@ def connection_architecture(spec) -> dict:
             "provider_region": "us-east-1",
         },
     }
+    if spec.source == ServiceType.COGNITO and spec.target == ServiceType.API_GATEWAY:
+        payload["connections"][0]["connection_config"] = {
+            "path": "/private",
+            "method": "GET",
+        }
     if spec.source == ServiceType.APPSYNC and spec.target in {
         ServiceType.LAMBDA,
         ServiceType.DYNAMODB,

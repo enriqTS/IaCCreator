@@ -6,10 +6,14 @@ values only ever flow Lambda → gateway and Terraform sees no dependency cycle.
 
 import re
 
+from app.generators.api_gateway.jwt_routes import apply_cognito_jwt_authorization
 from app.generators.hcl_renderer import Expr
 from app.models.connection_previews import ConnectionIssue
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler, safe_identifier
+from app.services.connection_handlers.cognito_api_gateway_bindings import (
+    resolve_cognito_jwt_bindings,
+)
 
 
 def _sanitize_path(path: str) -> str:
@@ -29,7 +33,7 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
     ) -> ConnectionContribution:
         if connection.connection_type == "authorizer":
             return self._handle_authorizer(connection)
-        return self._handle_route_handler(connection)
+        return self._handle_route_handler(connection, project)
 
     def validate(
         self, connection: ConnectionIR, project: ProjectIR
@@ -85,10 +89,13 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
             ],
         )
 
-    def _handle_route_handler(self, connection: ConnectionIR) -> ConnectionContribution:
+    def _handle_route_handler(
+        self, connection: ConnectionIR, project: ProjectIR
+    ) -> ConnectionContribution:
         """Emit the shared integration, one route per method-path pair, and the permission."""
         gateway = connection.source_name
         function = connection.target_name
+        jwt_bindings = resolve_cognito_jwt_bindings(gateway, project)
         prefix = safe_identifier(function)
         integration_name = f"{prefix}_integration"
 
@@ -135,6 +142,7 @@ class ApiGatewayLambdaHandler(BaseConnectionHandler):
                 }
                 if route.get("api_key_required"):
                     route_attrs["api_key_required"] = True
+                apply_cognito_jwt_authorization(route_attrs, jwt_bindings, verb, path)
 
                 content = self._renderer.render_resource(
                     "aws_apigatewayv2_route", route_name, route_attrs

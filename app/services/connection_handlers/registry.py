@@ -13,6 +13,7 @@ from app.models.connection_configs.appsync_eventbridge import AppSyncEventBridge
 from app.models.connection_configs.appsync_lambda import AppSyncLambdaConfig
 from app.models.connection_configs.appsync_opensearch import AppSyncOpenSearchConfig
 from app.models.connection_configs.backup import BackupSelectionConfig
+from app.models.connection_configs.cognito_api_gateway import CognitoApiGatewayConfig
 from app.models.connection_configs.cognito_appsync import CognitoAppSyncConfig
 from app.models.connection_configs.configs import (
     AcceleratorEndpointConfig,
@@ -122,6 +123,9 @@ from app.services.connection_handlers.certificate import (
 )
 from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
 from app.services.connection_handlers.codepipeline_s3 import CodePipelineS3Handler
+from app.services.connection_handlers.cognito_api_gateway import (
+    CognitoApiGatewayHandler,
+)
 from app.services.connection_handlers.cognito_appsync import CognitoAppSyncHandler
 from app.services.connection_handlers.database_access import DatabaseAccessHandler
 from app.services.connection_handlers.datasync_location import DataSyncLocationHandler
@@ -272,6 +276,15 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.COGNITO,
+        target=ServiceType.API_GATEWAY,
+        connection_type="authenticates",
+        label="Cognito → HTTP API JWT authorization",
+        config_model=CognitoApiGatewayConfig,
+        handler=CognitoApiGatewayHandler(),
+        region_policy="cross-region",
+    ),
     ConnectionSpec(
         source=ServiceType.COGNITO,
         target=ServiceType.APPSYNC,

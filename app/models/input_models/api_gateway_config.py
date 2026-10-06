@@ -4,6 +4,7 @@ from typing import ClassVar, Literal
 
 from pydantic import PrivateAttr
 
+from app.models.api_gateway_authentication import CognitoJwtRouteBinding
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import (
@@ -20,6 +21,9 @@ class ApiGatewayConfig(BaseServiceConfig):
 
     service_type: Literal[ServiceType.API_GATEWAY] = ServiceType.API_GATEWAY
     _managed_connection_routes: set[tuple[str, str]] = PrivateAttr(default_factory=set)
+    _cognito_jwt_routes: dict[tuple[str, str], CognitoJwtRouteBinding] = PrivateAttr(
+        default_factory=dict
+    )
 
     # ─── General ───────────────────────────────────────────────────────────
     api_name: str = TerraformField(
