@@ -1,11 +1,14 @@
 from typing import Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField
 
 
 class AwsConfigConfig(BaseServiceConfig):
+    _sns_notifications: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.AWS_CONFIG] = ServiceType.AWS_CONFIG
     recorder_name: str = TerraformField(
         "default", description="Configuration recorder name"

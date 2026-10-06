@@ -1,3 +1,4 @@
+from app.generators.aws_config_notifications import config_sns_preconditions
 from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.aws_config_config import AwsConfigConfig
@@ -9,7 +10,7 @@ class AwsConfigGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, AwsConfigConfig)
+        config = get_typed_config(instance, AwsConfigConfig)
         recorder = self._r.render_resource(
             "aws_config_configuration_recorder",
             instance.name,
@@ -24,16 +25,18 @@ class AwsConfigGenerator:
                 },
             },
         )
+        channel_attrs = {
+            "name": Expr("var.recorder_name"),
+            "s3_bucket_name": Expr("var.s3_bucket_name"),
+            "depends_on": Expr(f"[aws_config_configuration_recorder.{instance.name}]"),
+        }
+        if config._sns_notifications:
+            channel_attrs["sns_topic_arn"] = Expr("var.sns_topic_arn")
+            channel_attrs["lifecycle"] = {"precondition": config_sns_preconditions()}
         channel = self._r.render_resource(
             "aws_config_delivery_channel",
             instance.name,
-            {
-                "name": Expr("var.recorder_name"),
-                "s3_bucket_name": Expr("var.s3_bucket_name"),
-                "depends_on": Expr(
-                    f"[aws_config_configuration_recorder.{instance.name}]"
-                ),
-            },
+            channel_attrs,
         )
         status = self._r.render_resource(
             "aws_config_configuration_recorder_status",

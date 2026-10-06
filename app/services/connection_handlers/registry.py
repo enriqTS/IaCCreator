@@ -126,6 +126,7 @@ from app.services.connection_handlers.appsync_eventbridge import (
 )
 from app.services.connection_handlers.appsync_lambda import AppSyncLambdaHandler
 from app.services.connection_handlers.appsync_opensearch import AppSyncOpenSearchHandler
+from app.services.connection_handlers.aws_config_sns import AwsConfigSnsHandler
 from app.services.connection_handlers.backup_selection import (
     BACKUP_OUTPUTS,
     BackupSelectionHandler,
@@ -771,6 +772,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         )
         for source in (ServiceType.CLOUDTRAIL, ServiceType.AWS_CONFIG)
     ],
+    ConnectionSpec(
+        source=ServiceType.AWS_CONFIG,
+        target=ServiceType.SNS,
+        connection_type="notifies",
+        label="AWS Config → SNS notifications",
+        config_model=EmptyConnectionConfig,
+        handler=AwsConfigSnsHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.S3,
         target=ServiceType.S3,

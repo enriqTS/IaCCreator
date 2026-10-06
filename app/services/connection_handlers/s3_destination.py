@@ -1,13 +1,11 @@
 """S3 delivery permissions are owned by the destination module."""
 
 from app.exceptions import InvalidConnectionConfigError
-from app.generators.hcl_renderer import Expr
 from app.models.connection_previews import ConnectionIssue
 from app.models.input_models import ServiceType
 from app.models.ir_models import (
     ConnectionContribution,
     ConnectionIR,
-    ModuleInput,
     ModuleOutput,
     ProjectIR,
 )
@@ -18,6 +16,10 @@ from app.services.connection_handlers.kms_external_policy import (
 )
 from app.services.connection_handlers.queue_delivery_policy import QueueDeliveryPolicy
 from app.services.connection_handlers.s3_notifications import S3Notifications
+from app.services.connection_handlers.topic_delivery_policy import (
+    TOPIC_DELIVERY_POLICY,
+    TopicDeliveryPolicy,
+)
 
 
 class S3DestinationHandler(BaseConnectionHandler):
@@ -49,7 +51,7 @@ class S3DestinationHandler(BaseConnectionHandler):
         policy = (
             "aws_sqs_queue_policy.delivery"
             if service == ServiceType.SQS
-            else "aws_sns_topic_policy.s3_delivery"
+            else TOPIC_DELIVERY_POLICY
         )
         result = ConnectionContribution(
             inputs=[
@@ -74,64 +76,6 @@ class S3DestinationHandler(BaseConnectionHandler):
         if service == ServiceType.SQS:
             result.merge(QueueDeliveryPolicy().handle(connection, project))
         else:
-            result.merge(S3TopicPolicy().handle(connection, project))
+            result.merge(TopicDeliveryPolicy().handle(connection, project))
         result.merge(S3Notifications().handle(connection, project))
         return result
-
-
-class S3TopicPolicy(BaseConnectionHandler):
-    def handle(
-        self, connection: ConnectionIR, project: ProjectIR
-    ) -> ConnectionContribution:
-        topic = connection.target_name
-        buckets = sorted(
-            {
-                item.source_name
-                for item in project.connections
-                if item.source_service == ServiceType.S3
-                and item.target_name == topic
-                and item.connection_type == "notifies"
-            }
-        )
-        policy = self._renderer.render_json_policy(
-            {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": {"Service": "s3.amazonaws.com"},
-                        "Action": "SNS:Publish",
-                        "Resource": Expr(f"aws_sns_topic.{topic}.arn"),
-                        "Condition": {
-                            "ArnEquals": {
-                                "aws:SourceArn": Expr("var.notification_bucket_arns")
-                            }
-                        },
-                    }
-                ],
-            }
-        )
-        return ConnectionContribution(
-            inputs=[
-                ModuleInput(
-                    module=topic,
-                    name="notification_bucket_arns",
-                    type="list(string)",
-                    value="["
-                    + ", ".join(f"module.{bucket}.bucket_arn" for bucket in buckets)
-                    + "]",
-                    description="Buckets authorized to publish notifications",
-                )
-            ],
-            resources=[
-                self._resource(
-                    topic,
-                    "policy_s3_delivery.tf",
-                    self._renderer.render_resource(
-                        "aws_sns_topic_policy",
-                        "s3_delivery",
-                        {"arn": Expr(f"aws_sns_topic.{topic}.arn"), "policy": policy},
-                    ),
-                )
-            ],
-        )

@@ -106,3 +106,5 @@ EFS runtime connections use `EfsEc2MountConfig`, `EfsEcsMountConfig`, and `EfsEk
 `CertificateDnsConfig.ttl` supplies bounded validation-record TTLs. Frozen `CertificateDnsBinding` and `CertificateDnsRecord` values resolve canonical domains, zone selection, and shared certificate ownership. `AcmConfig` privately tracks managed DNS validation without changing service schemas. See [ACM DNS-validation connections](backend-certificate-dns-connections.md).
 
 CloudTrail `logs_to` uses `EmptyConnectionConfig`. `CloudTrailConfig` privately tracks managed CloudWatch delivery for generator rendering; no new editable service fields or bundled-schema changes are required. See [CloudTrail logging connections](backend-cloudtrail-logs-connections.md).
+
+AWS Config → SNS `notifies` uses `EmptyConnectionConfig`. `AwsConfigConfig` privately tracks managed notifications for native delivery-channel rendering; the connection adds no editable service fields. See [Config notification connections](backend-aws-config-sns-connections.md).

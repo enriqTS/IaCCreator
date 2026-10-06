@@ -1,0 +1,13 @@
+# AWS Config notification connections
+
+AWS Config → SNS (`notifies`) supplies the managed topic ARN to the existing delivery channel. The relationship uses the typed empty config and appears automatically in `/api/connection-schemas`. A channel supports one managed topic; repeated identical edges are idempotent.
+
+The destination must be a standard, unencrypted SNS topic in the same Region and partition. Generation rejects FIFO settings, FIFO topic names, configured external KMS keys, and managed KMS → SNS encryption edges. Every environment's effective Region is checked. Terraform preconditions also check the channel's ARN/Region/partition and the topic's native FIFO/encryption attributes, catching runtime overrides. AWS Config supports same-Region cross-account topics, so the channel guard does not impose an account-equality check. Generated environment providers still use the project's shared profile; separate account credentials must be configured when reusing modules across accounts.
+
+`AwsConfigSnsHandler` supplies a policy-ready topic ARN and provider identity outputs. `TopicDeliveryPolicy` aggregates Config and S3 publishing into one topic-owned `aws_sns_topic_policy`, retaining its existing resource address and standard account-owner permissions. Each Config service statement grants only `SNS:Publish` on the connected topic, constrained by `AWS:SourceAccount` and `AWS:SourceArn`. The regional source ARN is `arn:<partition>:config:<region>:<account>:*`, derived from identity data rather than recorder/channel resources. This keeps channel → topic policy dependencies acyclic even when the same bucket stores Config snapshots and publishes S3 notifications to that topic.
+
+The topic policy authorizes Config's service-principal delivery fallback. Recorder IAM roles and recording permissions remain externally configured; the connection does not edit those roles or create an execution role. S3 delivery remains required through `s3_bucket_name` or a managed Config → S3 edge. Preview reports missing recorder roles and S3 buckets. Recorder creation, channel creation, and enabled recorder status retain their existing ordering.
+
+Unconnected Config recorders and SNS topics retain their existing configuration. Service schemas and bundled frontend variable schemas are unchanged.
+
+The delivery policy and constraints follow [AWS Config SNS permissions](https://docs.aws.amazon.com/config/latest/developerguide/sns-topic-policy.html), the [Terraform delivery-channel resource](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/config_delivery_channel), and [SNS policy actions](https://docs.aws.amazon.com/sns/latest/dg/sns-access-policy-language-api-permissions-reference.html).

@@ -117,6 +117,15 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_aws_config_sns_delivery_is_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "aws-config" and item["target"] == "sns"
+        )
+        assert entry["connection_type"] == "notifies"
+        assert entry["fields"] == []
+
     def test_cloudtrail_log_delivery_is_served(self, connection_schemas):
         entry = next(
             item
