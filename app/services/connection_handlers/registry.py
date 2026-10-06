@@ -16,6 +16,7 @@ from app.models.connection_configs.appsync_eventbridge import AppSyncEventBridge
 from app.models.connection_configs.appsync_lambda import AppSyncLambdaConfig
 from app.models.connection_configs.appsync_opensearch import AppSyncOpenSearchConfig
 from app.models.connection_configs.backup import BackupSelectionConfig
+from app.models.connection_configs.certificate_dns import CertificateDnsConfig
 from app.models.connection_configs.client_vpn_certificate import (
     ClientVpnCertificateConfig,
 )
@@ -134,6 +135,7 @@ from app.services.connection_handlers.certificate import (
     CertificateCloudFrontHandler,
     CertificateLoadBalancerHandler,
 )
+from app.services.connection_handlers.certificate_dns import CertificateDnsHandler
 from app.services.connection_handlers.client_vpn_certificate import (
     ClientVpnCertificateHandler,
 )
@@ -1162,6 +1164,15 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Certificate Manager → Load Balancer",
         config_model=EmptyConnectionConfig,
         handler=CertificateLoadBalancerHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.ROUTE53,
+        target=ServiceType.CERTIFICATE_MANAGER,
+        connection_type="validates_certificate",
+        label="Route 53 → ACM DNS validation",
+        config_model=CertificateDnsConfig,
+        handler=CertificateDnsHandler(),
+        region_policy="cross-region",
     ),
     ConnectionSpec(
         source=ServiceType.CERTIFICATE_MANAGER,

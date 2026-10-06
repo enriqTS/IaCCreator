@@ -132,6 +132,19 @@ class TestConnectionSchemasEndpoint:
         assert fields["stage_name"]["default"] == ""
         assert fields["api_mapping_key"]["default"] == ""
 
+    def test_certificate_dns_validation_fields_are_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "route53" and item["target"] == "certificate-manager"
+        )
+        assert entry["connection_type"] == "validates_certificate"
+        fields = {item["key"]: item for item in entry["fields"]}
+        assert fields["ttl"]["type"] == "number"
+        assert fields["ttl"]["default"] == 60
+        assert fields["ttl"]["validation"]["min"] == 1
+        assert fields["ttl"]["validation"]["max"] == 2147483647
+
     def test_client_vpn_certificate_roles_are_served(self, connection_schemas):
         entry = next(
             item

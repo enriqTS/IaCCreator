@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_certificate_dns_connections.py` covers zone-owned validation records, typed TTLs, longest-suffix SAN coverage, public/private validation errors, wildcard/apex deduplication, repeated connections, shared cross-Region certificate records, consumer readiness, and preview prerequisites. Property tests exercise stable plan keys; Terraform console checks native overrides; generated API/VPN/CloudFront/Load Balancer/shared-certificate projects pass validation and plan graphs, and a mocked provider checks first-plan handling of unknown DNS tokens. The real connection-schema endpoint exposes the TTL field.
+
 `tests/test_eventbridge_kinesis_connections.py` covers stream-scoped roles, partition-path generation/bounds, conflicting settings, multiple target IDs, duplicate/order independence, and Terraform validation/graphs.
 
 `tests/test_eventbridge_sns_connections.py` covers dedicated publish-role scopes, managed/external encryption, FIFO and cross-service target-ID conflicts, idempotence, and Terraform validation/graphs.

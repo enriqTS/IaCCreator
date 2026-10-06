@@ -1,5 +1,6 @@
 """Wire issued ACM certificates into native Client VPN authentication inputs."""
 
+from app.models.certificate_dns import has_dns_validation
 from app.models.connection_configs.client_vpn_certificate import (
     ClientVpnCertificateConfig,
 )
@@ -85,7 +86,9 @@ class ClientVpnCertificateHandler(BaseConnectionHandler):
                 message="Provision individual client certificates and private keys from the selected client CA, install the server CA root in client trust stores, and distribute VPN profiles separately. Subnet placement, authorization rules, routing, and revocation remain required for usable access.",
             )
         ]
-        if resolve_private_certificate_binding(connection.source_name, project) is None:
+        if resolve_private_certificate_binding(
+            connection.source_name, project
+        ) is None and not has_dns_validation(connection.source_name, project):
             issues.append(
                 ConnectionIssue(
                     severity="warning",

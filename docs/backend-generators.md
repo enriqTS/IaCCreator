@@ -106,6 +106,8 @@ Cognito optionally renders a hosted user-pool domain and exports its prefix. ALB
 
 Private CA uses the required `certificate_authority_configuration` block. `private_ca_activation.py` renders connected root signing, activation, and ACM renewal permissions; the ready issuer ARN includes those dependencies. `private_certificate.py` renders private ACM issuance and native guards, suppressing public validation fields/outputs. See [Private CA certificate connections](backend-private-certificate-connections.md).
 
+Route 53 DNS-validation connections own CNAME records in hosted-zone modules with static canonical-domain map keys. ACM modules own shared issuance waiters, expose ready certificate ARNs, and keep native validation-option outputs independent of issuance. `certificate_dns.py` renders native certificate/zone guards. See [ACM DNS-validation connections](backend-certificate-dns-connections.md).
+
 Client VPN keeps native server and client CA ARN inputs. Managed certificate bindings add endpoint lifecycle preconditions through `client_vpn_certificate.py`, checking the native leaf key and ARN Region. Public ACM source modules own shared issuance waiters; external certificate roles keep their configured values. See [Client VPN certificate connections](backend-client-vpn-certificate-connections.md).
 
 `api_gateway/certificate_domain.py` renders connection-owned Regional domains and API mappings with native certificate Region/account/hostname guards. It consumes typed domain bindings, refers to generated stages, and exposes DNS target/hosted-zone outputs through contributions. Public issuance waiters are shared with Client VPN. See [API custom-domain connections](backend-api-gateway-certificate-connections.md).

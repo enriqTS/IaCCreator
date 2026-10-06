@@ -1,6 +1,7 @@
 """Terraform generator for ACM certificates."""
 
 from app.generators.base import get_typed_config
+from app.generators.certificate_dns import certificate_dns_preconditions
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.generators.private_certificate import private_certificate_attributes
 from app.models.input_models.acm_config import AcmConfig
@@ -21,6 +22,10 @@ class AcmGenerator:
         if config._private_ca is None:
             attrs["validation_method"] = Expr("var.validation_method")
             attrs["lifecycle"] = {"create_before_destroy": True}
+            if config._dns_validation:
+                attrs["lifecycle"]["precondition"] = certificate_dns_preconditions(
+                    [config.domain_name, *config.subject_alternative_names], self._r
+                )
         else:
             attrs.update(private_certificate_attributes(config._private_ca, self._r))
             prefix = 'data "aws_region" "private_certificate" {}\n\n'
@@ -54,7 +59,13 @@ class AcmGenerator:
         config = get_typed_config(instance, AcmConfig)
         ref = f"aws_acm_certificate.{instance.name}"
         parts = [
-            self._r.render_output("certificate_arn", f"{ref}.arn", "Certificate ARN")
+            self._r.render_output(
+                "certificate_arn",
+                f"aws_acm_certificate_validation.{instance.name}_issuance.certificate_arn"
+                if config._dns_validation
+                else f"{ref}.arn",
+                "Certificate ARN",
+            )
         ]
         if config._private_ca is None:
             parts.append(

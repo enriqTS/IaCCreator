@@ -4,6 +4,7 @@ from app.generators.api_gateway.certificate_domain import (
     render_certificate_domain,
     render_certificate_mapping,
 )
+from app.models.certificate_dns import has_dns_validation
 from app.models.connection_configs.api_gateway_certificate import (
     ApiGatewayCertificateConfig,
 )
@@ -131,12 +132,13 @@ class ApiGatewayCertificateHandler(BaseConnectionHandler):
             )
         ]
         if resolve_private_certificate_binding(connection.source_name, project) is None:
-            issues.append(
-                ConnectionIssue(
-                    severity="warning",
-                    message="Complete public ACM DNS or email validation before the shared issuance waiter can create the custom domain.",
+            if not has_dns_validation(connection.source_name, project):
+                issues.append(
+                    ConnectionIssue(
+                        severity="warning",
+                        message="Complete public ACM DNS or email validation before the shared issuance waiter can create the custom domain.",
+                    )
                 )
-            )
         else:
             issues.append(
                 ConnectionIssue(

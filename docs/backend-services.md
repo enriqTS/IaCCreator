@@ -1,5 +1,7 @@
 # Backend Services
 
+`CertificateDnsHandler` resolves public hosted-zone coverage across primary/SAN certificate names and aggregates shared validation CNAMEs in their zones. Certificate-owned issuance waiters consume record FQDNs independently of native validation-option exports, preserving acyclic consumer/alias dependencies. See [ACM DNS-validation connections](backend-certificate-dns-connections.md).
+
 `EventBridgeApiGatewayHandler` targets an existing IAM-authorized HTTP POST route using its API execution ARN and a route-scoped rule role. See [EventBridge API Gateway connections](backend-eventbridge-api-gateway-connections.md).
 
 `EventBridgeEcsHandler` launches a generated ECS Fargate task with rule-owned invocation permissions and native network references. See [EventBridge ECS connections](backend-eventbridge-ecs-connections.md).

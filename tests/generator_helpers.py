@@ -264,6 +264,10 @@ def connection_architecture(spec) -> dict:
             config["domain_name"] = "api.example.com"
         if spec.source == ServiceType.APPSYNC and service_type == ServiceType.AURORA:
             config["database_name"] = "appdb"
+        if spec.connection_type == "validates_certificate":
+            config[
+                "zone_name" if service_type == ServiceType.ROUTE53 else "domain_name"
+            ] = "example.com"
         if service_type == ServiceType.ELASTICACHE:
             config["parameter_group_name"] = DEPLOYABLE_EXTRAS[service_type][
                 "parameter_group_name"

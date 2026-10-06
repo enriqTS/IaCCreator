@@ -12,6 +12,7 @@ from app.models.private_certificate import PrivateCertificateBinding
 
 class AcmConfig(BaseServiceConfig):
     _private_ca: PrivateCertificateBinding | None = PrivateAttr(default=None)
+    _dns_validation: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.CERTIFICATE_MANAGER] = (
         ServiceType.CERTIFICATE_MANAGER
     )
