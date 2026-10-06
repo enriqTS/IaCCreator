@@ -6,7 +6,7 @@ Feature: enhanced-variable-configuration
 import inspect
 import re
 
-from hypothesis import HealthCheck, given, settings
+from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 
 from app.generators.registry import GENERATOR_REGISTRY
@@ -15,6 +15,7 @@ from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import get_service_config_models
 from app.models.input_models._metadata import VisibleWhen
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
+from app.models.input_models.aurora_config import AuroraConfig
 from app.models.input_models.dynamodb_config import DynamoDBConfig
 from app.models.input_models.lambda_config import LambdaConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -356,6 +357,17 @@ def resource_instance_with_populated_fields(draw):
 
 
 @given(data=resource_instance_with_populated_fields())
+@example(
+    data=(
+        ServiceType.AURORA,
+        ResourceInstanceIR(
+            name="database",
+            service_type=ServiceType.AURORA,
+            config=AuroraConfig(engine="aurora-postgresql", database_name="appdb"),
+        ),
+        {"database_name"},
+    )
+)
 @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
 def test_populated_config_fields_produce_var_references(data):
     """For any populated (non-None) config field whose visible_when is satisfied,

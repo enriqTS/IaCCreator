@@ -48,6 +48,8 @@ class AuroraGenerator:
             attrs["engine"] = Expr("var.engine")
         if config.engine_version is not None:
             attrs["engine_version"] = Expr("var.engine_version")
+        if config.database_name is not None and not config._appsync_data_api:
+            attrs["database_name"] = Expr("var.database_name")
         if config.master_username is not None and not config._appsync_data_api:
             attrs["master_username"] = Expr("var.master_username")
         cluster = self._r.render_resource("aws_rds_cluster", instance.name, attrs)
