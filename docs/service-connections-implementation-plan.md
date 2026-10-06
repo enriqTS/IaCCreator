@@ -13,7 +13,7 @@ Current phase status:
 - [-] Phase 5 databases and application access: Lambda/ECS access to DynamoDB, Kinesis, named Keyspaces/Timestream tables, Neptune graph queries, OpenSearch document APIs, RDS/Aurora and MemoryDB IAM login, DocumentDB IAM client bindings, MSK topic consumers/producers, ActiveMQ and standalone ElastiCache client endpoint bindings, serverless Valkey/Redis IAM access and placement, and DMS network placement, RDS/Aurora IAM and Secrets Manager endpoints, and stopped full-load and MySQL/PostgreSQL/SQL Server/Oracle-source CDC tasks with explicit table mappings and destination schema/prefix transformations exist. RDS SQL Server Enterprise/Standard secret endpoints support full-load and CDC sources with native LSNs and DMS version guards, plus migration targets. RDS Oracle EE/SE2 secret endpoints (including CDB variants) support full-load sources and migration targets; Oracle sources support native-SCN CDC through LogMiner (non-CDB) or an explicit Binary Reader selection (including CDB/PDB); additional endpoint engines remain.
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring plus SQS-to-ECS polling access and SQS/Lambda dead-letter relationships exist; workflow and API expansion remains.
 - [x] Phase 7 identity, certificates, and edge security: Cognito authentication, Private CA issuance, Client VPN certificate roles, Regional API Gateway domains, and Route 53 public ACM DNS validation are implemented.
-- [-] Phase 8 observability, governance, and security administration: Lambda logging, CloudTrail/Config S3 delivery, CloudTrail CloudWatch delivery with scoped service-role/KMS permissions, and AWS Config SNS notifications are implemented; broader integrations remain.
+- [-] Phase 8 observability, governance, and security administration: Lambda logging, CloudTrail/Config S3 delivery, CloudTrail CloudWatch delivery with scoped service-role/KMS permissions, AWS Config SNS notifications, and Managed Grafana Prometheus query roles/settings are implemented; broader integrations remain.
 - [ ] Phase 9 CI/CD and container delivery.
 - [ ] Phase 10 analytics and streaming.
 - [ ] Phase 11 machine learning.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 119 Terraform-capable service types, while the connection registry contains 199 connection specifications involving 69 services.
+The generator registry contains 119 Terraform-capable service types, while the connection registry contains 200 connection specifications involving 71 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -370,7 +370,7 @@ Implement:
 - [x] CloudTrail → CloudWatch: trail-owned delivery role/policy, native destination references, effective Region and native account/partition guards, scoped encrypted-log permissions, and deterministic duplicates/sharing.
 - [x] AWS Config → S3: managed delivery bucket and aggregated service policy; see Phase 4.
 - [x] AWS Config → SNS: native delivery-channel notifications consume policy-ready standard, unencrypted topics; topic-owned policies aggregate Config and S3 publishers with scoped service permissions, native destination guards, and deterministic duplicates.
-- Managed Grafana → Managed Prometheus.
+- [x] Managed Grafana → Managed Prometheus: workspace-owned customer-managed roles grant native workspace-scoped query access; typed endpoint/Region bindings export credential-free Grafana API payloads for manual application, with deterministic sharing and native scope guards.
 - Managed Grafana → supported data sources.
 - ECS/EKS → Managed Prometheus where a concrete integration is modeled.
 - Lambda/ECS/API Gateway → X-Ray.

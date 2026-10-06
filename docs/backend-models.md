@@ -108,3 +108,5 @@ EFS runtime connections use `EfsEc2MountConfig`, `EfsEcsMountConfig`, and `EfsEk
 CloudTrail `logs_to` uses `EmptyConnectionConfig`. `CloudTrailConfig` privately tracks managed CloudWatch delivery for generator rendering; no new editable service fields or bundled-schema changes are required. See [CloudTrail logging connections](backend-cloudtrail-logs-connections.md).
 
 AWS Config → SNS `notifies` uses `EmptyConnectionConfig`. `AwsConfigConfig` privately tracks managed notifications for native delivery-channel rendering; the connection adds no editable service fields. See [Config notification connections](backend-aws-config-sns-connections.md).
+
+Managed Grafana → Managed Prometheus `queries` uses `EmptyConnectionConfig`. `ManagedGrafanaConfig` privately tracks connection-managed data-source access; generation derives customer-managed permission mode without adding editable service fields. `GrafanaSourceContribution` and `GrafanaDataSource` define the shared contribution contract for independently implemented sources. See [Grafana Prometheus connections](backend-grafana-prometheus-connections.md).

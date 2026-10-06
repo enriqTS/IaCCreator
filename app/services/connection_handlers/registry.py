@@ -198,6 +198,9 @@ from app.services.connection_handlers.eventbridge_workflow import (
 )
 from app.services.connection_handlers.firehose_s3 import FirehoseS3Handler
 from app.services.connection_handlers.gateway_route import GatewayRouteHandler
+from app.services.connection_handlers.grafana_data_sources import (
+    GrafanaDataSourcesHandler,
+)
 from app.services.connection_handlers.iam_grant import IamGrantHandler
 from app.services.connection_handlers.keyspaces_access import KeyspacesAccessHandler
 from app.services.connection_handlers.kinesis_access import KinesisAccessHandler
@@ -779,6 +782,15 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="AWS Config → SNS notifications",
         config_model=EmptyConnectionConfig,
         handler=AwsConfigSnsHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.MANAGED_GRAFANA,
+        target=ServiceType.MANAGED_PROMETHEUS,
+        connection_type="queries",
+        label="Managed Grafana → Prometheus queries",
+        config_model=EmptyConnectionConfig,
+        handler=GrafanaDataSourcesHandler(),
+        region_policy="cross-region",
     ),
     ConnectionSpec(
         source=ServiceType.S3,

@@ -1,4 +1,5 @@
 from app.generators.base import get_typed_config
+from app.generators.grafana_data_sources import grafana_workspace_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.managed_grafana_config import ManagedGrafanaConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -9,17 +10,20 @@ class ManagedGrafanaGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, ManagedGrafanaConfig)
+        config = get_typed_config(instance, ManagedGrafanaConfig)
+        attrs = {
+            "name": Expr("var.workspace_name"),
+            "account_access_type": Expr("var.account_access_type"),
+            "authentication_providers": Expr("var.authentication_providers"),
+            "permission_type": Expr("var.permission_type"),
+            "data_sources": Expr("var.data_sources"),
+        }
+        if config._managed_data_sources:
+            attrs.update(grafana_workspace_attributes(instance.name))
         return self._r.render_resource(
             "aws_grafana_workspace",
             instance.name,
-            {
-                "name": Expr("var.workspace_name"),
-                "account_access_type": Expr("var.account_access_type"),
-                "authentication_providers": Expr("var.authentication_providers"),
-                "permission_type": Expr("var.permission_type"),
-                "data_sources": Expr("var.data_sources"),
-            },
+            attrs,
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
