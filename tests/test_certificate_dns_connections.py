@@ -144,7 +144,7 @@ def test_dns_connection_config_and_direction_are_backend_owned():
 def test_shared_certificates_across_regions_use_one_record_owner():
     payload = architecture()
     second = deepcopy(payload["resources"][1])
-    second.update(name="another", id="another", region="us-west-2")
+    second.update(name="another", id="another", provider_region="us-west-2")
     second["config"]["subject_alternative_names"] = ["*.example.com"]
     payload["resources"].append(second)
     connect_zone(payload, "another", "source-resource")
@@ -287,7 +287,7 @@ def test_dns_validation_projects_validate_and_have_no_cycles(tmp_path, consumer)
     elif consumer == "shared":
         payload = architecture()
         second = deepcopy(payload["resources"][1])
-        second.update(name="another", id="another", region="us-west-2")
+        second.update(name="another", id="another", provider_region="us-west-2")
         payload["resources"].append(second)
         connect_zone(payload, "another", "source-resource")
     else:
