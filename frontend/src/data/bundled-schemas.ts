@@ -6071,6 +6071,18 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "string"
     },
     {
+      "description": "Cluster node count; omitted uses the provider's single-node default",
+      "group": "General",
+      "label": "Number of nodes",
+      "name": "number_of_nodes",
+      "required": false,
+      "type": "number",
+      "validation": {
+        "max": 128,
+        "min": 1
+      }
+    },
+    {
       "description": "Master username for the Redshift cluster",
       "group": "General",
       "label": "Master username",

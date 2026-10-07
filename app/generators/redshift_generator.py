@@ -27,6 +27,10 @@ class RedshiftGenerator:
             attrs["node_type"] = Expr("var.node_type")
         if config.master_username is not None:
             attrs["master_username"] = Expr("var.master_username")
+        if config.number_of_nodes is not None:
+            attrs["number_of_nodes"] = Expr("var.number_of_nodes")
+        if config._grafana_query_access:
+            attrs["manage_master_password"] = True
 
         return self._r.render_resource("aws_redshift_cluster", instance.name, attrs)
 
@@ -54,6 +58,15 @@ class RedshiftGenerator:
                     "string",
                     "Master username for the Redshift cluster",
                     default=config.master_username,
+                )
+            )
+        if config.number_of_nodes is not None:
+            parts.append(
+                self._r.render_variable(
+                    "number_of_nodes",
+                    "number",
+                    "Number of Redshift cluster nodes",
+                    default=config.number_of_nodes,
                 )
             )
         return "\n".join(parts)

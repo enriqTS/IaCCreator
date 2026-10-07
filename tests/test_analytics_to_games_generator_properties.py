@@ -294,6 +294,7 @@ OPTIONAL_FIELD_MAP: dict[ServiceType, list[tuple[str, str]]] = {
     ],
     ServiceType.REDSHIFT: [
         ("node_type", "var.node_type"),
+        ("number_of_nodes", "var.number_of_nodes"),
         ("master_username", "var.master_username"),
     ],
     ServiceType.CONNECT: [
@@ -347,6 +348,7 @@ _OPTIONAL_FIELD_VALUES: dict[str, object] = {
     "kafka_version": "3.5.1",
     "number_of_broker_nodes": 3,
     "node_type": "dc2.large",
+    "number_of_nodes": 2,
     "master_username": "admin",
     "identity_management_type": "SAML",
     "inbound_calls_enabled": True,

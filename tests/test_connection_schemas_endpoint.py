@@ -354,6 +354,22 @@ def test_grafana_athena_existing_glue_table_selectors_are_discoverable(
         assert field["validation"]["pattern"] == r"^[a-z_][a-z0-9_]{0,254}$"
 
 
+def test_grafana_redshift_existing_database_and_user_selectors_are_discoverable(
+    connection_schemas,
+):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "managed-grafana" and item["target"] == "redshift"
+    )
+    assert entry["connection_type"] == "queries"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert set(fields) == {"database_name", "database_user"}
+    for field in fields.values():
+        assert field["required"] is True
+        assert field["validation"]["pattern"] == r"^[a-z][a-z0-9_]{0,63}$"
+
+
 def test_grafana_opensearch_default_index_and_time_field_are_discoverable(
     connection_schemas,
 ):

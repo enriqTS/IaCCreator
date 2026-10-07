@@ -73,6 +73,7 @@ from app.models.connection_configs.eventbridge_kinesis import EventBridgeKinesis
 from app.models.connection_configs.eventbridge_ssm import EventBridgeSsmConfig
 from app.models.connection_configs.grafana_athena import GrafanaAthenaConfig
 from app.models.connection_configs.grafana_opensearch import GrafanaOpenSearchConfig
+from app.models.connection_configs.grafana_redshift import GrafanaRedshiftConfig
 from app.models.connection_configs.memorydb import MemoryDbIamConfig
 from app.models.connection_configs.mq import MqClientConfig
 from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
@@ -827,6 +828,15 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         connection_type="queries",
         label="Managed Grafana → Athena table queries",
         config_model=GrafanaAthenaConfig,
+        handler=GrafanaDataSourcesHandler(),
+        region_policy="cross-region",
+    ),
+    ConnectionSpec(
+        source=ServiceType.MANAGED_GRAFANA,
+        target=ServiceType.REDSHIFT,
+        connection_type="queries",
+        label="Managed Grafana → Redshift database queries",
+        config_model=GrafanaRedshiftConfig,
         handler=GrafanaDataSourcesHandler(),
         region_policy="cross-region",
     ),

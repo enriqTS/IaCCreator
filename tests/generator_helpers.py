@@ -370,6 +370,15 @@ def connection_architecture(spec) -> dict:
             and service_type == ServiceType.ATHENA
         ):
             config["output_location"] = "s3://grafana-query-results/grafana/results/"
+        if (
+            spec.source == ServiceType.MANAGED_GRAFANA
+            and service_type == ServiceType.REDSHIFT
+        ):
+            config.update(
+                node_type="ra3.xlplus",
+                master_username="administrator",
+                number_of_nodes=2,
+            )
         resources.append(
             {
                 "id": rid,
@@ -430,6 +439,9 @@ def connection_architecture(spec) -> dict:
                 else {"database_name": "application", "table_name": "records"}
                 if spec.source == ServiceType.MANAGED_GRAFANA
                 and spec.target == ServiceType.ATHENA
+                else {"database_name": "application", "database_user": "grafana_reader"}
+                if spec.source == ServiceType.MANAGED_GRAFANA
+                and spec.target == ServiceType.REDSHIFT
                 else {"index_name": "application-records"}
                 if spec.target == ServiceType.OPENSEARCH
                 and spec.connection_type in {"reads_from", "writes_to", "queries"}
