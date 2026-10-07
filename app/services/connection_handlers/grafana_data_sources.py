@@ -12,6 +12,7 @@ from app.services.connection_handlers.grafana_prometheus import GrafanaPrometheu
 from app.services.connection_handlers.grafana_redshift import GrafanaRedshiftSource
 from app.services.connection_handlers.grafana_source import GrafanaDataSource
 from app.services.connection_handlers.grafana_timestream import GrafanaTimestreamSource
+from app.services.connection_handlers.grafana_xray import GrafanaXRaySource
 
 
 class GrafanaDataSourcesHandler(BaseConnectionHandler):
@@ -24,6 +25,7 @@ class GrafanaDataSourcesHandler(BaseConnectionHandler):
             GrafanaOpenSearchSource(),
             GrafanaAthenaSource(),
             GrafanaRedshiftSource(),
+            GrafanaXRaySource(),
         )
 
     def _check_workspace(self, connection: ConnectionIR, project: ProjectIR) -> None:

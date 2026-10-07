@@ -24,6 +24,8 @@ Managed Grafana data-source connections add a workspace-owned role reference and
 
 `grafana_redshift.py` renders provisioned-cluster Data API grants, separate database/user credential statements, native identity/admin-user guards, and plugin payloads. Connected Redshift clusters use AWS-managed administrator passwords; optional `number_of_nodes` controls cluster capacity. See [Grafana Redshift connections](backend-grafana-redshift-connections.md).
 
+`grafana_xray.py` renders regional trace reads, conditional native Insights permissions, group scope guards, regional data-source settings, and native query defaults. Group filters select queries without constraining IAM authorization. See [Grafana X-Ray connections](backend-grafana-xray-connections.md).
+
 ## Generator contract and registry
 
 `ServiceGenerator` in `app/generators/base.py` defines `generate_resource_tf`, `generate_variables_tf`, and `generate_outputs_tf`. `GENERATOR_REGISTRY` maps `ServiceType` values to generator instances. Consult that registry as the authoritative list rather than maintaining a duplicate list here.

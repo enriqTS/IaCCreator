@@ -841,6 +841,15 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         region_policy="cross-region",
     ),
     ConnectionSpec(
+        source=ServiceType.MANAGED_GRAFANA,
+        target=ServiceType.X_RAY,
+        connection_type="queries",
+        label="Managed Grafana → X-Ray regional trace queries",
+        config_model=EmptyConnectionConfig,
+        handler=GrafanaDataSourcesHandler(),
+        region_policy="cross-region",
+    ),
+    ConnectionSpec(
         source=ServiceType.S3,
         target=ServiceType.S3,
         connection_type="replicates_to",
