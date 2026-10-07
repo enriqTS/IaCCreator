@@ -365,6 +365,11 @@ def connection_architecture(spec) -> dict:
                 config["vpc_subnet_ids"] = ["subnet-12345678"]
                 config["vpc_security_group_ids"] = ["sg-12345678"]
         config["service_type"] = service_type.value
+        if (
+            spec.source == ServiceType.MANAGED_GRAFANA
+            and service_type == ServiceType.ATHENA
+        ):
+            config["output_location"] = "s3://grafana-query-results/grafana/results/"
         resources.append(
             {
                 "id": rid,
@@ -422,6 +427,9 @@ def connection_architecture(spec) -> dict:
                 else {"table_name": "application_data"}
                 if spec.target in {ServiceType.KEYSPACES, ServiceType.TIMESTREAM}
                 and spec.connection_type in {"reads_from", "writes_to", "queries"}
+                else {"database_name": "application", "table_name": "records"}
+                if spec.source == ServiceType.MANAGED_GRAFANA
+                and spec.target == ServiceType.ATHENA
                 else {"index_name": "application-records"}
                 if spec.target == ServiceType.OPENSEARCH
                 and spec.connection_type in {"reads_from", "writes_to", "queries"}

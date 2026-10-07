@@ -5,6 +5,7 @@ from app.generators.grafana_data_sources import render_grafana_role
 from app.models.connection_previews import ConnectionIssue
 from app.models.ir_models import ConnectionContribution, ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.grafana_athena import GrafanaAthenaSource
 from app.services.connection_handlers.grafana_cloudwatch import GrafanaCloudWatchSource
 from app.services.connection_handlers.grafana_opensearch import GrafanaOpenSearchSource
 from app.services.connection_handlers.grafana_prometheus import GrafanaPrometheusSource
@@ -20,6 +21,7 @@ class GrafanaDataSourcesHandler(BaseConnectionHandler):
             GrafanaCloudWatchSource(),
             GrafanaTimestreamSource(),
             GrafanaOpenSearchSource(),
+            GrafanaAthenaSource(),
         )
 
     def _check_workspace(self, connection: ConnectionIR, project: ProjectIR) -> None:
