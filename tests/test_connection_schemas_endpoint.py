@@ -117,6 +117,19 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_eks_managed_collection_interval_is_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "eks" and item["target"] == "managed-prometheus"
+        )
+        assert entry["connection_type"] == "sends_metrics"
+        assert len(entry["fields"]) == 1
+        field = entry["fields"][0]
+        assert field["key"] == "scrape_interval_seconds" and field["type"] == "number"
+        assert field["default"] == 60
+        assert field["validation"]["min"] == 30 and field["validation"]["max"] == 3600
+
     def test_grafana_timestream_table_selector_is_served(self, connection_schemas):
         entry = next(
             item

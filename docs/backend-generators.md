@@ -26,6 +26,8 @@ Managed Grafana data-source connections add a workspace-owned role reference and
 
 `grafana_xray.py` renders regional trace reads, conditional native Insights permissions, group scope guards, regional data-source settings, and native query defaults. Group filters select queries without constraining IAM authorization. See [Grafana X-Ray connections](backend-grafana-xray-connections.md).
 
+`eks_prometheus.py` renders EKS-owned managed scrapers, native networking/scope guards, a VPC DNS lookup, and AWS default scrape configuration with a typed interval. EKS optionally renders private endpoint access and API authentication; connected Prometheus workspaces include AWS's agentless-collector tag. See [EKS Prometheus connections](backend-eks-prometheus-connections.md).
+
 ## Generator contract and registry
 
 `ServiceGenerator` in `app/generators/base.py` defines `generate_resource_tf`, `generate_variables_tf`, and `generate_outputs_tf`. `GENERATOR_REGISTRY` maps `ServiceType` values to generator instances. Consult that registry as the authoritative list rather than maintaining a duplicate list here.

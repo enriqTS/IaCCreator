@@ -31,6 +31,8 @@ class EKSGenerator:
             vpc_config["endpoint_public_access"] = Expr(
                 "var.eks_endpoint_public_access"
             )
+        if config.endpoint_private_access is not None:
+            vpc_config["endpoint_private_access"] = Expr("var.endpoint_private_access")
 
         attrs: dict = {
             "name": Expr("var.cluster_name"),
@@ -39,6 +41,10 @@ class EKSGenerator:
         }
         if config.eks_version is not None:
             attrs["version"] = Expr("var.eks_version")
+        if config.authentication_mode is not None:
+            attrs["access_config"] = {
+                "authentication_mode": Expr("var.authentication_mode")
+            }
 
         return self._r.render_resource("aws_eks_cluster", instance.name, attrs)
 
@@ -87,6 +93,20 @@ class EKSGenerator:
                     default=config.eks_endpoint_public_access,
                 )
             )
+        for name, var_type in (
+            ("endpoint_private_access", "bool"),
+            ("authentication_mode", "string"),
+        ):
+            value = getattr(config, name)
+            if value is not None:
+                parts.append(
+                    self._r.render_variable(
+                        name,
+                        var_type,
+                        EksConfig.model_fields[name].description or "",
+                        default=value,
+                    )
+                )
         return "\n".join(parts)
 
     def generate_outputs_tf(self, instance: ResourceInstanceIR) -> str:

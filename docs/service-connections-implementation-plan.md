@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 119 Terraform-capable service types, while the connection registry contains 206 connection specifications involving 73 services.
+The generator registry contains 119 Terraform-capable service types, while the connection registry contains 207 connection specifications involving 73 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -372,7 +372,7 @@ Implement:
 - [x] AWS Config → SNS: native delivery-channel notifications consume policy-ready standard, unencrypted topics; topic-owned policies aggregate Config and S3 publishers with scoped service permissions, native destination guards, and deterministic duplicates.
 - [x] Managed Grafana → Managed Prometheus: workspace-owned customer-managed roles grant native workspace-scoped query access; typed endpoint/Region bindings export credential-free Grafana API payloads for manual application, with deterministic sharing and native scope guards.
 - [-] Managed Grafana → supported data sources: CloudWatch log-group queries and selected Timestream table queries share the workspace role with Prometheus. Native scope guards, explicit regional discovery/cancellation permissions, conditional log-key decryption, and credential-free data-source settings are implemented. Timestream requires separately provisioned tables and an eligible LiveAnalytics account. OpenSearch adds native endpoint/version settings and domain-wide root multi-search permissions with a concrete default index; same-domain index-scoped Lambda/ECS/AppSync clients are rejected because their explicit-index settings conflict. Athena adds workgroup-scoped execution, selected Glue-table metadata, enforced S3 result-prefix permissions, and native plugin settings; dataset S3/KMS/Lake Formation grants remain external. Redshift adds provisioned-cluster Data API execution, exact existing database/user credential pairs, native guards/settings, and AWS-managed administrator passwords; SQL grants and database/user provisioning remain external, and statement access is shared across workspace role sessions. X-Ray adds regional trace/graph/group reads, conditional regional Insights access, and native group query defaults; filters do not restrict IAM access, and instrumentation/ingestion remain external. Additional data sources remain.
-- ECS/EKS → Managed Prometheus where a concrete integration is modeled.
+- [-] EKS → Managed Prometheus: native managed scrapers use private EKS endpoints, API authentication, cluster networking, AWS default scrape jobs, and typed intervals. Native guards validate scope, DNS, networking, and overrides; workspace tags avoid AWS-created tag drift. AWS owns service-linked roles and cluster access. See [EKS Prometheus connections](backend-eks-prometheus-connections.md). ECS collection remains.
 - Lambda/ECS/API Gateway → X-Ray.
 - Services → CloudWatch log groups where explicit log destinations are supported.
 - Fault Injection Simulator → EC2/ECS/EKS targets.

@@ -3755,6 +3755,43 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "type": "list"
     },
     {
+      "description": "Enable private EKS API access; managed Prometheus collection defaults this to true",
+      "group": "Networking",
+      "label": "Endpoint private access",
+      "name": "endpoint_private_access",
+      "required": false,
+      "type": "bool"
+    },
+    {
+      "description": "EKS authentication mode; enabling API access cannot be reversed",
+      "group": "General",
+      "label": "Authentication mode",
+      "name": "authentication_mode",
+      "options": [
+        {
+          "label": "CONFIG_MAP",
+          "value": "CONFIG_MAP"
+        },
+        {
+          "label": "API",
+          "value": "API"
+        },
+        {
+          "label": "API_AND_CONFIG_MAP",
+          "value": "API_AND_CONFIG_MAP"
+        }
+      ],
+      "required": false,
+      "type": "string",
+      "validation": {
+        "allowed_values": [
+          "CONFIG_MAP",
+          "API",
+          "API_AND_CONFIG_MAP"
+        ]
+      }
+    },
+    {
       "default": true,
       "description": "Manage the EFS CSI add-on when EFS mounts are connected",
       "group": "General",

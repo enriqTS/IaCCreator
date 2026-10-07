@@ -366,6 +366,15 @@ def connection_architecture(spec) -> dict:
                 config["vpc_security_group_ids"] = ["sg-12345678"]
         config["service_type"] = service_type.value
         if (
+            spec.source == ServiceType.EKS
+            and spec.target == ServiceType.MANAGED_PROMETHEUS
+            and service_type == ServiceType.EKS
+        ):
+            config.update(
+                cluster_role_arn="arn:aws:iam::123456789012:role/eks/cluster",
+                subnet_ids=["subnet-12345678", "subnet-87654321"],
+            )
+        if (
             spec.source == ServiceType.MANAGED_GRAFANA
             and service_type == ServiceType.ATHENA
         ):

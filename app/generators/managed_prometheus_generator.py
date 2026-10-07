@@ -9,13 +9,14 @@ class ManagedPrometheusGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, ManagedPrometheusConfig)
+        config = get_typed_config(instance, ManagedPrometheusConfig)
+        attrs = {"alias": Expr("var.alias")}
+        if config._managed_scraper:
+            attrs["tags"] = Expr(self._r.render_expression({"AMPAgentlessScraper": ""}))
         return self._r.render_resource(
             "aws_prometheus_workspace",
             instance.name,
-            {
-                "alias": Expr("var.alias"),
-            },
+            attrs,
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:

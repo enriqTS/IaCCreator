@@ -4,7 +4,7 @@ from typing import ClassVar, Literal
 
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
-from app.models.input_models._metadata import TerraformField
+from app.models.input_models._metadata import OptionEntry, TerraformField
 
 
 class EksConfig(BaseServiceConfig):
@@ -24,6 +24,8 @@ class EksConfig(BaseServiceConfig):
         "cluster_role_arn",
         "subnet_ids",
         "security_group_ids",
+        "endpoint_private_access",
+        "authentication_mode",
         "manage_efs_csi_driver",
         "efs_csi_addon_version",
     )
@@ -50,6 +52,21 @@ class EksConfig(BaseServiceConfig):
         None,
         group="Networking",
         description="Additional security group IDs for the EKS control plane",
+    )
+    endpoint_private_access: bool | None = TerraformField(
+        None,
+        group="Networking",
+        description="Enable private EKS API access; managed Prometheus collection defaults this to true",
+    )
+    authentication_mode: Literal["CONFIG_MAP", "API", "API_AND_CONFIG_MAP"] | None = (
+        TerraformField(
+            None,
+            description="EKS authentication mode; enabling API access cannot be reversed",
+            options=[
+                OptionEntry(value=value, label=value)
+                for value in ("CONFIG_MAP", "API", "API_AND_CONFIG_MAP")
+            ],
+        )
     )
 
     # ── Internal (not Terraform variables) ────────────────────────────────
