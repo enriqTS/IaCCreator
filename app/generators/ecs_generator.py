@@ -6,6 +6,7 @@ from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.ecs_efs import add_efs_task_attributes
 from app.generators.ecs_prometheus import add_prometheus_task_attributes
 from app.generators.ecs_secrets import secret_task_attributes
+from app.generators.ecs_xray import add_xray_task_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ecs_config import EcsConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -63,6 +64,13 @@ class ECSGenerator:
             task_attrs.update(secret_task_attributes(instance.name))
         if config._mounts_efs:
             add_efs_task_attributes(task_attrs)
+        if config._collects_xray:
+            add_xray_task_attributes(
+                task_attrs,
+                instance.name,
+                self._r,
+                prometheus=config._collects_prometheus,
+            )
         if config._collects_prometheus:
             add_prometheus_task_attributes(task_attrs, instance.name, self._r)
         if instance.iam_statements or config._requires_task_role:
@@ -70,6 +78,8 @@ class ECSGenerator:
             policies = [f"aws_iam_role_policy.{instance.name}_policy"]
             if config._inject_runtime_secrets:
                 policies.append("aws_iam_role_policy.runtime_secrets")
+            if config._collects_xray:
+                policies.append(f"aws_iam_role_policy.{instance.name}_xray")
             task_attrs["depends_on"] = Expr("[" + ", ".join(policies) + "]")
         result += "\n" + self._r.render_resource(
             "aws_ecs_task_definition", f"{instance.name}_task", task_attrs
@@ -94,7 +104,7 @@ class ECSGenerator:
             service_attrs["platform_version"] = "LATEST"
         if config.ecs_launch_type is not None:
             service_attrs["launch_type"] = Expr("var.ecs_launch_type")
-        if config._collects_prometheus:
+        if config._collects_prometheus or config._collects_xray:
             service_attrs["platform_version"] = "LATEST"
         if config.ecs_desired_count is not None:
             service_attrs["desired_count"] = Expr("var.ecs_desired_count")

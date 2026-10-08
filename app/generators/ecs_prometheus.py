@@ -1,11 +1,15 @@
 """ADOT sidecars share native task credentials and preserve application containers."""
 
+from app.generators.ecs_collector import (
+    COLLECTOR_CPU,
+    COLLECTOR_MEMORY,
+    collector_capacity_precondition,
+    sidecar_expression,
+)
+from app.generators.ecs_collector import COLLECTOR_IMAGE as COLLECTOR_IMAGE
 from app.generators.hcl_renderer import Expr, HCLRenderer
 
 COLLECTOR_NAME = "iac-prometheus-collector"
-COLLECTOR_IMAGE = "public.ecr.aws/aws-observability/aws-otel-collector:v0.49.0"
-COLLECTOR_CPU = 64
-COLLECTOR_MEMORY = 256
 
 
 def collector_configuration_expression() -> Expr:
@@ -77,12 +81,7 @@ def collection_preconditions() -> list[dict]:
             ),
             "error_message": f"Provide application containers without the reserved {COLLECTOR_NAME} name.",
         },
-        {
-            "condition": Expr(
-                f"try(tonumber(var.ecs_cpu), 0) >= {COLLECTOR_CPU} + sum(concat([0], [for container in jsondecode(var.container_definitions) : try(container.cpu, 0)])) && try(tonumber(var.ecs_memory), 0) >= {COLLECTOR_MEMORY} + sum(concat([0], [for container in jsondecode(var.container_definitions) : max(try(container.memory, 0), try(container.memoryReservation, 0))]))"
-            ),
-            "error_message": "Task capacity must cover application reservations plus 64 CPU units and 256 MiB for collection.",
-        },
+        collector_capacity_precondition(COLLECTOR_CPU, COLLECTOR_MEMORY),
         {
             "condition": Expr(
                 'var.ecs_launch_type == "FARGATE" && length(var.subnet_ids) > 0 && length(var.security_group_ids) > 0'
@@ -93,35 +92,12 @@ def collection_preconditions() -> list[dict]:
 
 
 def collector_expression(name: str, renderer: HCLRenderer) -> str:
-    return renderer.render_expression(
-        {
-            "name": COLLECTOR_NAME,
-            "image": COLLECTOR_IMAGE,
-            "essential": False,
-            "cpu": COLLECTOR_CPU,
-            "memory": COLLECTOR_MEMORY,
-            "command": ["--config=env:AOT_CONFIG_CONTENT"],
-            "environment": [
-                {
-                    "name": "AOT_CONFIG_CONTENT",
-                    "value": Expr("local.prometheus_collector_configuration"),
-                },
-                {
-                    "name": "AWS_REGION",
-                    "value": Expr("data.aws_region.ecs_prometheus.region"),
-                },
-            ],
-            "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": Expr(
-                        f"aws_cloudwatch_log_group.{name}_prometheus.name"
-                    ),
-                    "awslogs-region": Expr("data.aws_region.ecs_prometheus.region"),
-                    "awslogs-stream-prefix": "collector",
-                },
-            },
-        }
+    return sidecar_expression(
+        renderer,
+        name=COLLECTOR_NAME,
+        configuration="local.prometheus_collector_configuration",
+        log_group=f"aws_cloudwatch_log_group.{name}_prometheus.name",
+        region="data.aws_region.ecs_prometheus.region",
     )
 
 

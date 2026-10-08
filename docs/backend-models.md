@@ -1,5 +1,7 @@
 # Backend Models
 
+ECS → X-Ray uses `EmptyConnectionConfig`. Private `EcsConfig._collects_xray` and `XRayConfig._managed_ecs_tracing` track collector/membership generation without adding editor fields. Typed native cluster identities travel into the group independently of Lambda identities. See [ECS X-Ray connections](backend-ecs-xray-connections.md).
+
 Lambda → X-Ray uses `EmptyConnectionConfig` and existing tracing/filter fields. Private flags on `LambdaConfig` and `XRayConfig` track connection-owned generation without adding editor fields. The group receives a typed map of native function names and ARNs. See [Lambda X-Ray connections](backend-lambda-xray-connections.md).
 
 `EventBridgeKinesisConfig` adds optional bounded dot-notation partition-key paths to the shared invocation config. See [EventBridge Kinesis connections](backend-eventbridge-kinesis-connections.md).

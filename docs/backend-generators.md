@@ -1,5 +1,7 @@
 # Backend Generators
 
+`ecs_xray.py` composes trace export settings, a task-local OTLP collector, and source-owned regional upload permissions. Shared `ecs_collector.py` handles sidecar rendering/capacity and `xray_upload.py` handles regional policies. `XRayGroupSource` renderers union independent producer selectors and guards in the X-Ray generator. See [ECS X-Ray connections](backend-ecs-xray-connections.md).
+
 `lambda_xray.py` renders one regional upload policy per connected Lambda. `xray_filters.py` constructs native service/function selectors and group guards; `LambdaGenerator` merges tracing prerequisites with existing lifecycle checks, and `XRayGenerator` combines membership with the configured predicate. See [Lambda X-Ray connections](backend-lambda-xray-connections.md).
 
 Lambda renders `dead_letter_config` for connected destinations without mutating external service configuration; a native ARN precondition excludes FIFO destinations. See [Lambda dead-letter connections](backend-lambda-dead-letter-connections.md).

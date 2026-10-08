@@ -2,10 +2,8 @@
 
 from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import Expr, HCLRenderer
-from app.generators.xray_filters import (
-    lambda_group_filter_expression,
-    lambda_group_preconditions,
-)
+from app.generators.xray_filters import group_filter_expression
+from app.generators.xray_group_sources import XRAY_GROUP_SOURCES
 from app.models.input_models.xray_config import XRayConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -26,9 +24,19 @@ class XRayGenerator:
                 }
             ],
         }
-        if config._managed_lambda_tracing:
-            attrs["filter_expression"] = lambda_group_filter_expression()
-            attrs["lifecycle"] = {"precondition": lambda_group_preconditions()}
+        sources = [
+            source for source in XRAY_GROUP_SOURCES if getattr(config, source.flag)
+        ]
+        if sources:
+            attrs["filter_expression"] = group_filter_expression(
+                [source.selectors() for source in sources]
+            )
+            guards = []
+            for source in sources:
+                for guard in source.preconditions():
+                    if guard not in guards:
+                        guards.append(guard)
+            attrs["lifecycle"] = {"precondition": guards}
         return self._r.render_resource(
             "aws_xray_group",
             instance.name,

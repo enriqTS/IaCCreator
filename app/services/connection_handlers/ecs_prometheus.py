@@ -14,7 +14,7 @@ from app.models.ir_models import (
     ProjectIR,
 )
 from app.services.connection_handlers.base import BaseConnectionHandler
-from app.services.connection_handlers.network_placement import has_placement
+from app.services.connection_handlers.ecs_collection import ecs_collection_errors
 
 
 class EcsPrometheusHandler(BaseConnectionHandler):
@@ -22,25 +22,7 @@ class EcsPrometheusHandler(BaseConnectionHandler):
         self, connection: ConnectionIR, project: ProjectIR
     ) -> tuple[list[str], EcsPrometheusConfig]:
         source = self._find_instance(connection.source_name, project)
-        errors = []
-        for field, service in (
-            ("subnet_ids", ServiceType.SUBNET),
-            ("security_group_ids", ServiceType.SECURITY_GROUP),
-        ):
-            if not has_placement(source.name, field, service, project):
-                errors.append(
-                    {
-                        "loc": (field,),
-                        "msg": "ECS collection requires subnet and security-group placement",
-                    }
-                )
-        if source.config.ecs_launch_type not in {None, "FARGATE"}:
-            errors.append(
-                {
-                    "loc": ("ecs_launch_type",),
-                    "msg": "ECS collection supports the modeled Linux Fargate task",
-                }
-            )
+        errors = ecs_collection_errors(source.name, project)
         peers = [
             item
             for item in project.connections

@@ -5,11 +5,23 @@ from app.generators.hcl_renderer import Expr
 XRAY_GROUP_NAME_PATTERN = r"^[A-Za-z0-9_-]{1,32}$"
 
 
-def lambda_group_filter_expression() -> Expr:
-    selectors = '[for function in values(var.xray_lambda_functions) : format("(service(id(name: %s, type: %s, account.id: %s)) OR service(id(name: %s, type: %s, account.id: %s)))", jsonencode(function.name), jsonencode("AWS::Lambda"), jsonencode(try(split(":", function.arn)[4], "")), jsonencode(function.name), jsonencode("AWS::Lambda::Function"), jsonencode(try(split(":", function.arn)[4], "")))]'
+def lambda_group_selectors() -> Expr:
     return Expr(
-        f'format("(%s) AND (%s)", join(" OR ", {selectors}), var.filter_expression)'
+        '[for function in values(var.xray_lambda_functions) : format("(service(id(name: %s, type: %s, account.id: %s)) OR service(id(name: %s, type: %s, account.id: %s)))", jsonencode(function.name), jsonencode("AWS::Lambda"), jsonencode(try(split(":", function.arn)[4], "")), jsonencode(function.name), jsonencode("AWS::Lambda::Function"), jsonencode(try(split(":", function.arn)[4], "")))]'
     )
+
+
+def group_filter_expression(selectors: list[Expr]) -> Expr:
+    members = (
+        selectors[0] if len(selectors) == 1 else "concat(" + ", ".join(selectors) + ")"
+    )
+    return Expr(
+        f'format("(%s) AND (%s)", join(" OR ", {members}), var.filter_expression)'
+    )
+
+
+def lambda_group_filter_expression() -> Expr:
+    return group_filter_expression([lambda_group_selectors()])
 
 
 def lambda_group_preconditions() -> list[dict]:
@@ -26,6 +38,12 @@ def lambda_group_preconditions() -> list[dict]:
             ),
             "error_message": "Lambda functions and their X-Ray group must share a partition, Region, and account.",
         },
+        *group_configuration_preconditions(),
+    ]
+
+
+def group_configuration_preconditions() -> list[dict]:
+    return [
         {
             "condition": Expr(
                 f'can(regex("{XRAY_GROUP_NAME_PATTERN}", var.group_name)) && var.group_name != "Default" && length(trimspace(var.filter_expression)) > 0'

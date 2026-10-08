@@ -12,6 +12,7 @@ from app.models.input_models._metadata import TerraformField
 class XRayConfig(BaseServiceConfig):
     service_type: Literal[ServiceType.X_RAY] = ServiceType.X_RAY
     _managed_lambda_tracing: bool = PrivateAttr(default=False)
+    _managed_ecs_tracing: bool = PrivateAttr(default=False)
     group_name: str = TerraformField(
         "application-traces", description="X-Ray group name"
     )

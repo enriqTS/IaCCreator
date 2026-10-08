@@ -173,6 +173,7 @@ from app.services.connection_handlers.ec2_secret import Ec2SecretHandler
 from app.services.connection_handlers.ecs_prometheus import EcsPrometheusHandler
 from app.services.connection_handlers.ecs_secret import EcsSecretHandler
 from app.services.connection_handlers.ecs_target_group import TargetGroupECSHandler
+from app.services.connection_handlers.ecs_xray import EcsXRayHandler
 from app.services.connection_handlers.efs_ec2 import EfsEc2MountHandler
 from app.services.connection_handlers.efs_ecs import EfsEcsMountHandler
 from app.services.connection_handlers.efs_eks import EfsEksMountHandler
@@ -877,6 +878,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Lambda → X-Ray active tracing and group membership",
         config_model=EmptyConnectionConfig,
         handler=LambdaXRayHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.ECS,
+        target=ServiceType.X_RAY,
+        connection_type="traces_to",
+        label="ECS → X-Ray OTLP tracing and group membership",
+        config_model=EmptyConnectionConfig,
+        handler=EcsXRayHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.S3,

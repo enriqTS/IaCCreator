@@ -367,7 +367,7 @@ def connection_architecture(spec) -> dict:
         config["service_type"] = service_type.value
         if (
             spec.source == ServiceType.ECS
-            and spec.target == ServiceType.MANAGED_PROMETHEUS
+            and spec.target in {ServiceType.MANAGED_PROMETHEUS, ServiceType.X_RAY}
             and service_type == ServiceType.ECS
         ):
             config.update(

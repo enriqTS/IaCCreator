@@ -1,5 +1,7 @@
 # ECS Prometheus connections
 
+[ECS X-Ray connections](backend-ecs-xray-connections.md) can add a separate OTLP tracing sidecar to the same task. Combined capacity guards reserve 128 CPU units and 512 MiB for both collectors, and application scraping cannot use the tracing listener ports 4317/4318. Each collector retains its own configuration and diagnostic logs.
+
 ECS → Managed Prometheus (`sends_metrics`) adds an ADOT sidecar to the task definition represented by the ECS node. This collects that task's container/resource metrics through its metadata-v4 endpoint, rather than discovering other tasks in the cluster. Linux Fargate is the supported deployment mode; collection defaults unset launch type to Fargate and uses platform `LATEST`. Source tasks need subnet and security-group placement, supplied by external IDs or managed placement connections. The editor discovers settings through `/api/connection-schemas`.
 
 `EcsPrometheusConfig` exposes two integer fields:

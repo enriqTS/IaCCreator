@@ -1,38 +1,12 @@
 """Lambda owns its regional X-Ray upload permissions."""
 
 from app.generators.hcl_renderer import Expr, HCLRenderer
+from app.generators.xray_upload import render_xray_upload_policy
 
 
 def render_lambda_xray_policy(name: str, renderer: HCLRenderer) -> str:
-    return 'data "aws_region" "lambda_xray" {}\n\n' + renderer.render_resource(
-        "aws_iam_role_policy",
-        f"{name}_xray",
-        {
-            "name": f"{name}-xray",
-            "role": Expr(f"aws_iam_role.{name}_role.id"),
-            "policy": renderer.render_json_policy(
-                {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "xray:PutTraceSegments",
-                                "xray:PutTelemetryRecords",
-                            ],
-                            "Resource": "*",
-                            "Condition": {
-                                "StringEquals": {
-                                    "aws:RequestedRegion": Expr(
-                                        "data.aws_region.lambda_xray.region"
-                                    )
-                                }
-                            },
-                        }
-                    ],
-                }
-            ),
-        },
+    return 'data "aws_region" "lambda_xray" {}\n\n' + render_xray_upload_policy(
+        name, renderer, "data.aws_region.lambda_xray.region", telemetry=True
     )
 
 

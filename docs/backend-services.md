@@ -1,5 +1,7 @@
 # Backend Services
 
+`EcsXRayHandler` contributes task-owned collection and native group membership. Shared `ecs_collection_errors` validates launch/placement, while `xray_group.py` shares group validation, membership inputs, and effective-filter outputs across producers. ECS and Lambda can share groups without reverse dependencies. See [ECS X-Ray connections](backend-ecs-xray-connections.md).
+
 `LambdaXRayHandler` enables active tracing, aggregates deterministic native group membership, and contributes source-owned upload policies. Functions never depend on group outputs; Grafana reads effective group filters through existing outputs. See [Lambda X-Ray connections](backend-lambda-xray-connections.md).
 
 `CloudTrailLogsHandler` supplies native CloudWatch destination references and owns one trail delivery role/policy. Effective Region checks and native ARN guards constrain destinations; `KmsConsumerGrants` supplies selected-key access with regional Logs service conditions. It composes with existing S3/KMS policy ownership. See [CloudTrail logging connections](backend-cloudtrail-logs-connections.md).

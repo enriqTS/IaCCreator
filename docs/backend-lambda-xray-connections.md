@@ -1,5 +1,7 @@
 # Lambda X-Ray connections
 
+[ECS X-Ray connections](backend-ecs-xray-connections.md) can share the same group. Independent producer selectors join a single `OR` union before the configured group predicate is applied with `AND`; native membership guards remain specific to each producer.
+
 Lambda → X-Ray (`traces_to`) enables `Active` tracing and selects the connected functions in an X-Ray group. The editor discovers the connection through `/api/connection-schemas`; its `EmptyConnectionConfig` has no editable fields. Use the Lambda node's existing tracing setting and the X-Ray node's existing filter and Insights settings.
 
 An unset tracing mode becomes `Active`. An explicitly configured `PassThrough` mode is rejected, as are Lambda layers. [Lambda active tracing](https://docs.aws.amazon.com/lambda/latest/dg/services-xray.html) creates service and function segments for sampled invocations. The connection does not add an ADOT layer, extension, application SDK, or custom sampling rule. Published versions retain their tracing configuration; publish and route to a suitable version when changing a deployed function's tracing behavior. Kafka/MSK, MQ, and DocumentDB event-source invocations do not support this tracing integration.
