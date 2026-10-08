@@ -117,6 +117,19 @@ class TestTypedConfigValidation:
 
 
 class TestConnectionSchemasEndpoint:
+    def test_ecs_prometheus_collection_settings_are_served(self, connection_schemas):
+        entry = next(
+            item
+            for item in connection_schemas["connections"]
+            if item["source"] == "ecs" and item["target"] == "managed-prometheus"
+        )
+        assert entry["connection_type"] == "sends_metrics"
+        fields = {item["key"]: item for item in entry["fields"]}
+        assert fields["collection_interval_seconds"]["default"] == 60
+        assert fields["collection_interval_seconds"]["validation"]["min"] == 10
+        assert fields["application_metrics_port"]["default"] == 0
+        assert fields["application_metrics_port"]["validation"]["max"] == 65535
+
     def test_eks_managed_collection_interval_is_served(self, connection_schemas):
         entry = next(
             item

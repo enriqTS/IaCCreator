@@ -50,6 +50,7 @@ from app.models.connection_configs.dms import (
 )
 from app.models.connection_configs.dms_source import DmsSecretSourceEndpointConfig
 from app.models.connection_configs.dms_task import DmsReplicationTaskConfig
+from app.models.connection_configs.ecs_prometheus import EcsPrometheusConfig
 from app.models.connection_configs.efs import (
     EfsEc2MountConfig,
     EfsEcsMountConfig,
@@ -169,6 +170,7 @@ from app.services.connection_handlers.ec2_placement import (
     SubnetEC2PlacementHandler,
 )
 from app.services.connection_handlers.ec2_secret import Ec2SecretHandler
+from app.services.connection_handlers.ecs_prometheus import EcsPrometheusHandler
 from app.services.connection_handlers.ecs_secret import EcsSecretHandler
 from app.services.connection_handlers.ecs_target_group import TargetGroupECSHandler
 from app.services.connection_handlers.efs_ec2 import EfsEc2MountHandler
@@ -795,6 +797,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="EKS → Managed Prometheus managed collection",
         config_model=EksPrometheusConfig,
         handler=EksPrometheusHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.ECS,
+        target=ServiceType.MANAGED_PROMETHEUS,
+        connection_type="sends_metrics",
+        label="ECS → Managed Prometheus task collection",
+        config_model=EcsPrometheusConfig,
+        handler=EcsPrometheusHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.MANAGED_GRAFANA,

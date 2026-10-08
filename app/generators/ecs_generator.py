@@ -4,6 +4,7 @@ import json
 
 from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.ecs_efs import add_efs_task_attributes
+from app.generators.ecs_prometheus import add_prometheus_task_attributes
 from app.generators.ecs_secrets import secret_task_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ecs_config import EcsConfig
@@ -62,6 +63,8 @@ class ECSGenerator:
             task_attrs.update(secret_task_attributes(instance.name))
         if config._mounts_efs:
             add_efs_task_attributes(task_attrs)
+        if config._collects_prometheus:
+            add_prometheus_task_attributes(task_attrs, instance.name, self._r)
         if instance.iam_statements or config._requires_task_role:
             task_attrs["task_role_arn"] = Expr(f"aws_iam_role.{instance.name}_role.arn")
             policies = [f"aws_iam_role_policy.{instance.name}_policy"]
@@ -91,6 +94,8 @@ class ECSGenerator:
             service_attrs["platform_version"] = "LATEST"
         if config.ecs_launch_type is not None:
             service_attrs["launch_type"] = Expr("var.ecs_launch_type")
+        if config._collects_prometheus:
+            service_attrs["platform_version"] = "LATEST"
         if config.ecs_desired_count is not None:
             service_attrs["desired_count"] = Expr("var.ecs_desired_count")
         if config.ecs_load_balancers:

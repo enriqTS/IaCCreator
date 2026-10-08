@@ -366,6 +366,14 @@ def connection_architecture(spec) -> dict:
                 config["vpc_security_group_ids"] = ["sg-12345678"]
         config["service_type"] = service_type.value
         if (
+            spec.source == ServiceType.ECS
+            and spec.target == ServiceType.MANAGED_PROMETHEUS
+            and service_type == ServiceType.ECS
+        ):
+            config.update(
+                subnet_ids=["subnet-12345678"], security_group_ids=["sg-12345678"]
+            )
+        if (
             spec.source == ServiceType.EKS
             and spec.target == ServiceType.MANAGED_PROMETHEUS
             and service_type == ServiceType.EKS

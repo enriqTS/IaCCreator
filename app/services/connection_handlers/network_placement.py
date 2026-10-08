@@ -12,6 +12,18 @@ from app.models.ir_models import (
 from app.services.connection_handlers.base import BaseConnectionHandler
 
 
+def has_placement(
+    name: str, field: str, service: ServiceType, project: ProjectIR
+) -> bool:
+    instance = BaseConnectionHandler._find_instance(name, project)
+    return bool(getattr(instance.config, field, None)) or any(
+        item.source_service == service
+        and item.target_name == name
+        and item.connection_type in {"places", "associates"}
+        for item in project.connections
+    )
+
+
 class ListPlacementHandler(BaseConnectionHandler):
     def __init__(
         self,

@@ -15,6 +15,9 @@ from app.models.ir_models import (
     ProjectIR,
 )
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.network_placement import (
+    has_placement as has_placement,
+)
 
 
 @dataclass
@@ -42,18 +45,6 @@ def reject_mount(connection: ConnectionIR, message: str) -> None:
         connection.target_name,
         connection.connection_type,
         [{"loc": ("mount",), "msg": message}],
-    )
-
-
-def has_placement(
-    name: str, field: str, service: ServiceType, project: ProjectIR
-) -> bool:
-    instance = BaseConnectionHandler._find_instance(name, project)
-    return bool(getattr(instance.config, field, None)) or any(
-        item.source_service == service
-        and item.target_name == name
-        and item.connection_type in {"places", "associates"}
-        for item in project.connections
     )
 
 

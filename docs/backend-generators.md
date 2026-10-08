@@ -28,6 +28,8 @@ Managed Grafana data-source connections add a workspace-owned role reference and
 
 `eks_prometheus.py` renders EKS-owned managed scrapers, native networking/scope guards, a VPC DNS lookup, and AWS default scrape configuration with a typed interval. EKS optionally renders private endpoint access and API authentication; connected Prometheus workspaces include AWS's agentless-collector tag. See [EKS Prometheus connections](backend-eks-prometheus-connections.md).
 
+`ecs_prometheus.py` renders ADOT configuration, a collector sidecar, diagnostic logs, and task guards. The ECS generator composes it after secret injection and EFS mounts, preserving application containers and existing guards. Native workspace bindings configure SigV4 remote writes without a custom image or config-upload step. See [ECS Prometheus connections](backend-ecs-prometheus-connections.md).
+
 ## Generator contract and registry
 
 `ServiceGenerator` in `app/generators/base.py` defines `generate_resource_tf`, `generate_variables_tf`, and `generate_outputs_tf`. `GENERATOR_REGISTRY` maps `ServiceType` values to generator instances. Consult that registry as the authoritative list rather than maintaining a duplicate list here.
