@@ -1,8 +1,9 @@
 """X-Ray read permissions are regional; native groups supply query defaults."""
 
 from app.generators.hcl_renderer import Expr
-
-XRAY_GROUP_NAME_PATTERN = r"^[A-Za-z0-9_-]{1,32}$"
+from app.generators.xray_filters import (
+    XRAY_GROUP_NAME_PATTERN as XRAY_GROUP_NAME_PATTERN,
+)
 
 
 def xray_scope_preconditions() -> list[dict]:

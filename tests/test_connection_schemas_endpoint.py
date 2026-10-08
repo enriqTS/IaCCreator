@@ -407,6 +407,17 @@ def test_grafana_xray_regional_query_connection_is_discoverable(connection_schem
     assert entry["fields"] == []
 
 
+def test_lambda_xray_active_tracing_connection_is_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "lambda" and item["target"] == "x-ray"
+    )
+    assert entry["connection_type"] == "traces_to"
+    assert "group membership" in entry["label"]
+    assert entry["fields"] == []
+
+
 def test_grafana_opensearch_default_index_and_time_field_are_discoverable(
     connection_schemas,
 ):

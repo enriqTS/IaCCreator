@@ -2,6 +2,10 @@
 
 from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import Expr, HCLRenderer
+from app.generators.xray_filters import (
+    lambda_group_filter_expression,
+    lambda_group_preconditions,
+)
 from app.models.input_models.xray_config import XRayConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -11,20 +15,24 @@ class XRayGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, XRayConfig)
+        config = get_typed_config(instance, XRayConfig)
+        attrs = {
+            "group_name": Expr("var.group_name"),
+            "filter_expression": Expr("var.filter_expression"),
+            "insights_configuration": [
+                {
+                    "insights_enabled": Expr("var.insights_enabled"),
+                    "notifications_enabled": Expr("var.notifications_enabled"),
+                }
+            ],
+        }
+        if config._managed_lambda_tracing:
+            attrs["filter_expression"] = lambda_group_filter_expression()
+            attrs["lifecycle"] = {"precondition": lambda_group_preconditions()}
         return self._r.render_resource(
             "aws_xray_group",
             instance.name,
-            {
-                "group_name": Expr("var.group_name"),
-                "filter_expression": Expr("var.filter_expression"),
-                "insights_configuration": [
-                    {
-                        "insights_enabled": Expr("var.insights_enabled"),
-                        "notifications_enabled": Expr("var.notifications_enabled"),
-                    }
-                ],
-            },
+            attrs,
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:

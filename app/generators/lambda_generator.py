@@ -3,6 +3,7 @@
 from app.generators.base import get_typed_config
 from app.generators.execution_role_generator import ExecutionRoleGenerator
 from app.generators.hcl_renderer import Expr, HCLRenderer
+from app.generators.lambda_xray import lambda_tracing_precondition
 from app.models.input_models.lambda_config import LambdaConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -147,6 +148,14 @@ class LambdaGenerator:
             attrs["dead_letter_config"] = {
                 "target_arn": Expr("var.dead_letter_target_arn"),
             }
+
+        if getattr(config, "_managed_xray", False):
+            attrs["depends_on"] = Expr(
+                f"[aws_iam_role_policy.{instance.name}_policy, aws_iam_role_policy.{instance.name}_xray]"
+            )
+            attrs.setdefault("lifecycle", {}).setdefault("precondition", []).append(
+                lambda_tracing_precondition()
+            )
 
         # KMS key ARN
         if config.kms_key_arn is not None:

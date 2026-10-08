@@ -1,5 +1,7 @@
 # Backend Generators
 
+`lambda_xray.py` renders one regional upload policy per connected Lambda. `xray_filters.py` constructs native service/function selectors and group guards; `LambdaGenerator` merges tracing prerequisites with existing lifecycle checks, and `XRayGenerator` combines membership with the configured predicate. See [Lambda X-Ray connections](backend-lambda-xray-connections.md).
+
 Lambda renders `dead_letter_config` for connected destinations without mutating external service configuration; a native ARN precondition excludes FIFO destinations. See [Lambda dead-letter connections](backend-lambda-dead-letter-connections.md).
 
 `sqs_redrive.py` renders standalone queue redrive policies with native FIFO/account/region guards; source references enter the destination module through typed inputs. See [SQS dead-letter connections](backend-sqs-dead-letter-connections.md).

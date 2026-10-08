@@ -216,6 +216,7 @@ from app.services.connection_handlers.kms_encryption import KmsEncryptionHandler
 from app.services.connection_handlers.kms_references import KMS_INPUTS
 from app.services.connection_handlers.lambda_cloudwatch import LambdaCloudWatchHandler
 from app.services.connection_handlers.lambda_dead_letter import LambdaDeadLetterHandler
+from app.services.connection_handlers.lambda_xray import LambdaXRayHandler
 from app.services.connection_handlers.launch_template import (
     LaunchTemplateAutoScalingHandler,
 )
@@ -868,6 +869,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         config_model=EmptyConnectionConfig,
         handler=GrafanaDataSourcesHandler(),
         region_policy="cross-region",
+    ),
+    ConnectionSpec(
+        source=ServiceType.LAMBDA,
+        target=ServiceType.X_RAY,
+        connection_type="traces_to",
+        label="Lambda → X-Ray active tracing and group membership",
+        config_model=EmptyConnectionConfig,
+        handler=LambdaXRayHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.S3,

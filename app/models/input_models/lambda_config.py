@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Literal
 
-from pydantic import model_validator
+from pydantic import PrivateAttr, model_validator
 
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
@@ -20,6 +20,7 @@ class LambdaConfig(BaseServiceConfig):
     """Lambda-specific configuration — single source of truth."""
 
     service_type: Literal[ServiceType.LAMBDA] = ServiceType.LAMBDA
+    _managed_xray: bool = PrivateAttr(default=False)
 
     owns_execution_role: ClassVar[bool] = True
     execution_role_principal: ClassVar[str] = "lambda.amazonaws.com"

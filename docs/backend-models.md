@@ -1,5 +1,7 @@
 # Backend Models
 
+Lambda → X-Ray uses `EmptyConnectionConfig` and existing tracing/filter fields. Private flags on `LambdaConfig` and `XRayConfig` track connection-owned generation without adding editor fields. The group receives a typed map of native function names and ARNs. See [Lambda X-Ray connections](backend-lambda-xray-connections.md).
+
 `EventBridgeKinesisConfig` adds optional bounded dot-notation partition-key paths to the shared invocation config. See [EventBridge Kinesis connections](backend-eventbridge-kinesis-connections.md).
 
 `EventBridgeInvocationConfig` shares target identifiers and bounded JSON input validation between SNS and Step Functions targets. See [EventBridge workflow connections](backend-eventbridge-workflow-connections.md).

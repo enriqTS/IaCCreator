@@ -1,5 +1,7 @@
 # Backend Services
 
+`LambdaXRayHandler` enables active tracing, aggregates deterministic native group membership, and contributes source-owned upload policies. Functions never depend on group outputs; Grafana reads effective group filters through existing outputs. See [Lambda X-Ray connections](backend-lambda-xray-connections.md).
+
 `CloudTrailLogsHandler` supplies native CloudWatch destination references and owns one trail delivery role/policy. Effective Region checks and native ARN guards constrain destinations; `KmsConsumerGrants` supplies selected-key access with regional Logs service conditions. It composes with existing S3/KMS policy ownership. See [CloudTrail logging connections](backend-cloudtrail-logs-connections.md).
 
 `CertificateDnsHandler` resolves public hosted-zone coverage across primary/SAN certificate names and aggregates shared validation CNAMEs in their zones. Certificate-owned issuance waiters consume record FQDNs independently of native validation-option exports, preserving acyclic consumer/alias dependencies. See [ACM DNS-validation connections](backend-certificate-dns-connections.md).
