@@ -1,5 +1,7 @@
 # Backend Services
 
+`ApiGatewayLogsHandler` aggregates deterministic HTTP stage destinations without owning regional API Gateway account settings. `api_gateway_logs_bindings.py` rejects conflicting logging ownership; `api_gateway_stages.py` shares stage validation with certificate-domain mappings. See [HTTP API access logs](backend-api-gateway-logs-connections.md).
+
 `EcsXRayHandler` contributes task-owned collection and native group membership. Shared `ecs_collection_errors` validates launch/placement, while `xray_group.py` shares group validation, membership inputs, and effective-filter outputs across producers. ECS and Lambda can share groups without reverse dependencies. See [ECS X-Ray connections](backend-ecs-xray-connections.md).
 
 `LambdaXRayHandler` enables active tracing, aggregates deterministic native group membership, and contributes source-owned upload policies. Functions never depend on group outputs; Grafana reads effective group filters through existing outputs. See [Lambda X-Ray connections](backend-lambda-xray-connections.md).

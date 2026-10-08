@@ -1,7 +1,9 @@
 """Deployment stages, access logging and default route settings."""
 
 from app.generators.api_gateway._support import sanitize_route_name
+from app.generators.api_gateway.access_logs import access_log_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
+from app.models.connection_configs.api_gateway_logs import DEFAULT_ACCESS_LOG_FORMAT
 from app.models.input_models.api_gateway_config import ApiGatewayConfig
 from app.models.ir_models import ResourceInstanceIR
 
@@ -9,32 +11,8 @@ from app.models.ir_models import ResourceInstanceIR
 def render_stages(
     instance: ResourceInstanceIR, config: ApiGatewayConfig, r: HCLRenderer
 ) -> str:
-    """Generate aws_apigatewayv2_stage resources and associated CloudWatch log groups.
-
-    For each configured stage, produces:
-    - An aws_apigatewayv2_stage resource with auto_deploy, stage_variables,
-      default_route_settings (throttling, data trace, detailed metrics, logging level),
-      route_settings (per-route throttling), and access_log_settings when logging is enabled.
-    - An aws_cloudwatch_log_group resource when access logging is enabled.
-
-    When no stages are configured, generates a single $default stage with auto_deploy=true.
-    Also uses top-level TerraformField stage fields (access_log_destination_arn,
-    default_route_data_trace_enabled, default_route_detailed_metrics_enabled,
-    default_route_logging_level, default_route_throttling_burst_limit,
-    default_route_throttling_rate_limit) when the stage dict doesn't override them.
-    """
+    """Managed access logs share stage ownership with other stage settings."""
     stages = getattr(config, "stages", None)
-
-    # Default log format per requirement 6.4
-    default_log_format = (
-        '{"requestId":"$context.requestId",'
-        '"ip":"$context.identity.sourceIp",'
-        '"requestTime":"$context.requestTime",'
-        '"httpMethod":"$context.httpMethod",'
-        '"routeKey":"$context.routeKey",'
-        '"status":"$context.status",'
-        '"protocol":"$context.protocol"}'
-    )
 
     # If no stages configured, generate a single $default stage with auto_deploy
     if not stages:
@@ -130,12 +108,15 @@ def render_stages(
         if access_log_dest_arn is None:
             access_log_dest_arn = getattr(config, "access_log_destination_arn", None)
 
-        if access_logging_enabled or access_log_dest_arn is not None:
+        managed_logging = stage_name in config._managed_access_log_stages
+        if managed_logging:
+            attrs.update(access_log_attributes(stage_name, r))
+        elif access_logging_enabled or access_log_dest_arn is not None:
             log_format = stage_cfg.get("access_log_format")
             if log_format is None:
                 log_format = getattr(config, "access_log_format", None)
             if log_format is None:
-                log_format = default_log_format
+                log_format = DEFAULT_ACCESS_LOG_FORMAT
 
             if access_log_dest_arn is not None:
                 # Use the explicit destination ARN from config
@@ -157,7 +138,11 @@ def render_stages(
 
         # Generate CloudWatch log group when access logging is enabled via stage dict
         # (not when using explicit access_log_destination_arn)
-        if access_logging_enabled and access_log_dest_arn is None:
+        if (
+            access_logging_enabled
+            and access_log_dest_arn is None
+            and not managed_logging
+        ):
             log_group_resource_name = f"{instance.name}_{sanitized_name}_log_group"
             retention_days = stage_cfg.get("access_log_retention_days", 30)
             log_group_attrs: dict = {

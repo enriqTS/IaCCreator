@@ -20,6 +20,7 @@ class ApiGatewayConfig(BaseServiceConfig):
     """API Gateway-specific configuration — single source of truth."""
 
     service_type: Literal[ServiceType.API_GATEWAY] = ServiceType.API_GATEWAY
+    _managed_access_log_stages: set[str] = PrivateAttr(default_factory=set)
     _managed_connection_routes: set[tuple[str, str]] = PrivateAttr(default_factory=set)
     _cognito_jwt_routes: dict[tuple[str, str], CognitoJwtRouteBinding] = PrivateAttr(
         default_factory=dict

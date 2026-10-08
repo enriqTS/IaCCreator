@@ -7,6 +7,7 @@ from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs.api_gateway_certificate import (
     ApiGatewayCertificateConfig,
 )
+from app.models.connection_configs.api_gateway_logs import ApiGatewayLogsConfig
 from app.models.connection_configs.apigw_step_functions import (
     ApiGatewayStepFunctionsConfig,
 )
@@ -120,6 +121,7 @@ from app.services.connection_handlers.accelerator_endpoint import (
 from app.services.connection_handlers.api_gateway_certificate import (
     ApiGatewayCertificateHandler,
 )
+from app.services.connection_handlers.api_gateway_logs import ApiGatewayLogsHandler
 from app.services.connection_handlers.apigw_lambda import ApiGatewayLambdaHandler
 from app.services.connection_handlers.apigw_step_functions import (
     ApiGatewayStepFunctionsHandler,
@@ -1451,6 +1453,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Lambda → CloudWatch",
         config_model=EmptyConnectionConfig,
         handler=LambdaCloudWatchHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.API_GATEWAY,
+        target=ServiceType.CLOUDWATCH,
+        connection_type="logs_to",
+        label="HTTP API Gateway → CloudWatch access logs",
+        config_model=ApiGatewayLogsConfig,
+        handler=ApiGatewayLogsHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.CLOUDTRAIL,

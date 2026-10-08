@@ -429,6 +429,20 @@ def test_ecs_xray_otlp_tracing_connection_is_discoverable(connection_schemas):
     assert entry["fields"] == []
 
 
+def test_http_api_access_log_connection_is_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "api-gateway" and item["target"] == "cloudwatch"
+    )
+    assert entry["connection_type"] == "logs_to"
+    assert "HTTP" in entry["label"]
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert fields["stage_name"]["default"] == ""
+    assert fields["log_format"]["type"] == "text"
+    assert "$context.requestId" in fields["log_format"]["default"]
+
+
 def test_grafana_opensearch_default_index_and_time_field_are_discoverable(
     connection_schemas,
 ):
