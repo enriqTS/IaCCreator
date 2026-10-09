@@ -1,5 +1,6 @@
 from app.generators.base import get_typed_config
 from app.generators.fis_ec2 import add_ec2_fault_attributes
+from app.generators.fis_ecs import add_ecs_fault_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.fault_injection_simulator_config import (
     FaultInjectionSimulatorConfig,
@@ -24,6 +25,8 @@ class FaultInjectionSimulatorGenerator:
         }
         if config._targets_ec2:
             add_ec2_fault_attributes(attrs)
+        if config._targets_ecs:
+            add_ecs_fault_attributes(attrs, self._r)
         identity = 'data "aws_partition" "experiment" {}\ndata "aws_region" "experiment" {}\ndata "aws_caller_identity" "experiment" {}\n\n'
         return identity + self._r.render_resource(
             "aws_fis_experiment_template", instance.name, attrs

@@ -1,14 +1,16 @@
 """A template owns one explicit instance set independently of connector order."""
 
-import re
 from dataclasses import dataclass
 
-from app.exceptions import CrossRegionConnectionError, InvalidConnectionConfigError
-from app.models.connection_configs.fis_ec2 import ACTION_NAME_PATTERN, FisEc2Config
-from app.models.iam_role import ROLE_ARN_PATTERN
+from app.exceptions import InvalidConnectionConfigError
+from app.models.connection_configs.fis_ec2 import FisEc2Config
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.fis_bindings import (
+    experiment_binding_errors,
+    validate_experiment_regions,
+)
 
 
 @dataclass(frozen=True)
@@ -30,7 +32,7 @@ def resolve_ec2_fault(connection: ConnectionIR, project: ProjectIR) -> FisEc2Bin
     ]
     request = FisEc2Config.model_validate(connection.connection_config)
     targets = tuple(sorted({item.target_name for item in peers}))
-    errors = []
+    errors = experiment_binding_errors(connection, project)
     if any(
         FisEc2Config.model_validate(item.connection_config) != request for item in peers
     ):
@@ -38,20 +40,6 @@ def resolve_ec2_fault(connection: ConnectionIR, project: ProjectIR) -> FisEc2Bin
             {
                 "loc": ("connection_config",),
                 "msg": "All EC2 targets in a template must use the same operation and selection mode",
-            }
-        )
-    if not re.fullmatch(ROLE_ARN_PATTERN, source.config.role_arn):
-        errors.append(
-            {
-                "loc": ("role_arn",),
-                "msg": "EC2 experiments require a valid external experiment role ARN",
-            }
-        )
-    if not re.fullmatch(ACTION_NAME_PATTERN, source.config.action_name):
-        errors.append(
-            {
-                "loc": ("action_name",),
-                "msg": "Experiment action names require 1–64 letters, numbers, underscores, or hyphens",
             }
         )
     if not 1 <= len(targets) <= 5:
@@ -74,26 +62,5 @@ def resolve_ec2_fault(connection: ConnectionIR, project: ProjectIR) -> FisEc2Bin
         raise InvalidConnectionConfigError(
             source.name, connection.target_name, connection.connection_type, errors
         )
-    for name in targets:
-        target = BaseConnectionHandler._find_instance(name, project)
-        for environment in project.environments:
-            override = environment.variables.get("region")
-            source_region = (
-                override
-                or source.provider_region
-                or project.global_config.provider_region
-            )
-            target_region = (
-                override
-                or target.provider_region
-                or project.global_config.provider_region
-            )
-            if source_region != target_region:
-                raise CrossRegionConnectionError(
-                    source.name,
-                    source_region,
-                    name,
-                    target_region,
-                    connection.connection_type,
-                )
+    validate_experiment_regions(connection, targets, project)
     return FisEc2Binding(targets, request.operation, request.selection_mode)

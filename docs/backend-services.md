@@ -1,5 +1,7 @@
 # Backend Services
 
+`FisEcsHandler` binds one native ECS service and contributes an experiment-owned task-stop policy. `fis_ecs_bindings.py` validates target/selection ownership; shared `fis_bindings.py` checks experiment identity, target-family conflicts, and Regions for ECS and EC2. See [FIS ECS tasks](backend-fis-ecs-connections.md).
+
 `FisEc2Handler` aggregates one to five native instance targets and contributes an experiment-owned policy without starting faults. `fis_ec2_bindings.py` validates common action/selection settings, role/action names, target bounds, and effective Regions. See [FIS EC2 targets](backend-fis-ec2-connections.md).
 
 `CodeBuildLogsHandler` contributes native group metadata and a build-owned external-role policy. Its binding resolver rejects conflicting groups/prefixes, malformed roles/external keys, unsupported group classes, and effective Region mismatches. See [CodeBuild build logs](backend-codebuild-logs-connections.md).

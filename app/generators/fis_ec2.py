@@ -3,7 +3,7 @@
 import json
 
 from app.generators.hcl_renderer import Expr, HCLRenderer
-from app.models.connection_configs.fis_ec2 import ACTION_NAME_PATTERN, SELECTION_MODES
+from app.models.connection_configs.fis import ACTION_NAME_PATTERN, SELECTION_MODES
 from app.models.iam_role import ROLE_ARN_PATTERN
 
 
