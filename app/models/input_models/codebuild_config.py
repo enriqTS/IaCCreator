@@ -24,6 +24,7 @@ class CodeBuildConfig(BaseServiceConfig):
     )
 
     _inject_runtime_secrets: bool = PrivateAttr(default=False)
+    _cloudwatch_logs: bool = PrivateAttr(default=False)
 
     image: str = TerraformField(
         "aws/codebuild/standard:7.0",

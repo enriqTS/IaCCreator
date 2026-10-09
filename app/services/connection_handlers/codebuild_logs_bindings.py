@@ -1,28 +1,30 @@
-"""Each workflow has one deterministic execution-log destination and settings."""
+"""Build projects have one log group and one deterministic stream prefix."""
 
 import re
 
 from app.exceptions import CrossRegionConnectionError, InvalidConnectionConfigError
-from app.models.connection_configs.step_functions_logs import (
-    StepFunctionsLogsConfig,
+from app.models.connection_configs.codebuild_logs import (
+    KMS_KEY_ARN_PATTERN,
+    CodeBuildLogsConfig,
 )
 from app.models.iam_role import ROLE_ARN_PATTERN
 from app.models.input_models import ServiceType
 from app.models.ir_models import ConnectionIR, ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler
+from app.services.connection_handlers.kms_references import managed_key
 
 
-def resolve_workflow_logs(
+def resolve_build_logs(
     connection: ConnectionIR, project: ProjectIR
-) -> StepFunctionsLogsConfig:
+) -> CodeBuildLogsConfig:
     source = BaseConnectionHandler._find_instance(connection.source_name, project)
     target = BaseConnectionHandler._find_instance(connection.target_name, project)
-    request = StepFunctionsLogsConfig.model_validate(connection.connection_config)
+    request = CodeBuildLogsConfig.model_validate(connection.connection_config)
     peers = [
         item
         for item in project.connections
         if item.source_name == source.name
-        and item.source_service == ServiceType.STEP_FUNCTIONS
+        and item.source_service == ServiceType.CODEBUILD
         and item.target_service == ServiceType.CLOUDWATCH
         and item.connection_type == "logs_to"
     ]
@@ -31,38 +33,43 @@ def resolve_workflow_logs(
         errors.append(
             {
                 "loc": ("target",),
-                "msg": "A workflow can use only one execution-log destination",
+                "msg": "A build project can use only one managed log group",
             }
         )
     if any(
-        StepFunctionsLogsConfig.model_validate(item.connection_config) != request
+        CodeBuildLogsConfig.model_validate(item.connection_config) != request
         for item in peers
     ):
         errors.append(
             {
-                "loc": ("connection_config",),
-                "msg": "Repeated workflow logging connections must use identical settings",
+                "loc": ("stream_prefix",),
+                "msg": "Repeated build logging connections must use identical stream prefixes",
             }
         )
-    if not re.fullmatch(ROLE_ARN_PATTERN, source.config.role_arn):
+    if not re.fullmatch(ROLE_ARN_PATTERN, source.config.service_role or ""):
         errors.append(
             {
-                "loc": ("role_arn",),
-                "msg": "Execution logging requires a valid external execution role ARN",
-            }
-        )
-    if source.config.state_machine_type not in {"STANDARD", "EXPRESS"}:
-        errors.append(
-            {
-                "loc": ("state_machine_type",),
-                "msg": "Execution logging supports Standard and Express workflows",
+                "loc": ("service_role",),
+                "msg": "Build logging requires a valid external service role ARN",
             }
         )
     if target.config.log_group_class not in {None, "STANDARD", "INFREQUENT_ACCESS"}:
         errors.append(
             {
                 "loc": ("log_group_class",),
-                "msg": "Execution logging requires a Standard or Infrequent Access log group",
+                "msg": "Build logging requires a Standard or Infrequent Access log group",
+            }
+        )
+    external_key = target.config.kms_key_id
+    if (
+        external_key
+        and not managed_key(target.name, project)
+        and not re.fullmatch(KMS_KEY_ARN_PATTERN, external_key)
+    ):
+        errors.append(
+            {
+                "loc": ("kms_key_id",),
+                "msg": "Encrypted build logs require an external KMS key ARN, not an alias or key ID",
             }
         )
     if errors:

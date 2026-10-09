@@ -6,10 +6,6 @@ from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import ConnectionField
 from app.models.input_models._metadata import OptionEntry, ValidationRule
 
-ROLE_ARN_PATTERN = (
-    r"^arn:[^:]+:iam::[0-9]{12}:role/([A-Za-z0-9+=,.@_/-]+/)?[A-Za-z0-9+=,.@_-]{1,64}$"
-)
-
 
 class StepFunctionsLogsConfig(BaseConnectionConfig):
     level: str = ConnectionField(

@@ -1,5 +1,7 @@
 # Backend Generators
 
+`codebuild_logs.py` composes native CloudWatch logging after build environment/source rendering and preserves runtime-secret policy ordering. It renders the build-owned external-role policy, native identity/destination guards, and conditional key-scoped caller permissions. See [CodeBuild build logs](backend-codebuild-logs-connections.md).
+
 `step_functions_logs.py` adds native execution-log settings after service-task composition, preserves existing guards/dependencies, and renders an external-role inline policy with scoped stream writes and required wildcard delivery-management actions. See [workflow execution logs](backend-step-functions-logs-connections.md).
 
 `eks_logs.py` adds native control-plane log selection and destination preconditions. Input-only cluster naming lets the CloudWatch group be created first without a dependency cycle. See [EKS control-plane logs](backend-eks-logs-connections.md).

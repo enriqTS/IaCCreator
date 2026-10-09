@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_codebuild_logs_connections.py` covers property-based prefixes/duplicates, destination/role/key validation, native override guards, emitted IAM scope/encryption evaluation, and secret-injection preservation. Terraform validation and plan graphs cover nine plain/shared/encrypted/regional/mixed projects; API tests verify prefix discovery. See [CodeBuild build logs](backend-codebuild-logs-connections.md).
+
 `tests/test_step_functions_logs_connections.py` covers role/setting validation, property-based duplicate handling, destination conflicts, native guards, emitted policy evaluation, and task-generator composition. Terraform validation and plan graphs cover Standard/Express, Infrequent Access, shared roles/groups, encrypted and regional destinations, and Lambda/Secrets Manager/Grafana combinations. API tests verify dynamic field discovery. See [workflow execution logs](backend-step-functions-logs-connections.md).
 
 `tests/test_eks_logs_connections.py` covers strict selections, property-based duplicates/order, dedicated group ownership, naming conflicts, unsupported encryption/classes, effective Regions, native guards, and standalone compatibility. Terraform validation and plan graphs cover plain, audit-only, duplicate, multiple-cluster, regional, managed-network, and mixed EFS/Prometheus/Grafana projects. API tests verify the five dynamically served boolean fields. See [EKS control-plane logs](backend-eks-logs-connections.md).

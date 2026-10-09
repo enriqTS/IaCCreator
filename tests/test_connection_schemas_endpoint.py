@@ -443,6 +443,20 @@ def test_http_api_access_log_connection_is_discoverable(connection_schemas):
     assert "$context.requestId" in fields["log_format"]["default"]
 
 
+def test_codebuild_log_connection_is_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "codebuild" and item["target"] == "cloudwatch"
+    )
+    assert entry["connection_type"] == "logs_to"
+    assert len(entry["fields"]) == 1
+    field = entry["fields"][0]
+    assert field["key"] == "stream_prefix" and field["default"] == "build"
+    assert field["type"] == "text"
+    assert field["validation"]["pattern"]
+
+
 def test_workflow_execution_log_connection_is_discoverable(connection_schemas):
     entry = next(
         item

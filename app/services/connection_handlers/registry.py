@@ -21,6 +21,7 @@ from app.models.connection_configs.certificate_dns import CertificateDnsConfig
 from app.models.connection_configs.client_vpn_certificate import (
     ClientVpnCertificateConfig,
 )
+from app.models.connection_configs.codebuild_logs import CodeBuildLogsConfig
 from app.models.connection_configs.cognito_api_gateway import CognitoApiGatewayConfig
 from app.models.connection_configs.cognito_appsync import CognitoAppSyncConfig
 from app.models.connection_configs.cognito_load_balancer import (
@@ -152,6 +153,7 @@ from app.services.connection_handlers.client_vpn_certificate import (
 )
 from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
 from app.services.connection_handlers.cloudtrail_logs import CloudTrailLogsHandler
+from app.services.connection_handlers.codebuild_logs import CodeBuildLogsHandler
 from app.services.connection_handlers.codepipeline_s3 import CodePipelineS3Handler
 from app.services.connection_handlers.cognito_api_gateway import (
     CognitoApiGatewayHandler,
@@ -1501,6 +1503,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="Step Functions → CloudWatch execution logs",
         config_model=StepFunctionsLogsConfig,
         handler=StepFunctionsLogsHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.CODEBUILD,
+        target=ServiceType.CLOUDWATCH,
+        connection_type="logs_to",
+        label="CodeBuild → CloudWatch build logs",
+        config_model=CodeBuildLogsConfig,
+        handler=CodeBuildLogsHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,

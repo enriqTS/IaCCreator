@@ -1,5 +1,7 @@
 # Backend Models
 
+`CodeBuildLogsConfig` exposes a bounded literal stream prefix, defaulting to `build`. A private CodeBuild flag enables rendering; the typed destination input carries actual group ARN/name/class/key metadata. `models/iam_role.py` shares external-role ARN syntax with workflow logging. See [CodeBuild build logs](backend-codebuild-logs-connections.md).
+
 `StepFunctionsLogsConfig` exposes enabled execution-log levels and strict boolean payload inclusion, defaulting to `ALL` and false. A private workflow flag enables rendering; a typed input carries native group ARN/class and logging settings. See [workflow execution logs](backend-step-functions-logs-connections.md).
 
 `EksLogsConfig` exposes five strict boolean control-plane log selections and requires at least one. `EksConfig._control_plane_logs` privately enables native rendering; no editable service fields are added. A typed destination object carries the group's ARN, class, and key setting. See [EKS control-plane logs](backend-eks-logs-connections.md).

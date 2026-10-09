@@ -1,7 +1,7 @@
 """Workflow-owned delivery permissions compose with existing task policy dependencies."""
 
 from app.generators.hcl_renderer import Expr, HCLRenderer
-from app.models.connection_configs.step_functions_logs import ROLE_ARN_PATTERN
+from app.models.iam_role import ROLE_ARN_PATTERN
 
 DELIVERY_ACTIONS = (
     "logs:CreateLogDelivery",
