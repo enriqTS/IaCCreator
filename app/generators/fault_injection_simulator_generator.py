@@ -1,4 +1,5 @@
 from app.generators.base import get_typed_config
+from app.generators.fis_ec2 import add_ec2_fault_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.fault_injection_simulator_config import (
     FaultInjectionSimulatorConfig,
@@ -11,19 +12,21 @@ class FaultInjectionSimulatorGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, FaultInjectionSimulatorConfig)
-        return self._r.render_resource(
-            "aws_fis_experiment_template",
-            instance.name,
-            {
-                "description": Expr("var.description"),
-                "role_arn": Expr("var.role_arn"),
-                "stop_condition": {"source": "none"},
-                "action": {
-                    "name": Expr("var.action_name"),
-                    "action_id": Expr("var.action_id"),
-                },
+        config = get_typed_config(instance, FaultInjectionSimulatorConfig)
+        attrs = {
+            "description": Expr("var.description"),
+            "role_arn": Expr("var.role_arn"),
+            "stop_condition": {"source": "none"},
+            "action": {
+                "name": Expr("var.action_name"),
+                "action_id": Expr("var.action_id"),
             },
+        }
+        if config._targets_ec2:
+            add_ec2_fault_attributes(attrs)
+        identity = 'data "aws_partition" "experiment" {}\ndata "aws_region" "experiment" {}\ndata "aws_caller_identity" "experiment" {}\n\n'
+        return identity + self._r.render_resource(
+            "aws_fis_experiment_template", instance.name, attrs
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:
@@ -41,6 +44,10 @@ class FaultInjectionSimulatorGenerator:
         return "\n".join(
             [
                 self._r.render_output("template_id", f"{ref}.id", "Template ID"),
-                self._r.render_output("template_arn", f"{ref}.arn", "Template ARN"),
+                self._r.render_output(
+                    "template_arn",
+                    f'format("arn:%s:fis:%s:%s:experiment-template/%s", data.aws_partition.experiment.partition, data.aws_region.experiment.region, data.aws_caller_identity.experiment.account_id, {ref}.id)',
+                    "Template ARN",
+                ),
             ]
         )

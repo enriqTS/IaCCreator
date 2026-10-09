@@ -1,5 +1,7 @@
 # Backend Generators
 
+`fis_ec2.py` renders explicit native EC2 targets, action selection, shared scope guards, and an experiment-owned external-role policy. The FIS generator derives its template ARN from native ID and deployment identity. See [FIS EC2 targets](backend-fis-ec2-connections.md).
+
 `codebuild_logs.py` composes native CloudWatch logging after build environment/source rendering and preserves runtime-secret policy ordering. It renders the build-owned external-role policy, native identity/destination guards, and conditional key-scoped caller permissions. See [CodeBuild build logs](backend-codebuild-logs-connections.md).
 
 `step_functions_logs.py` adds native execution-log settings after service-task composition, preserves existing guards/dependencies, and renders an external-role inline policy with scoped stream writes and required wildcard delivery-management actions. See [workflow execution logs](backend-step-functions-logs-connections.md).

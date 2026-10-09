@@ -1,11 +1,14 @@
 from typing import Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField
 
 
 class FaultInjectionSimulatorConfig(BaseServiceConfig):
+    _targets_ec2: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.FAULT_INJECTION_SIMULATOR] = (
         ServiceType.FAULT_INJECTION_SIMULATOR
     )

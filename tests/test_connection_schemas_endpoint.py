@@ -443,6 +443,23 @@ def test_http_api_access_log_connection_is_discoverable(connection_schemas):
     assert "$context.requestId" in fields["log_format"]["default"]
 
 
+def test_fis_ec2_target_connection_is_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "fault-injection-simulator" and item["target"] == "ec2"
+    )
+    assert entry["connection_type"] == "targets"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert fields["operation"]["default"] == "reboot"
+    assert {item["value"] for item in fields["operation"]["options"]} == {
+        "reboot",
+        "stop",
+    }
+    assert fields["selection_mode"]["default"] == "COUNT(1)"
+    assert len(fields["selection_mode"]["options"]) == 6
+
+
 def test_codebuild_log_connection_is_discoverable(connection_schemas):
     entry = next(
         item

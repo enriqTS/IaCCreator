@@ -78,6 +78,9 @@ def generated_files(service_type: ServiceType, name: str = "probe") -> dict[str,
 
 # What a service needs beyond its required fields to be deployable, not merely valid
 DEPLOYABLE_EXTRAS: dict[ServiceType, dict[str, Any]] = {
+    ServiceType.FAULT_INJECTION_SIMULATOR: {
+        "role_arn": "arn:aws:iam::123456789012:role/fis/experiment"
+    },
     ServiceType.ELASTICACHE: {
         "engine": "memcached",
         "engine_version": "1.6.22",

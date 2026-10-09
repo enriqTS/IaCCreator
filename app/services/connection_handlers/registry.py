@@ -77,6 +77,7 @@ from app.models.connection_configs.eventbridge_invocation import (
 )
 from app.models.connection_configs.eventbridge_kinesis import EventBridgeKinesisConfig
 from app.models.connection_configs.eventbridge_ssm import EventBridgeSsmConfig
+from app.models.connection_configs.fis_ec2 import FisEc2Config
 from app.models.connection_configs.grafana_athena import GrafanaAthenaConfig
 from app.models.connection_configs.grafana_opensearch import GrafanaOpenSearchConfig
 from app.models.connection_configs.grafana_redshift import GrafanaRedshiftConfig
@@ -214,6 +215,7 @@ from app.services.connection_handlers.eventbridge_workflow import (
     EventBridgeWorkflowHandler,
 )
 from app.services.connection_handlers.firehose_s3 import FirehoseS3Handler
+from app.services.connection_handlers.fis_ec2 import FisEc2Handler
 from app.services.connection_handlers.gateway_route import GatewayRouteHandler
 from app.services.connection_handlers.grafana_data_sources import (
     GrafanaDataSourcesHandler,
@@ -399,6 +401,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="AppSync → EventBridge publisher resolver",
         config_model=AppSyncEventBridgeConfig,
         handler=AppSyncEventBridgeHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.FAULT_INJECTION_SIMULATOR,
+        target=ServiceType.EC2,
+        connection_type="targets",
+        label="Fault Injection Simulator → EC2 instance targets",
+        config_model=FisEc2Config,
+        handler=FisEc2Handler(),
     ),
     ConnectionSpec(
         source=ServiceType.EVENTBRIDGE,

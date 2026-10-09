@@ -1,5 +1,7 @@
 # Backend Models
 
+`FisEc2Config` exposes reboot/stop and bounded COUNT/ALL selection, defaulting to reboot and `COUNT(1)`. A private FIS flag enables rendering; typed inputs carry native instance ARN/stop-capability metadata and action settings. See [FIS EC2 targets](backend-fis-ec2-connections.md).
+
 `CodeBuildLogsConfig` exposes a bounded literal stream prefix, defaulting to `build`. A private CodeBuild flag enables rendering; the typed destination input carries actual group ARN/name/class/key metadata. `models/iam_role.py` shares external-role ARN syntax with workflow logging. See [CodeBuild build logs](backend-codebuild-logs-connections.md).
 
 `StepFunctionsLogsConfig` exposes enabled execution-log levels and strict boolean payload inclusion, defaulting to `ALL` and false. A private workflow flag enables rendering; a typed input carries native group ARN/class and logging settings. See [workflow execution logs](backend-step-functions-logs-connections.md).

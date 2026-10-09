@@ -1,5 +1,7 @@
 # Backend Services
 
+`FisEc2Handler` aggregates one to five native instance targets and contributes an experiment-owned policy without starting faults. `fis_ec2_bindings.py` validates common action/selection settings, role/action names, target bounds, and effective Regions. See [FIS EC2 targets](backend-fis-ec2-connections.md).
+
 `CodeBuildLogsHandler` contributes native group metadata and a build-owned external-role policy. Its binding resolver rejects conflicting groups/prefixes, malformed roles/external keys, unsupported group classes, and effective Region mismatches. See [CodeBuild build logs](backend-codebuild-logs-connections.md).
 
 `StepFunctionsLogsHandler` contributes native destination/settings and a workflow-owned external-role policy. `step_functions_logs_bindings.py` rejects conflicting destinations/settings and validates role, workflow, group, and effective Region prerequisites. See [workflow execution logs](backend-step-functions-logs-connections.md).

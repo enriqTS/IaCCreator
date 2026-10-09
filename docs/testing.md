@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_fis_ec2_connections.py` covers property-based target aggregation, conflicts/bounds, Regions, preview prerequisites, native scope/stop guards, emitted IAM permissions, exact role paths, and partition-aware template ARNs. Nine projects pass Terraform validation and plan graphs, including shared roles/instances and EC2 secrets/EBS composition. API tests verify dynamic settings discovery. See [FIS EC2 targets](backend-fis-ec2-connections.md).
+
 `tests/test_codebuild_logs_connections.py` covers property-based prefixes/duplicates, destination/role/key validation, native override guards, emitted IAM scope/encryption evaluation, and secret-injection preservation. Terraform validation and plan graphs cover nine plain/shared/encrypted/regional/mixed projects; API tests verify prefix discovery. See [CodeBuild build logs](backend-codebuild-logs-connections.md).
 
 `tests/test_step_functions_logs_connections.py` covers role/setting validation, property-based duplicate handling, destination conflicts, native guards, emitted policy evaluation, and task-generator composition. Terraform validation and plan graphs cover Standard/Express, Infrequent Access, shared roles/groups, encrypted and regional destinations, and Lambda/Secrets Manager/Grafana combinations. API tests verify dynamic field discovery. See [workflow execution logs](backend-step-functions-logs-connections.md).
