@@ -1,5 +1,7 @@
 # Backend Models
 
+`EcsLogsConfig` exposes container selection, stream prefix, delivery mode, and a conditionally visible bounded buffer size. Private ECS flags track application logging and caller key permissions; typed destination maps carry native identities. See [ECS application logs](backend-ecs-logs-connections.md).
+
 `ApiGatewayLogsConfig` exposes stage selection and a single-line request-ID format. Private `ApiGatewayConfig._managed_access_log_stages` marks stage ownership; native destinations and formats travel through a typed map input. See [HTTP API access logs](backend-api-gateway-logs-connections.md).
 
 ECS → X-Ray uses `EmptyConnectionConfig`. Private `EcsConfig._collects_xray` and `XRayConfig._managed_ecs_tracing` track collector/membership generation without adding editor fields. Typed native cluster identities travel into the group independently of Lambda identities. See [ECS X-Ray connections](backend-ecs-xray-connections.md).

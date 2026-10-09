@@ -4,6 +4,7 @@ import json
 
 from app.generators.base import get_typed_config  # noqa: F401
 from app.generators.ecs_efs import add_efs_task_attributes
+from app.generators.ecs_logs import add_ecs_log_attributes
 from app.generators.ecs_prometheus import add_prometheus_task_attributes
 from app.generators.ecs_secrets import secret_task_attributes
 from app.generators.ecs_xray import add_xray_task_attributes
@@ -64,6 +65,12 @@ class ECSGenerator:
             task_attrs.update(secret_task_attributes(instance.name))
         if config._mounts_efs:
             add_efs_task_attributes(task_attrs)
+        if config._application_logs:
+            add_ecs_log_attributes(
+                task_attrs,
+                instance.name,
+                int(config._collects_xray) + int(config._collects_prometheus),
+            )
         if config._collects_xray:
             add_xray_task_attributes(
                 task_attrs,
@@ -75,11 +82,14 @@ class ECSGenerator:
             add_prometheus_task_attributes(task_attrs, instance.name, self._r)
         if instance.iam_statements or config._requires_task_role:
             task_attrs["task_role_arn"] = Expr(f"aws_iam_role.{instance.name}_role.arn")
+        if "execution_role_arn" in task_attrs or "task_role_arn" in task_attrs:
             policies = [f"aws_iam_role_policy.{instance.name}_policy"]
             if config._inject_runtime_secrets:
                 policies.append("aws_iam_role_policy.runtime_secrets")
             if config._collects_xray:
                 policies.append(f"aws_iam_role_policy.{instance.name}_xray")
+            if config._application_logs_kms:
+                policies.append(f"aws_iam_role_policy.{instance.name}_application_logs")
             task_attrs["depends_on"] = Expr("[" + ", ".join(policies) + "]")
         result += "\n" + self._r.render_resource(
             "aws_ecs_task_definition", f"{instance.name}_task", task_attrs

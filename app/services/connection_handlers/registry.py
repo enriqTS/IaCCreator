@@ -51,6 +51,7 @@ from app.models.connection_configs.dms import (
 )
 from app.models.connection_configs.dms_source import DmsSecretSourceEndpointConfig
 from app.models.connection_configs.dms_task import DmsReplicationTaskConfig
+from app.models.connection_configs.ecs_logs import EcsLogsConfig
 from app.models.connection_configs.ecs_prometheus import EcsPrometheusConfig
 from app.models.connection_configs.efs import (
     EfsEc2MountConfig,
@@ -172,6 +173,7 @@ from app.services.connection_handlers.ec2_placement import (
     SubnetEC2PlacementHandler,
 )
 from app.services.connection_handlers.ec2_secret import Ec2SecretHandler
+from app.services.connection_handlers.ecs_logs import EcsLogsHandler
 from app.services.connection_handlers.ecs_prometheus import EcsPrometheusHandler
 from app.services.connection_handlers.ecs_secret import EcsSecretHandler
 from app.services.connection_handlers.ecs_target_group import TargetGroupECSHandler
@@ -1469,6 +1471,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="CloudTrail → CloudWatch Logs",
         config_model=EmptyConnectionConfig,
         handler=CloudTrailLogsHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.ECS,
+        target=ServiceType.CLOUDWATCH,
+        connection_type="logs_to",
+        label="ECS → CloudWatch application logs",
+        config_model=EcsLogsConfig,
+        handler=EcsLogsHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,

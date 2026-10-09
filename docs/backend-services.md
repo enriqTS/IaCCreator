@@ -1,5 +1,7 @@
 # Backend Services
 
+`EcsLogsHandler` aggregates deterministic container destinations, reuses the execution role, and preserves application credentials semantics. `ecs_logs_bindings.py` resolves ownership/placement; `ecs_logs_encryption.py` reuses shared KMS lookup rules for key-scoped caller permissions with regional service and group-context conditions. See [ECS application logs](backend-ecs-logs-connections.md).
+
 `ApiGatewayLogsHandler` aggregates deterministic HTTP stage destinations without owning regional API Gateway account settings. `api_gateway_logs_bindings.py` rejects conflicting logging ownership; `api_gateway_stages.py` shares stage validation with certificate-domain mappings. See [HTTP API access logs](backend-api-gateway-logs-connections.md).
 
 `EcsXRayHandler` contributes task-owned collection and native group membership. Shared `ecs_collection_errors` validates launch/placement, while `xray_group.py` shares group validation, membership inputs, and effective-filter outputs across producers. ECS and Lambda can share groups without reverse dependencies. See [ECS X-Ray connections](backend-ecs-xray-connections.md).

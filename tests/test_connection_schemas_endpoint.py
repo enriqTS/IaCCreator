@@ -443,6 +443,24 @@ def test_http_api_access_log_connection_is_discoverable(connection_schemas):
     assert "$context.requestId" in fields["log_format"]["default"]
 
 
+def test_ecs_application_log_connection_is_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "ecs" and item["target"] == "cloudwatch"
+    )
+    assert entry["connection_type"] == "logs_to"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert fields["container_name"]["default"] == ""
+    assert fields["stream_prefix"]["default"] == "ecs"
+    assert fields["mode"]["default"] == "non-blocking"
+    assert fields["buffer_size_mib"]["default"] == 10
+    assert fields["buffer_size_mib"]["visible_when"] == {
+        "field": "mode",
+        "equals": "non-blocking",
+    }
+
+
 def test_grafana_opensearch_default_index_and_time_field_are_discoverable(
     connection_schemas,
 ):
