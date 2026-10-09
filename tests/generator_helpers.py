@@ -369,6 +369,14 @@ def connection_architecture(spec) -> dict:
                 config["vpc_security_group_ids"] = ["sg-12345678"]
         config["service_type"] = service_type.value
         if (
+            spec.source == ServiceType.FAULT_INJECTION_SIMULATOR
+            and service_type == ServiceType.EKS
+        ):
+            config.update(
+                cluster_role_arn="arn:aws:iam::123456789012:role/eks/cluster",
+                subnet_ids=["subnet-12345678", "subnet-87654321"],
+            )
+        if (
             spec.source == ServiceType.ECS
             and spec.target
             in {
@@ -494,6 +502,14 @@ def connection_architecture(spec) -> dict:
             "provider_region": "us-east-1",
         },
     }
+    if (
+        spec.source == ServiceType.FAULT_INJECTION_SIMULATOR
+        and spec.target == ServiceType.EKS
+    ):
+        payload["connections"][0]["connection_config"] = {
+            "namespace": "application",
+            "deployment_name": "web",
+        }
     if spec.source == ServiceType.COGNITO and spec.target == ServiceType.API_GATEWAY:
         payload["connections"][0]["connection_config"] = {
             "path": "/private",

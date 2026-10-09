@@ -47,7 +47,7 @@ def ec2_fault_preconditions() -> list[dict]:
     ]
 
 
-def add_ec2_fault_attributes(attrs: dict) -> None:
+def add_ec2_fault_attributes(attrs: dict, renderer: HCLRenderer) -> None:
     attrs["action"] = {
         "name": Expr("var.action_name"),
         "action_id": Expr('"aws:ec2:${var.fis_ec2_action.operation}-instances"'),

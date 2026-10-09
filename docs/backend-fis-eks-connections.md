@@ -1,0 +1,29 @@
+# Fault Injection Simulator EKS deployment pod targets
+
+`Fault Injection Simulator → EKS` (`targets`) generates an `aws:eks:pod-delete` template for one named Deployment in one connected cluster. `FisEksConfig` requires `namespace` and `deployment_name`, each a DNS label of at most 63 characters. System namespaces are rejected. `selection_mode` defaults to `COUNT(1)` and accepts counts through five or `ALL`. Repeated connections must agree on all settings; one template cannot mix EC2, ECS, and EKS targets.
+
+## Ownership and selectors
+
+The cluster exports `fis_cluster`, containing its native ARN, name, Kubernetes version, authentication mode, and authorized experiment principals. The FIS module consumes this typed object through `fis_eks_cluster`, with explicit selector and generated access identity settings in `fis_eks_pods`. The target uses resource type `aws:eks:pod`, native `clusterIdentifier`, namespace, `selectorType = deploymentName`, and the configured deployment name. It uses no runtime pod ARNs, tags, or filters. The action supplies only its required `kubernetesServiceAccount`; the optional termination-grace override is omitted. [AWS pod targets](https://docs.aws.amazon.com/fis/latest/userguide/targets.html), [AWS action parameters](https://docs.aws.amazon.com/fis/latest/userguide/fis-actions-reference.html).
+
+The FIS module owns `eks_targets.tf`, `eks_pod_manifests.tf`, and `FIS-EKS-PODS.md`. The EKS module owns `fis_access.tf` and one `STANDARD` access entry per distinct connected experiment role. Shared roles use a deterministic Kubernetes group; separate templates have distinct service accounts. Unset cluster authentication becomes `API_AND_CONFIG_MAP`; explicit API modes and endpoint settings are preserved. `CONFIG_MAP` is rejected. Enabling API authentication cannot be reversed. Existing access entries must be imported before applying. [EKS access entries](https://docs.aws.amazon.com/eks/latest/userguide/access-entries.html), [provider access entry resource](https://github.com/hashicorp/terraform-provider-aws/blob/main/website/docs/r/eks_access_entry.html.markdown).
+
+The input-only `fis_experiment_role` output contains the configured ARN and native IAM role lookup ARN. The cluster consumes these outputs without depending on templates or role policies. Its authorized-principal output depends on the access entries, so the template waits for ready access without creating a Terraform cycle. Shared principals are deduplicated with a stable role-derived key and deterministic source ownership.
+
+## IAM and Kubernetes authorization
+
+An experiment-owned inline policy grants `eks:DescribeCluster` on the native cluster ARN. Required `ec2:DescribeSubnets` and `tag:GetResources` discovery use resource `*` with a deployment Region condition. The role lookup checks the complete ARN, including its path. Native guards verify account, partition, Region, cluster identity, supported Kubernetes version, API authentication, authorized role, generated access identity, selector syntax, and selection bounds. External role trust for FIS and deployment permissions for role lookup, policy management, PassRole, and access-entry management remain operator responsibilities.
+
+The `eks_pod_access_manifests` output exports YAML for a ServiceAccount, namespaced Role, and RoleBinding. Both the service account and experiment role's Kubernetes group receive AWS's documented pod-action RBAC contract. This includes ConfigMap operations, pod creation/deletion, exec, ephemeral-container updates, and Deployment reads. It grants access throughout the namespace, beyond the selected deployment. Shared roles receive the union of applied bindings and attached policies; dedicated roles and namespaces provide stronger isolation. No cluster administrator access-policy association or Kubernetes Terraform provider is generated. [AWS pod-action prerequisites and RBAC](https://docs.aws.amazon.com/fis/latest/userguide/eks-pod-actions.html).
+
+## Application and execution
+
+Terraform creates templates and AWS access resources; it does not start experiments or apply Kubernetes objects. The generated guide exports the manifests from the environment's module output, applies them with `kubectl`, and displays `eks_pod_target` for identity verification. Operators provision the namespace, Deployment, worker capacity, networking, image access, and compatible security settings separately. Backend validation and native guards require Kubernetes 1.30 or newer, following the current AWS prerequisites.
+
+Counts resolve against live pods at execution, and `ALL` follows deployment scale. Pod deletion uses the workload's default grace period and affects all its containers. Deletion bypasses PodDisruptionBudgets; controllers may create replacements, but recovery is not verified. Alarm stops remain unconfigured. [Kubernetes disruption behavior](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/).
+
+Remove manually applied RBAC before removing the connection; Terraform destroy cannot clean it up. Deleting and recreating an IAM principal requires recreating its access entry. Node-group termination, stress actions, network faults, and non-regional EKS variants remain outside this connection.
+
+## Verification
+
+`tests/test_fis_eks_connections.py` covers property-based names, selection and duplicate behavior, explicit workload identity, invalid selectors, authentication/version checks, mixed-family conflicts, effective Regions, shared role aggregation, stable service-account identity, native role paths, Terraform-evaluated IAM guards, and YAML round trips. Nine projects pass provider validation and plan graphs, including shared and separate roles, API authentication, regional providers, and EFS/Prometheus/Grafana composition. Schema endpoint tests verify backend discovery without frontend compatibility changes. Tests do not deploy resources or execute experiments.

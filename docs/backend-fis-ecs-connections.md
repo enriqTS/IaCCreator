@@ -1,6 +1,6 @@
 # Fault Injection Simulator ECS task targets
 
-`Fault Injection Simulator → ECS` (`targets`) configures an `aws:ecs:stop-task` experiment template for the connected ECS service. `FisEcsConfig.selection_mode` defaults to `COUNT(1)` and accepts `COUNT(2)` through `COUNT(5)` or `ALL`. Each template selects one service; repeated edges must agree on selection, and different templates may share the service or external experiment role. A template cannot mix EC2 and ECS target connections.
+`Fault Injection Simulator → ECS` (`targets`) configures an `aws:ecs:stop-task` experiment template for the connected ECS service. `FisEcsConfig.selection_mode` defaults to `COUNT(1)` and accepts `COUNT(2)` through `COUNT(5)` or `ALL`. Each template selects one service; repeated edges must agree on selection, and different templates may share the service or external experiment role. A template cannot mix EC2, ECS, and EKS target connections.
 
 ## Ownership and dynamic discovery
 

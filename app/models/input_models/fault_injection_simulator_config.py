@@ -8,8 +8,7 @@ from app.models.input_models._metadata import TerraformField
 
 
 class FaultInjectionSimulatorConfig(BaseServiceConfig):
-    _targets_ec2: bool = PrivateAttr(default=False)
-    _targets_ecs: bool = PrivateAttr(default=False)
+    _target_service: ServiceType | None = PrivateAttr(default=None)
     service_type: Literal[ServiceType.FAULT_INJECTION_SIMULATOR] = (
         ServiceType.FAULT_INJECTION_SIMULATOR
     )

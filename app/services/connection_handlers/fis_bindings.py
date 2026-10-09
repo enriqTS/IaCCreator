@@ -39,7 +39,7 @@ def experiment_binding_errors(
         errors.append(
             {
                 "loc": ("target",),
-                "msg": "Each experiment template supports one target service type; use separate templates for EC2 and ECS faults",
+                "msg": "Each experiment template supports one target service type; use separate templates for EC2, ECS, and EKS faults",
             }
         )
     return errors

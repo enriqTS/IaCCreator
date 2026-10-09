@@ -1,6 +1,8 @@
 # Backend Services
 
-`FisEcsHandler` binds one native ECS service and contributes an experiment-owned task-stop policy. `fis_ecs_bindings.py` validates target/selection ownership; shared `fis_bindings.py` checks experiment identity, target-family conflicts, and Regions for ECS and EC2. See [FIS ECS tasks](backend-fis-ecs-connections.md).
+`FisEksHandler` binds an explicit Deployment and namespace, exports manual RBAC, and aggregates distinct experiment roles into cluster-owned access entries. Input-only role outputs keep cluster access independent of templates. Shared identity/family/Region validation covers EC2, ECS, and EKS. See [FIS EKS pods](backend-fis-eks-connections.md).
+
+`FisEcsHandler` binds one native ECS service and contributes an experiment-owned task-stop policy. `fis_ecs_bindings.py` validates target/selection ownership; shared `fis_bindings.py` checks experiment identity, target-family conflicts, and Regions for ECS, EC2, and EKS. See [FIS ECS tasks](backend-fis-ecs-connections.md).
 
 `FisEc2Handler` aggregates one to five native instance targets and contributes an experiment-owned policy without starting faults. `fis_ec2_bindings.py` validates common action/selection settings, role/action names, target bounds, and effective Regions. See [FIS EC2 targets](backend-fis-ec2-connections.md).
 

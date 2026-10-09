@@ -30,7 +30,7 @@ class FisEc2Handler(BaseConnectionHandler):
         if connection is not peers[0]:
             return ConnectionContribution()
         source = connection.source_name
-        self._find_instance(source, project).config._targets_ec2 = True
+        self._find_instance(source, project).config._target_service = ServiceType.EC2
         return ConnectionContribution(
             inputs=[
                 ModuleInput(

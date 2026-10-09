@@ -30,7 +30,7 @@ class FisEcsHandler(BaseConnectionHandler):
         if connection is not peers[0]:
             return ConnectionContribution()
         source, target = connection.source_name, binding.target
-        self._find_instance(source, project).config._targets_ecs = True
+        self._find_instance(source, project).config._target_service = ServiceType.ECS
         native_service = self._renderer.render_expression(
             {
                 "cluster_arn": Expr(f"aws_ecs_cluster.{target}.arn"),

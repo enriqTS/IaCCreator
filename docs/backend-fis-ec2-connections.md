@@ -6,7 +6,7 @@
 
 The FIS module owns the template and its role policy. Instance modules export `fis_instance`, a typed object containing the native ARN and whether the root is EBS-backed without stop protection. These objects enter the template through `fis_ec2_targets`; `fis_ec2_action` carries the operation and selection. Unique target names sort deterministically, repeated edges are idempotent, and multiple templates may share instances. `ec2_target_arns` exports the explicit eligible set rather than a prediction of which instances an experiment will select.
 
-Each template supports one target service type. Use a separate template for [ECS task targets](backend-fis-ecs-connections.md); mixed EC2/ECS target connections are rejected before contribution generation.
+Each template supports one target service type. Use separate templates for [ECS task targets](backend-fis-ecs-connections.md) and [EKS pod targets](backend-fis-eks-connections.md); mixed EC2/ECS/EKS target connections are rejected before contribution generation.
 
 The template has one `managed_ec2` target of type `aws:ec2:instance`. Its action uses `aws:ec2:reboot-instances` or `aws:ec2:stop-instances` and maps `Instances` to that target. The connection supersedes the standalone `action_id` field while preserving the action name, description, external role ARN, and existing `source = "none"` stop condition. Explicit targets use no tag or resource filters; AWS disallows filters with explicit resource ARNs. [AWS target selection guide](https://docs.aws.amazon.com/fis/latest/userguide/targets.html).
 

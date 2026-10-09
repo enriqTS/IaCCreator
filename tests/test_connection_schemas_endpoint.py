@@ -443,6 +443,25 @@ def test_http_api_access_log_connection_is_discoverable(connection_schemas):
     assert "$context.requestId" in fields["log_format"]["default"]
 
 
+def test_fis_eks_target_connection_requires_explicit_workload_identity(
+    connection_schemas,
+):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "fault-injection-simulator" and item["target"] == "eks"
+    )
+    assert entry["connection_type"] == "targets"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert set(fields) == {"namespace", "deployment_name", "selection_mode"}
+    for key in ["namespace", "deployment_name"]:
+        assert fields[key]["required"] is True
+        assert fields[key]["default"] is None
+        assert fields[key]["validation"]["pattern"]
+    assert fields["selection_mode"]["default"] == "COUNT(1)"
+    assert len(fields["selection_mode"]["options"]) == 6
+
+
 def test_fis_ecs_target_connection_is_discoverable(connection_schemas):
     entry = next(
         item
