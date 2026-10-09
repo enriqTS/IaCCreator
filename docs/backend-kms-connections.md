@@ -42,6 +42,8 @@ Lambda logging now uses the actual connected CloudWatch log group, including its
 
 EKS control-plane logging currently requires Standard groups using default CloudWatch encryption. Its connection rejects managed and external customer keys until caller authorization through the AWS-owned service-linked role is implemented. See [EKS control-plane logs](backend-eks-logs-connections.md).
 
+Step Functions execution logging reuses the log group's regional Logs service key policy without adding workflow-role KMS permissions. State-machine customer-key encryption is separate. External log-key owners must authorize the regional Logs service. See [workflow execution logs](backend-step-functions-logs-connections.md).
+
 External keys remain externally owned. Known AWS-managed key aliases are rejected for SNS/EventBridge delivery to encrypted queues, since their policies cannot authorize these publishers; a managed diagram key overrides that external fallback. SNS/EventBridge delivery and Lambda-to-Logs previews warn that the external key owner must supply the corresponding service-policy permissions. Cross-account external keys also require authorization in that external key policy. Existing ciphertext encrypted under older keys or object-specific keys cannot be inferred from a resource's current default key and requires separately maintained permissions.
 
 ## Existing generated projects

@@ -98,6 +98,7 @@ from app.models.connection_configs.step_functions_dynamodb import (
 from app.models.connection_configs.step_functions_eventbridge import (
     StepFunctionsEventBridgeConfig,
 )
+from app.models.connection_configs.step_functions_logs import StepFunctionsLogsConfig
 from app.models.connection_configs.storage import (
     EbsAttachmentConfig,
     EfsLambdaMountConfig,
@@ -279,6 +280,9 @@ from app.services.connection_handlers.step_functions_eventbridge import (
 )
 from app.services.connection_handlers.step_functions_lambda import (
     StepFunctionsLambdaHandler,
+)
+from app.services.connection_handlers.step_functions_logs import (
+    StepFunctionsLogsHandler,
 )
 from app.services.connection_handlers.step_functions_secret import (
     StepFunctionsSecretHandler,
@@ -1489,6 +1493,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="EKS → CloudWatch control-plane logs",
         config_model=EksLogsConfig,
         handler=EksLogsHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.STEP_FUNCTIONS,
+        target=ServiceType.CLOUDWATCH,
+        connection_type="logs_to",
+        label="Step Functions → CloudWatch execution logs",
+        config_model=StepFunctionsLogsConfig,
+        handler=StepFunctionsLogsHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,

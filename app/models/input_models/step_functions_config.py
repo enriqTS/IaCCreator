@@ -20,6 +20,7 @@ class StepFunctionsConfig(BaseServiceConfig):
     _sends_sqs_messages: bool = PrivateAttr(default=False)
     _uses_dynamodb_items: bool = PrivateAttr(default=False)
     _puts_eventbridge_events: bool = PrivateAttr(default=False)
+    _cloudwatch_logs: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.STEP_FUNCTIONS] = ServiceType.STEP_FUNCTIONS
     role_arn: str = TerraformField("", description="IAM execution role ARN")
     definition: str = TerraformField(

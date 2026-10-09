@@ -7,6 +7,7 @@ from app.generators.step_functions_dynamodb import dynamodb_workflow_attributes
 from app.generators.step_functions_ecs import ecs_workflow_attributes
 from app.generators.step_functions_eventbridge import eventbridge_workflow_attributes
 from app.generators.step_functions_lambda import lambda_workflow_attributes
+from app.generators.step_functions_logs import add_workflow_log_attributes
 from app.generators.step_functions_secrets import secret_workflow_attributes
 from app.generators.step_functions_sns import sns_workflow_attributes
 from app.generators.step_functions_sqs import sqs_workflow_attributes
@@ -87,6 +88,8 @@ class StepFunctionsGenerator:
             attrs.update(lambda_workflow_attributes(config._reads_runtime_secrets))
         elif config._reads_runtime_secrets:
             attrs.update(secret_workflow_attributes())
+        if config._cloudwatch_logs:
+            add_workflow_log_attributes(attrs)
         return self._r.render_resource("aws_sfn_state_machine", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:

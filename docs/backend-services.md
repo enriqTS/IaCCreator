@@ -1,5 +1,7 @@
 # Backend Services
 
+`StepFunctionsLogsHandler` contributes native destination/settings and a workflow-owned external-role policy. `step_functions_logs_bindings.py` rejects conflicting destinations/settings and validates role, workflow, group, and effective Region prerequisites. See [workflow execution logs](backend-step-functions-logs-connections.md).
+
 `EksLogsHandler` resolves dedicated cluster/group ownership and selected control-plane log types. It derives the group's required name from an input-only cluster output and consumes the ready native destination without a cycle. Customer-managed keys require separate service-linked-role policy support. See [EKS control-plane logs](backend-eks-logs-connections.md).
 
 `EcsLogsHandler` aggregates deterministic container destinations, reuses the execution role, and preserves application credentials semantics. `ecs_logs_bindings.py` resolves ownership/placement; `ecs_logs_encryption.py` reuses shared KMS lookup rules for key-scoped caller permissions with regional service and group-context conditions. See [ECS application logs](backend-ecs-logs-connections.md).

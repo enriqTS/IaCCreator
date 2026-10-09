@@ -1,5 +1,7 @@
 # Backend Generators
 
+`step_functions_logs.py` adds native execution-log settings after service-task composition, preserves existing guards/dependencies, and renders an external-role inline policy with scoped stream writes and required wildcard delivery-management actions. See [workflow execution logs](backend-step-functions-logs-connections.md).
+
 `eks_logs.py` adds native control-plane log selection and destination preconditions. Input-only cluster naming lets the CloudWatch group be created first without a dependency cycle. See [EKS control-plane logs](backend-eks-logs-connections.md).
 
 `ecs_logs.py` merges native application `awslogs` settings before observability sidecars and adds ownership/scope/buffer guards. ECS task dependencies include existing secret/tracing policies and conditional log-encryption permissions. See [ECS application logs](backend-ecs-logs-connections.md).

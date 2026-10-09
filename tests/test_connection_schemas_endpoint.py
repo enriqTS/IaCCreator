@@ -443,6 +443,24 @@ def test_http_api_access_log_connection_is_discoverable(connection_schemas):
     assert "$context.requestId" in fields["log_format"]["default"]
 
 
+def test_workflow_execution_log_connection_is_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "step-functions" and item["target"] == "cloudwatch"
+    )
+    assert entry["connection_type"] == "logs_to"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert fields["level"]["default"] == "ALL"
+    assert {item["value"] for item in fields["level"]["options"]} == {
+        "ALL",
+        "ERROR",
+        "FATAL",
+    }
+    assert fields["include_execution_data"]["default"] is False
+    assert fields["include_execution_data"]["type"] == "boolean"
+
+
 def test_eks_control_plane_log_connection_is_discoverable(connection_schemas):
     entry = next(
         item
