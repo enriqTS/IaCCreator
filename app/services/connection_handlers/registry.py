@@ -58,6 +58,7 @@ from app.models.connection_configs.efs import (
     EfsEcsMountConfig,
     EfsEksMountConfig,
 )
+from app.models.connection_configs.eks_logs import EksLogsConfig
 from app.models.connection_configs.eks_prometheus import EksPrometheusConfig
 from app.models.connection_configs.elasticache_serverless import (
     ServerlessCacheIamConfig,
@@ -182,6 +183,7 @@ from app.services.connection_handlers.efs_ec2 import EfsEc2MountHandler
 from app.services.connection_handlers.efs_ecs import EfsEcsMountHandler
 from app.services.connection_handlers.efs_eks import EfsEksMountHandler
 from app.services.connection_handlers.efs_lambda import EfsLambdaMountHandler
+from app.services.connection_handlers.eks_logs import EksLogsHandler
 from app.services.connection_handlers.eks_prometheus import EksPrometheusHandler
 from app.services.connection_handlers.elasticache_client import ElastiCacheClientHandler
 from app.services.connection_handlers.elasticache_serverless import (
@@ -1479,6 +1481,14 @@ CONNECTION_SPECS: list[ConnectionSpec] = [
         label="ECS → CloudWatch application logs",
         config_model=EcsLogsConfig,
         handler=EcsLogsHandler(),
+    ),
+    ConnectionSpec(
+        source=ServiceType.EKS,
+        target=ServiceType.CLOUDWATCH,
+        connection_type="logs_to",
+        label="EKS → CloudWatch control-plane logs",
+        config_model=EksLogsConfig,
+        handler=EksLogsHandler(),
     ),
     ConnectionSpec(
         source=ServiceType.LAMBDA,

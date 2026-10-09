@@ -1,5 +1,7 @@
 # Backend Generators
 
+`eks_logs.py` adds native control-plane log selection and destination preconditions. Input-only cluster naming lets the CloudWatch group be created first without a dependency cycle. See [EKS control-plane logs](backend-eks-logs-connections.md).
+
 `ecs_logs.py` merges native application `awslogs` settings before observability sidecars and adds ownership/scope/buffer guards. ECS task dependencies include existing secret/tracing policies and conditional log-encryption permissions. See [ECS application logs](backend-ecs-logs-connections.md).
 
 `api_gateway/access_logs.py` renders managed HTTP stage logging and native destination/format guards inside the existing stage resource. Unselected stage rendering remains unchanged. See [HTTP API access logs](backend-api-gateway-logs-connections.md).

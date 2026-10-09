@@ -40,6 +40,8 @@ Execution-role policy files use `templatefile` with explicit interpolation conte
 
 Lambda logging now uses the actual connected CloudWatch log group, including its KMS configuration, rather than creating a second unencrypted group inside the Lambda module. A Lambda may select only one log group. Terraform creates that group, so the connection grants stream creation and event writes rather than group creation.
 
+EKS control-plane logging currently requires Standard groups using default CloudWatch encryption. Its connection rejects managed and external customer keys until caller authorization through the AWS-owned service-linked role is implemented. See [EKS control-plane logs](backend-eks-logs-connections.md).
+
 External keys remain externally owned. Known AWS-managed key aliases are rejected for SNS/EventBridge delivery to encrypted queues, since their policies cannot authorize these publishers; a managed diagram key overrides that external fallback. SNS/EventBridge delivery and Lambda-to-Logs previews warn that the external key owner must supply the corresponding service-policy permissions. Cross-account external keys also require authorization in that external key policy. Existing ciphertext encrypted under older keys or object-specific keys cannot be inferred from a resource's current default key and requires separately maintained permissions.
 
 ## Existing generated projects

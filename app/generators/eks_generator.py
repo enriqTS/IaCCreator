@@ -1,6 +1,7 @@
 """EKS service generator — produces HCL for aws_eks_cluster resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
+from app.generators.eks_logs import add_eks_log_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.eks_config import EksConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -46,6 +47,8 @@ class EKSGenerator:
                 "authentication_mode": Expr("var.authentication_mode")
             }
 
+        if config._control_plane_logs:
+            add_eks_log_attributes(attrs)
         return self._r.render_resource("aws_eks_cluster", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:

@@ -380,13 +380,19 @@ def connection_architecture(spec) -> dict:
             )
         if (
             spec.source == ServiceType.EKS
-            and spec.target == ServiceType.MANAGED_PROMETHEUS
+            and spec.target in {ServiceType.MANAGED_PROMETHEUS, ServiceType.CLOUDWATCH}
             and service_type == ServiceType.EKS
         ):
             config.update(
                 cluster_role_arn="arn:aws:iam::123456789012:role/eks/cluster",
                 subnet_ids=["subnet-12345678", "subnet-87654321"],
             )
+        if (
+            spec.source == ServiceType.EKS
+            and spec.target == ServiceType.CLOUDWATCH
+            and service_type == ServiceType.CLOUDWATCH
+        ):
+            config.pop("log_group_name", None)
         if (
             spec.source == ServiceType.MANAGED_GRAFANA
             and service_type == ServiceType.ATHENA

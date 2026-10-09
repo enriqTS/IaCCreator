@@ -1,5 +1,7 @@
 # Backend Services
 
+`EksLogsHandler` resolves dedicated cluster/group ownership and selected control-plane log types. It derives the group's required name from an input-only cluster output and consumes the ready native destination without a cycle. Customer-managed keys require separate service-linked-role policy support. See [EKS control-plane logs](backend-eks-logs-connections.md).
+
 `EcsLogsHandler` aggregates deterministic container destinations, reuses the execution role, and preserves application credentials semantics. `ecs_logs_bindings.py` resolves ownership/placement; `ecs_logs_encryption.py` reuses shared KMS lookup rules for key-scoped caller permissions with regional service and group-context conditions. See [ECS application logs](backend-ecs-logs-connections.md).
 
 `ApiGatewayLogsHandler` aggregates deterministic HTTP stage destinations without owning regional API Gateway account settings. `api_gateway_logs_bindings.py` rejects conflicting logging ownership; `api_gateway_stages.py` shares stage validation with certificate-domain mappings. See [HTTP API access logs](backend-api-gateway-logs-connections.md).

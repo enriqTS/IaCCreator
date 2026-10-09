@@ -1,5 +1,7 @@
 # Backend Models
 
+`EksLogsConfig` exposes five strict boolean control-plane log selections and requires at least one. `EksConfig._control_plane_logs` privately enables native rendering; no editable service fields are added. A typed destination object carries the group's ARN, class, and key setting. See [EKS control-plane logs](backend-eks-logs-connections.md).
+
 `EcsLogsConfig` exposes container selection, stream prefix, delivery mode, and a conditionally visible bounded buffer size. Private ECS flags track application logging and caller key permissions; typed destination maps carry native identities. See [ECS application logs](backend-ecs-logs-connections.md).
 
 `ApiGatewayLogsConfig` exposes stage selection and a single-line request-ID format. Private `ApiGatewayConfig._managed_access_log_stages` marks stage ownership; native destinations and formats travel through a typed map input. See [HTTP API access logs](backend-api-gateway-logs-connections.md).

@@ -2,6 +2,8 @@
 
 from typing import ClassVar, Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import OptionEntry, TerraformField
@@ -9,6 +11,8 @@ from app.models.input_models._metadata import OptionEntry, TerraformField
 
 class EksConfig(BaseServiceConfig):
     """EKS-specific configuration — single source of truth."""
+
+    _control_plane_logs: bool = PrivateAttr(default=False)
 
     manage_efs_csi_driver: bool = TerraformField(
         True, description="Manage the EFS CSI add-on when EFS mounts are connected"
