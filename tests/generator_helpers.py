@@ -213,6 +213,10 @@ def connection_architecture(spec) -> dict:
     ):
         config = minimal_config_for(service_type).model_dump(exclude_none=True)
         config.update(DEPLOYABLE_EXTRAS.get(service_type, {}))
+        if spec.source == ServiceType.ECR and service_type == ServiceType.ECS:
+            config.update(
+                subnet_ids=["subnet-12345678"], security_group_ids=["sg-12345678"]
+            )
         if (
             spec.source == ServiceType.CODECOMMIT
             and service_type == ServiceType.CODEPIPELINE

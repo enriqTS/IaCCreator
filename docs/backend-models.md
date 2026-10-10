@@ -1,5 +1,7 @@
 # Backend Models
 
+`EcrEcsConfig` selects an application container and literal tag or sha256 digest. ECS exposes optional normalized `container_definitions` JSON; the private `_registry_images` flag enables image composition and repository-scoped execution-role pulls. See [ECR ECS images](backend-ecr-ecs-connections.md).
+
 `CodeArtifactBuildConfig.tool` selects npm or pip with read-only package access. CodeBuild's private `_package_login` flag enables inline-buildspec composition without adding service schema fields. See [CodeArtifact build packages](backend-codeartifact-codebuild-connections.md).
 
 `CodeCommitPipelineConfig` selects an existing source stage/action and literal branch. A private CodePipeline flag enables native source composition; `models/git_reference.py` shares Git ref validation with CodeBuild. See [CodeCommit pipeline sources](backend-codecommit-codepipeline-connections.md).

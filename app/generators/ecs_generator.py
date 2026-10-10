@@ -3,6 +3,7 @@
 import json
 
 from app.generators.base import get_typed_config  # noqa: F401
+from app.generators.ecr_ecs import add_registry_image_attributes
 from app.generators.ecs_efs import add_efs_task_attributes
 from app.generators.ecs_logs import add_ecs_log_attributes
 from app.generators.ecs_prometheus import add_prometheus_task_attributes
@@ -71,6 +72,8 @@ class ECSGenerator:
                 instance.name,
                 int(config._collects_xray) + int(config._collects_prometheus),
             )
+        if config._registry_images:
+            add_registry_image_attributes(task_attrs, instance.name)
         if config._collects_xray:
             add_xray_task_attributes(
                 task_attrs,
@@ -86,6 +89,8 @@ class ECSGenerator:
             policies = [f"aws_iam_role_policy.{instance.name}_policy"]
             if config._inject_runtime_secrets:
                 policies.append("aws_iam_role_policy.runtime_secrets")
+            if config._registry_images:
+                policies.append("aws_iam_role_policy.registry_images")
             if config._collects_xray:
                 policies.append(f"aws_iam_role_policy.{instance.name}_xray")
             if config._application_logs_kms:
@@ -165,15 +170,20 @@ class ECSGenerator:
                 "container_definitions",
                 "string",
                 "JSON container definitions for the task",
-                default=_default_container_definitions(
-                    instance.name,
-                    sorted(
-                        {
-                            int(item["container_port"])
-                            for item in config.ecs_load_balancers
-                        }
-                    ),
-                ),
+                default=(
+                    config.container_definitions
+                    or _default_container_definitions(
+                        instance.name,
+                        sorted(
+                            {
+                                int(item["container_port"])
+                                for item in config.ecs_load_balancers
+                            }
+                        ),
+                    )
+                )
+                .replace("${", "$${")
+                .replace("%{", "%%{"),
             ),
         ]
         if config.subnet_ids:

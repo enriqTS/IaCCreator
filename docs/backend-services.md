@@ -1,5 +1,7 @@
 # Backend Services
 
+`EcrEcsHandler` aggregates container-specific native repository bindings and execution-role pull resources. Its resolver enforces consistent ownership, container/credential prerequisites, private-image coverage, placement, and effective Regions. See [ECR ECS images](backend-ecr-ecs-connections.md).
+
 `CodeArtifactBuildHandler` supplies native package-source metadata and build-owned read/token permissions. Its binding resolver enforces one repository/tool, valid identities/Regions, and a composable inline version 0.2 buildspec. See [CodeArtifact build packages](backend-codeartifact-codebuild-connections.md).
 
 `CodeCommitPipelineHandler` binds an existing CodeCommit ZIP source action, enforces repository/action/branch ownership, and supplies native metadata and repository-scoped role permissions. It composes with managed artifact storage without changing downstream stages. See [CodeCommit pipeline sources](backend-codecommit-codepipeline-connections.md).

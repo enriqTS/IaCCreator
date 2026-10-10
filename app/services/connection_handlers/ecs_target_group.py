@@ -21,15 +21,16 @@ class TargetGroupECSHandler(BaseConnectionHandler):
             key=lambda item: item.source_name,
         )
         if service is not None:
-            service.config.ecs_load_balancers = [
-                {
+            service.config.ecs_load_balancers = []
+            for item in connections:
+                binding = {
                     "variable_name": f"{safe_identifier(item.source_name)}_target_group_arn",
                     "container_name": item.connection_config.get("container_name")
                     or connection.target_name,
                     "container_port": item.connection_config.get("container_port", 80),
                 }
-                for item in connections
-            ]
+                if binding not in service.config.ecs_load_balancers:
+                    service.config.ecs_load_balancers.append(binding)
         return ConnectionContribution(
             inputs=[
                 self._input(

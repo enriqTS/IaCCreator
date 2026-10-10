@@ -19,6 +19,20 @@ from app.services.connection_handlers.registry import (
 )
 
 
+def test_ecr_ecs_images_are_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "ecr" and item["target"] == "ecs"
+    )
+    assert entry["connection_type"] == "runs_image"
+    assert entry["region_policy"] == "same-region"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert fields["container_name"]["default"] == ""
+    assert fields["image_version"]["default"] == "latest"
+    assert fields["image_version"]["validation"]["pattern"]
+
+
 def test_codeartifact_build_login_is_discoverable(connection_schemas):
     entry = next(
         item

@@ -288,6 +288,8 @@ def resource_instance_with_populated_fields(draw):
         # Use options values when available for more realistic data
         if service_type == ServiceType.CODEPIPELINE and field_name == "stages_json":
             value = DEPLOYABLE_EXTRAS[ServiceType.CODEPIPELINE]["stages_json"]
+        elif service_type == ServiceType.ECS and field_name == "container_definitions":
+            value = '[{"name": "application", "image": "public.ecr.aws/docker/library/busybox:latest"}]'
         elif entry.options:
             value = draw(st.sampled_from([o.value for o in entry.options]))
             # A list-typed field still takes a list even when its members are options

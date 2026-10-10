@@ -10,9 +10,8 @@ class IAMPolicyGenerator:
 
     def generate_policy_document(self, instance: ResourceInstanceIR) -> str:
         """Consolidate the service's base statements with every connection grant."""
-        config_cls = type(instance.config)
         statements: list[dict] = list(
-            config_cls.execution_role_base_statements(instance.name)
+            instance.config.execution_role_statements(instance.name)
         )
 
         for iam_stmt in instance.iam_statements:

@@ -2,11 +2,12 @@
 
 from typing import ClassVar, Literal
 
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, field_validator
 
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField
+from app.models.input_models.ecs_containers import normalize_containers
 
 
 class EcsConfig(BaseServiceConfig):
@@ -18,6 +19,18 @@ class EcsConfig(BaseServiceConfig):
     _collects_xray: bool = PrivateAttr(default=False)
     _application_logs: bool = PrivateAttr(default=False)
     _application_logs_kms: bool = PrivateAttr(default=False)
+    _registry_images: bool = PrivateAttr(default=False)
+    container_definitions: str | None = TerraformField(
+        None,
+        group="Containers",
+        description="JSON array of uniquely named application containers; empty configuration uses the node's placeholder container",
+    )
+
+    @field_validator("container_definitions")
+    @classmethod
+    def valid_containers(cls, value: str | None) -> str | None:
+        return normalize_containers(value) if value is not None else None
+
     subnet_ids: list[str] = TerraformField([], description="Task subnets")
     security_group_ids: list[str] = TerraformField(
         [], description="Task security groups"
@@ -39,6 +52,7 @@ class EcsConfig(BaseServiceConfig):
         "subnet_ids",
         "security_group_ids",
         "assign_public_ip",
+        "container_definitions",
     )
 
     # ── General ───────────────────────────────────────────────────────────
@@ -82,6 +96,21 @@ class EcsConfig(BaseServiceConfig):
                     "ecr:BatchCheckLayerAvailability",
                     "ecr:GetDownloadUrlForLayer",
                     "ecr:BatchGetImage",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                ],
+                "Resource": "*",
+            }
+        ]
+
+    def execution_role_statements(self, instance_name: str) -> list[dict]:
+        if not self._registry_images:
+            return super().execution_role_statements(instance_name)
+        return [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "ecr:GetAuthorizationToken",
                     "logs:CreateLogStream",
                     "logs:PutLogEvents",
                 ],

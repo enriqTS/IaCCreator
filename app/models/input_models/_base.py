@@ -107,6 +107,9 @@ class BaseServiceConfig(BaseModel):
         """Statements the role always needs, before any connection grants."""
         return []
 
+    def execution_role_statements(self, instance_name: str) -> list[dict]:
+        return self.execution_role_base_statements(instance_name)
+
     @classmethod
     def has_terraform_schema(cls) -> bool:
         """Return True if this config model has any TerraformField-annotated fields.

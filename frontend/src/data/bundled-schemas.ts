@@ -3616,6 +3616,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "assign_public_ip",
       "required": false,
       "type": "bool"
+    },
+    {
+      "description": "JSON array of uniquely named application containers; empty configuration uses the node's placeholder container",
+      "group": "Containers",
+      "label": "Container definitions",
+      "name": "container_definitions",
+      "required": false,
+      "type": "string"
     }
   ],
   "efs": [
