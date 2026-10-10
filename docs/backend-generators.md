@@ -1,5 +1,7 @@
 # Backend Generators
 
+`ecr_eks.py` renders role-filtered pull policies and native identity/trust guards. `ecr_eks_manifests.py` groups image bindings into manual Deployment patches and exports an application guide. `ecr_images.py` shares reference, identity, and pull-policy rendering with ECS. See [ECR EKS images](backend-ecr-eks-connections.md).
+
 `ecr_ecs.py` composes native image references, scoped pull policies, and task preconditions before managed collectors. `IAMPolicyGenerator` calls an instance-aware service policy interface so connected ECS tasks remove wildcard repository pulls while retaining authorization/logging actions. See [ECR ECS images](backend-ecr-ecs-connections.md).
 
 `codeartifact_codebuild.py` composes native package-source references, scoped external-role policies, and build dependencies. `codeartifact_buildspec.py` prepends runtime npm/pip login while preserving inline buildspec settings. See [CodeArtifact build packages](backend-codeartifact-codebuild-connections.md).

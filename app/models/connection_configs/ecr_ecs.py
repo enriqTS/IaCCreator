@@ -4,14 +4,9 @@ from pydantic import StrictStr, field_validator
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import ConnectionField
+from app.models.ecr_image import IMAGE_VERSION_PATTERN
 from app.models.input_models._metadata import ValidationRule
 from app.models.input_models.ecs_containers import CONTAINER_PATTERN
-
-IMAGE_VERSION_PATTERN = r"^([A-Za-z0-9_][A-Za-z0-9_.-]{0,127}|sha256:[0-9a-f]{64})$"
-REPOSITORY_PATTERN = (
-    r"^[a-z0-9]+(([.]|_|__|-+)[a-z0-9]+)*(/[a-z0-9]+(([.]|_|__|-+)[a-z0-9]+)*)*$"
-)
-PRIVATE_ECR_PATTERN = r"^[0-9]{12}[.]dkr[.-]ecr[.-]"
 
 
 class EcrEcsConfig(BaseConnectionConfig):

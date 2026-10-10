@@ -58,6 +58,7 @@ from app.models.connection_configs.dms import (
 from app.models.connection_configs.dms_source import DmsSecretSourceEndpointConfig
 from app.models.connection_configs.dms_task import DmsReplicationTaskConfig
 from app.models.connection_configs.ecr_ecs import EcrEcsConfig
+from app.models.connection_configs.ecr_eks import EcrEksConfig
 from app.models.connection_configs.ecs_logs import EcsLogsConfig
 from app.models.connection_configs.ecs_prometheus import EcsPrometheusConfig
 from app.models.connection_configs.efs import (
@@ -199,6 +200,7 @@ from app.services.connection_handlers.ec2_placement import (
 )
 from app.services.connection_handlers.ec2_secret import Ec2SecretHandler
 from app.services.connection_handlers.ecr_ecs import EcrEcsHandler
+from app.services.connection_handlers.ecr_eks import EcrEksHandler
 from app.services.connection_handlers.ecs_logs import EcsLogsHandler
 from app.services.connection_handlers.ecs_prometheus import EcsPrometheusHandler
 from app.services.connection_handlers.ecs_secret import EcsSecretHandler
@@ -355,6 +357,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.ECR,
+        target=ServiceType.EKS,
+        connection_type="runs_image",
+        label="ECR → EKS Deployment container image",
+        config_model=EcrEksConfig,
+        handler=EcrEksHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.ECR,
         target=ServiceType.ECS,

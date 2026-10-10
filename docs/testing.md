@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_ecr_eks_connections.py` covers image/workload settings with Hypothesis, native image/role/trust guards, evaluated partial YAML patches and role-filtered IAM, and twelve provider validation/graph projects including placement, observability, EFS, and FIS. See [ECR EKS images](backend-ecr-eks-connections.md).
+
 `tests/test_ecr_ecs_connections.py` covers native image selectors with Hypothesis, normalized container configuration, scoped IAM and override guards, evaluated image/collector composition, and ten provider validation/graph projects. See [ECR ECS images](backend-ecr-ecs-connections.md).
 
 `tests/test_codeartifact_codebuild_connections.py` covers package login settings with Hypothesis, native scope/IAM guards, inline YAML preservation and command ordering, conflict validation, and ten provider validation/graph projects including CodeCommit, logging/secrets, encryption, upstreams, and shared roles. See [CodeArtifact build packages](backend-codeartifact-codebuild-connections.md).

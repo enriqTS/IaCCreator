@@ -1,5 +1,7 @@
 # Backend Models
 
+`EcrEksConfig` requires an existing Deployment and external compute pull role, with namespace/container/version defaults and an explicit node/Fargate role type. `models/ecr_image.py` shares image and repository syntax with ECS. See [ECR EKS images](backend-ecr-eks-connections.md).
+
 `EcrEcsConfig` selects an application container and literal tag or sha256 digest. ECS exposes optional normalized `container_definitions` JSON; the private `_registry_images` flag enables image composition and repository-scoped execution-role pulls. See [ECR ECS images](backend-ecr-ecs-connections.md).
 
 `CodeArtifactBuildConfig.tool` selects npm or pip with read-only package access. CodeBuild's private `_package_login` flag enables inline-buildspec composition without adding service schema fields. See [CodeArtifact build packages](backend-codeartifact-codebuild-connections.md).

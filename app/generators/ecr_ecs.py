@@ -1,11 +1,16 @@
+from app.generators.ecr_images import (
+    image_reference,
+    pull_policy,
+    repository_identity_condition,
+)
 from app.generators.ecs_logs import RESERVED_CONTAINERS
 from app.generators.hcl_renderer import Expr, HCLRenderer
-from app.models.connection_configs.ecr_ecs import (
-    CONTAINER_PATTERN,
+from app.models.ecr_image import (
     IMAGE_VERSION_PATTERN,
     PRIVATE_ECR_PATTERN,
     REPOSITORY_PATTERN,
 )
+from app.models.input_models.ecs_containers import CONTAINER_PATTERN
 
 
 def registry_image_preconditions() -> list[dict]:
@@ -24,9 +29,7 @@ def registry_image_preconditions() -> list[dict]:
             "error_message": "Use an application container name, valid private repository name, and literal image tag or sha256 digest.",
         },
         {
-            "condition": Expr(
-                'alltrue([for binding in values(var.registry_images) : binding.arn == "arn:${data.aws_partition.registry_images.partition}:ecr:${data.aws_region.registry_images.region}:${data.aws_caller_identity.registry_images.account_id}:repository/${binding.name}" && binding.url == "${data.aws_caller_identity.registry_images.account_id}.dkr.ecr.${data.aws_region.registry_images.region}.${data.aws_partition.registry_images.dns_suffix}/${binding.name}"])'
-            ),
+            "condition": repository_identity_condition(),
             "error_message": "Managed repositories must have matching native ARN, name, and URL in the task's partition, Region, and account.",
         },
         {
@@ -69,17 +72,23 @@ data "aws_region" "registry_images" {}
 data "aws_caller_identity" "registry_images" {}
 
 locals {
-  registry_images = { for container, binding in var.registry_images : container => "${binding.url}${startswith(binding.image_version, "sha256:") ? "@" : ":"}${binding.image_version}" }
+  registry_images = IMAGE_REFERENCES
 }
 """
+    result = result.replace(
+        "IMAGE_REFERENCES",
+        "{ for container, binding in var.registry_images : container => "
+        + image_reference("binding")
+        + " }",
+    )
     return result + renderer.render_resource(
         "aws_iam_role_policy",
         "registry_images",
         {
             "name": "registry-images",
             "role": Expr(f"aws_iam_role.{name}_role.id"),
-            "policy": Expr(
-                'jsonencode({ Version = "2012-10-17", Statement = [{ Effect = "Allow", Action = ["ecr:BatchCheckLayerAvailability", "ecr:GetDownloadUrlForLayer", "ecr:BatchGetImage"], Resource = sort(distinct([for binding in values(var.registry_images) : binding.arn])) }] })'
+            "policy": pull_policy(
+                "sort(distinct([for binding in values(var.registry_images) : binding.arn]))"
             ),
         },
     )

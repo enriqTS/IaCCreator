@@ -4,11 +4,8 @@ from dataclasses import dataclass
 
 from app.exceptions import CrossRegionConnectionError, InvalidConnectionConfigError
 from app.generators.ecs_logs import RESERVED_CONTAINERS
-from app.models.connection_configs.ecr_ecs import (
-    PRIVATE_ECR_PATTERN,
-    REPOSITORY_PATTERN,
-    EcrEcsConfig,
-)
+from app.models.connection_configs.ecr_ecs import EcrEcsConfig
+from app.models.ecr_image import PRIVATE_ECR_PATTERN, REPOSITORY_PATTERN
 from app.models.input_models import ServiceType
 from app.models.ir_models import ProjectIR
 from app.services.connection_handlers.base import BaseConnectionHandler

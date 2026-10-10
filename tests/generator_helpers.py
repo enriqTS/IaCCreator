@@ -217,6 +217,12 @@ def connection_architecture(spec) -> dict:
             config.update(
                 subnet_ids=["subnet-12345678"], security_group_ids=["sg-12345678"]
             )
+        if spec.source == ServiceType.ECR and service_type == ServiceType.EKS:
+            config.update(
+                subnet_ids=["subnet-12345678", "subnet-87654321"],
+                security_group_ids=["sg-12345678"],
+                cluster_role_arn="arn:aws:iam::123456789012:role/eks/cluster",
+            )
         if (
             spec.source == ServiceType.CODECOMMIT
             and service_type == ServiceType.CODEPIPELINE
@@ -534,6 +540,11 @@ def connection_architecture(spec) -> dict:
     }
     if spec.source == ServiceType.ORGANIZATIONS:
         payload["connections"][0]["connection_config"] = {"account_id": "222222222222"}
+    if spec.source == ServiceType.ECR and spec.target == ServiceType.EKS:
+        payload["connections"][0]["connection_config"] = {
+            "deployment_name": "web",
+            "pull_role_arn": "arn:aws:iam::123456789012:role/workers/image-pull",
+        }
     if (
         spec.source == ServiceType.FAULT_INJECTION_SIMULATOR
         and spec.target == ServiceType.EKS

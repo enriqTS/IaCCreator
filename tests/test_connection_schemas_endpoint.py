@@ -33,6 +33,28 @@ def test_ecr_ecs_images_are_discoverable(connection_schemas):
     assert fields["image_version"]["validation"]["pattern"]
 
 
+def test_ecr_eks_images_are_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "ecr" and item["target"] == "eks"
+    )
+    assert (
+        entry["connection_type"] == "runs_image"
+        and entry["region_policy"] == "same-region"
+    )
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert fields["deployment_name"]["required"] and fields["pull_role_arn"]["required"]
+    assert fields["container_name"]["default"] == "app"
+    assert fields["namespace"]["default"] == "default"
+    assert fields["image_version"]["default"] == "latest"
+    assert fields["pull_role_type"]["default"] == "node"
+    assert {option["value"] for option in fields["pull_role_type"]["options"]} == {
+        "node",
+        "fargate",
+    }
+
+
 def test_codeartifact_build_login_is_discoverable(connection_schemas):
     entry = next(
         item

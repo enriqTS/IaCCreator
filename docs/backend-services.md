@@ -1,5 +1,7 @@
 # Backend Services
 
+`EcrEksHandler` contributes cluster-owned external-role pull policies and manual Deployment image patches. Its binding resolver validates container image ownership, multi-role sharing, consistent role types across clusters, placement, and effective Regions. See [ECR EKS images](backend-ecr-eks-connections.md).
+
 `EcrEcsHandler` aggregates container-specific native repository bindings and execution-role pull resources. Its resolver enforces consistent ownership, container/credential prerequisites, private-image coverage, placement, and effective Regions. See [ECR ECS images](backend-ecr-ecs-connections.md).
 
 `CodeArtifactBuildHandler` supplies native package-source metadata and build-owned read/token permissions. Its binding resolver enforces one repository/tool, valid identities/Regions, and a composable inline version 0.2 buildspec. See [CodeArtifact build packages](backend-codeartifact-codebuild-connections.md).
