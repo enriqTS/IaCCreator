@@ -1,5 +1,7 @@
 # Backend Generators
 
+`codecommit_codebuild.py` composes native primary-source checkout, repository-scoped external-role permissions, identity/revision guards, and existing build policy dependencies. It preserves logging and secret injection. See [CodeCommit build sources](backend-codecommit-codebuild-connections.md).
+
 `organization_delegation.py` shares native organization/membership guards with per-service readiness renderers. Organizations unions connected trust principals and exports typed membership; Inspector defaults connected scanning to the management caller and Firewall Manager reuses its existing resource. See [Organizations delegated administration](backend-organization-delegation-connections.md).
 
 `ssm_ec2.py` renders explicit native instance associations, pinned document versions, daily UTC schedules, and scope/schema guards. `ec2_runtime.py` composes shared runtime profile dependencies for secrets, EFS, and SSM. See [SSM EC2 associations](backend-ssm-ec2-connections.md).

@@ -1,5 +1,7 @@
 # Backend Services
 
+`CodeCommitBuildHandler` passes native repository metadata and checkout settings into the build module. Its binding resolver enforces one primary repository, consistent duplicates, compatible source types, external service-role syntax, and effective Regions. See [CodeCommit build sources](backend-codecommit-codebuild-connections.md).
+
 `OrganizationDelegationHandler` shares typed management-account designation wiring across five security services. Its binding resolver rejects account/Region/ownership conflicts; the organization owns trusted access and each target owns its native designation. See [Organizations delegated administration](backend-organization-delegation-connections.md).
 
 `SsmEc2Handler` contributes document-owned daily associations and node-owned SSM core access through the shared EC2 runtime profile. `ssm_ec2_bindings.py` validates pair settings/Regions; `ssm_document.py` checks executable Command content and declarations. See [SSM EC2 associations](backend-ssm-ec2-connections.md).

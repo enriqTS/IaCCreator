@@ -19,6 +19,20 @@ from app.services.connection_handlers.registry import (
 )
 
 
+def test_codecommit_build_source_settings_are_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "codecommit" and item["target"] == "codebuild"
+    )
+    assert entry["connection_type"] == "builds_from"
+    assert entry["region_policy"] == "same-region"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert fields["source_version"]["default"] == "main"
+    assert fields["git_clone_depth"]["default"] == 1
+    assert fields["git_clone_depth"]["validation"]["max"] == 25
+
+
 @pytest.mark.parametrize("definition", DELEGATED_SERVICES)
 def test_organization_delegation_is_discoverable(connection_schemas, definition):
     entry = next(

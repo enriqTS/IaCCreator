@@ -1,5 +1,7 @@
 # Backend Models
 
+`CodeCommitBuildConfig` exposes a literal branch/tag/commit selector and bounded integer clone depth. A private CodeBuild source flag composes native source rendering without adding service schema fields. See [CodeCommit build sources](backend-codecommit-codebuild-connections.md).
+
 `OrganizationDelegationConfig` requires a strict existing member ID. `OrganizationsConfig.aws_service_access_principals` preserves unrelated trusted services; private flags compose Inspector management-account scanning and Firewall Manager's existing administrator resource. See [Organizations delegated administration](backend-organization-delegation-connections.md).
 
 `SsmEc2Config` exposes daily UTC hour/minute, immediate-execution opt-in, and bounded JSON String parameters. Private `Ec2Config._managed_ssm` enables core policy/profile composition without adding editor service fields. See [SSM EC2 associations](backend-ssm-ec2-connections.md).
