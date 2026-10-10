@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_organization_delegation_connections.py` covers five native designation resources, property-based names/account IDs/duplicate ordering, trusted access preservation, regional ownership conflicts, native management/member guards, schema discovery, and provider validation/dependency graphs. See [Organizations delegated administration](backend-organization-delegation-connections.md).
+
 `tests/test_ssm_ec2_connections.py` covers property-based pair settings, duplicates, names, executable documents, required parameters, literal interpolation, effective Regions, native guards, previews, and schema discovery. Nine projects pass Terraform validation and plan graphs, including EFS/secrets composition. See [SSM EC2 associations](backend-ssm-ec2-connections.md).
 
 `tests/test_fis_eks_connections.py` covers property-based names/duplicates/selection, shared-role aggregation, manual RBAC round trips, explicit selectors, native scope/authentication/version guards, role paths, previews, and schema discovery. Nine projects pass Terraform validation and plan graphs, including EFS/Prometheus/Grafana composition. See [FIS EKS pods](backend-fis-eks-connections.md).

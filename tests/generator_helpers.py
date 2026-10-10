@@ -518,6 +518,8 @@ def connection_architecture(spec) -> dict:
             "provider_region": "us-east-1",
         },
     }
+    if spec.source == ServiceType.ORGANIZATIONS:
+        payload["connections"][0]["connection_config"] = {"account_id": "222222222222"}
     if (
         spec.source == ServiceType.FAULT_INJECTION_SIMULATOR
         and spec.target == ServiceType.EKS

@@ -1,5 +1,7 @@
 # Backend Generators
 
+`organization_delegation.py` shares native organization/membership guards with per-service readiness renderers. Organizations unions connected trust principals and exports typed membership; Inspector defaults connected scanning to the management caller and Firewall Manager reuses its existing resource. See [Organizations delegated administration](backend-organization-delegation-connections.md).
+
 `ssm_ec2.py` renders explicit native instance associations, pinned document versions, daily UTC schedules, and scope/schema guards. `ec2_runtime.py` composes shared runtime profile dependencies for secrets, EFS, and SSM. See [SSM EC2 associations](backend-ssm-ec2-connections.md).
 
 `fis_targets.py` dispatches a shared renderer interface for EC2, ECS, and EKS. `fis_eks.py` emits pod selectors, scoped policies, and native guards; `eks_fis_access.py` renders cluster-owned access entries, and `fis_eks_manifests.py` exports manual namespace RBAC. See [FIS EKS pods](backend-fis-eks-connections.md).

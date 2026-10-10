@@ -1,11 +1,14 @@
 from typing import Literal
 
+from pydantic import PrivateAttr
+
 from app.models.input_models._base import BaseServiceConfig
 from app.models.input_models._general import ServiceType
 from app.models.input_models._metadata import TerraformField
 
 
 class InspectorConfig(BaseServiceConfig):
+    _organization_delegation: bool = PrivateAttr(default=False)
     service_type: Literal[ServiceType.INSPECTOR] = ServiceType.INSPECTOR
     account_ids: list[str] = TerraformField(
         default_factory=list, description="AWS account IDs to enable"

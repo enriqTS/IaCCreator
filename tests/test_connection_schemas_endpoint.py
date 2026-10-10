@@ -10,12 +10,29 @@ from app.models.connection_configs.configs import (
 )
 from app.models.input_models import ServiceType
 from app.models.input_models.api_gateway_route import HTTP_METHODS
+from app.models.organization_delegation import DELEGATED_SERVICES
 from app.services.connection_handlers.registry import (
     COMPATIBLE_CONNECTIONS,
     CONNECTION_REGISTRY,
     CONNECTION_SPECS,
     resolve_spec,
 )
+
+
+@pytest.mark.parametrize("definition", DELEGATED_SERVICES)
+def test_organization_delegation_is_discoverable(connection_schemas, definition):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "organizations"
+        and item["target"] == definition.service.value
+    )
+    assert entry["connection_type"] == "delegates_admin"
+    assert entry["region_policy"] == "cross-region"
+    assert len(entry["fields"]) == 1
+    field = entry["fields"][0]
+    assert field["key"] == "account_id" and field["required"] is True
+    assert field["validation"]["pattern"] == "^[0-9]{12}$"
 
 
 @pytest.fixture()

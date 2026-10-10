@@ -1,7 +1,9 @@
 from app.generators.base import get_typed_config
 from app.generators.hcl_renderer import Expr, HCLRenderer
+from app.generators.organization_delegation import firewall_preconditions
 from app.models.input_models.firewall_manager_config import FirewallManagerConfig
 from app.models.ir_models import ResourceInstanceIR
+from app.models.organization_delegation import DELEGATION_BY_SERVICE
 
 
 class FirewallManagerGenerator:
@@ -9,13 +11,18 @@ class FirewallManagerGenerator:
         self._r = HCLRenderer()
 
     def generate_resource_tf(self, instance: ResourceInstanceIR) -> str:
-        get_typed_config(instance, FirewallManagerConfig)
+        config = get_typed_config(instance, FirewallManagerConfig)
+        attrs = {"account_id": Expr("var.account_id")}
+        if config._organization_delegation:
+            attrs["lifecycle"] = {
+                "precondition": firewall_preconditions(
+                    DELEGATION_BY_SERVICE[instance.service_type]
+                )
+            }
         return self._r.render_resource(
             "aws_fms_admin_account",
             instance.name,
-            {
-                "account_id": Expr("var.account_id"),
-            },
+            attrs,
         )
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:

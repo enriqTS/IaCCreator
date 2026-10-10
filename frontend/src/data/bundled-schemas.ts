@@ -5929,6 +5929,14 @@ export const BUNDLED_SCHEMAS: ServiceVariableSchemas = {
       "name": "enabled_policy_types",
       "required": false,
       "type": "list"
+    },
+    {
+      "description": "Additional trusted service principals to preserve alongside connected security services",
+      "group": "General",
+      "label": "AWS service access principals",
+      "name": "aws_service_access_principals",
+      "required": false,
+      "type": "list"
     }
   ],
   "pinpoint": [

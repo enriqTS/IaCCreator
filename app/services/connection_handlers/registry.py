@@ -87,6 +87,9 @@ from app.models.connection_configs.memorydb import MemoryDbIamConfig
 from app.models.connection_configs.mq import MqClientConfig
 from app.models.connection_configs.msk import MskTopicReadConfig, MskTopicWriteConfig
 from app.models.connection_configs.opensearch import OpenSearchIndexAccessConfig
+from app.models.connection_configs.organization_delegation import (
+    OrganizationDelegationConfig,
+)
 from app.models.connection_configs.private_certificate import PrivateCertificateConfig
 from app.models.connection_configs.replication import S3ReplicationConfig
 from app.models.connection_configs.secrets import (
@@ -123,6 +126,7 @@ from app.models.connection_configs.workflows import (
     StepFunctionsSqsConfig,
 )
 from app.models.input_models import ServiceType
+from app.models.organization_delegation import DELEGATED_SERVICES
 from app.services.connection_handlers.accelerator_endpoint import (
     AcceleratorLoadBalancerHandler,
 )
@@ -251,6 +255,9 @@ from app.services.connection_handlers.network_placement import (
     SubnetListPlacementHandler,
 )
 from app.services.connection_handlers.opensearch_access import OpenSearchAccessHandler
+from app.services.connection_handlers.organization_delegation import (
+    OrganizationDelegationHandler,
+)
 from app.services.connection_handlers.private_certificate import (
     PrivateCertificateHandler,
 )
@@ -334,6 +341,18 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    *[
+        ConnectionSpec(
+            source=ServiceType.ORGANIZATIONS,
+            target=definition.service,
+            connection_type="delegates_admin",
+            label=f"Organizations → {definition.service.value} delegated administration",
+            config_model=OrganizationDelegationConfig,
+            handler=OrganizationDelegationHandler(),
+            region_policy="cross-region",
+        )
+        for definition in DELEGATED_SERVICES
+    ],
     ConnectionSpec(
         source=ServiceType.SYSTEMS_MANAGER,
         target=ServiceType.EC2,
