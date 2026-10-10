@@ -21,6 +21,7 @@ from app.models.connection_configs.certificate_dns import CertificateDnsConfig
 from app.models.connection_configs.client_vpn_certificate import (
     ClientVpnCertificateConfig,
 )
+from app.models.connection_configs.codeartifact_codebuild import CodeArtifactBuildConfig
 from app.models.connection_configs.codebuild_logs import CodeBuildLogsConfig
 from app.models.connection_configs.codecommit_codebuild import CodeCommitBuildConfig
 from app.models.connection_configs.codecommit_codepipeline import (
@@ -165,6 +166,9 @@ from app.services.connection_handlers.client_vpn_certificate import (
 )
 from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
 from app.services.connection_handlers.cloudtrail_logs import CloudTrailLogsHandler
+from app.services.connection_handlers.codeartifact_codebuild import (
+    CodeArtifactBuildHandler,
+)
 from app.services.connection_handlers.codebuild_logs import CodeBuildLogsHandler
 from app.services.connection_handlers.codecommit_codebuild import CodeCommitBuildHandler
 from app.services.connection_handlers.codecommit_codepipeline import (
@@ -349,6 +353,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.CODEARTIFACT,
+        target=ServiceType.CODEBUILD,
+        connection_type="reads_packages",
+        label="CodeArtifact → CodeBuild package reads and runtime login",
+        config_model=CodeArtifactBuildConfig,
+        handler=CodeArtifactBuildHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.CODECOMMIT,
         target=ServiceType.CODEPIPELINE,

@@ -19,6 +19,21 @@ from app.services.connection_handlers.registry import (
 )
 
 
+def test_codeartifact_build_login_is_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "codeartifact" and item["target"] == "codebuild"
+    )
+    assert entry["connection_type"] == "reads_packages"
+    assert entry["region_policy"] == "same-region"
+    assert len(entry["fields"]) == 1
+    field = entry["fields"][0]
+    assert field["key"] == "tool" and field["default"] == "npm"
+    assert field["type"] == "select"
+    assert {option["value"] for option in field["options"]} == {"npm", "pip"}
+
+
 def test_codecommit_pipeline_source_is_discoverable(connection_schemas):
     entry = next(
         item

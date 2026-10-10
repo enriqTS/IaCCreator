@@ -1,5 +1,7 @@
 # Backend Services
 
+`CodeArtifactBuildHandler` supplies native package-source metadata and build-owned read/token permissions. Its binding resolver enforces one repository/tool, valid identities/Regions, and a composable inline version 0.2 buildspec. See [CodeArtifact build packages](backend-codeartifact-codebuild-connections.md).
+
 `CodeCommitPipelineHandler` binds an existing CodeCommit ZIP source action, enforces repository/action/branch ownership, and supplies native metadata and repository-scoped role permissions. It composes with managed artifact storage without changing downstream stages. See [CodeCommit pipeline sources](backend-codecommit-codepipeline-connections.md).
 
 `CodeCommitBuildHandler` passes native repository metadata and checkout settings into the build module. Its binding resolver enforces one primary repository, consistent duplicates, compatible source types, external service-role syntax, and effective Regions. See [CodeCommit build sources](backend-codecommit-codebuild-connections.md).

@@ -1,6 +1,7 @@
 """CodeBuild service generator — produces HCL for aws_codebuild_project resources."""
 
 from app.generators.base import get_typed_config
+from app.generators.codeartifact_codebuild import add_package_source_attributes
 from app.generators.codebuild_logs import add_build_log_attributes
 from app.generators.codecommit_codebuild import add_repository_source_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
@@ -50,6 +51,9 @@ class CodeBuildGenerator:
 
         if config._repository_source:
             add_repository_source_attributes(attrs)
+
+        if config._package_login:
+            add_package_source_attributes(attrs)
 
         return self._r.render_resource("aws_codebuild_project", instance.name, attrs)
 
