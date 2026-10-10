@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_codecommit_codepipeline_connections.py` covers source selectors/branches and duplicates with Hypothesis, action/artifact conflicts, native guards, source configuration evaluation, and eight provider validation/graph projects including encrypted artifacts, shared roles, and CodeBuild composition. See [CodeCommit pipeline sources](backend-codecommit-codepipeline-connections.md).
+
 `tests/test_codecommit_codebuild_connections.py` covers checkout settings and duplicates with Hypothesis, native role/repository scope, conflicts, retired placement, API discovery, and nine provider validation/dependency-graph projects. Composition includes shared roles, logging, secrets, and EventBridge. See [CodeCommit build sources](backend-codecommit-codebuild-connections.md).
 
 `tests/test_organization_delegation_connections.py` covers five native designation resources, property-based names/account IDs/duplicate ordering, trusted access preservation, regional ownership conflicts, native management/member guards, schema discovery, and provider validation/dependency graphs. See [Organizations delegated administration](backend-organization-delegation-connections.md).

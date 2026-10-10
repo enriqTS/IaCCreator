@@ -1,5 +1,7 @@
 # Backend Services
 
+`CodeCommitPipelineHandler` binds an existing CodeCommit ZIP source action, enforces repository/action/branch ownership, and supplies native metadata and repository-scoped role permissions. It composes with managed artifact storage without changing downstream stages. See [CodeCommit pipeline sources](backend-codecommit-codepipeline-connections.md).
+
 `CodeCommitBuildHandler` passes native repository metadata and checkout settings into the build module. Its binding resolver enforces one primary repository, consistent duplicates, compatible source types, external service-role syntax, and effective Regions. See [CodeCommit build sources](backend-codecommit-codebuild-connections.md).
 
 `OrganizationDelegationHandler` shares typed management-account designation wiring across five security services. Its binding resolver rejects account/Region/ownership conflicts; the organization owns trusted access and each target owns its native designation. See [Organizations delegated administration](backend-organization-delegation-connections.md).

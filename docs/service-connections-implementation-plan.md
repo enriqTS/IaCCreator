@@ -14,7 +14,7 @@ Current phase status:
 - [-] Phase 6 events, workflows, and APIs: initial Lambda, SQS, SNS, DynamoDB Streams, and EventBridge wiring plus SQS-to-ECS polling access and SQS/Lambda dead-letter relationships exist; workflow and API expansion remains.
 - [x] Phase 7 identity, certificates, and edge security: Cognito authentication, Private CA issuance, Client VPN certificate roles, Regional API Gateway domains, and Route 53 public ACM DNS validation are implemented.
 - [-] Phase 8 observability, governance, and security administration: Lambda logging/active X-Ray tracing, HTTP API Gateway access logging, ECS application log delivery, EKS control-plane log selection with a dedicated native-name Standard group, Standard/Express Step Functions execution logging, CodeBuild build logging, FIS explicit EC2 reboot/stop, ECS service task-stop, and EKS deployment pod-delete templates with manual namespace RBAC, daily Systems Manager Command→EC2 associations with shared runtime profiles, ECS OTLP-to-X-Ray collection and shared native group membership, CloudTrail/Config S3 delivery, CloudTrail CloudWatch delivery with scoped service-role/KMS permissions, AWS Config SNS notifications, Managed Grafana Prometheus/CloudWatch Logs/Timestream/OpenSearch/Athena/Redshift/X-Ray query roles/settings, EKS/ECS Prometheus collection, and Organizations delegated administration for GuardDuty/Security Hub CSPM/Macie/Inspector/Firewall Manager are implemented; broader integrations remain.
-- [-] Phase 9 CI/CD and container delivery: CodeCommit primary CodeBuild sources, revision/clone settings, and repository-scoped external-role permissions are implemented with logging/secrets/EventBridge composition; further delivery integrations remain.
+- [-] Phase 9 CI/CD and container delivery: CodeCommit primary CodeBuild sources and selected CodePipeline ZIP source actions are implemented with repository-scoped external-role permissions and artifact/logging/secrets composition; further delivery integrations remain.
 - [ ] Phase 10 analytics and streaming.
 - [ ] Phase 11 machine learning.
 - [-] Phase 12 IoT, media, migration, and advanced networking: foundational Network Firewall and Client VPN placement exists; the listed advanced integrations remain.
@@ -27,7 +27,7 @@ Connections remain backend-owned. The frontend discovers them through `/api/conn
 
 ## Current state
 
-The generator registry contains 119 Terraform-capable service types, while the connection registry contains 225 connection specifications involving 81 services.
+The generator registry contains 119 Terraform-capable service types, while the connection registry contains 226 connection specifications involving 81 services.
 
 Implemented coverage includes API Gateway Lambda integrations and authorizers; Lambda and ECS IAM access; Lambda log delivery; S3 notifications; DynamoDB streams; EventBridge targets; SNS subscriptions; SQS event sources; VPC membership; subnet and security-group placement including EKS control-plane security groups; route-table associations; managed Internet, NAT, and transit-gateway routes; Target Group attachment to EC2 Auto Scaling; and Security Group → EC2 Launch Template → EC2 Auto Scaling wiring.
 
@@ -391,7 +391,7 @@ Account-enablement services should remain standalone when a connector would have
 Implement:
 
 - [x] CodeCommit → CodeBuild: a single native HTTPS primary source supplies explicit revision/clone settings and repository-scoped GitPull permissions on the existing external build role. Native identity/Region/override guards, deterministic duplicates/sharing, and logging/secrets/EventBridge composition are implemented. Retired placement remains unchanged; push triggers, additional credentials, and build execution remain external. See [CodeCommit build sources](backend-codecommit-codebuild-connections.md).
-- CodeCommit → CodePipeline.
+- [x] CodeCommit → CodePipeline: binds one existing AWS CodeCommit ZIP source action to native repository metadata and an explicit branch, preserving output artifacts and downstream stages. Repository-scoped external-role grants, identity/action/override guards, deterministic duplicates/sharing, and managed/encrypted artifact-store composition are implemented. Polling is disabled; AWS still starts an initial execution on pipeline creation. Retired placement remains unchanged. See [CodeCommit pipeline sources](backend-codecommit-codepipeline-connections.md).
 - CodeArtifact → CodeBuild.
 - ECR → ECS.
 - ECR → EKS.

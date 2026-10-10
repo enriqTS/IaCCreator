@@ -23,6 +23,9 @@ from app.models.connection_configs.client_vpn_certificate import (
 )
 from app.models.connection_configs.codebuild_logs import CodeBuildLogsConfig
 from app.models.connection_configs.codecommit_codebuild import CodeCommitBuildConfig
+from app.models.connection_configs.codecommit_codepipeline import (
+    CodeCommitPipelineConfig,
+)
 from app.models.connection_configs.cognito_api_gateway import CognitoApiGatewayConfig
 from app.models.connection_configs.cognito_appsync import CognitoAppSyncConfig
 from app.models.connection_configs.cognito_load_balancer import (
@@ -164,6 +167,9 @@ from app.services.connection_handlers.cloudfront_s3 import CloudFrontS3Handler
 from app.services.connection_handlers.cloudtrail_logs import CloudTrailLogsHandler
 from app.services.connection_handlers.codebuild_logs import CodeBuildLogsHandler
 from app.services.connection_handlers.codecommit_codebuild import CodeCommitBuildHandler
+from app.services.connection_handlers.codecommit_codepipeline import (
+    CodeCommitPipelineHandler,
+)
 from app.services.connection_handlers.codepipeline_s3 import CodePipelineS3Handler
 from app.services.connection_handlers.cognito_api_gateway import (
     CognitoApiGatewayHandler,
@@ -343,6 +349,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.CODECOMMIT,
+        target=ServiceType.CODEPIPELINE,
+        connection_type="sources_from",
+        label="CodeCommit → CodePipeline repository source action",
+        config_model=CodeCommitPipelineConfig,
+        handler=CodeCommitPipelineHandler(),
+    ),
     ConnectionSpec(
         source=ServiceType.CODECOMMIT,
         target=ServiceType.CODEBUILD,

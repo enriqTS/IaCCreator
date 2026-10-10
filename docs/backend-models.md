@@ -1,5 +1,7 @@
 # Backend Models
 
+`CodeCommitPipelineConfig` selects an existing source stage/action and literal branch. A private CodePipeline flag enables native source composition; `models/git_reference.py` shares Git ref validation with CodeBuild. See [CodeCommit pipeline sources](backend-codecommit-codepipeline-connections.md).
+
 `CodeCommitBuildConfig` exposes a literal branch/tag/commit selector and bounded integer clone depth. A private CodeBuild source flag composes native source rendering without adding service schema fields. See [CodeCommit build sources](backend-codecommit-codebuild-connections.md).
 
 `OrganizationDelegationConfig` requires a strict existing member ID. `OrganizationsConfig.aws_service_access_principals` preserves unrelated trusted services; private flags compose Inspector management-account scanning and Firewall Manager's existing administrator resource. See [Organizations delegated administration](backend-organization-delegation-connections.md).

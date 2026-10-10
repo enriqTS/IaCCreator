@@ -1,6 +1,7 @@
 """CodePipeline service generator — produces HCL for aws_codepipeline resources."""
 
 from app.generators.base import get_typed_config
+from app.generators.codecommit_codepipeline import add_pipeline_source_attributes
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.codepipeline_config import CodePipelineConfig
 from app.models.ir_models import ResourceInstanceIR
@@ -61,6 +62,8 @@ class CodePipelineGenerator:
             }
         if config._managed_artifacts:
             attrs["depends_on"] = Expr("[aws_iam_role_policy.artifacts]")
+        if config._repository_source:
+            add_pipeline_source_attributes(attrs)
         return self._r.render_resource("aws_codepipeline", instance.name, attrs)
 
     def generate_variables_tf(self, instance: ResourceInstanceIR) -> str:

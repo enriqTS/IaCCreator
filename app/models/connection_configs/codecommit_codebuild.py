@@ -2,9 +2,13 @@ from pydantic import StrictInt, StrictStr, field_validator
 
 from app.models.connection_configs._base import BaseConnectionConfig
 from app.models.connection_configs._metadata import ConnectionField
+from app.models.git_reference import (
+    GIT_REFERENCE_PATTERN as REVISION_PATTERN,
+)
+from app.models.git_reference import (
+    validate_git_reference,
+)
 from app.models.input_models._metadata import ValidationRule
-
-REVISION_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._/-]{0,255}$"
 
 
 class CodeCommitBuildConfig(BaseConnectionConfig):
@@ -25,15 +29,4 @@ class CodeCommitBuildConfig(BaseConnectionConfig):
     @field_validator("source_version")
     @classmethod
     def valid_revision(cls, value: str) -> str:
-        if (
-            any(token in value for token in ("..", "//"))
-            or value.endswith((".", "/"))
-            or any(
-                part.startswith(".") or part.endswith(".lock")
-                for part in value.split("/")
-            )
-        ):
-            raise ValueError(
-                "Select a literal Git branch, tag, or commit without invalid ref components"
-            )
-        return value
+        return validate_git_reference(value)

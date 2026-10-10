@@ -14,6 +14,7 @@ class CodePipelineConfig(BaseServiceConfig):
     """CodePipeline-specific configuration — single source of truth."""
 
     _managed_artifacts: bool = PrivateAttr(default=False)
+    _repository_source: bool = PrivateAttr(default=False)
     artifact_bucket_name: str | None = TerraformField(
         None, description="External S3 artifact bucket name"
     )

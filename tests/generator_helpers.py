@@ -214,6 +214,16 @@ def connection_architecture(spec) -> dict:
         config = minimal_config_for(service_type).model_dump(exclude_none=True)
         config.update(DEPLOYABLE_EXTRAS.get(service_type, {}))
         if (
+            spec.source == ServiceType.CODECOMMIT
+            and service_type == ServiceType.CODEPIPELINE
+        ):
+            stages = json.loads(config["stages_json"])
+            stages[0]["actions"][0].update(provider="CodeCommit", configuration={})
+            config.update(
+                stages_json=json.dumps(stages),
+                artifact_bucket_name="external-artifacts",
+            )
+        if (
             spec.source == ServiceType.CERTIFICATE_MANAGER
             and service_type == ServiceType.CLIENT_VPN
         ):

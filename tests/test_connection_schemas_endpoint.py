@@ -19,6 +19,26 @@ from app.services.connection_handlers.registry import (
 )
 
 
+def test_codecommit_pipeline_source_is_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "codecommit" and item["target"] == "codepipeline"
+    )
+    assert entry["connection_type"] == "sources_from"
+    assert entry["region_policy"] == "same-region"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert {key: field["default"] for key, field in fields.items()} == {
+        "stage_name": "Source",
+        "action_name": "Source",
+        "branch_name": "main",
+    }
+    assert all(
+        field["type"] == "text" and field["validation"]["pattern"]
+        for field in fields.values()
+    )
+
+
 def test_codecommit_build_source_settings_are_discoverable(connection_schemas):
     entry = next(
         item

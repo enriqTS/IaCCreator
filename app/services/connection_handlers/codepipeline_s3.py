@@ -3,8 +3,10 @@
 import json
 
 from app.exceptions import InvalidConnectionConfigError
+from app.generators.codecommit_codepipeline import pipeline_source_policy_preconditions
 from app.generators.hcl_renderer import Expr
 from app.models.connection_previews import ConnectionIssue
+from app.models.input_models import ServiceType
 from app.models.ir_models import (
     ConnectionContribution,
     ConnectionIR,
@@ -108,6 +110,15 @@ class CodePipelineS3Handler(BaseConnectionHandler):
                     "Resource": Expr("var.artifact_kms_key_arn"),
                 }
             )
+        guards = (
+            {"lifecycle": {"precondition": pipeline_source_policy_preconditions()}}
+            if any(
+                item.target_name == source.name
+                and item.source_service == ServiceType.CODECOMMIT
+                for item in project.connections
+            )
+            else {}
+        )
         result.resources.append(
             self._resource(
                 source.name,
@@ -121,6 +132,7 @@ class CodePipelineS3Handler(BaseConnectionHandler):
                         "policy": self._renderer.render_json_policy(
                             {"Version": "2012-10-17", "Statement": statements}
                         ),
+                        **guards,
                     },
                 ),
             )

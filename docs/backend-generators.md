@@ -1,5 +1,7 @@
 # Backend Generators
 
+`codecommit_codepipeline.py` composes selected native repository source configuration, exact external-role policies, input guards, and existing artifact-store dependencies. See [CodeCommit pipeline sources](backend-codecommit-codepipeline-connections.md).
+
 `codecommit_codebuild.py` composes native primary-source checkout, repository-scoped external-role permissions, identity/revision guards, and existing build policy dependencies. It preserves logging and secret injection. See [CodeCommit build sources](backend-codecommit-codebuild-connections.md).
 
 `organization_delegation.py` shares native organization/membership guards with per-service readiness renderers. Organizations unions connected trust principals and exports typed membership; Inspector defaults connected scanning to the management caller and Firewall Manager reuses its existing resource. See [Organizations delegated administration](backend-organization-delegation-connections.md).
