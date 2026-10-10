@@ -1,5 +1,7 @@
 # Backend Services
 
+`SsmEc2Handler` contributes document-owned daily associations and node-owned SSM core access through the shared EC2 runtime profile. `ssm_ec2_bindings.py` validates pair settings/Regions; `ssm_document.py` checks executable Command content and declarations. See [SSM EC2 associations](backend-ssm-ec2-connections.md).
+
 `FisEksHandler` binds an explicit Deployment and namespace, exports manual RBAC, and aggregates distinct experiment roles into cluster-owned access entries. Input-only role outputs keep cluster access independent of templates. Shared identity/family/Region validation covers EC2, ECS, and EKS. See [FIS EKS pods](backend-fis-eks-connections.md).
 
 `FisEcsHandler` binds one native ECS service and contributes an experiment-owned task-stop policy. `fis_ecs_bindings.py` validates target/selection ownership; shared `fis_bindings.py` checks experiment identity, target-family conflicts, and Regions for ECS, EC2, and EKS. See [FIS ECS tasks](backend-fis-ecs-connections.md).

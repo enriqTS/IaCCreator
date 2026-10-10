@@ -13,6 +13,7 @@ class Ec2Config(BaseServiceConfig):
     """EC2-specific configuration — single source of truth."""
 
     _mounts_efs: bool = PrivateAttr(default=False)
+    _managed_ssm: bool = PrivateAttr(default=False)
     user_data: str = TerraformField(
         "", description="Instance user data; managed EFS mounts require a shell script"
     )

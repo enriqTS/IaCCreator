@@ -96,6 +96,7 @@ from app.models.connection_configs.secrets import (
     EcsSecretConfig,
 )
 from app.models.connection_configs.sns_firehose import SnsFirehoseConfig
+from app.models.connection_configs.ssm_ec2 import SsmEc2Config
 from app.models.connection_configs.step_functions_dynamodb import (
     StepFunctionsDynamoDbConfig,
 )
@@ -276,6 +277,7 @@ from app.services.connection_handlers.sns_sqs import SNSSQSHandler
 from app.services.connection_handlers.sqs_dead_letter import SQSDeadLetterHandler
 from app.services.connection_handlers.sqs_ecs import SQSECSHandler
 from app.services.connection_handlers.sqs_lambda import SQSLambdaHandler
+from app.services.connection_handlers.ssm_ec2 import SsmEc2Handler
 from app.services.connection_handlers.step_functions_batch import (
     StepFunctionsBatchHandler,
 )
@@ -332,6 +334,14 @@ class ConnectionSpec:
 
 
 CONNECTION_SPECS: list[ConnectionSpec] = [
+    ConnectionSpec(
+        source=ServiceType.SYSTEMS_MANAGER,
+        target=ServiceType.EC2,
+        connection_type="associates",
+        label="Systems Manager → EC2 daily document association",
+        config_model=SsmEc2Config,
+        handler=SsmEc2Handler(),
+    ),
     ConnectionSpec(
         source=ServiceType.PRIVATE_CERTIFICATE_AUTHORITY,
         target=ServiceType.CERTIFICATE_MANAGER,

@@ -1,5 +1,7 @@
 # Backend Models
 
+`SsmEc2Config` exposes daily UTC hour/minute, immediate-execution opt-in, and bounded JSON String parameters. Private `Ec2Config._managed_ssm` enables core policy/profile composition without adding editor service fields. See [SSM EC2 associations](backend-ssm-ec2-connections.md).
+
 `FisEksConfig` requires namespace and deployment names and defaults pod selection to `COUNT(1)`. Typed inputs carry native cluster/access metadata and pod settings; a private `_target_service` enum selects the shared FIS renderer interface. See [FIS EKS pods](backend-fis-eks-connections.md).
 
 `FisEcsConfig` exposes bounded COUNT/ALL task selection, defaulting to `COUNT(1)`. `connection_configs/fis.py` shares selection/action-name syntax with EC2. The private FIS target-service enum enables rendering; typed inputs carry native cluster/service identity and selection. See [FIS ECS tasks](backend-fis-ecs-connections.md).

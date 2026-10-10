@@ -443,6 +443,28 @@ def test_http_api_access_log_connection_is_discoverable(connection_schemas):
     assert "$context.requestId" in fields["log_format"]["default"]
 
 
+def test_ssm_ec2_association_schedule_is_discoverable(connection_schemas):
+    entry = next(
+        item
+        for item in connection_schemas["connections"]
+        if item["source"] == "systems-manager" and item["target"] == "ec2"
+    )
+    assert entry["connection_type"] == "associates"
+    fields = {field["key"]: field for field in entry["fields"]}
+    assert set(fields) == {
+        "utc_hour",
+        "utc_minute",
+        "apply_immediately",
+        "parameters_json",
+    }
+    assert fields["utc_hour"]["default"] == 3
+    assert fields["utc_minute"]["default"] == 0
+    assert fields["utc_hour"]["validation"]["max"] == 23
+    assert fields["utc_minute"]["validation"]["max"] == 59
+    assert fields["apply_immediately"]["default"] is False
+    assert fields["parameters_json"]["type"] == "json"
+
+
 def test_fis_eks_target_connection_requires_explicit_workload_identity(
     connection_schemas,
 ):

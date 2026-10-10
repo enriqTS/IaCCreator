@@ -369,6 +369,22 @@ def connection_architecture(spec) -> dict:
                 config["vpc_security_group_ids"] = ["sg-12345678"]
         config["service_type"] = service_type.value
         if (
+            spec.source == ServiceType.SYSTEMS_MANAGER
+            and service_type == ServiceType.SYSTEMS_MANAGER
+        ):
+            config["content"] = json.dumps(
+                {
+                    "schemaVersion": "2.2",
+                    "mainSteps": [
+                        {
+                            "action": "aws:runShellScript",
+                            "name": "CheckAgent",
+                            "inputs": {"runCommand": ["echo State Manager ready"]},
+                        }
+                    ],
+                }
+            )
+        if (
             spec.source == ServiceType.FAULT_INJECTION_SIMULATOR
             and service_type == ServiceType.EKS
         ):

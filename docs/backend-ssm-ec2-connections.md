@@ -1,0 +1,33 @@
+# Systems Manager EC2 document associations
+
+`Systems Manager → EC2` (`associates`) creates one State Manager association per connected document–instance pair. `SsmEc2Config` exposes `utc_hour` (0–23, default 3), `utc_minute` (0–59, default 0), `apply_immediately` (default false), and `parameters_json` (default `{}`). The backend derives a daily UTC cron expression. Duplicate connections must agree on all settings; different instances may have different schedules and parameters. Association keys derive from stable node IDs when available, falling back to names. Renaming nodes with stable IDs preserves those keys; renaming a module still changes its Terraform address.
+
+## Ownership and execution
+
+The Systems Manager module owns `ec2_associations.tf`. Its `aws_ssm_association.ec2` resource iterates over the typed `ec2_associations` input, uses the native document name, and pins `document_version` to the document's native `latest_version`. Updating the document and applying Terraform advances that pin. Explicit `InstanceIds` targets use the connected EC2 module's native ID; no copied IDs, tags, or wildcard target sets are accepted. Each association uses concurrency one and error threshold zero. These controls apply independently to each association, so different documents may run on the same instance concurrently. [Provider association resource](https://github.com/hashicorp/terraform-provider-aws/blob/main/website/docs/r/ssm_association.html.markdown).
+
+`apply_only_at_cron_interval` defaults to true through the inverse of `apply_immediately`, deferring execution to the scheduled interval. Opting into immediate application permits execution on association creation or update as well as daily execution. Applying this Terraform can change guest state; generating files does not execute commands. Deleting an association does not reverse changes made by previous commands. [AWS association execution behavior](https://docs.aws.amazon.com/systems-manager/latest/userguide/state-manager-about.html), [AWS schedule reference](https://docs.aws.amazon.com/systems-manager/latest/userguide/reference-cron-and-rate-expressions.html).
+
+The source module exports association IDs, ARNs, pinned versions, and schedules. The EC2 module exports `ssm_node`, containing native instance ID/ARN and profile ARN. This output depends on the instance, which waits for the SSM policy attachment. The instance's IAM resources depend on no association or document output, keeping the graph acyclic even when multiple documents share an instance.
+
+## Runtime permissions and prerequisites
+
+The EC2 module owns `ssm_node.tf` and attaches the partition-aware `AmazonSSMManagedInstanceCore` AWS policy to its shared runtime role. `Ec2RuntimeRole` retains existing role, profile, and file addresses used by secret access and EFS mounts. `ec2_runtime.py` composes capability-specific policy dependencies so all three features use one profile, and document sharing does not create duplicate attachments. Existing user data is preserved; the connection does not install or start SSM Agent.
+
+The AWS core policy includes wildcard agent and inventory operations, message-channel permissions, and broad Parameter Store reads. The association's explicit instance selector does not narrow those runtime permissions. Additional document actions may require separate IAM, S3, KMS, filesystem, or OS permissions. [AWS core managed policy](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AmazonSSMManagedInstanceCore.html).
+
+Operators supply a compatible running agent, EC2 credentials, DNS and HTTPS connectivity to the appropriate regional Systems Manager endpoints, and compatible document actions. The generated profile does not prove that the node is online. Terraform does not wait for command success or verify compliance. Deployment credentials need document/association management, IAM role/profile/policy attachment management, and permission to pass the EC2 role.
+
+The current provider does not expose AWS's `AssociationDispatchAssumeRole` parameter. Associations use default service-linked dispatch behavior, whose support AWS is phasing out. Accounts requiring custom dispatch roles are outside this implementation; a custom role cannot be supplied through this connection. [AWS dispatch role guidance](https://docs.aws.amazon.com/systems-manager/latest/userguide/state-manager-about.html), [provider implementation](https://github.com/hashicorp/terraform-provider-aws/blob/main/internal/service/ssm/association.go).
+
+## Document and parameter validation
+
+Connected documents must be `Command` documents with valid local names, JSON or YAML content, schema 2.2, and at least one named AWS action step with an inputs object. Empty default documents, Automation/Policy documents, duplicate step names, invalid structure, YAML aliases, and non-finite content are rejected. AWS remains responsible for plugin-specific validation, declared allowed values/patterns, and platform compatibility.
+
+`parameters_json` accepts a bounded JSON object of named string values. Overrides must reference declared `String` parameters and supply every required parameter; declared `StringList` defaults can be used, but list overrides are unsupported. Duplicate JSON keys and unknown parameters are rejected. Content is bounded to 64 KiB, parameters to 32 KiB, and their combined size to 64 KiB. Terraform interpolation markers in overrides are escaped to preserve their literal values. Parameters appear in configuration and state and are unsuitable for secrets.
+
+Native lifecycle guards check document type/name/ARN/version, explicit instance identity, profile scope, deployment partition/account/Region, integral schedule bounds, executable schema/format, and parameter declarations. Backend Region checks include environment overrides. Arbitrary schedules, Automation associations, tag targeting, output buckets, custom dispatch roles, and execution-result verification remain outside this connection.
+
+## Verification
+
+`tests/test_ssm_ec2_connections.py` covers property-based naming/schedules/duplicates, stable pair identities, per-target settings, document compatibility, required parameters, YAML content, literal interpolation round trips, effective Regions, previews, and Terraform-evaluated native guards. Nine generated projects pass provider validation and plan graphs, including shared nodes, separate targets, immediate application, regional providers, and shared EFS/secrets runtime credentials. Schema endpoint tests verify discovery without frontend compatibility changes. Tests do not deploy associations or run commands.

@@ -1,5 +1,7 @@
 # Testing
 
+`tests/test_ssm_ec2_connections.py` covers property-based pair settings, duplicates, names, executable documents, required parameters, literal interpolation, effective Regions, native guards, previews, and schema discovery. Nine projects pass Terraform validation and plan graphs, including EFS/secrets composition. See [SSM EC2 associations](backend-ssm-ec2-connections.md).
+
 `tests/test_fis_eks_connections.py` covers property-based names/duplicates/selection, shared-role aggregation, manual RBAC round trips, explicit selectors, native scope/authentication/version guards, role paths, previews, and schema discovery. Nine projects pass Terraform validation and plan graphs, including EFS/Prometheus/Grafana composition. See [FIS EKS pods](backend-fis-eks-connections.md).
 
 `tests/test_fis_ecs_connections.py` covers property-based duplicates/selection/names, single-service and mixed-family conflicts, Regions, previews, native scope guards, exact role paths, emitted IAM policies, and unchanged ECS generation. Nine projects pass Terraform validation and plan graphs, including shared roles/services, separate EC2 templates, secrets, and combined encrypted logging/tracing/metrics/EFS/Grafana wiring. Schema tests verify dynamic discovery. See [FIS ECS tasks](backend-fis-ecs-connections.md).

@@ -1,6 +1,7 @@
 """EC2 service generator — produces HCL for aws_instance resources."""
 
 from app.generators.base import get_typed_config  # noqa: F401
+from app.generators.ec2_runtime import add_runtime_identity
 from app.generators.hcl_renderer import Expr, HCLRenderer
 from app.models.input_models.ec2_config import Ec2Config
 from app.models.ir_models import ResourceInstanceIR
@@ -30,16 +31,7 @@ class EC2Generator:
             "vpc_security_group_ids": Expr("var.security_group_ids"),
             "tags": Expr("{ Name = var.instance_name }"),
         }
-        if config._reads_runtime_secrets or config._mounts_efs:
-            attrs["iam_instance_profile"] = Expr(
-                "aws_iam_instance_profile.runtime_secrets.name"
-            )
-            policies = []
-            if config._reads_runtime_secrets:
-                policies.append("aws_iam_role_policy.runtime_secrets")
-            if config._mounts_efs:
-                policies.append("aws_iam_role_policy.efs_mounts")
-            attrs["depends_on"] = Expr("[" + ", ".join(policies) + "]")
+        add_runtime_identity(attrs, config)
         if config._mounts_efs:
             attrs["user_data"] = Expr(
                 'templatefile("${path.module}/efs_bootstrap.sh.tftpl", { mounts = local.efs_mounts, install_helper = local.install_efs_utils, user_script = base64encode(var.user_data) })'
